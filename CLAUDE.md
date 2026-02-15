@@ -1,0 +1,202 @@
+# KARIMO Development Guide
+
+## Project Identity
+
+**KARIMO** is an open-source autonomous development framework — agent, tool, and repo agnostic. It turns product requirements into shipped code using AI agents, automated code review, and structured human oversight.
+
+**Core philosophy:** You are the architect, agents are the builders, Greptile is the inspector.
+
+---
+
+## Tech Stack
+
+- **Language:** TypeScript (strict mode)
+- **Runtime:** Bun
+- **Validation:** Zod
+- **Linting/Formatting:** Biome
+- **Testing:** Bun test
+
+---
+
+## Code Standards
+
+### TypeScript Strict Mode
+
+- **No `any` types** — Use `unknown` if the type is truly unknown, then narrow it.
+- **No `as` casts** — Use type guards or proper type narrowing.
+- **Explicit return types** — All exported functions must have explicit return types.
+- **Strict null checks** — Handle `null` and `undefined` explicitly.
+
+### Validation
+
+- **Zod for all external inputs** — API inputs, config files, CLI arguments.
+- **Schema-first design** — Define Zod schemas, infer types from them.
+- **Fail fast** — Validate at boundaries, trust data internally.
+
+### File Organization
+
+- One primary export per file where possible
+- Barrel exports via `index.ts`
+- Tests as `*.test.ts` next to source files
+- Path alias: `@/` → `src/`
+
+### Error Handling
+
+- Use structured error types (classes extending `Error`)
+- Never bare `try/catch` without proper error handling
+- Log errors with context before re-throwing
+- Classify errors as fatal vs. retryable where applicable
+
+---
+
+## Architecture Rules
+
+### Module Boundaries
+
+Each module in `src/` has a clear, single responsibility:
+
+| Module | Responsibility |
+| ------ | -------------- |
+| `orchestrator` | Execution loop, task coordination |
+| `config` | Configuration loading and validation |
+| `prd` | PRD parsing and task extraction |
+| `git` | Git operations (worktrees, branches, rebases) |
+| `github` | GitHub API interactions |
+| `agents` | Agent process management |
+| `learning` | Checkpoint collection and config updates |
+| `cost` | Cost tracking and budget enforcement |
+| `cli` | Command-line interface |
+| `types` | Shared type definitions |
+
+### No Circular Dependencies
+
+Follow this dependency flow:
+
+```
+cli → orchestrator → {agents, git, github, cost, learning}
+                   ↓
+              config, prd, types
+```
+
+### Ring-Based Development
+
+KARIMO follows a ring-based build plan. Current status: **Ring 0**.
+
+- **Ring 0:** Basic agent execution (current)
+- **Ring 1:** GitHub Projects integration
+- **Ring 2:** Automated review (Greptile)
+- **Ring 3:** Full orchestration
+- **Ring 4:** Parallel execution + fallback engines
+- **Ring 5:** Dashboard
+
+Only implement features appropriate for the current ring.
+
+---
+
+## Git Conventions
+
+### Branch Naming
+
+```
+karimo/<scope>/<description>
+```
+
+Examples:
+- `karimo/orchestrator/add-cost-tracking`
+- `karimo/cli/implement-status-command`
+
+### Commit Messages
+
+Use Conventional Commits:
+
+```
+<type>[optional scope]: <description>
+
+[optional body]
+
+Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
+```
+
+**Types:**
+- `feat:` — New feature
+- `fix:` — Bug fix
+- `refactor:` — Code restructuring
+- `docs:` — Documentation changes
+- `test:` — Test additions/updates
+- `chore:` — Maintenance tasks
+
+---
+
+## Forbidden
+
+- **No `any` types** — This is a hard requirement, no exceptions.
+- **No dependencies without justification** — Keep the dependency tree minimal.
+- **No files outside established structure** — Follow the module layout.
+- **No skipping types** — Everything must be properly typed.
+- **No circular dependencies** — Follow the dependency flow above.
+- **No implementing features beyond current ring** — Stay focused on Ring 0.
+
+---
+
+## Commands
+
+```bash
+# Development
+bun run dev                 # Run CLI in development
+bun run typecheck           # Type checking
+bun run lint                # Linting
+bun run lint:fix            # Fix lint issues
+bun run format              # Format code
+bun run test                # Run tests
+
+# Build
+bun run build               # Build for production
+```
+
+---
+
+## Key Files
+
+| File | Purpose |
+| ---- | ------- |
+| `src/types/index.ts` | All shared type definitions |
+| `templates/config.example.yaml` | Configuration reference |
+| `templates/PRD_TEMPLATE.md` | PRD output format |
+| `docs/ARCHITECTURE.md` | System architecture |
+| `docs/RINGS.md` | Ring-based build plan |
+
+---
+
+## When Adding New Code
+
+1. **Check the ring** — Is this feature appropriate for Ring 0?
+2. **Find the module** — Which module does this belong in?
+3. **Define types first** — Add to `src/types/index.ts` if shared
+4. **Write tests** — Add `*.test.ts` next to the source
+5. **Update docs** — Keep architecture docs in sync
+6. **Run checks** — `bun run typecheck && bun run lint`
+
+---
+
+## Cost Control Patterns
+
+When implementing cost-related features:
+
+- Per-task ceiling: `complexity × cost_multiplier`
+- Iteration limit: `base_iterations + (complexity × iteration_multiplier)`
+- Revision budget: `cost_ceiling × (revision_budget_percent / 100)`
+- Phase budget: Soft cap with overflow for running tasks
+- Session budget: Hard cap, no overflow
+
+Always use the `CostEstimate` type with confidence levels.
+
+---
+
+## Learning System Patterns
+
+When implementing learning features:
+
+- **Layer 1 (Orchestrator):** Deterministic, code-driven, runs after every task
+- **Layer 2 (Agent):** Developer-facing, plugin-driven, captures corrections
+
+Checkpoint data flows: Collection → Processing → Config Updates → Future Agents

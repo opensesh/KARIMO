@@ -1,0 +1,147 @@
+# =============================================================================
+# KARIMO Configuration
+# =============================================================================
+# Place this file at .karimo/config.yaml in your project root.
+# This example shows all available options with their default values.
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# Project Metadata
+# -----------------------------------------------------------------------------
+# Basic information about your project that helps agents understand context.
+
+project:
+  name: "your-project"          # Your project name
+  language: "TypeScript"        # Primary language (TypeScript, Python, Go, etc.)
+  framework: "Next.js"          # Framework (if applicable)
+  runtime: "Bun"                # Runtime (Bun, Node, Deno, etc.)
+  database: "Supabase"          # Database (if applicable)
+
+# -----------------------------------------------------------------------------
+# Build Commands
+# -----------------------------------------------------------------------------
+# Commands the orchestrator runs for build verification and testing.
+# These must pass before PRs can be created.
+
+commands:
+  build: "bun run build"
+  lint: "bun run lint"
+  test: "bun run test"
+  typecheck: "bun run typecheck"
+
+# -----------------------------------------------------------------------------
+# Project Rules
+# -----------------------------------------------------------------------------
+# Architecture and code quality rules that agents read at session start.
+# These are appended to CLAUDE.md and enforced during code review.
+# Layer 1 compound learning automatically adds new rules here.
+
+rules:
+  - "TypeScript strict mode — no `any` types"
+  - "Use Zod validation for all API inputs and form data"
+  - "Error handling: always use structured error types, never bare try/catch"
+  - "Follow existing patterns in similar files before creating new patterns"
+  # Add your project's architecture rules here
+
+# -----------------------------------------------------------------------------
+# File Boundaries
+# -----------------------------------------------------------------------------
+# Controls which files agents can modify and which require human review.
+
+boundaries:
+  # Files agents should NEVER modify (auto-rejected if touched)
+  never_touch:
+    - "migrations/*.sql"            # Migrations are append-only
+    - "*.lock"                      # Package locks
+    - ".env*"                       # Environment files
+    - ".karimo/config.yaml"         # Pipeline config (read-only for agents)
+
+  # Files that require explicit human approval even if Greptile passes
+  # Agent PRs touching these files get a CAUTION FILE MODIFIED label
+  # Layer 1 compound learning adds files here automatically
+  require_review:
+    - "middleware.ts"               # Auth middleware
+    - "app/layout.tsx"              # Root layout
+
+# -----------------------------------------------------------------------------
+# Cost Control
+# -----------------------------------------------------------------------------
+# Budget settings for agent execution. These protect against runaway costs.
+
+cost:
+  # Model preference for agent execution
+  model_preference: "sonnet"
+
+  # Per-task cost ceiling: complexity × cost_multiplier
+  # Example: complexity-4 task → 4 × $3 = $12 ceiling
+  cost_multiplier: 3
+
+  # Iteration limits: base_iterations + (complexity × iteration_multiplier)
+  # Example: complexity-4 → 5 + (4 × 3) = 17 iterations max
+  base_iterations: 5
+  iteration_multiplier: 3
+
+  # Revision loop budget: percentage of original task cost
+  # Example: $12 task → $6 revision budget (50%)
+  revision_budget_percent: 50
+  max_revision_loops: 3
+
+  # Stop immediately on fatal errors (auth, cost-ceiling, stuck)
+  abort_on_fatal: true
+
+  # Fallback cost estimate when token parsing fails
+  # Used as: (duration in minutes) × fallback_cost_per_minute
+  fallback_cost_per_minute: 0.50
+
+  # Phase-level budget cap (null = no limit)
+  # Soft cap with configurable overflow for running tasks
+  phase_budget_cap: null
+
+  # Allow running tasks to exceed phase cap by this percentage
+  # Example: 0.10 = 10% overflow allowed
+  phase_budget_overflow: 0.10
+
+  # Session-level budget cap (null = no limit)
+  # Hard cap — no overflow allowed
+  session_budget_cap: null
+
+  # Warn when approaching budget limits (percentage)
+  budget_warning_threshold: 0.75
+
+# -----------------------------------------------------------------------------
+# Fallback Engines
+# -----------------------------------------------------------------------------
+# Alternative agent engines to use when the primary engine fails.
+# Triggered on rate-limit or auth errors.
+
+fallback_engine:
+  enabled: false
+  engines:
+    - name: "codex"
+      command: "codex"
+      budget_cap: 50
+      priority: 1
+    - name: "gemini"
+      command: "gemini-cli"
+      budget_cap: 50
+      priority: 2
+  trigger_on:
+    - "rate-limit"
+    - "quota-exceeded"
+
+# -----------------------------------------------------------------------------
+# Agent Sandbox
+# -----------------------------------------------------------------------------
+# Environment variables agents can access. Everything else is filtered.
+# Never include sensitive credentials here.
+
+sandbox:
+  allowed_env:
+    - "PATH"
+    - "HOME"
+    - "NODE_ENV"
+    # Add your project's safe public env vars here
+    # e.g., public API URLs, anon keys (never service/admin keys)
+    # Agent process is restricted to worktree directory
+    # Config is mounted read-only
+    # No access to .env files, production credentials, or other worktrees

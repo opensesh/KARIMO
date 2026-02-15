@@ -1,0 +1,49 @@
+{
+  "name": "@karimo/core",
+  "version": "0.0.1",
+  "description": "Open-source autonomous development framework — agent, tool, and repo agnostic",
+  "type": "module",
+  "bin": {
+    "karimo": "src/cli/index.ts"
+  },
+  "scripts": {
+    "dev": "bun run src/cli/index.ts",
+    "build": "bun build src/cli/index.ts --outdir dist --target bun",
+    "lint": "biome check .",
+    "lint:fix": "biome check . --write",
+    "format": "biome format . --write",
+    "typecheck": "tsc --noEmit",
+    "test": "bun test"
+  },
+  "dependencies": {
+    "zod": "^3.24.0"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^1.9.4",
+    "@types/bun": "^1.3.0",
+    "typescript": "^5.7.0"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/opensesh/KARIMO.git"
+  },
+  "homepage": "https://github.com/opensesh/KARIMO",
+  "bugs": {
+    "url": "https://github.com/opensesh/KARIMO/issues"
+  },
+  "keywords": [
+    "autonomous-development",
+    "ai-agents",
+    "developer-tools",
+    "code-review",
+    "typescript",
+    "open-source"
+  ],
+  "engines": {
+    "bun": ">=1.0.0"
+  }
+}
