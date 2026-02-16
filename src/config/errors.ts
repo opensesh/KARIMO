@@ -24,13 +24,10 @@ export class KarimoConfigError extends Error {
 export class ConfigNotFoundError extends KarimoConfigError {
   constructor(
     public searchedFrom: string,
-    public searchedFor: string = '.karimo/config.yaml'
+    public searchedFor = '.karimo/config.yaml'
   ) {
     super(
-      `Configuration file not found.\n` +
-        `  Searched from: ${searchedFrom}\n` +
-        `  Looking for: ${searchedFor}\n\n` +
-        `Run 'karimo init' to create a configuration file.`
+      `Configuration file not found.\n  Searched from: ${searchedFrom}\n  Looking for: ${searchedFor}\n\nRun 'karimo init' to create a configuration file.`
     )
     this.name = 'ConfigNotFoundError'
   }
@@ -40,17 +37,14 @@ export class ConfigNotFoundError extends KarimoConfigError {
  * Thrown when the config file exists but cannot be read.
  */
 export class ConfigReadError extends KarimoConfigError {
-  constructor(
-    public configPath: string,
-    public cause: Error
-  ) {
+  public originalError: Error
+
+  constructor(configPath: string, originalError: Error) {
     super(
-      `Failed to read configuration file.\n` +
-        `  Path: ${configPath}\n` +
-        `  Reason: ${cause.message}\n\n` +
-        `Check file permissions and ensure the file is accessible.`
+      `Failed to read configuration file.\n  Path: ${configPath}\n  Reason: ${originalError.message}\n\nCheck file permissions and ensure the file is accessible.`
     )
     this.name = 'ConfigReadError'
+    this.originalError = originalError
   }
 }
 
@@ -58,17 +52,14 @@ export class ConfigReadError extends KarimoConfigError {
  * Thrown when the config file contains invalid YAML syntax.
  */
 export class ConfigParseError extends KarimoConfigError {
-  constructor(
-    public configPath: string,
-    public cause: Error
-  ) {
+  public originalError: Error
+
+  constructor(configPath: string, originalError: Error) {
     super(
-      `Invalid YAML syntax in configuration file.\n` +
-        `  Path: ${configPath}\n` +
-        `  Reason: ${cause.message}\n\n` +
-        `Fix the YAML syntax errors and try again.`
+      `Invalid YAML syntax in configuration file.\n  Path: ${configPath}\n  Reason: ${originalError.message}\n\nFix the YAML syntax errors and try again.`
     )
     this.name = 'ConfigParseError'
+    this.originalError = originalError
   }
 }
 
@@ -92,10 +83,7 @@ export class ConfigValidationError extends KarimoConfigError {
   ) {
     const issueList = zodError.issues.map(formatZodIssue).join('\n')
     super(
-      `Configuration validation failed.\n` +
-        `  Path: ${configPath}\n` +
-        `  Issues:\n${issueList}\n\n` +
-        `Fix the configuration values and try again.`
+      `Configuration validation failed.\n  Path: ${configPath}\n  Issues:\n${issueList}\n\nFix the configuration values and try again.`
     )
     this.name = 'ConfigValidationError'
     this.issues = zodError.issues

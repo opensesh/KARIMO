@@ -4,9 +4,9 @@
  * Tests for schema validation, config loading, and defaults.
  */
 
+import { describe, expect, test } from 'bun:test'
 import { mkdirSync, rmSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
 import { stringify as stringifyYaml } from 'yaml'
 import {
   ConfigNotFoundError,
@@ -306,80 +306,111 @@ describe('DEFAULT_COST', () => {
 // =============================================================================
 
 describe('Config Loader', () => {
-  const TEST_DIR = join(process.cwd(), 'test-config-temp')
-  const KARIMO_DIR = join(TEST_DIR, '.karimo')
-  const CONFIG_PATH = join(KARIMO_DIR, 'config.yaml')
-
-  beforeEach(() => {
-    // Clean up before each test
-    rmSync(TEST_DIR, { recursive: true, force: true })
-    mkdirSync(KARIMO_DIR, { recursive: true })
-  })
-
-  afterEach(() => {
-    // Clean up after each test
-    rmSync(TEST_DIR, { recursive: true, force: true })
-  })
+  /**
+   * Helper to create a unique test directory for each test.
+   */
+  function createTestDir(): { testDir: string; karimoDir: string; configPath: string } {
+    const testDir = join('/tmp', `karimo-test-${Date.now()}-${Math.random().toString(36).slice(2)}`)
+    const karimoDir = join(testDir, '.karimo')
+    const configPath = join(karimoDir, 'config.yaml')
+    mkdirSync(karimoDir, { recursive: true })
+    return { testDir, karimoDir, configPath }
+  }
 
   describe('findConfigPath', () => {
     test('finds config in current directory', () => {
-      writeFileSync(CONFIG_PATH, stringifyYaml(VALID_MINIMAL_CONFIG))
+      const { testDir, configPath } = createTestDir()
+      try {
+        writeFileSync(configPath, stringifyYaml(VALID_MINIMAL_CONFIG))
 
-      const result = findConfigPath(TEST_DIR)
-      expect(result.configPath).toBe(CONFIG_PATH)
-      expect(result.rootDir).toBe(TEST_DIR)
+        const result = findConfigPath(testDir)
+        expect(result.configPath).toBe(configPath)
+        expect(result.rootDir).toBe(testDir)
+      } finally {
+        rmSync(testDir, { recursive: true, force: true })
+      }
     })
 
     test('finds config in parent directory', () => {
-      const subDir = join(TEST_DIR, 'subdir', 'nested')
-      mkdirSync(subDir, { recursive: true })
-      writeFileSync(CONFIG_PATH, stringifyYaml(VALID_MINIMAL_CONFIG))
+      const { testDir, configPath } = createTestDir()
+      try {
+        const subDir = join(testDir, 'subdir', 'nested')
+        mkdirSync(subDir, { recursive: true })
+        writeFileSync(configPath, stringifyYaml(VALID_MINIMAL_CONFIG))
 
-      const result = findConfigPath(subDir)
-      expect(result.configPath).toBe(CONFIG_PATH)
-      expect(result.rootDir).toBe(TEST_DIR)
+        const result = findConfigPath(subDir)
+        expect(result.configPath).toBe(configPath)
+        expect(result.rootDir).toBe(testDir)
+      } finally {
+        rmSync(testDir, { recursive: true, force: true })
+      }
     })
 
     test('throws ConfigNotFoundError when no config exists', () => {
-      rmSync(KARIMO_DIR, { recursive: true, force: true })
+      const { testDir, karimoDir } = createTestDir()
+      try {
+        rmSync(karimoDir, { recursive: true, force: true })
 
-      expect(() => findConfigPath(TEST_DIR)).toThrow(ConfigNotFoundError)
+        expect(() => findConfigPath(testDir)).toThrow(ConfigNotFoundError)
+      } finally {
+        rmSync(testDir, { recursive: true, force: true })
+      }
     })
   })
 
   describe('loadConfigSync', () => {
     test('loads and validates valid config', () => {
-      writeFileSync(CONFIG_PATH, stringifyYaml(VALID_MINIMAL_CONFIG))
+      const { testDir, configPath } = createTestDir()
+      try {
+        writeFileSync(configPath, stringifyYaml(VALID_MINIMAL_CONFIG))
 
-      const result = loadConfigSync(TEST_DIR)
-      expect(result.config.project.name).toBe('test-project')
-      expect(result.configPath).toBe(CONFIG_PATH)
-      expect(result.rootDir).toBe(TEST_DIR)
+        const result = loadConfigSync(testDir)
+        expect(result.config.project.name).toBe('test-project')
+        expect(result.configPath).toBe(configPath)
+        expect(result.rootDir).toBe(testDir)
+      } finally {
+        rmSync(testDir, { recursive: true, force: true })
+      }
     })
 
     test('throws ConfigParseError for invalid YAML', () => {
-      writeFileSync(CONFIG_PATH, 'invalid: yaml: syntax: [')
+      const { testDir, configPath } = createTestDir()
+      try {
+        writeFileSync(configPath, 'invalid: yaml: syntax: [')
 
-      expect(() => loadConfigSync(TEST_DIR)).toThrow(ConfigParseError)
+        expect(() => loadConfigSync(testDir)).toThrow(ConfigParseError)
+      } finally {
+        rmSync(testDir, { recursive: true, force: true })
+      }
     })
 
     test('throws ConfigValidationError for invalid config', () => {
-      writeFileSync(CONFIG_PATH, stringifyYaml({ project: {} }))
+      const { testDir, configPath } = createTestDir()
+      try {
+        writeFileSync(configPath, stringifyYaml({ project: {} }))
 
-      expect(() => loadConfigSync(TEST_DIR)).toThrow(ConfigValidationError)
+        expect(() => loadConfigSync(testDir)).toThrow(ConfigValidationError)
+      } finally {
+        rmSync(testDir, { recursive: true, force: true })
+      }
     })
 
     test('ConfigValidationError includes field paths', () => {
-      writeFileSync(CONFIG_PATH, stringifyYaml({ project: {} }))
-
+      const { testDir, configPath } = createTestDir()
       try {
-        loadConfigSync(TEST_DIR)
-        expect(true).toBe(false) // Should not reach here
-      } catch (error) {
-        expect(error).toBeInstanceOf(ConfigValidationError)
-        const validationError = error as ConfigValidationError
-        const paths = validationError.getFieldPaths()
-        expect(paths.length).toBeGreaterThan(0)
+        writeFileSync(configPath, stringifyYaml({ project: {} }))
+
+        try {
+          loadConfigSync(testDir)
+          expect(true).toBe(false) // Should not reach here
+        } catch (error) {
+          expect(error).toBeInstanceOf(ConfigValidationError)
+          const validationError = error as ConfigValidationError
+          const paths = validationError.getFieldPaths()
+          expect(paths.length).toBeGreaterThan(0)
+        }
+      } finally {
+        rmSync(testDir, { recursive: true, force: true })
       }
     })
   })

@@ -5,7 +5,7 @@
  * Traverses up the directory tree to find .karimo/config.yaml.
  */
 
-import { readFileSync } from 'node:fs'
+import { readFileSync, statSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
 import { parse as parseYaml } from 'yaml'
 import {
@@ -42,6 +42,18 @@ export interface LoadConfigResult {
 }
 
 /**
+ * Check if a file exists synchronously using Node fs.
+ */
+function fileExistsSync(path: string): boolean {
+  try {
+    const stat = statSync(path)
+    return stat.isFile()
+  } catch {
+    return false
+  }
+}
+
+/**
  * Find the config file by traversing up the directory tree.
  *
  * @param startDir - Directory to start searching from (defaults to cwd)
@@ -55,18 +67,11 @@ export function findConfigPath(startDir?: string): FindConfigResult {
   while (true) {
     const configPath = join(currentDir, CONFIG_DIR, CONFIG_FILE)
 
-    try {
-      // Use Bun.file to check existence
-      const file = Bun.file(configPath)
-      // size will throw if file doesn't exist
-      if (file.size >= 0) {
-        return {
-          configPath,
-          rootDir: currentDir,
-        }
+    if (fileExistsSync(configPath)) {
+      return {
+        configPath,
+        rootDir: currentDir,
       }
-    } catch {
-      // File doesn't exist, continue searching
     }
 
     const parentDir = dirname(currentDir)

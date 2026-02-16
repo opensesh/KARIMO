@@ -9,7 +9,12 @@ import { existsSync, mkdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import * as p from '@clack/prompts'
 import { stringify as stringifyYaml } from 'yaml'
-import { COMMON_ALLOWED_ENV, DEFAULT_BOUNDARIES, DEFAULT_COST, DEFAULT_FALLBACK_ENGINE } from './defaults'
+import {
+  COMMON_ALLOWED_ENV,
+  DEFAULT_BOUNDARIES,
+  DEFAULT_COST,
+  DEFAULT_FALLBACK_ENGINE,
+} from './defaults'
 import type { KarimoConfig } from './schema'
 
 const CONFIG_DIR = '.karimo'
@@ -22,6 +27,13 @@ interface DetectedProject {
   name?: string
   language?: string
   runtime?: string
+}
+
+/**
+ * Safely get a property from an object using bracket notation.
+ */
+function getProp<T>(obj: Record<string, unknown>, key: string): T | undefined {
+  return obj[key] as T | undefined
 }
 
 /**
@@ -40,23 +52,27 @@ function detectProjectInfo(): DetectedProject {
 
     const detected: DetectedProject = {}
 
-    if (typeof pkg.name === 'string') {
-      detected.name = pkg.name
+    const name = getProp<string>(pkg, 'name')
+    if (typeof name === 'string') {
+      detected.name = name
     }
 
     // Detect language from devDependencies
-    const devDeps = pkg.devDependencies as Record<string, unknown> | undefined
-    if (devDeps?.typescript || devDeps?.['@types/node']) {
+    const devDeps = getProp<Record<string, unknown>>(pkg, 'devDependencies')
+    // biome-ignore lint/complexity/useLiteralKeys: index signature requires bracket notation
+    if (devDeps?.['typescript'] || devDeps?.['@types/node']) {
       detected.language = 'typescript'
     } else {
       detected.language = 'javascript'
     }
 
     // Detect runtime from engines or dependencies
-    const engines = pkg.engines as Record<string, unknown> | undefined
-    if (engines?.bun) {
+    const engines = getProp<Record<string, unknown>>(pkg, 'engines')
+    // biome-ignore lint/complexity/useLiteralKeys: index signature requires bracket notation
+    if (engines?.['bun']) {
       detected.runtime = 'bun'
-    } else if (engines?.node) {
+      // biome-ignore lint/complexity/useLiteralKeys: index signature requires bracket notation
+    } else if (engines?.['node']) {
       detected.runtime = 'node'
     } else {
       detected.runtime = 'node'
@@ -132,9 +148,10 @@ export async function runInit(): Promise<void> {
         p.text({
           message: 'Project name',
           placeholder: detected.name ?? 'my-project',
-          initialValue: detected.name,
+          initialValue: detected.name ?? '',
           validate: (value) => {
             if (!value.trim()) return 'Project name is required'
+            return undefined
           },
         }),
       language: () =>
@@ -189,6 +206,7 @@ export async function runInit(): Promise<void> {
           placeholder: 'bun run build',
           validate: (value) => {
             if (!value.trim()) return 'Build command is required'
+            return undefined
           },
         }),
       lint: () =>
@@ -197,6 +215,7 @@ export async function runInit(): Promise<void> {
           placeholder: 'bun run lint',
           validate: (value) => {
             if (!value.trim()) return 'Lint command is required'
+            return undefined
           },
         }),
       test: () =>
@@ -205,6 +224,7 @@ export async function runInit(): Promise<void> {
           placeholder: 'bun test',
           validate: (value) => {
             if (!value.trim()) return 'Test command is required'
+            return undefined
           },
         }),
       typecheck: () =>
@@ -213,6 +233,7 @@ export async function runInit(): Promise<void> {
           placeholder: 'bun run typecheck',
           validate: (value) => {
             if (!value.trim()) return 'Type check command is required'
+            return undefined
           },
         }),
     },
@@ -230,6 +251,7 @@ export async function runInit(): Promise<void> {
     placeholder: 'No any types, Use Zod for validation, Prefer async/await',
     validate: (value) => {
       if (!value.trim()) return 'At least one rule is required'
+      return undefined
     },
   })
 
@@ -250,6 +272,7 @@ export async function runInit(): Promise<void> {
     initialValue: COMMON_ALLOWED_ENV.join(', '),
     validate: (value) => {
       if (!value.trim()) return 'At least one environment variable is required'
+      return undefined
     },
   })
 
@@ -296,11 +319,7 @@ export async function runInit(): Promise<void> {
     spinner.stop('Configuration written successfully.')
 
     p.note(
-      `Configuration saved to:\n  ${configPath}\n\n` +
-        'Next steps:\n' +
-        '  1. Review and customize boundaries in config.yaml\n' +
-        '  2. Adjust cost settings if needed\n' +
-        '  3. Create your first PRD file',
+      `Configuration saved to:\n  ${configPath}\n\nNext steps:\n  1. Review and customize boundaries in config.yaml\n  2. Adjust cost settings if needed\n  3. Create your first PRD file`,
       'Success'
     )
 
