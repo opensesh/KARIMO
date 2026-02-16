@@ -4,6 +4,20 @@ KARIMO uses a ring-based adoption strategy. Each ring is a concentric circle of 
 
 ---
 
+## Why Rings?
+
+Autonomous development is high-stakes. Before letting agents run overnight, you need to:
+
+- See what agents actually produce
+- Understand how cost controls behave
+- Verify that code integrity checks catch real problems
+
+Each ring is a self-contained loop — not just a milestone. You complete a ring, validate it works, then add the next layer of capability. This provides a slow, steady integration path that builds trust without disrupting your existing workflow.
+
+By the time you reach Ring 5 (dashboard, parallel execution, overnight runs), you've already validated every component in isolation.
+
+---
+
 ## Ring 0: Foundation
 
 **Goal:** Prove that one agent can produce one mergeable PR from one task spec.
