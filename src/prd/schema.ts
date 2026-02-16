@@ -24,13 +24,19 @@ export const TaskSchema = z.object({
   title: z.string().min(1, 'Task title is required'),
   description: z.string().min(1, 'Task description is required'),
   depends_on: z.array(z.string()).default([]),
-  complexity: z.number().int().min(1, 'Complexity must be at least 1').max(10, 'Complexity cannot exceed 10'),
+  complexity: z
+    .number()
+    .int()
+    .min(1, 'Complexity must be at least 1')
+    .max(10, 'Complexity cannot exceed 10'),
   estimated_iterations: z.number().positive('Estimated iterations must be positive'),
   cost_ceiling: z.number().positive('Cost ceiling must be positive'),
   revision_budget: z.number().nonnegative('Revision budget cannot be negative'),
   priority: TaskPrioritySchema,
   assigned_to: z.string().min(1, 'Assigned to is required'),
-  success_criteria: z.array(z.string().min(1, 'Success criterion cannot be empty')).min(1, 'At least one success criterion is required'),
+  success_criteria: z
+    .array(z.string().min(1, 'Success criterion cannot be empty'))
+    .min(1, 'At least one success criterion is required'),
   files_affected: z.array(z.string()).default([]),
   agent_context: z.string().optional(),
 })

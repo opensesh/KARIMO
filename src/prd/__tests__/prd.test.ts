@@ -12,7 +12,6 @@ import {
   DuplicateTaskIdError,
   InvalidDependencyError,
   PRDExtractionError,
-  PRDValidationError,
   TaskSchema,
   TasksBlockSchema,
   buildDependencyGraph,
@@ -180,7 +179,7 @@ tasks:
   test('parses valid PRD with fenced YAML', () => {
     const result = parsePRD(VALID_PRD_CONTENT, 'test.md')
     expect(result.tasks.length).toBe(1)
-    expect(result.tasks[0].id).toBe('1a')
+    expect(result.tasks[0]?.id).toBe('1a')
     expect(result.metadata.feature_name).toBe('Test Feature')
   })
 
@@ -374,7 +373,7 @@ tasks:
 `
     const result = parsePRD(content, 'test.md')
     expect(result.tasks.length).toBe(2)
-    expect(result.tasks[1].depends_on).toContain('1a')
+    expect(result.tasks[1]?.depends_on).toContain('1a')
   })
 })
 
@@ -496,8 +495,13 @@ describe('getBlockedTasks', () => {
     ]
     const graph = buildDependencyGraph(tasks)
 
+    // When A is completed, B is ready (not blocked), C is blocked (waiting on B)
     const blocked = getBlockedTasks(graph, new Set(['A']))
-    expect(blocked.map((t) => t.id).sort()).toEqual(['B', 'C'])
+    expect(blocked.map((t) => t.id)).toEqual(['C'])
+
+    // When nothing is completed, B and C are blocked
+    const blockedNone = getBlockedTasks(graph, new Set())
+    expect(blockedNone.map((t) => t.id).sort()).toEqual(['B', 'C'])
   })
 })
 
@@ -526,9 +530,9 @@ describe('detectFileOverlaps', () => {
     const result = detectFileOverlaps(tasks)
     expect(result.safe.length).toBe(0)
     expect(result.sequential.length).toBe(1)
-    expect(result.sequential[0].map((t) => t.id).sort()).toEqual(['A', 'B'])
+    expect(result.sequential[0]?.map((t) => t.id).sort()).toEqual(['A', 'B'])
     expect(result.overlaps.length).toBe(1)
-    expect(result.overlaps[0].file).toBe('src/shared.ts')
+    expect(result.overlaps[0]?.file).toBe('src/shared.ts')
   })
 
   test('transitive overlap groups all three sequentially', () => {
@@ -540,7 +544,7 @@ describe('detectFileOverlaps', () => {
     const result = detectFileOverlaps(tasks)
     expect(result.safe.length).toBe(0)
     expect(result.sequential.length).toBe(1)
-    expect(result.sequential[0].map((t) => t.id).sort()).toEqual(['A', 'B', 'C'])
+    expect(result.sequential[0]?.map((t) => t.id).sort()).toEqual(['A', 'B', 'C'])
   })
 
   test('empty files_affected is always safe', () => {
@@ -571,9 +575,9 @@ describe('detectFileOverlaps', () => {
     ]
     const result = detectFileOverlaps(tasks)
     expect(result.safe.length).toBe(1)
-    expect(result.safe[0].id).toBe('C')
+    expect(result.safe[0]?.id).toBe('C')
     expect(result.sequential.length).toBe(1)
-    expect(result.sequential[0].map((t) => t.id).sort()).toEqual(['A', 'B'])
+    expect(result.sequential[0]?.map((t) => t.id).sort()).toEqual(['A', 'B'])
   })
 })
 
@@ -673,8 +677,20 @@ describe('recalculateComputedFields', () => {
 describe('validateAllTasks', () => {
   test('aggregates drifts across all tasks', () => {
     const tasks = [
-      createTask({ id: 'A', complexity: 5, cost_ceiling: 10, estimated_iterations: 20, revision_budget: 7.5 }),
-      createTask({ id: 'B', complexity: 5, cost_ceiling: 15, estimated_iterations: 10, revision_budget: 7.5 }),
+      createTask({
+        id: 'A',
+        complexity: 5,
+        cost_ceiling: 10,
+        estimated_iterations: 20,
+        revision_budget: 7.5,
+      }),
+      createTask({
+        id: 'B',
+        complexity: 5,
+        cost_ceiling: 15,
+        estimated_iterations: 10,
+        revision_budget: 7.5,
+      }),
     ]
     const result = validateAllTasks(tasks, DEFAULT_CONFIG)
     expect(result.valid).toBe(false)
@@ -683,8 +699,20 @@ describe('validateAllTasks', () => {
 
   test('returns valid when all tasks match', () => {
     const tasks = [
-      createTask({ id: 'A', complexity: 5, cost_ceiling: 15, estimated_iterations: 20, revision_budget: 7.5 }),
-      createTask({ id: 'B', complexity: 5, cost_ceiling: 15, estimated_iterations: 20, revision_budget: 7.5 }),
+      createTask({
+        id: 'A',
+        complexity: 5,
+        cost_ceiling: 15,
+        estimated_iterations: 20,
+        revision_budget: 7.5,
+      }),
+      createTask({
+        id: 'B',
+        complexity: 5,
+        cost_ceiling: 15,
+        estimated_iterations: 20,
+        revision_budget: 7.5,
+      }),
     ]
     const result = validateAllTasks(tasks, DEFAULT_CONFIG)
     expect(result.valid).toBe(true)

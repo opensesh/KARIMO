@@ -5,8 +5,8 @@
  * Handles metadata extraction, task parsing, and duplicate detection.
  */
 
-import { parse as parseYAML } from 'yaml'
 import type { PRDMetadata, Task } from '@/types'
+import { parse as parseYAML } from 'yaml'
 import {
   DuplicateTaskIdError,
   PRDExtractionError,
@@ -16,6 +16,7 @@ import {
   PRDValidationError,
 } from './errors'
 import { PRDMetadataSchema, TasksBlockSchema } from './schema'
+import type { PRDMetadataSchemaType, TaskSchemaType } from './schema'
 import type { ParsedPRD } from './types'
 
 /**
@@ -34,12 +35,17 @@ function extractMetadataBlock(content: string, sourceFile: string): string {
 
   // Skip any leading empty lines or whitespace
   let startIndex = 0
-  while (startIndex < lines.length && lines[startIndex].trim() === '') {
+  while (startIndex < lines.length && lines[startIndex]?.trim() === '') {
     startIndex++
   }
 
+  const startLine = lines[startIndex]
+  if (startLine === undefined) {
+    throw new PRDExtractionError(sourceFile, 'PRD file is empty')
+  }
+
   // Check if we have a markdown code fence with yaml
-  if (lines[startIndex]?.startsWith('```yaml')) {
+  if (startLine.startsWith('```yaml')) {
     // Find the closing fence
     const closeIndex = lines.findIndex((line, i) => i > startIndex && line.trim() === '```')
     if (closeIndex === -1) {
@@ -58,8 +64,11 @@ function extractMetadataBlock(content: string, sourceFile: string): string {
   }
 
   // Check for raw YAML block starting with ---
-  if (lines[startIndex]?.trim() !== '---') {
-    throw new PRDExtractionError(sourceFile, 'PRD must start with YAML metadata block (--- delimiters)')
+  if (startLine.trim() !== '---') {
+    throw new PRDExtractionError(
+      sourceFile,
+      'PRD must start with YAML metadata block (--- delimiters)'
+    )
   }
 
   // Find closing ---
@@ -94,6 +103,8 @@ function extractTasksBlock(content: string, sourceFile: string): string {
 
   for (let i = headingIndex + 1; i < lines.length; i++) {
     const line = lines[i]
+    if (line === undefined) continue
+
     const trimmed = line.trim()
 
     // Skip empty lines when looking for YAML start
@@ -105,7 +116,7 @@ function extractTasksBlock(content: string, sourceFile: string): string {
     const fenceMatch = line.match(/^(\s{0,4})```(?:yaml|yml)?/)
     if (fenceMatch && !inCodeFence) {
       inCodeFence = true
-      fenceIndent = fenceMatch[1].length
+      fenceIndent = fenceMatch[1]?.length ?? 0
       yamlStart = i + 1
       continue
     }
@@ -113,7 +124,7 @@ function extractTasksBlock(content: string, sourceFile: string): string {
     // Check for code fence end
     if (inCodeFence) {
       const closeFenceMatch = line.match(/^(\s{0,4})```\s*$/)
-      if (closeFenceMatch && closeFenceMatch[1].length <= fenceIndent) {
+      if (closeFenceMatch && (closeFenceMatch[1]?.length ?? 0) <= fenceIndent) {
         yamlEnd = i
         break
       }
@@ -126,7 +137,8 @@ function extractTasksBlock(content: string, sourceFile: string): string {
         yamlStart = i
         // Find end at next heading or end of file
         for (let j = i + 1; j < lines.length; j++) {
-          if (lines[j].match(/^#{1,6}\s/)) {
+          const checkLine = lines[j]
+          if (checkLine !== undefined && /^#{1,6}\s/.test(checkLine)) {
             yamlEnd = j
             break
           }
@@ -164,6 +176,56 @@ function checkDuplicateIds(tasks: Task[]): void {
 }
 
 /**
+ * Convert Zod-parsed metadata to PRDMetadata type.
+ * Handles exactOptionalPropertyTypes by only including defined optional fields.
+ */
+function toMetadata(data: PRDMetadataSchemaType): PRDMetadata {
+  const result: PRDMetadata = {
+    feature_name: data.feature_name,
+    feature_slug: data.feature_slug,
+    owner: data.owner,
+    status: data.status,
+    created_date: data.created_date,
+    phase: data.phase,
+    scope_type: data.scope_type,
+    links: data.links,
+    checkpoint_refs: data.checkpoint_refs,
+  }
+  if (data.target_date !== undefined) {
+    result.target_date = data.target_date
+  }
+  if (data.github_project !== undefined) {
+    result.github_project = data.github_project
+  }
+  return result
+}
+
+/**
+ * Convert Zod-parsed task to Task type.
+ * Handles exactOptionalPropertyTypes by only including defined optional fields.
+ */
+function toTask(data: TaskSchemaType): Task {
+  const result: Task = {
+    id: data.id,
+    title: data.title,
+    description: data.description,
+    depends_on: data.depends_on,
+    complexity: data.complexity,
+    estimated_iterations: data.estimated_iterations,
+    cost_ceiling: data.cost_ceiling,
+    revision_budget: data.revision_budget,
+    priority: data.priority,
+    assigned_to: data.assigned_to,
+    success_criteria: data.success_criteria,
+    files_affected: data.files_affected,
+  }
+  if (data.agent_context !== undefined) {
+    result.agent_context = data.agent_context
+  }
+  return result
+}
+
+/**
  * Parse PRD content and extract tasks.
  *
  * @param content - The raw PRD markdown content
@@ -188,7 +250,7 @@ export function parsePRD(content: string, sourceFile: string): ParsedPRD {
   if (!metadataResult.success) {
     throw new PRDValidationError(sourceFile, metadataResult.error)
   }
-  const metadata: PRDMetadata = metadataResult.data
+  const metadata = toMetadata(metadataResult.data)
 
   // Extract tasks block
   const tasksYaml = extractTasksBlock(normalized, sourceFile)
@@ -204,7 +266,7 @@ export function parsePRD(content: string, sourceFile: string): ParsedPRD {
   if (!tasksResult.success) {
     throw new PRDValidationError(sourceFile, tasksResult.error)
   }
-  const tasks: Task[] = tasksResult.data.tasks
+  const tasks = tasksResult.data.tasks.map(toTask)
 
   // Check for duplicate IDs
   checkDuplicateIds(tasks)

@@ -7,7 +7,7 @@
 
 import type { Task } from '@/types'
 import { CyclicDependencyError, InvalidDependencyError } from './errors'
-import type { DependencyGraph, DependencyNode } from './types'
+import type { DependencyGraph } from './types'
 
 /**
  * Build a dependency graph from a list of tasks.
@@ -115,13 +115,18 @@ export function topologicalSort(graph: DependencyGraph): Task[] {
   const result: Task[] = []
 
   while (queue.length > 0) {
-    const nodeId = queue.shift()!
-    const node = graph.get(nodeId)!
+    const nodeId = queue.shift()
+    if (nodeId === undefined) continue
+
+    const node = graph.get(nodeId)
+    if (node === undefined) continue
+
     result.push(node.task)
 
     // Decrease in-degree for dependents
     for (const dependentId of node.dependedBy) {
-      const newDegree = inDegree.get(dependentId)! - 1
+      const currentDegree = inDegree.get(dependentId) ?? 0
+      const newDegree = currentDegree - 1
       inDegree.set(dependentId, newDegree)
       if (newDegree === 0) {
         queue.push(dependentId)
@@ -201,7 +206,8 @@ export function getTaskDepths(graph: DependencyGraph): Map<string, number> {
   const depths = new Map<string, number>()
 
   function calculateDepth(nodeId: string): number {
-    if (depths.has(nodeId)) return depths.get(nodeId)!
+    const existingDepth = depths.get(nodeId)
+    if (existingDepth !== undefined) return existingDepth
 
     const node = graph.get(nodeId)
     if (!node || node.dependsOn.length === 0) {

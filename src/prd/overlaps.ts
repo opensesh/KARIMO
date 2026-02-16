@@ -26,11 +26,12 @@ class UnionFind {
       this.rank.set(x, 0)
     }
 
-    if (this.parent.get(x) !== x) {
-      this.parent.set(x, this.find(this.parent.get(x)!))
+    const parentValue = this.parent.get(x)
+    if (parentValue !== undefined && parentValue !== x) {
+      this.parent.set(x, this.find(parentValue))
     }
 
-    return this.parent.get(x)!
+    return this.parent.get(x) ?? x
   }
 
   /**
@@ -66,7 +67,7 @@ class UnionFind {
       if (!groups.has(root)) {
         groups.set(root, [])
       }
-      groups.get(root)!.push(element)
+      groups.get(root)?.push(element)
     }
 
     return groups
@@ -89,7 +90,7 @@ export function detectFileOverlaps(tasks: Task[]): OverlapResult {
       if (!fileToTasks.has(file)) {
         fileToTasks.set(file, [])
       }
-      fileToTasks.get(file)!.push(task.id)
+      fileToTasks.get(file)?.push(task.id)
     }
   }
 
@@ -109,8 +110,14 @@ export function detectFileOverlaps(tasks: Task[]): OverlapResult {
       overlaps.push({ file, taskIds: [...taskIds] })
 
       // Union all tasks that share this file
-      for (let i = 1; i < taskIds.length; i++) {
-        uf.union(taskIds[0], taskIds[i])
+      const firstId = taskIds[0]
+      if (firstId !== undefined) {
+        for (let i = 1; i < taskIds.length; i++) {
+          const otherId = taskIds[i]
+          if (otherId !== undefined) {
+            uf.union(firstId, otherId)
+          }
+        }
       }
     }
   }
@@ -129,9 +136,15 @@ export function detectFileOverlaps(tasks: Task[]): OverlapResult {
   const sequential: Task[][] = []
 
   for (const [_, memberIds] of groups) {
-    const groupTasks = memberIds.map((id) => taskById.get(id)!).filter(Boolean)
+    const groupTasks: Task[] = []
+    for (const id of memberIds) {
+      const task = taskById.get(id)
+      if (task !== undefined) {
+        groupTasks.push(task)
+      }
+    }
 
-    if (groupTasks.length === 1) {
+    if (groupTasks.length === 1 && groupTasks[0] !== undefined) {
       // Single task with no overlaps
       safe.push(groupTasks[0])
     } else if (groupTasks.length > 1) {

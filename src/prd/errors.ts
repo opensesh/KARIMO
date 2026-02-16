@@ -30,7 +30,9 @@ export class KarimoPRDError extends Error {
  */
 export class PRDNotFoundError extends KarimoPRDError {
   constructor(public prdPath: string) {
-    super(`PRD file not found.\n  Path: ${prdPath}\n\nEnsure the PRD file exists at the specified path.`)
+    super(
+      `PRD file not found.\n  Path: ${prdPath}\n\nEnsure the PRD file exists at the specified path.`
+    )
     this.name = 'PRDNotFoundError'
   }
 }
@@ -91,7 +93,9 @@ export class PRDValidationError extends KarimoPRDError {
     public zodError: ZodError
   ) {
     const issueList = zodError.issues.map(formatZodIssue).join('\n')
-    super(`PRD validation failed.\n  File: ${sourceFile}\n  Issues:\n${issueList}\n\nFix the task definitions and try again.`)
+    super(
+      `PRD validation failed.\n  File: ${sourceFile}\n  Issues:\n${issueList}\n\nFix the task definitions and try again.`
+    )
     this.name = 'PRDValidationError'
     this.issues = zodError.issues
   }
@@ -125,7 +129,9 @@ export class InvalidDependencyError extends KarimoPRDError {
 export class CyclicDependencyError extends KarimoPRDError {
   constructor(public cyclePath: string[]) {
     const cycleStr = cyclePath.join(' → ')
-    super(`Cyclic dependency detected in task graph.\n  Cycle: ${cycleStr}\n\nRemove or restructure dependencies to eliminate the cycle.`)
+    super(
+      `Cyclic dependency detected in task graph.\n  Cycle: ${cycleStr}\n\nRemove or restructure dependencies to eliminate the cycle.`
+    )
     this.name = 'CyclicDependencyError'
   }
 }
@@ -135,7 +141,9 @@ export class CyclicDependencyError extends KarimoPRDError {
  */
 export class DuplicateTaskIdError extends KarimoPRDError {
   constructor(public duplicateId: string) {
-    super(`Duplicate task ID found.\n  ID: ${duplicateId}\n\nEnsure all task IDs are unique within the PRD.`)
+    super(
+      `Duplicate task ID found.\n  ID: ${duplicateId}\n\nEnsure all task IDs are unique within the PRD.`
+    )
     this.name = 'DuplicateTaskIdError'
   }
 }
