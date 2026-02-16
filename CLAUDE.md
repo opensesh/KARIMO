@@ -270,3 +270,12 @@ bun run karimo:init         # Interactive config setup
 2. **Display** — Show detected values with confidence indicators
 3. **Confirm** — User confirms or edits each section
 4. **Write** — Generate and save config.yaml
+
+### Init vs. Onboard
+
+| Command | Purpose | When to Use |
+|---------|---------|-------------|
+| `karimo init` | Creates `.karimo/config.yaml` via auto-detection + confirmation | First-time project setup |
+| `bun run onboard` | Verifies existing setup for new team member | Joining a configured project |
+
+**Key distinction:** `init` creates new config, `onboard` validates existing config.
