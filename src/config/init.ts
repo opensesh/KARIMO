@@ -159,13 +159,24 @@ async function confirmProjectSection(
   if (p.isCancel(confirmed)) return confirmed
 
   if (confirmed) {
-    return {
+    const project: {
+      name: string
+      language: string
+      framework?: string
+      runtime: string
+      database?: string
+    } = {
       name: result.name?.value ?? '',
       language: result.language?.value ?? 'typescript',
-      framework: result.framework?.value,
       runtime: result.runtime?.value ?? 'node',
-      database: result.database?.value,
     }
+    if (result.framework?.value) {
+      project.framework = result.framework.value
+    }
+    if (result.database?.value) {
+      project.database = result.database.value
+    }
+    return project
   }
 
   // User wants to edit - show form with pre-filled values
@@ -225,13 +236,26 @@ async function confirmProjectSection(
     }
   )
 
-  return {
+  const editedProject: {
+    name: string
+    language: string
+    framework?: string
+    runtime: string
+    database?: string
+  } = {
     name: edited.name as string,
     language: edited.language as string,
-    framework: (edited.framework as string) || undefined,
     runtime: edited.runtime as string,
-    database: (edited.database as string) || undefined,
   }
+  const frameworkVal = edited.framework as string
+  if (frameworkVal) {
+    editedProject.framework = frameworkVal
+  }
+  const databaseVal = edited.database as string
+  if (databaseVal) {
+    editedProject.database = databaseVal
+  }
+  return editedProject
 }
 
 /**

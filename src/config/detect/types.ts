@@ -132,7 +132,11 @@ export function high<T>(
   source: string,
   reasoning?: string
 ): DetectedValue<T> {
-  return { value, confidence: 'high', source, reasoning }
+  const result: DetectedValue<T> = { value, confidence: 'high', source }
+  if (reasoning !== undefined) {
+    result.reasoning = reasoning
+  }
+  return result
 }
 
 /**
@@ -143,7 +147,11 @@ export function medium<T>(
   source: string,
   reasoning?: string
 ): DetectedValue<T> {
-  return { value, confidence: 'medium', source, reasoning }
+  const result: DetectedValue<T> = { value, confidence: 'medium', source }
+  if (reasoning !== undefined) {
+    result.reasoning = reasoning
+  }
+  return result
 }
 
 /**
@@ -154,5 +162,9 @@ export function low<T>(
   source: string,
   reasoning?: string
 ): DetectedValue<T> {
-  return { value, confidence: 'low', source, reasoning }
+  const result: DetectedValue<T> = { value, confidence: 'low', source }
+  if (reasoning !== undefined) {
+    result.reasoning = reasoning
+  }
+  return result
 }

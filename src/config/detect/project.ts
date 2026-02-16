@@ -12,7 +12,7 @@
 import { existsSync } from 'node:fs'
 import { basename, join } from 'node:path'
 import type { DetectedValue, PackageJson } from './types'
-import { high, low, medium } from './types'
+import { high, medium } from './types'
 
 /**
  * Result of project info detection.
