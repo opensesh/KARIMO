@@ -1,26 +1,94 @@
 /**
  * KARIMO PRD Module
  *
- * PRD parser, YAML task extraction, and dependency resolver.
- * Handles parsing of PRD markdown files, extracting the YAML
- * task block, and building the dependency graph for execution ordering.
+ * PRD parser, YAML task extraction, dependency resolution, and file overlap detection.
+ * Handles parsing of PRD markdown files, extracting the YAML task block,
+ * building the dependency graph for execution ordering, and detecting file conflicts.
  */
+
+// =============================================================================
+// Types (from @/types)
+// =============================================================================
 
 export type { PRD, PRDMetadata, Task, TaskPriority } from '@/types'
 
-// Dependency graph node
-export interface DependencyNode {
-  taskId: string
-  dependsOn: string[]
-  dependedBy: string[]
-}
+// =============================================================================
+// Local Types
+// =============================================================================
 
-// Dependency graph
-export type DependencyGraph = Map<string, DependencyNode>
+export type {
+  ComputedFieldConfig,
+  ComputedFieldDrift,
+  DependencyGraph,
+  DependencyNode,
+  FileOverlap,
+  OverlapResult,
+  ParsedPRD,
+  ValidationResult,
+} from './types'
 
-// File overlap detection result
-export interface FileOverlapResult {
-  safe: string[]
-  sequential: string[][]
-  overlaps: Map<string, string[]>
-}
+// =============================================================================
+// Schemas
+// =============================================================================
+
+export {
+  PRDMetadataSchema,
+  PRDStatusSchema,
+  ScopeTypeSchema,
+  TaskPrioritySchema,
+  TaskSchema,
+  TasksBlockSchema,
+} from './schema'
+
+export type { PRDMetadataSchemaType, TaskSchemaType, TasksBlockSchemaType } from './schema'
+
+// =============================================================================
+// Parser
+// =============================================================================
+
+export { parsePRD, parsePRDFile } from './parser'
+
+// =============================================================================
+// Dependencies
+// =============================================================================
+
+export {
+  buildDependencyGraph,
+  getBlockedTasks,
+  getReadyTasks,
+  getTaskDepths,
+  topologicalSort,
+} from './dependencies'
+
+// =============================================================================
+// Overlaps
+// =============================================================================
+
+export { detectFileOverlaps } from './overlaps'
+
+// =============================================================================
+// Validation
+// =============================================================================
+
+export {
+  recalculateAllTasks,
+  recalculateComputedFields,
+  validateAllTasks,
+  validateComputedFields,
+} from './validation'
+
+// =============================================================================
+// Errors
+// =============================================================================
+
+export {
+  CyclicDependencyError,
+  DuplicateTaskIdError,
+  InvalidDependencyError,
+  KarimoPRDError,
+  PRDExtractionError,
+  PRDNotFoundError,
+  PRDParseError,
+  PRDReadError,
+  PRDValidationError,
+} from './errors'
