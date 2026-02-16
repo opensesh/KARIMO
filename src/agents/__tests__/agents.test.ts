@@ -5,20 +5,20 @@
  * Note: ClaudeCodeEngine execution tests are skipped unless Claude Code is installed.
  */
 
-import { describe, expect, it, beforeEach, afterEach } from 'bun:test'
-import type { Task } from '@/types'
+import { afterEach, beforeEach, describe, expect, it } from 'bun:test'
 import type { KarimoConfig } from '@/config/schema'
+import type { Task } from '@/types'
 import {
-  buildAgentPrompt,
-  buildAgentEnvironment,
-  isEnvVariableSafe,
-  getExcludedEnvVariables,
-  getIncludedEnvVariables,
-  ClaudeCodeEngine,
+  AgentExecutionError,
   AgentNotFoundError,
   AgentSpawnError,
   AgentTimeoutError,
-  AgentExecutionError,
+  ClaudeCodeEngine,
+  buildAgentEnvironment,
+  buildAgentPrompt,
+  getExcludedEnvVariables,
+  getIncludedEnvVariables,
+  isEnvVariableSafe,
 } from '../index'
 
 // =============================================================================
@@ -247,9 +247,10 @@ describe('buildAgentPrompt', () => {
   })
 
   it('should handle task without agent_context', () => {
-    const task = createMockTask()
-    // Remove agent_context to test optional field handling
-    delete (task as { agent_context?: string }).agent_context
+    const baseTask = createMockTask()
+    // Create task without agent_context by destructuring and omitting it
+    const { agent_context: _, ...taskWithoutContext } = baseTask
+    const task = taskWithoutContext as typeof baseTask
     const config = createMockConfig()
 
     const prompt = buildAgentPrompt({

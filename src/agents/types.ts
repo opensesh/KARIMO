@@ -5,8 +5,8 @@
  * and result handling.
  */
 
-import type { Task } from '@/types'
 import type { KarimoConfig } from '@/config/schema'
+import type { Task } from '@/types'
 
 /**
  * Supported agent engines.

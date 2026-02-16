@@ -23,19 +23,19 @@ export interface TaskRunR0 {
   /** Branch name for the task */
   branch: string
   /** Path to the worktree (if still exists) */
-  worktreePath?: string
+  worktreePath?: string | undefined
   /** When execution started */
   startedAt: Date
   /** When execution completed */
-  completedAt?: Date
+  completedAt?: Date | undefined
   /** PR number if created */
-  prNumber?: number
+  prNumber?: number | undefined
   /** PR URL if created */
-  prUrl?: string
+  prUrl?: string | undefined
   /** Files matching caution patterns */
   cautionFilesModified: string[]
   /** Error message if failed */
-  errorMessage?: string
+  errorMessage?: string | undefined
 }
 
 /**
@@ -142,13 +142,13 @@ export interface TaskSummary {
   /** Duration in human-readable format */
   duration: string
   /** PR URL if created */
-  prUrl?: string
+  prUrl?: string | undefined
   /** Number of files changed */
   filesChanged: number
   /** Caution files modified */
   cautionFiles: string[]
   /** Error message if failed */
-  errorMessage?: string
+  errorMessage?: string | undefined
 }
 
 /**

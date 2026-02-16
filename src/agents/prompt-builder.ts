@@ -47,7 +47,7 @@ export function buildAgentPrompt(context: AgentPromptContext): string {
   sections.push('')
   sections.push(`**Title:** ${task.title}`)
   sections.push('')
-  sections.push(`**Description:**`)
+  sections.push('**Description:**')
   sections.push(task.description)
   sections.push('')
 

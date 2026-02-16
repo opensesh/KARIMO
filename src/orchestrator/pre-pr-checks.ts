@@ -9,7 +9,12 @@
  * - Check for caution files and never-touch violations
  */
 
-import { detectCautionFiles, detectNeverTouchViolations, getChangedFiles, rebaseOntoTarget } from '@/git'
+import {
+  detectCautionFiles,
+  detectNeverTouchViolations,
+  getChangedFiles,
+  rebaseOntoTarget,
+} from '@/git'
 import type { CommandResult, PrePRCheckOptions, PrePRCheckResult } from './types'
 
 /**
