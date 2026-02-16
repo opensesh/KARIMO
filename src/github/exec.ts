@@ -67,16 +67,13 @@ export async function ensureGhAvailable(): Promise<void> {
  * await ghExec(['pr', 'create', '--title', 'My PR', '--body', 'Description'])
  * ```
  */
-export async function ghExec(
-  args: string[],
-  options: GhExecOptions = {}
-): Promise<GhExecResult> {
+export async function ghExec(args: string[], options: GhExecOptions = {}): Promise<GhExecResult> {
   const { cwd, timeout = DEFAULT_TIMEOUT, throwOnError = true, env = {} } = options
 
   await ensureGhAvailable()
 
   const proc = Bun.spawn(['gh', ...args], {
-    cwd,
+    ...(cwd !== undefined && { cwd }),
     env: { ...process.env, ...env },
     stdout: 'pipe',
     stderr: 'pipe',
@@ -130,17 +127,16 @@ export async function ghExec(
  * console.log(pr.title)
  * ```
  */
-export async function ghExecJson<T>(
-  args: string[],
-  options: GhExecOptions = {}
-): Promise<T> {
+export async function ghExecJson<T>(args: string[], options: GhExecOptions = {}): Promise<T> {
   const result = await ghExec(args, options)
 
   try {
     return JSON.parse(result.stdout) as T
   } catch (error) {
     const parseError = error instanceof Error ? error : new Error(String(error))
-    throw new Error(`Failed to parse gh JSON output: ${parseError.message}\nOutput: ${result.stdout}`)
+    throw new Error(
+      `Failed to parse gh JSON output: ${parseError.message}\nOutput: ${result.stdout}`
+    )
   }
 }
 

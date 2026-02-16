@@ -21,7 +21,7 @@ export class KarimoGitHubError extends Error {
 export class GhCliNotFoundError extends KarimoGitHubError {
   constructor() {
     super(
-      `GitHub CLI (gh) not found.\n\nInstall it from: https://cli.github.com\n\nAfter installation, authenticate with: gh auth login`
+      'GitHub CLI (gh) not found.\n\nInstall it from: https://cli.github.com\n\nAfter installation, authenticate with: gh auth login'
     )
     this.name = 'GhCliNotFoundError'
   }
@@ -80,16 +80,19 @@ export class PrCreateError extends KarimoGitHubError {
  * Thrown when Octokit API operations fail.
  */
 export class OctokitError extends KarimoGitHubError {
-  constructor(
-    public status: number,
-    public message: string,
-    public documentationUrl?: string
-  ) {
+  public status: number
+  public documentationUrl?: string
+
+  constructor(status: number, message: string, documentationUrl?: string) {
     const docsInfo = documentationUrl ? `\n  Docs: ${documentationUrl}` : ''
     super(
       `GitHub API error.\n  Status: ${status}\n  Message: ${message}${docsInfo}\n\nCheck your token permissions and API rate limits.`
     )
     this.name = 'OctokitError'
+    this.status = status
+    if (documentationUrl !== undefined) {
+      this.documentationUrl = documentationUrl
+    }
   }
 }
 

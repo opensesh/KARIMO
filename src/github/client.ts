@@ -5,8 +5,8 @@
  * Token resolution: GITHUB_TOKEN env → explicit token → gh auth token
  */
 
-import { Octokit } from '@octokit/rest'
 import { graphql } from '@octokit/graphql'
+import { Octokit } from '@octokit/rest'
 import { OctokitError } from './errors'
 import { getGhToken } from './exec'
 import type {
@@ -26,7 +26,7 @@ import type {
  */
 async function resolveToken(explicitToken?: string): Promise<string | null> {
   // 1. GITHUB_TOKEN environment variable (zero-config in CI)
-  const envToken = process.env.GITHUB_TOKEN
+  const envToken = process.env['GITHUB_TOKEN']
   if (envToken) {
     return envToken
   }
@@ -66,9 +66,7 @@ async function resolveToken(explicitToken?: string): Promise<string | null> {
  * })
  * ```
  */
-export async function createGitHubClient(
-  options: GitHubClientOptions = {}
-): Promise<GitHubClient> {
+export async function createGitHubClient(options: GitHubClientOptions = {}): Promise<GitHubClient> {
   const token = await resolveToken(options.token)
 
   if (!token) {
@@ -80,7 +78,7 @@ export async function createGitHubClient(
 
   const octokit = new Octokit({
     auth: token,
-    baseUrl: options.baseUrl,
+    ...(options.baseUrl !== undefined && { baseUrl: options.baseUrl }),
   })
 
   const graphqlWithAuth = graphql.defaults({
@@ -99,8 +97,10 @@ export async function createGitHubClient(
           base: prOptions.base,
           title: prOptions.title,
           body: prOptions.body,
-          draft: prOptions.draft,
-          maintainer_can_modify: prOptions.maintainerCanModify,
+          ...(prOptions.draft !== undefined && { draft: prOptions.draft }),
+          ...(prOptions.maintainerCanModify !== undefined && {
+            maintainer_can_modify: prOptions.maintainerCanModify,
+          }),
         })
 
         const pr = response.data
@@ -139,11 +139,7 @@ export async function createGitHubClient(
       }
     },
 
-    async getPullRequest(
-      owner: string,
-      repo: string,
-      number: number
-    ): Promise<PrStatusResult> {
+    async getPullRequest(owner: string, repo: string, number: number): Promise<PrStatusResult> {
       try {
         const response = await octokit.rest.pulls.get({
           owner,
@@ -173,12 +169,7 @@ export async function createGitHubClient(
       }
     },
 
-    async addLabels(
-      owner: string,
-      repo: string,
-      number: number,
-      labels: string[]
-    ): Promise<void> {
+    async addLabels(owner: string, repo: string, number: number, labels: string[]): Promise<void> {
       try {
         await octokit.rest.issues.addLabels({
           owner,
@@ -199,14 +190,16 @@ export async function createGitHubClient(
     ): Promise<void> {
       try {
         for (const label of labels) {
-          await octokit.rest.issues.removeLabel({
-            owner,
-            repo,
-            issue_number: number,
-            name: label,
-          }).catch(() => {
-            // Ignore errors for labels that don't exist
-          })
+          await octokit.rest.issues
+            .removeLabel({
+              owner,
+              repo,
+              issue_number: number,
+              name: label,
+            })
+            .catch(() => {
+              // Ignore errors for labels that don't exist
+            })
         }
       } catch (error) {
         handleOctokitError(error)
@@ -238,9 +231,7 @@ export async function createGitHubClient(
 /**
  * Map GitHub's mergeable_state to our simplified enum.
  */
-function mapMergeableState(
-  state: string
-): 'clean' | 'dirty' | 'blocked' | 'behind' | 'unknown' {
+function mapMergeableState(state: string): 'clean' | 'dirty' | 'blocked' | 'behind' | 'unknown' {
   switch (state) {
     case 'clean':
       return 'clean'

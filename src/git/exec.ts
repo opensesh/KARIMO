@@ -50,7 +50,7 @@ export async function gitExec(
   }
 
   const proc = Bun.spawn(['git', ...args], {
-    cwd,
+    ...(cwd !== undefined && { cwd }),
     env: gitEnv,
     stdout: 'pipe',
     stderr: 'pipe',
@@ -95,7 +95,7 @@ export async function gitExec(
  * @throws {GitCommandError} If not in a git repository
  */
 export async function getRepoRoot(cwd?: string): Promise<string> {
-  const result = await gitExec(['rev-parse', '--show-toplevel'], { cwd })
+  const result = await gitExec(['rev-parse', '--show-toplevel'], cwd !== undefined ? { cwd } : {})
   return result.stdout.trim()
 }
 
@@ -107,7 +107,7 @@ export async function getRepoRoot(cwd?: string): Promise<string> {
  */
 export async function isGitRepo(cwd?: string): Promise<boolean> {
   const result = await gitExec(['rev-parse', '--is-inside-work-tree'], {
-    cwd,
+    ...(cwd !== undefined && { cwd }),
     throwOnError: false,
   })
   return result.success && result.stdout.trim() === 'true'
@@ -123,7 +123,7 @@ export async function isGitRepo(cwd?: string): Promise<boolean> {
  */
 export async function getHeadSha(cwd?: string, short = false): Promise<string> {
   const args = short ? ['rev-parse', '--short', 'HEAD'] : ['rev-parse', 'HEAD']
-  const result = await gitExec(args, { cwd })
+  const result = await gitExec(args, cwd !== undefined ? { cwd } : {})
   return result.stdout.trim()
 }
 
@@ -135,10 +135,10 @@ export async function getHeadSha(cwd?: string, short = false): Promise<string> {
  */
 export async function getDefaultBranch(cwd?: string): Promise<string> {
   // Try to get from remote HEAD reference
-  const result = await gitExec(
-    ['symbolic-ref', '--short', 'refs/remotes/origin/HEAD'],
-    { cwd, throwOnError: false }
-  )
+  const result = await gitExec(['symbolic-ref', '--short', 'refs/remotes/origin/HEAD'], {
+    ...(cwd !== undefined && { cwd }),
+    throwOnError: false,
+  })
 
   if (result.success) {
     // Returns 'origin/main' or 'origin/master', extract branch name
@@ -148,7 +148,7 @@ export async function getDefaultBranch(cwd?: string): Promise<string> {
 
   // Fallback: check if 'main' exists, otherwise 'master'
   const mainCheck = await gitExec(['show-ref', '--verify', '--quiet', 'refs/heads/main'], {
-    cwd,
+    ...(cwd !== undefined && { cwd }),
     throwOnError: false,
   })
 

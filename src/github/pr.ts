@@ -5,9 +5,9 @@
  * Includes KARIMO-styled PR body generation.
  */
 
+import { createGitHubClient, hasGitHubToken } from './client'
 import { PrCreateError } from './errors'
 import { ghExec, ghExecJson } from './exec'
-import { createGitHubClient, hasGitHubToken } from './client'
 import type {
   CreatePrOptions,
   GitHubClient,
@@ -147,12 +147,18 @@ export async function createPullRequest(
   // Fallback to gh CLI
   try {
     const args = [
-      'pr', 'create',
-      '--repo', `${options.owner}/${options.repo}`,
-      '--head', options.head,
-      '--base', options.base,
-      '--title', options.title,
-      '--body', options.body,
+      'pr',
+      'create',
+      '--repo',
+      `${options.owner}/${options.repo}`,
+      '--head',
+      options.head,
+      '--base',
+      options.base,
+      '--title',
+      options.title,
+      '--body',
+      options.body,
     ]
 
     if (options.draft) {
@@ -172,7 +178,7 @@ export async function createPullRequest(
     // Parse the PR URL from output
     const url = result.stdout.trim()
     const prNumberMatch = url.match(/\/pull\/(\d+)$/)
-    const prNumber = prNumberMatch ? Number.parseInt(prNumberMatch[1], 10) : 0
+    const prNumber = prNumberMatch?.[1] ? Number.parseInt(prNumberMatch[1], 10) : 0
 
     return {
       number: prNumber,
@@ -217,8 +223,15 @@ export async function getPrStatus(
 
   // Fallback to gh CLI
   const jsonFields = [
-    'number', 'state', 'isDraft', 'mergeable',
-    'comments', 'commits', 'changedFiles', 'additions', 'deletions',
+    'number',
+    'state',
+    'isDraft',
+    'mergeable',
+    'comments',
+    'commits',
+    'changedFiles',
+    'additions',
+    'deletions',
   ].join(',')
 
   const pr = await ghExecJson<{
@@ -231,11 +244,7 @@ export async function getPrStatus(
     changedFiles: number
     additions: number
     deletions: number
-  }>([
-    'pr', 'view', String(number),
-    '--repo', `${owner}/${repo}`,
-    '--json', jsonFields,
-  ])
+  }>(['pr', 'view', String(number), '--repo', `${owner}/${repo}`, '--json', jsonFields])
 
   return {
     number: pr.number,
@@ -285,9 +294,13 @@ export async function addLabels(
 
   // Fallback to gh CLI
   await ghExec([
-    'pr', 'edit', String(number),
-    '--repo', `${owner}/${repo}`,
-    '--add-label', labels.join(','),
+    'pr',
+    'edit',
+    String(number),
+    '--repo',
+    `${owner}/${repo}`,
+    '--add-label',
+    labels.join(','),
   ])
 }
 
@@ -322,9 +335,13 @@ export async function removeLabels(
 
   // Fallback to gh CLI
   await ghExec([
-    'pr', 'edit', String(number),
-    '--repo', `${owner}/${repo}`,
-    '--remove-label', labels.join(','),
+    'pr',
+    'edit',
+    String(number),
+    '--repo',
+    `${owner}/${repo}`,
+    '--remove-label',
+    labels.join(','),
   ])
 }
 
@@ -335,15 +352,8 @@ export async function removeLabels(
  * @param repo - Repository name
  * @param number - PR number
  */
-export async function closePr(
-  owner: string,
-  repo: string,
-  number: number
-): Promise<void> {
-  await ghExec([
-    'pr', 'close', String(number),
-    '--repo', `${owner}/${repo}`,
-  ])
+export async function closePr(owner: string, repo: string, number: number): Promise<void> {
+  await ghExec(['pr', 'close', String(number), '--repo', `${owner}/${repo}`])
 }
 
 /**
@@ -353,15 +363,8 @@ export async function closePr(
  * @param repo - Repository name
  * @param number - PR number
  */
-export async function reopenPr(
-  owner: string,
-  repo: string,
-  number: number
-): Promise<void> {
-  await ghExec([
-    'pr', 'reopen', String(number),
-    '--repo', `${owner}/${repo}`,
-  ])
+export async function reopenPr(owner: string, repo: string, number: number): Promise<void> {
+  await ghExec(['pr', 'reopen', String(number), '--repo', `${owner}/${repo}`])
 }
 
 /**
@@ -376,18 +379,13 @@ export async function markReadyForReview(
   repo: string,
   number: number
 ): Promise<void> {
-  await ghExec([
-    'pr', 'ready', String(number),
-    '--repo', `${owner}/${repo}`,
-  ])
+  await ghExec(['pr', 'ready', String(number), '--repo', `${owner}/${repo}`])
 }
 
 /**
  * Map gh CLI mergeable state to our enum.
  */
-function mapMergeableFromCli(
-  state: string
-): 'clean' | 'dirty' | 'blocked' | 'behind' | 'unknown' {
+function mapMergeableFromCli(state: string): 'clean' | 'dirty' | 'blocked' | 'behind' | 'unknown' {
   switch (state?.toUpperCase()) {
     case 'MERGEABLE':
       return 'clean'

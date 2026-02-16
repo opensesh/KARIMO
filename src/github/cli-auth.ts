@@ -59,18 +59,32 @@ function parseAuthStatus(stdout: string, stderr: string, host: string): GhAuthSt
 
     // Look for scopes
     const scopeMatch = trimmed.match(/Token scopes: (.+)/)
-    if (scopeMatch && scopeMatch[1]) {
-      scopes.push(...scopeMatch[1].split(',').map((s) => s.trim()).filter((s) => s))
+    if (scopeMatch?.[1]) {
+      scopes.push(
+        ...scopeMatch[1]
+          .split(',')
+          .map((s) => s.trim())
+          .filter((s) => s)
+      )
     }
   }
 
-  return {
+  const result: GhAuthStatus = {
     authenticated: username !== undefined,
-    username,
     host,
-    scopes: scopes.length > 0 ? scopes : undefined,
-    protocol,
   }
+
+  if (username !== undefined) {
+    result.username = username
+  }
+  if (scopes.length > 0) {
+    result.scopes = scopes
+  }
+  if (protocol !== undefined) {
+    result.protocol = protocol
+  }
+
+  return result
 }
 
 /**

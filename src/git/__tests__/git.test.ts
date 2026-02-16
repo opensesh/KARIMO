@@ -6,10 +6,10 @@
  * Uses real temporary git repositories for accurate testing.
  */
 
-import { mkdtemp, rm } from 'node:fs/promises'
+import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
+import { mkdtemp, realpath, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
 
 import {
   BranchCreateError,
@@ -54,14 +54,16 @@ let tempDir: string
  */
 async function createTempRepo(): Promise<string> {
   const dir = await mkdtemp(join(tmpdir(), 'karimo-git-test-'))
-  await gitExec(['init'], { cwd: dir })
-  await gitExec(['config', 'user.email', 'test@karimo.dev'], { cwd: dir })
-  await gitExec(['config', 'user.name', 'KARIMO Test'], { cwd: dir })
+  // Resolve symlinks (e.g., /var -> /private/var on macOS) to match git's canonical paths
+  const resolvedDir = await realpath(dir)
+  await gitExec(['init'], { cwd: resolvedDir })
+  await gitExec(['config', 'user.email', 'test@karimo.dev'], { cwd: resolvedDir })
+  await gitExec(['config', 'user.name', 'KARIMO Test'], { cwd: resolvedDir })
   // Create initial commit
-  await Bun.write(join(dir, 'README.md'), '# Test Repository\n')
-  await gitExec(['add', '.'], { cwd: dir })
-  await gitExec(['commit', '-m', 'Initial commit'], { cwd: dir })
-  return dir
+  await Bun.write(join(resolvedDir, 'README.md'), '# Test Repository\n')
+  await gitExec(['add', '.'], { cwd: resolvedDir })
+  await gitExec(['commit', '-m', 'Initial commit'], { cwd: resolvedDir })
+  return resolvedDir
 }
 
 /**
@@ -118,9 +120,9 @@ describe('gitExec', () => {
   })
 
   test('throws GitCommandError on failure by default', async () => {
-    await expect(
-      gitExec(['checkout', 'nonexistent-branch'], { cwd: tempDir })
-    ).rejects.toThrow(GitCommandError)
+    await expect(gitExec(['checkout', 'nonexistent-branch'], { cwd: tempDir })).rejects.toThrow(
+      GitCommandError
+    )
   })
 
   test('includes command in error message', async () => {
@@ -225,9 +227,9 @@ describe('getWorktreeInfo', () => {
   })
 
   test('throws WorktreeNotFoundError for nonexistent path', async () => {
-    await expect(
-      getWorktreeInfo(join(tempDir, 'nonexistent-worktree'), tempDir)
-    ).rejects.toThrow(WorktreeNotFoundError)
+    await expect(getWorktreeInfo(join(tempDir, 'nonexistent-worktree'), tempDir)).rejects.toThrow(
+      WorktreeNotFoundError
+    )
   })
 })
 
@@ -246,8 +248,12 @@ describe('pruneWorktrees', () => {
     const worktreePath = await createWorktree(tempDir, 'prune-test', 'feature/prune-test/task')
     await rm(worktreePath, { recursive: true, force: true })
 
-    // Prune should not throw
-    await expect(pruneWorktrees(tempDir)).resolves.not.toThrow()
+    // Prune should complete without error (if it throws, the test fails)
+    await pruneWorktrees(tempDir)
+
+    // Verify worktree entry was pruned
+    const worktrees = await listWorktrees(tempDir)
+    expect(worktrees.find((wt) => wt.path === worktreePath)).toBeUndefined()
   })
 })
 

@@ -6,7 +6,7 @@
  * where actual GitHub access is not available.
  */
 
-import { describe, expect, test, mock, beforeEach } from 'bun:test'
+import { beforeEach, describe, expect, test } from 'bun:test'
 
 import {
   GhAuthError,
@@ -162,11 +162,7 @@ describe('GhAuthError', () => {
 
 describe('GhCommandError', () => {
   test('includes command and stderr', () => {
-    const error = new GhCommandError(
-      ['pr', 'create', '--title', 'Test'],
-      1,
-      'error: not found'
-    )
+    const error = new GhCommandError(['pr', 'create', '--title', 'Test'], 1, 'error: not found')
     expect(error.name).toBe('GhCommandError')
     expect(error.args).toEqual(['pr', 'create', '--title', 'Test'])
     expect(error.exitCode).toBe(1)

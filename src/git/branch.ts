@@ -6,7 +6,7 @@
  */
 
 import { BranchCreateError } from './errors'
-import { gitExec, getDefaultBranch } from './exec'
+import { getDefaultBranch, gitExec } from './exec'
 import type { DeleteBranchOptions, GitExecOptions } from './types'
 
 /**
@@ -75,7 +75,10 @@ export async function branchExists(
   // Check local branch
   const localResult = await gitExec(
     ['show-ref', '--verify', '--quiet', `refs/heads/${branchName}`],
-    { cwd, throwOnError: false }
+    {
+      ...(cwd !== undefined && { cwd }),
+      throwOnError: false,
+    }
   )
 
   if (localResult.success) {
@@ -86,7 +89,10 @@ export async function branchExists(
     // Check remote branch
     const remoteResult = await gitExec(
       ['show-ref', '--verify', '--quiet', `refs/remotes/origin/${branchName}`],
-      { cwd, throwOnError: false }
+      {
+        ...(cwd !== undefined && { cwd }),
+        throwOnError: false,
+      }
     )
     return remoteResult.success
   }
@@ -108,7 +114,7 @@ export async function branchExists(
  * ```
  */
 export async function getCurrentBranch(cwd?: string): Promise<string> {
-  const result = await gitExec(['branch', '--show-current'], { cwd })
+  const result = await gitExec(['branch', '--show-current'], cwd !== undefined ? { cwd } : {})
   return result.stdout.trim()
 }
 
@@ -175,7 +181,10 @@ export async function deleteBranch(
  * @returns Array of branch names
  */
 export async function listBranches(cwd?: string): Promise<string[]> {
-  const result = await gitExec(['branch', '--list', '--format=%(refname:short)'], { cwd })
+  const result = await gitExec(
+    ['branch', '--list', '--format=%(refname:short)'],
+    cwd !== undefined ? { cwd } : {}
+  )
   return result.stdout
     .trim()
     .split('\n')
@@ -190,10 +199,10 @@ export async function listBranches(cwd?: string): Promise<string[]> {
  * @returns Upstream branch (e.g., 'origin/main'), or null if not set
  */
 export async function getUpstreamBranch(branchName: string, cwd?: string): Promise<string | null> {
-  const result = await gitExec(
-    ['rev-parse', '--abbrev-ref', `${branchName}@{upstream}`],
-    { cwd, throwOnError: false }
-  )
+  const result = await gitExec(['rev-parse', '--abbrev-ref', `${branchName}@{upstream}`], {
+    ...(cwd !== undefined && { cwd }),
+    throwOnError: false,
+  })
 
   if (!result.success) {
     return null
@@ -214,7 +223,10 @@ export async function setUpstreamBranch(
   upstream: string,
   cwd?: string
 ): Promise<void> {
-  await gitExec(['branch', '--set-upstream-to', upstream, branchName], { cwd })
+  await gitExec(
+    ['branch', '--set-upstream-to', upstream, branchName],
+    cwd !== undefined ? { cwd } : {}
+  )
 }
 
 /**
@@ -246,6 +258,6 @@ export async function getMergeBase(
   branch2: string,
   cwd?: string
 ): Promise<string> {
-  const result = await gitExec(['merge-base', branch1, branch2], { cwd })
+  const result = await gitExec(['merge-base', branch1, branch2], cwd !== undefined ? { cwd } : {})
   return result.stdout.trim()
 }

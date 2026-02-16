@@ -8,7 +8,7 @@
 
 import { join } from 'node:path'
 import { WorktreeCreateError, WorktreeNotFoundError } from './errors'
-import { gitExec, getRepoRoot } from './exec'
+import { getRepoRoot, gitExec } from './exec'
 import type { GitExecOptions, WorktreeInfo } from './types'
 
 /**
@@ -79,7 +79,10 @@ function parseWorktreeList(output: string): WorktreeInfo[] {
  * ```
  */
 export async function listWorktrees(repoPath?: string): Promise<WorktreeInfo[]> {
-  const result = await gitExec(['worktree', 'list', '--porcelain'], { cwd: repoPath })
+  const result = await gitExec(
+    ['worktree', 'list', '--porcelain'],
+    repoPath !== undefined ? { cwd: repoPath } : {}
+  )
   return parseWorktreeList(result.stdout)
 }
 
@@ -210,7 +213,7 @@ export async function removeWorktree(
   }
   args.push(worktreePath)
 
-  await gitExec(args, { cwd: repoPath })
+  await gitExec(args, repoPath !== undefined ? { cwd: repoPath } : {})
 }
 
 /**
@@ -220,7 +223,7 @@ export async function removeWorktree(
  * @param repoPath - Path to repository
  */
 export async function pruneWorktrees(repoPath?: string): Promise<void> {
-  await gitExec(['worktree', 'prune'], { cwd: repoPath })
+  await gitExec(['worktree', 'prune'], repoPath !== undefined ? { cwd: repoPath } : {})
 }
 
 /**

@@ -143,11 +143,14 @@ export async function skipRebase(options: GitExecOptions = {}): Promise<RebaseRe
 
   const conflictFiles = await getConflictFiles(options.cwd)
 
-  return {
+  const rebaseResult: RebaseResult = {
     success: false,
     conflictFiles,
-    error: conflictFiles.length === 0 ? result.stderr.trim() : undefined,
   }
+  if (conflictFiles.length === 0) {
+    rebaseResult.error = result.stderr.trim()
+  }
+  return rebaseResult
 }
 
 /**
@@ -159,7 +162,7 @@ export async function skipRebase(options: GitExecOptions = {}): Promise<RebaseRe
 export async function isRebaseInProgress(cwd?: string): Promise<boolean> {
   // Git stores rebase state in .git/rebase-merge or .git/rebase-apply
   const result = await gitExec(['rev-parse', '--git-path', 'rebase-merge'], {
-    cwd,
+    ...(cwd !== undefined && { cwd }),
     throwOnError: false,
   })
 
@@ -174,7 +177,7 @@ export async function isRebaseInProgress(cwd?: string): Promise<boolean> {
 
   // Also check rebase-apply (for git am rebases)
   const applyResult = await gitExec(['rev-parse', '--git-path', 'rebase-apply'], {
-    cwd,
+    ...(cwd !== undefined && { cwd }),
     throwOnError: false,
   })
 
@@ -195,7 +198,7 @@ export async function isRebaseInProgress(cwd?: string): Promise<boolean> {
 export async function getConflictFiles(cwd?: string): Promise<string[]> {
   // Use git diff to find files with conflict markers (unmerged)
   const result = await gitExec(['diff', '--name-only', '--diff-filter=U'], {
-    cwd,
+    ...(cwd !== undefined && { cwd }),
     throwOnError: false,
   })
 
@@ -222,13 +225,10 @@ export async function needsRebase(
   options: GitExecOptions = {}
 ): Promise<boolean> {
   // Count commits in target that aren't in HEAD
-  const result = await gitExec(
-    ['rev-list', '--count', `HEAD..${targetBranch}`],
-    {
-      ...options,
-      throwOnError: false,
-    }
-  )
+  const result = await gitExec(['rev-list', '--count', `HEAD..${targetBranch}`], {
+    ...options,
+    throwOnError: false,
+  })
 
   if (!result.success) {
     return false

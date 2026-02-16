@@ -85,10 +85,7 @@ export async function getChangedFilesDetailed(
   )
 
   // Get numstat for additions/deletions
-  const numstatResult = await gitExec(
-    ['diff', '--numstat', `${baseRef}...${headRef}`],
-    options
-  )
+  const numstatResult = await gitExec(['diff', '--numstat', `${baseRef}...${headRef}`], options)
 
   // Parse name-status output
   const statusMap = new Map<string, { status: StatusCode; previousPath?: string }>()
@@ -103,7 +100,11 @@ export async function getChangedFilesDetailed(
         // Rename/copy: format is "R100\told\tnew" or "C100\told\tnew"
         const previousPath = parts[1]
         const newPath = parts[2] ?? ''
-        statusMap.set(newPath, { status, previousPath })
+        if (previousPath !== undefined) {
+          statusMap.set(newPath, { status, previousPath })
+        } else {
+          statusMap.set(newPath, { status })
+        }
       } else {
         statusMap.set(path, { status })
       }
@@ -128,7 +129,7 @@ export async function getChangedFilesDetailed(
 
       // Handle rename arrow notation
       const renameMatch = path.match(/^(.+)\{(.+) => (.+)\}(.+)$/)
-      if (renameMatch) {
+      if (renameMatch?.[1] && renameMatch[3] && renameMatch[4]) {
         path = renameMatch[1] + renameMatch[3] + renameMatch[4]
       } else if (path.includes(' => ')) {
         const renameParts = path.split(' => ')
@@ -137,13 +138,16 @@ export async function getChangedFilesDetailed(
 
       const statusInfo = statusMap.get(path) ?? { status: 'M' as const }
 
-      files.push({
+      const changedFile: ChangedFile = {
         path,
         status: statusInfo.status,
         additions,
         deletions,
-        previousPath: statusInfo.previousPath,
-      })
+      }
+      if (statusInfo.previousPath !== undefined) {
+        changedFile.previousPath = statusInfo.previousPath
+      }
+      files.push(changedFile)
 
       totalAdditions += additions
       totalDeletions += deletions
@@ -198,10 +202,7 @@ function matchesPattern(filePath: string, pattern: string): boolean {
  * }
  * ```
  */
-export function detectCautionFiles(
-  changedFiles: string[],
-  patterns: string[]
-): CautionFilesResult {
+export function detectCautionFiles(changedFiles: string[], patterns: string[]): CautionFilesResult {
   const matches: Array<{ file: string; pattern: string }> = []
   const cautionFiles: string[] = []
 
@@ -274,10 +275,7 @@ export async function getFileDiff(
   headRef = 'HEAD',
   options: GitExecOptions = {}
 ): Promise<string> {
-  const result = await gitExec(
-    ['diff', `${baseRef}...${headRef}`, '--', filePath],
-    options
-  )
+  const result = await gitExec(['diff', `${baseRef}...${headRef}`, '--', filePath], options)
   return result.stdout
 }
 
