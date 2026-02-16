@@ -1,6 +1,6 @@
 # KARIMO Architecture
 
-**Version:** 1.2
+**Version:** 1.3
 **Status:** Active
 
 ---
@@ -150,6 +150,54 @@ Project-specific settings live in `.karimo/config.yaml`:
 - **Sandbox** — Allowed environment variables
 
 See `templates/config.example.yaml` for a complete example.
+
+---
+
+## Auto-Detection System
+
+When you run `karimo init`, the system performs intelligent scanning before prompting for configuration:
+
+### Detection Modules
+
+| Detector | Source Signals | Output |
+|----------|----------------|--------|
+| **project** | package.json, pyproject.toml, go.mod, Cargo.toml | name, language, framework, runtime, database |
+| **commands** | package.json scripts, Makefile, existing configs | build, lint, test, typecheck commands |
+| **rules** | tsconfig, eslint, biome, prettier configs | Architecture rules (max 10) |
+| **boundaries** | Common patterns, existing .gitignore | never_touch, require_review file lists |
+| **sandbox** | .env.example (never actual .env) | Safe environment variable list |
+
+### Confidence Levels
+
+Each detected value carries a confidence indicator:
+
+| Symbol | Level | Meaning |
+|--------|-------|---------|
+| `●` | High | Strong signal, auto-accepted |
+| `◐` | Medium | Good signal, user should verify |
+| `○` | Low | Weak signal, likely needs correction |
+| `?` | Not detected | User must fill in |
+
+### Init Flow
+
+1. **Scan** — All 5 detectors run in parallel (target: < 500ms)
+2. **Display** — Show detected values with confidence indicators
+3. **Confirm** — User confirms or edits each section
+4. **Write** — Generate and save `.karimo/config.yaml`
+
+### Design Principles
+
+- **Conservative detection** — Prefer null over wrong guess
+- **Parallel execution** — All detectors run via Promise.all
+- **Privacy-safe** — Never read actual .env files, only .env.example
+- **Bounded output** — Rules capped at 10, boundaries only include existing files
+
+### Init vs. Onboard
+
+| Command | Purpose |
+|---------|---------|
+| `karimo init` | First-time setup: scan → confirm → write config |
+| `bun run onboard` | Team onboarding: verify existing config works |
 
 ---
 
