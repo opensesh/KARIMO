@@ -13,7 +13,8 @@
     "lint:fix": "biome check . --write",
     "format": "biome format . --write",
     "typecheck": "tsc --noEmit",
-    "test": "bun test"
+    "test": "bun test",
+    "karimo:init": "bun run src/cli/init-command.ts"
   },
   "dependencies": {
     "@clack/prompts": "^0.8.0",
