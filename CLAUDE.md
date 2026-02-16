@@ -200,3 +200,34 @@ When implementing learning features:
 - **Layer 2 (Agent):** Developer-facing, plugin-driven, captures corrections
 
 Checkpoint data flows: Collection → Processing → Config Updates → Future Agents
+
+---
+
+## Phase 2 — Config Schema & Validator (Complete)
+
+- Config module lives in `src/config/`
+- Zod schemas define the contract for `.karimo/config.yaml`
+- Types are inferred from Zod — never duplicate manually
+- `loadConfig()` finds, reads, and validates config with clear error messages
+- `runInit()` provides interactive setup using @clack/prompts
+- Dependencies added: `yaml`, `@clack/prompts`
+- All config fields have defaults except `project.name` and `commands.*`
+- `phase_budget_cap` and `session_budget_cap` accept `null` (no limit)
+- Tests live in `src/config/__tests__/config.test.ts`
+
+### Config Module Files
+
+| File | Purpose |
+| ---- | ------- |
+| `src/config/schema.ts` | Zod schemas and inferred types |
+| `src/config/loader.ts` | Config discovery, loading, and validation |
+| `src/config/defaults.ts` | Default values for optional config fields |
+| `src/config/errors.ts` | Custom error classes with clear messages |
+| `src/config/init.ts` | Interactive config initialization |
+| `src/config/index.ts` | Public API (barrel exports) |
+
+### Commands
+
+```bash
+bun run karimo:init         # Interactive config setup
+```
