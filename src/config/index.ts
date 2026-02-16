@@ -91,6 +91,18 @@ export {
 } from './errors'
 
 // =============================================================================
+// Detection
+// =============================================================================
+
+export { detectProject, getDetectionSummary, hasMinimalDetection } from './detect'
+export type {
+  Confidence,
+  DetectedValue,
+  DetectionResult,
+  PackageJson,
+} from './detect'
+
+// =============================================================================
 // Init
 // =============================================================================
 
