@@ -34,13 +34,13 @@ export class AgentNotFoundError extends KarimoAgentError {
  */
 export class AgentSpawnError extends KarimoAgentError {
   readonly engine: string
-  readonly cause: string
+  readonly reason: string
 
-  constructor(engine: string, cause: string) {
-    super(`Failed to spawn ${engine} agent: ${cause}`)
+  constructor(engine: string, reason: string) {
+    super(`Failed to spawn ${engine} agent: ${reason}`)
     this.name = 'AgentSpawnError'
     this.engine = engine
-    this.cause = cause
+    this.reason = reason
   }
 }
 

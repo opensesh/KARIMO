@@ -1,39 +1,59 @@
 /**
  * KARIMO Agents Module
  *
- * Agent spawning, sandbox configuration, and environment filtering.
+ * Agent spawning, sandbox configuration, and prompt building.
  * Handles launching AI agents (Claude Code, Codex, Gemini) in isolated
  * worktree environments with restricted access.
  */
 
+// =============================================================================
+// Error Classes
+// =============================================================================
+
+export {
+  KarimoAgentError,
+  AgentNotFoundError,
+  AgentSpawnError,
+  AgentTimeoutError,
+  AgentExecutionError,
+} from './errors'
+
+// =============================================================================
+// Types
+// =============================================================================
+
+export type {
+  AgentEngine,
+  AgentEngineInterface,
+  AgentExecuteOptions,
+  AgentExecuteResult,
+  AgentPromptContext,
+  AgentSpawnOptions,
+  AgentProcessInfo,
+} from './types'
+
+// Re-export legacy types for backward compatibility
 export type { AgentResult, AgentOptions } from '@/types'
 
-// Supported agent engines
-export type AgentEngine = 'claude-code' | 'codex' | 'gemini'
+// =============================================================================
+// Prompt Building
+// =============================================================================
 
-// Agent spawn options
-export interface SpawnOptions {
-  engine: AgentEngine
-  taskPrompt: string
-  workdir: string
-  maxIterations: number
-  costCeiling: number
-  env: Record<string, string>
-  onProgress?: (iterationCount: number, logs: string) => void
-}
+export { buildAgentPrompt } from './prompt-builder'
 
-// Agent process info
-export interface AgentProcess {
-  pid: number
-  engine: AgentEngine
-  startedAt: Date
-  status: 'running' | 'completed' | 'aborted' | 'failed'
-}
+// =============================================================================
+// Sandbox Environment
+// =============================================================================
 
-// Sandbox environment
-export interface SandboxEnvironment {
-  workdir: string
-  allowedEnv: string[]
-  readOnlyPaths: string[]
-  writablePaths: string[]
-}
+export {
+  buildAgentEnvironment,
+  isEnvVariableSafe,
+  getExcludedEnvVariables,
+  getIncludedEnvVariables,
+} from './sandbox'
+
+// =============================================================================
+// Agent Engines
+// =============================================================================
+
+export { ClaudeCodeEngine, createClaudeCodeEngine } from './claude-code'
