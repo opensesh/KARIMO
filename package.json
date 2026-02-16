@@ -18,6 +18,8 @@
   },
   "dependencies": {
     "@clack/prompts": "^0.8.0",
+    "@octokit/graphql": "^8.0.0",
+    "@octokit/rest": "^21.0.0",
     "yaml": "^2.7.0",
     "zod": "^3.24.0"
   },
