@@ -17,6 +17,62 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## Phases
+
+### Phase 4 — Git Operations Layer (February 2026)
+
+#### Added
+- `src/git/` module with complete git operations
+  - `gitExec()` wrapper around Bun.spawn with timeout and error handling
+  - Worktree management: `createWorktree()`, `removeWorktree()`, `listWorktrees()`
+  - Branch operations: `createTaskBranch()`, `branchExists()`, `deleteBranch()`
+  - Rebase handling: `rebaseOntoTarget()` with conflict detection and abort
+  - Diff analysis: `getChangedFiles()`, `getChangedFilesDetailed()`
+  - Caution detection: `detectCautionFiles()`, `detectNeverTouchViolations()`
+- `src/github/` module with dual-layer GitHub integration
+  - gh CLI wrapper: `ghExec()`, `ghExecJson()`, `getGhToken()`
+  - Auth verification: `verifyGhAuth()`, `verifyRepoAccess()` with 5-min caching
+  - Octokit client: `createGitHubClient()` with REST and GraphQL
+  - PR operations: `createPullRequest()`, `getPrStatus()`, `addLabels()`
+  - PR body generator: `buildPrBody()` for KARIMO-styled descriptions
+- Error classes for both modules with contextual messages
+- Comprehensive tests: ~30 git tests (real temp repos), ~20 github tests (mocked)
+
+#### Dependencies
+- `@octokit/rest` ^21.0.0 — GitHub REST API
+- `@octokit/graphql` ^8.0.0 — GitHub GraphQL API
+
+#### Design Decisions
+- Token resolution: GITHUB_TOKEN env → explicit token → gh auth token
+- Rebase conflicts return result instead of throwing (orchestrator decides)
+- gh CLI fallback when Octokit not configured
+- Bun.Glob for pattern matching (no minimatch dependency)
+- Naming conventions: `feature/{phaseId}/{taskId}`, `{basePath}/worktrees/{phaseId}`
+
+### Phase 3 — PRD Parser (February 2026)
+
+#### Added
+- `src/prd/` module for PRD parsing and validation
+- Dependency graph with topological sort
+- File overlap detection using Union-Find
+- Computed field validation against config
+
+### Phase 2b — Auto-Detection (February 2026)
+
+#### Added
+- `src/config/detect/` module with five detectors
+- Confidence levels with source attribution
+- Parallel detector execution (< 500ms target)
+
+### Phase 2 — Config Schema (February 2026)
+
+#### Added
+- `src/config/` module with Zod schemas
+- Interactive `karimo init` command
+- Config loading with validation
+
+---
+
 ## Architecture Spec Versions
 
 ### v1.3 (February 2026)
