@@ -12,33 +12,14 @@ KARIMO turns product requirements into shipped code using AI agents, automated c
 
 ---
 
-## System Architecture
+## How It Works
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                     YOU (Product Architect)                      │
-│  1. Choose a phase from the Implementation Plan                 │
-│  2. Run PRD Interview                                           │
-│  3. PRD.md generated → Tasks created in GitHub Projects         │
-└──────────────────────────┬──────────────────────────────────────┘
-                           │
-              ┌────────────┴────────────┐
-              ▼                         ▼
-       CLI (Execution)        DASHBOARD (Ring 5)
-              │                         │
-              ▼                         │
-       ORCHESTRATOR ENGINE    ◄─────────┘
-       (reads PRD, resolves deps, enforces costs)
-              │
-      ┌───────┼───────┐
-      ▼       ▼       ▼
-   WORKTREE WORKTREE WORKTREE (isolated agent sandboxes)
-              │
-              ▼
-       PRE-PR CHECKS → GITHUB PRs → CODE REVIEW → COMPOUND LEARNING
+┌─────────────┐    ┌─────────────┐    ┌─────────────┐    ┌─────────────┐    ┌─────────────┐
+│  Interview  │ →  │  Generate   │ →  │   Execute   │ →  │   Review    │ →  │    Merge    │
+│   (human)   │    │     PRD     │    │    Tasks    │    │  (Greptile) │    │   (human)   │
+└─────────────┘    └─────────────┘    └─────────────┘    └─────────────┘    └─────────────┘
 ```
-
-The pipeline flows from human intent to shipped code:
 
 1. **Interview** — KARIMO interviews you about a feature: what it does, how it should work, what patterns to follow
 2. **Generate PRD** — The interview produces a structured PRD with tasks, dependencies, and success criteria

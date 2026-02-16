@@ -42,24 +42,31 @@ KARIMO is a human-centric engineering pipeline:
               ▼                         ▼
 ┌──────────────────────────┐  ┌────────────────────────────────────┐
 │   CLI (Execution)        │  │   DASHBOARD (Review & Merge)       │
-│                          │  │   [Ring 5 — optional]              │
-│  karimo orchestrate      │  │                                    │
-│    --phase 1             │  │  Phase Overview                    │
-│  karimo status           │  │  Dependency Graph                  │
-│  karimo checkpoint       │  │  Merge Report                      │
-│                          │  │  Cost Tracker                      │
+│                          │  │   [Ring 5 — not needed until then] │
+│  bun run orchestrate     │  │                                    │
+│    --phase 1             │  │  ┌─────────┐  ┌────────────────┐   │
+│  bun run orchestrate     │  │  │ Phase   │  │ Dependency     │   │
+│    --task 1a             │  │  │ Overview│  │ Graph          │   │
+│  bun run status          │  │  └─────────┘  └────────────────┘   │
+│  bun run checkpoint      │  │  ┌─────────┐  ┌────────────────┐   │
+│    --ring 1              │  │  │ Merge   │  │ Cost           │   │
+│  bun run abort           │  │  │ Report  │  │ Tracker        │   │
+│  Ctrl+C                  │  │  └─────────┘  └────────────────┘   │
 └──────────────┬───────────┘  └──────────────┬─────────────────────┘
-               │                             │
+               │                             │ reads from
                ▼                             │
 ┌──────────────────────────┐  ┌──────────────┴──────────────────┐
 │   ORCHESTRATOR ENGINE    │  │       GITHUB PROJECTS           │
-│                          │  │  (Single source of truth)       │
-│  Reads PRD tasks         │  │                                 │
-│  Resolves dependencies   │  │  Ready → In Progress → Review   │
-│  Checks file overlaps    │  │  → Revision → Done / Failed     │
-│  Enforces cost ceilings  ├─▶│                                 │
-│  Spawns sandboxed agents │  └─────────────────────────────────┘
-│  Updates GitHub Project  │
+│                          │  │  (Single source of truth for    │
+│  Reads PRD tasks         │  │   task state across all phases) │
+│  Resolves dependencies   ├─▶│                                 │
+│  Checks file overlaps    │  │  Ready → In Progress → In Review│
+│  Enforces cost ceilings  │  │  → Revision → Done / Failed     │
+│  Mandatory rebase pre-PR │  │                                 │
+│  Spawns sandboxed agents │  │  [Offline fallback: local JSON] │
+│  Updates GitHub Project  │  │                                 │
+│  Logs costs to SQLite    │  └─────────────────────────────────┘
+│  Polls Greptile (async)  │
 │  Runs compound learning  │
 └──────────────┬───────────┘
                │
@@ -68,9 +75,67 @@ KARIMO is a human-centric engineering pipeline:
 ┌────────┐ ┌────────┐ ┌────────┐
 │WORKTREE│ │WORKTREE│ │WORKTREE│
 │Phase 1 │ │Phase 2 │ │Phase 3 │
+│        │ │        │ │        │
 │ Agent  │ │ Agent  │ │ Agent  │
 │Sandbox │ │Sandbox │ │Sandbox │
-└────────┘ └────────┘ └────────┘
+└───┬────┘ └───┬────┘ └───┬────┘
+    │          │          │
+    ▼          ▼          ▼
+┌─────────────────────────────────────┐
+│          PRE-PR CHECKS              │
+│  1. Mandatory rebase onto phase     │
+│     branch HEAD                     │
+│  2. bun run build && typecheck      │
+│  3. Caution file detection          │
+│  4. Cost ceiling check              │
+└─────────────────┬───────────────────┘
+                  │
+                  ▼
+┌─────────────────────────────────────┐
+│        GITHUB PRs CREATED           │
+│  task branch → PR → phase branch    │
+│  Labels: caution files, cost,       │
+│  complexity                         │
+└─────────────────┬───────────────────┘
+                  │
+                  ▼
+┌─────────────────────────────────────┐
+│          CODE REVIEW                │
+│  Ring 0-1: Manual (you review)      │
+│  Ring 2+: Greptile auto-review      │
+│  Async — doesn't block pipeline     │
+└─────────────────┬───────────────────┘
+                  │
+         ┌────────┴────────┐
+         │                 │
+     Score ≥ 4/5      Score < 4/5
+         │                 │
+         ▼                 ▼
+┌──────────────┐  ┌───────────────────┐
+│  MARK DONE   │  │  REVISION LOOP    │
+│  Log cost    │  │  Cost-budgeted    │
+│              │  │  Max 3 attempts   │
+│              │  │  Revision budget: │
+│              │  │  50% of original  │
+└──────────────┘  └───────────────────┘
+         │                 │
+         └────────┬────────┘
+                  ▼
+┌─────────────────────────────────────┐
+│   POST-MERGE INTEGRATION CHECK      │
+│   bun run build && typecheck &&     │
+│   test on phase branch              │
+│   Failure → rollback merge          │
+└─────────────────────────────────────┘
+                  │
+                  ▼
+┌─────────────────────────────────────┐
+│   COMPOUND LEARNING (Layer 1)       │
+│   Checkpoint data collected         │
+│   Config files updated automatically│
+│   CLAUDE.md rules appended          │
+│   Cost multipliers recalibrated     │
+└─────────────────────────────────────┘
 ```
 
 ---
