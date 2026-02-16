@@ -3,25 +3,38 @@
 # =============================================================================
 # Place this file at .karimo/config.yaml in your project root.
 # This example shows all available options with their default values.
+#
+# GENERATION: Run `karimo init` to auto-generate this file.
+# The init command scans your project and detects settings automatically:
+#   - project.*     → from package.json, pyproject.toml, etc.
+#   - commands.*    → from package.json scripts, Makefile
+#   - rules         → from tsconfig, eslint, biome configs
+#   - boundaries.*  → from common patterns and .gitignore
+#   - sandbox.*     → from .env.example (never actual .env files)
+#
+# Each detected value shows confidence: ● high, ◐ medium, ○ low, ? not found
+# You confirm or edit each section before the file is saved.
 # =============================================================================
 
 # -----------------------------------------------------------------------------
-# Project Metadata
+# Project Metadata [AUTO-DETECTED]
 # -----------------------------------------------------------------------------
 # Basic information about your project that helps agents understand context.
+# Source: package.json, pyproject.toml, go.mod, Cargo.toml
 
 project:
-  name: "your-project"          # Your project name
-  language: "TypeScript"        # Primary language (TypeScript, Python, Go, etc.)
-  framework: "Next.js"          # Framework (if applicable)
-  runtime: "Bun"                # Runtime (Bun, Node, Deno, etc.)
-  database: "Supabase"          # Database (if applicable)
+  name: "your-project"          # Auto-detected from package.json name
+  language: "TypeScript"        # Auto-detected from file extensions
+  framework: "Next.js"          # Auto-detected from dependencies
+  runtime: "Bun"                # Auto-detected from lockfile or config
+  database: "Supabase"          # Auto-detected from dependencies (if applicable)
 
 # -----------------------------------------------------------------------------
-# Build Commands
+# Build Commands [AUTO-DETECTED]
 # -----------------------------------------------------------------------------
 # Commands the orchestrator runs for build verification and testing.
 # These must pass before PRs can be created.
+# Source: package.json scripts, Makefile, existing task runners
 
 commands:
   build: "bun run build"
@@ -30,11 +43,12 @@ commands:
   typecheck: "bun run typecheck"
 
 # -----------------------------------------------------------------------------
-# Project Rules
+# Project Rules [AUTO-DETECTED]
 # -----------------------------------------------------------------------------
 # Architecture and code quality rules that agents read at session start.
 # These are appended to CLAUDE.md and enforced during code review.
 # Layer 1 compound learning automatically adds new rules here.
+# Source: tsconfig, eslint, biome, prettier configs (max 10 rules)
 
 rules:
   - "TypeScript strict mode — no `any` types"
@@ -44,9 +58,10 @@ rules:
   # Add your project's architecture rules here
 
 # -----------------------------------------------------------------------------
-# File Boundaries
+# File Boundaries [AUTO-DETECTED]
 # -----------------------------------------------------------------------------
 # Controls which files agents can modify and which require human review.
+# Source: common patterns, .gitignore (only existing files included)
 
 boundaries:
   # Files agents should NEVER modify (auto-rejected if touched)
@@ -130,10 +145,11 @@ fallback_engine:
     - "quota-exceeded"
 
 # -----------------------------------------------------------------------------
-# Agent Sandbox
+# Agent Sandbox [AUTO-DETECTED]
 # -----------------------------------------------------------------------------
 # Environment variables agents can access. Everything else is filtered.
 # Never include sensitive credentials here.
+# Source: .env.example only (never actual .env files for security)
 
 sandbox:
   allowed_env:
