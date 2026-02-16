@@ -127,11 +127,7 @@ export interface PyProjectToml {
 /**
  * Create a detected value with high confidence.
  */
-export function high<T>(
-  value: T,
-  source: string,
-  reasoning?: string
-): DetectedValue<T> {
+export function high<T>(value: T, source: string, reasoning?: string): DetectedValue<T> {
   const result: DetectedValue<T> = { value, confidence: 'high', source }
   if (reasoning !== undefined) {
     result.reasoning = reasoning
@@ -142,11 +138,7 @@ export function high<T>(
 /**
  * Create a detected value with medium confidence.
  */
-export function medium<T>(
-  value: T,
-  source: string,
-  reasoning?: string
-): DetectedValue<T> {
+export function medium<T>(value: T, source: string, reasoning?: string): DetectedValue<T> {
   const result: DetectedValue<T> = { value, confidence: 'medium', source }
   if (reasoning !== undefined) {
     result.reasoning = reasoning
@@ -157,11 +149,7 @@ export function medium<T>(
 /**
  * Create a detected value with low confidence.
  */
-export function low<T>(
-  value: T,
-  source: string,
-  reasoning?: string
-): DetectedValue<T> {
+export function low<T>(value: T, source: string, reasoning?: string): DetectedValue<T> {
   const result: DetectedValue<T> = { value, confidence: 'low', source }
   if (reasoning !== undefined) {
     result.reasoning = reasoning

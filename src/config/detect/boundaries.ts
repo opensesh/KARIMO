@@ -35,17 +35,12 @@ const ALWAYS_NEVER_TOUCH: Array<{ pattern: string; source: string }> = [
 /**
  * Detect never_touch patterns.
  */
-function detectNeverTouch(
-  targetDir: string,
-  _pkg: PackageJson | null
-): DetectedValue<string>[] {
+function detectNeverTouch(targetDir: string, _pkg: PackageJson | null): DetectedValue<string>[] {
   const patterns: DetectedValue<string>[] = []
 
   // Always include hardcoded patterns
   for (const item of ALWAYS_NEVER_TOUCH) {
-    patterns.push(
-      high(item.pattern, item.source, 'Critical file that should never be modified')
-    )
+    patterns.push(high(item.pattern, item.source, 'Critical file that should never be modified'))
   }
 
   // Supabase migrations
@@ -90,37 +85,22 @@ function detectNeverTouch(
 
   // Docker files
   if (existsSync(join(targetDir, 'Dockerfile'))) {
-    patterns.push(
-      medium(
-        'Dockerfile',
-        'Dockerfile',
-        'Container configuration is critical'
-      )
-    )
+    patterns.push(medium('Dockerfile', 'Dockerfile', 'Container configuration is critical'))
   }
-  if (existsSync(join(targetDir, 'docker-compose.yml')) ||
-      existsSync(join(targetDir, 'docker-compose.yaml'))) {
+  if (
+    existsSync(join(targetDir, 'docker-compose.yml')) ||
+    existsSync(join(targetDir, 'docker-compose.yaml'))
+  ) {
     patterns.push(
-      medium(
-        'docker-compose*.yml',
-        'docker-compose.yml',
-        'Container orchestration is critical'
-      )
+      medium('docker-compose*.yml', 'docker-compose.yml', 'Container orchestration is critical')
     )
   }
 
   // Terraform/IaC
-  if (existsSync(join(targetDir, 'terraform')) ||
-      existsSync(join(targetDir, 'infra'))) {
-    const infraDir = existsSync(join(targetDir, 'terraform'))
-      ? 'terraform'
-      : 'infra'
+  if (existsSync(join(targetDir, 'terraform')) || existsSync(join(targetDir, 'infra'))) {
+    const infraDir = existsSync(join(targetDir, 'terraform')) ? 'terraform' : 'infra'
     patterns.push(
-      high(
-        `${infraDir}/**/*.tf`,
-        `${infraDir}/`,
-        'Infrastructure as code requires careful review'
-      )
+      high(`${infraDir}/**/*.tf`, `${infraDir}/`, 'Infrastructure as code requires careful review')
     )
   }
 
@@ -130,51 +110,28 @@ function detectNeverTouch(
 /**
  * Detect require_review patterns.
  */
-function detectRequireReview(
-  targetDir: string,
-  pkg: PackageJson | null
-): DetectedValue<string>[] {
+function detectRequireReview(targetDir: string, pkg: PackageJson | null): DetectedValue<string>[] {
   const patterns: DetectedValue<string>[] = []
   const deps = { ...pkg?.dependencies, ...pkg?.devDependencies }
 
   // Next.js middleware
   if (deps['next']) {
     if (existsSync(join(targetDir, 'middleware.ts'))) {
-      patterns.push(
-        high(
-          'middleware.ts',
-          'middleware.ts',
-          'Route protection and request handling'
-        )
-      )
+      patterns.push(high('middleware.ts', 'middleware.ts', 'Route protection and request handling'))
     }
     if (existsSync(join(targetDir, 'src', 'middleware.ts'))) {
       patterns.push(
-        high(
-          'src/middleware.ts',
-          'src/middleware.ts',
-          'Route protection and request handling'
-        )
+        high('src/middleware.ts', 'src/middleware.ts', 'Route protection and request handling')
       )
     }
 
     // App layout
     if (existsSync(join(targetDir, 'app', 'layout.tsx'))) {
-      patterns.push(
-        medium(
-          'app/layout.tsx',
-          'app/layout.tsx',
-          'Root layout affects all pages'
-        )
-      )
+      patterns.push(medium('app/layout.tsx', 'app/layout.tsx', 'Root layout affects all pages'))
     }
     if (existsSync(join(targetDir, 'src', 'app', 'layout.tsx'))) {
       patterns.push(
-        medium(
-          'src/app/layout.tsx',
-          'src/app/layout.tsx',
-          'Root layout affects all pages'
-        )
+        medium('src/app/layout.tsx', 'src/app/layout.tsx', 'Root layout affects all pages')
       )
     }
 
@@ -182,13 +139,7 @@ function detectRequireReview(
     const nextConfigs = ['next.config.js', 'next.config.mjs', 'next.config.ts']
     for (const config of nextConfigs) {
       if (existsSync(join(targetDir, config))) {
-        patterns.push(
-          medium(
-            config,
-            config,
-            'Build configuration affects entire application'
-          )
-        )
+        patterns.push(medium(config, config, 'Build configuration affects entire application'))
         break
       }
     }
@@ -204,9 +155,7 @@ function detectRequireReview(
 
   for (const auth of authPatterns) {
     if (existsSync(join(targetDir, auth.dir))) {
-      patterns.push(
-        high(auth.pattern, auth.dir, auth.reason)
-      )
+      patterns.push(high(auth.pattern, auth.dir, auth.reason))
       break // Only add one auth pattern
     }
   }
@@ -220,9 +169,7 @@ function detectRequireReview(
 
   for (const sec of securityFiles) {
     if (existsSync(join(targetDir, sec.file))) {
-      patterns.push(
-        high(sec.file, sec.file, sec.reason)
-      )
+      patterns.push(high(sec.file, sec.file, sec.reason))
     }
   }
 
@@ -239,41 +186,21 @@ function detectRequireReview(
 
   if (existsSync(join(targetDir, 'drizzle'))) {
     patterns.push(
-      medium(
-        'drizzle/schema.ts',
-        'drizzle/',
-        'Database schema changes require careful review'
-      )
+      medium('drizzle/schema.ts', 'drizzle/', 'Database schema changes require careful review')
     )
   }
 
   // API routes (be careful with these)
   if (existsSync(join(targetDir, 'app', 'api'))) {
-    patterns.push(
-      medium(
-        'app/api/**/route.ts',
-        'app/api/',
-        'API routes handle external requests'
-      )
-    )
+    patterns.push(medium('app/api/**/route.ts', 'app/api/', 'API routes handle external requests'))
   }
   if (existsSync(join(targetDir, 'src', 'app', 'api'))) {
     patterns.push(
-      medium(
-        'src/app/api/**/route.ts',
-        'src/app/api/',
-        'API routes handle external requests'
-      )
+      medium('src/app/api/**/route.ts', 'src/app/api/', 'API routes handle external requests')
     )
   }
   if (existsSync(join(targetDir, 'pages', 'api'))) {
-    patterns.push(
-      medium(
-        'pages/api/**/*.ts',
-        'pages/api/',
-        'API routes handle external requests'
-      )
-    )
+    patterns.push(medium('pages/api/**/*.ts', 'pages/api/', 'API routes handle external requests'))
   }
 
   return patterns

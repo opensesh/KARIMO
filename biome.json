@@ -11,6 +11,9 @@
         "noUnusedVariables": "error",
         "noUnusedImports": "error"
       },
+      "complexity": {
+        "useLiteralKeys": "off"
+      },
       "style": {
         "noNonNullAssertion": "warn",
         "useConst": "error",

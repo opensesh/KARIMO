@@ -22,16 +22,7 @@ export interface SandboxDetectionResult {
 /**
  * Environment variables that are always safe.
  */
-const ALWAYS_ALLOWED = [
-  'PATH',
-  'HOME',
-  'USER',
-  'SHELL',
-  'TERM',
-  'LANG',
-  'NODE_ENV',
-  'CI',
-]
+const ALWAYS_ALLOWED = ['PATH', 'HOME', 'USER', 'SHELL', 'TERM', 'LANG', 'NODE_ENV', 'CI']
 
 /**
  * Prefixes that indicate public/safe variables.
@@ -144,9 +135,7 @@ function parseEnvFile(content: string): string[] {
 /**
  * Find and read the first available example env file.
  */
-function readExampleEnvFile(
-  targetDir: string
-): { vars: string[]; source: string } | null {
+function readExampleEnvFile(targetDir: string): { vars: string[]; source: string } | null {
   for (const file of EXAMPLE_FILES) {
     const filePath = join(targetDir, file)
     if (existsSync(filePath)) {
@@ -170,9 +159,7 @@ export function detectSandbox(targetDir: string): SandboxDetectionResult {
 
   // Always include system variables
   for (const envVar of ALWAYS_ALLOWED) {
-    allowed.push(
-      high(envVar, 'system', 'Standard system environment variable')
-    )
+    allowed.push(high(envVar, 'system', 'Standard system environment variable'))
   }
 
   // Try to read example env file
@@ -187,13 +174,7 @@ export function detectSandbox(targetDir: string): SandboxDetectionResult {
 
       // Only include if it appears safe
       if (isSafeVariable(varName)) {
-        allowed.push(
-          medium(
-            varName,
-            envFile.source,
-            `Found in ${envFile.source}, appears safe`
-          )
-        )
+        allowed.push(medium(varName, envFile.source, `Found in ${envFile.source}, appears safe`))
       }
     }
   }
@@ -224,22 +205,12 @@ export function detectSandbox(targetDir: string): SandboxDetectionResult {
   // Add framework-specific prefixes as patterns if example file exists
   if (envFile) {
     for (const framework of frameworkVars) {
-      const hasPrefix = envFile.vars.some((v) =>
-        v.toUpperCase().startsWith(framework.prefix)
-      )
+      const hasPrefix = envFile.vars.some((v) => v.toUpperCase().startsWith(framework.prefix))
       if (hasPrefix) {
         // Check if we haven't already added a note for this prefix
-        const alreadyAdded = allowed.some(
-          (a) => a.source === framework.source
-        )
+        const alreadyAdded = allowed.some((a) => a.source === framework.source)
         if (!alreadyAdded) {
-          allowed.push(
-            medium(
-              `${framework.prefix}*`,
-              framework.source,
-              framework.reason
-            )
-          )
+          allowed.push(medium(`${framework.prefix}*`, framework.source, framework.reason))
         }
       }
     }

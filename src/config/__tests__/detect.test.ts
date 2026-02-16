@@ -12,19 +12,19 @@
 
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test'
 import { mkdirSync, rmSync, writeFileSync } from 'node:fs'
-import { join } from 'node:path'
 import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 import {
+  type PackageJson,
+  detectBoundaries,
+  detectCommands,
   detectProject,
   detectProjectInfo,
-  detectCommands,
   detectRules,
-  detectBoundaries,
   detectSandbox,
-  readPackageJsonSafe,
-  hasMinimalDetection,
   getDetectionSummary,
-  type PackageJson,
+  hasMinimalDetection,
+  readPackageJsonSafe,
 } from '../detect'
 
 // Test directory setup
@@ -195,13 +195,16 @@ describe('detectProjectInfo', () => {
     expect(result.database?.confidence).toBe('high')
   })
 
-  it('returns nulls for empty directory', async () => {
+  it('returns nulls for empty directory except name from dir', async () => {
     const result = await detectProjectInfo(testDir, null)
 
-    expect(result.name).toBeNull()
+    // Name is inferred from directory name with medium confidence
+    expect(result.name).not.toBeNull()
+    expect(result.name?.confidence).toBe('medium')
+    expect(result.name?.source).toBe('directory name')
+    // Other fields should be null
     expect(result.language).toBeNull()
     expect(result.framework).toBeNull()
-    // Runtime may still be detected from directory name
     expect(result.database).toBeNull()
   })
 })
@@ -280,16 +283,11 @@ describe('detectCommands', () => {
 
 describe('detectRules', () => {
   it('detects strict mode rule from tsconfig', () => {
-    writeFile(
-      'tsconfig.json',
-      JSON.stringify({ compilerOptions: { strict: true } })
-    )
+    writeFile('tsconfig.json', JSON.stringify({ compilerOptions: { strict: true } }))
     const result = detectRules(testDir, null)
 
     expect(result.length).toBeGreaterThan(0)
-    const strictRule = result.find((r) =>
-      r.value.toLowerCase().includes('strict')
-    )
+    const strictRule = result.find((r) => r.value.toLowerCase().includes('strict'))
     expect(strictRule).toBeDefined()
     expect(strictRule?.confidence).toBe('high')
   })
@@ -308,9 +306,7 @@ describe('detectRules', () => {
     writeFile('biome.json', '{}')
     const result = detectRules(testDir, null)
 
-    const biomeRule = result.find((r) =>
-      r.value.toLowerCase().includes('biome')
-    )
+    const biomeRule = result.find((r) => r.value.toLowerCase().includes('biome'))
     expect(biomeRule).toBeDefined()
     expect(biomeRule?.confidence).toBe('high')
   })
@@ -319,19 +315,14 @@ describe('detectRules', () => {
     mkdirSync(join(testDir, 'supabase', 'migrations'), { recursive: true })
     const result = detectRules(testDir, null)
 
-    const migrationRule = result.find((r) =>
-      r.value.toLowerCase().includes('migration')
-    )
+    const migrationRule = result.find((r) => r.value.toLowerCase().includes('migration'))
     expect(migrationRule).toBeDefined()
     expect(migrationRule?.confidence).toBe('high')
   })
 
   it('caps rules at 10', () => {
     // Create many config files to trigger many rules
-    writeFile(
-      'tsconfig.json',
-      JSON.stringify({ compilerOptions: { strict: true } })
-    )
+    writeFile('tsconfig.json', JSON.stringify({ compilerOptions: { strict: true } }))
     writeFile('biome.json', '{}')
     writePackageJson({
       name: 'test',
@@ -376,9 +367,7 @@ describe('detectBoundaries', () => {
     mkdirSync(join(testDir, 'supabase', 'migrations'), { recursive: true })
     const result = detectBoundaries(testDir, null)
 
-    const migrationPattern = result.never_touch.find((b) =>
-      b.value.includes('supabase/migrations')
-    )
+    const migrationPattern = result.never_touch.find((b) => b.value.includes('supabase/migrations'))
     expect(migrationPattern).toBeDefined()
     expect(migrationPattern?.confidence).toBe('high')
   })
@@ -389,9 +378,7 @@ describe('detectBoundaries', () => {
     const pkg = readPackageJsonSafe(testDir)
     const result = detectBoundaries(testDir, pkg)
 
-    const middlewarePattern = result.require_review.find((b) =>
-      b.value.includes('middleware.ts')
-    )
+    const middlewarePattern = result.require_review.find((b) => b.value.includes('middleware.ts'))
     expect(middlewarePattern).toBeDefined()
     expect(middlewarePattern?.confidence).toBe('high')
   })
@@ -403,9 +390,7 @@ describe('detectBoundaries', () => {
     const pkg = readPackageJsonSafe(testDir)
     const result = detectBoundaries(testDir, pkg)
 
-    const layoutPattern = result.require_review.find((b) =>
-      b.value.includes('app/layout.tsx')
-    )
+    const layoutPattern = result.require_review.find((b) => b.value.includes('app/layout.tsx'))
     expect(layoutPattern).toBeDefined()
   })
 
@@ -414,9 +399,7 @@ describe('detectBoundaries', () => {
     writeFile('.github/workflows/ci.yml', 'name: CI')
     const result = detectBoundaries(testDir, null)
 
-    const workflowPattern = result.never_touch.find((b) =>
-      b.value.includes('.github/workflows')
-    )
+    const workflowPattern = result.never_touch.find((b) => b.value.includes('.github/workflows'))
     expect(workflowPattern).toBeDefined()
   })
 })
@@ -439,22 +422,15 @@ describe('detectSandbox', () => {
     writeFile('.env.example', 'NEXT_PUBLIC_URL=https://example.com')
     const result = detectSandbox(testDir)
 
-    const nextPublicVar = result.allowed_env.find((v) =>
-      v.value.includes('NEXT_PUBLIC')
-    )
+    const nextPublicVar = result.allowed_env.find((v) => v.value.includes('NEXT_PUBLIC'))
     expect(nextPublicVar).toBeDefined()
   })
 
   it('excludes SECRET vars from .env.example', () => {
-    writeFile(
-      '.env.example',
-      'NEXT_PUBLIC_URL=https://example.com\nDB_SECRET_KEY=xxx'
-    )
+    writeFile('.env.example', 'NEXT_PUBLIC_URL=https://example.com\nDB_SECRET_KEY=xxx')
     const result = detectSandbox(testDir)
 
-    const secretVar = result.allowed_env.find((v) =>
-      v.value.includes('DB_SECRET_KEY')
-    )
+    const secretVar = result.allowed_env.find((v) => v.value.includes('DB_SECRET_KEY'))
     expect(secretVar).toBeUndefined()
   })
 
@@ -462,9 +438,7 @@ describe('detectSandbox', () => {
     writeFile('.env.example', 'PUBLIC_URL=https://example.com\nAPI_TOKEN=xxx')
     const result = detectSandbox(testDir)
 
-    const tokenVar = result.allowed_env.find((v) =>
-      v.value.includes('API_TOKEN')
-    )
+    const tokenVar = result.allowed_env.find((v) => v.value.includes('API_TOKEN'))
     expect(tokenVar).toBeUndefined()
   })
 
@@ -472,9 +446,7 @@ describe('detectSandbox', () => {
     writeFile('.env.example', 'PUBLIC_URL=https://example.com')
     const result = detectSandbox(testDir)
 
-    const publicVar = result.allowed_env.find((v) =>
-      v.value.includes('PUBLIC_URL')
-    )
+    const publicVar = result.allowed_env.find((v) => v.value.includes('PUBLIC_URL'))
     expect(publicVar).toBeDefined()
   })
 })
@@ -522,7 +494,10 @@ describe('detectProject', () => {
   it('handles empty directory gracefully', async () => {
     const result = await detectProject(testDir)
 
-    expect(result.name).toBeNull()
+    // Name is inferred from directory name with medium confidence
+    expect(result.name).not.toBeNull()
+    expect(result.name?.confidence).toBe('medium')
+    // Other fields should be null
     expect(result.language).toBeNull()
     expect(result.framework).toBeNull()
     expect(result.warnings).toBeInstanceOf(Array)
@@ -537,9 +512,7 @@ describe('detectProject', () => {
     const result = await detectProject(testDir)
 
     expect(result.warnings.length).toBeGreaterThan(0)
-    expect(result.warnings.some((w) => w.toLowerCase().includes('monorepo'))).toBe(
-      true
-    )
+    expect(result.warnings.some((w) => w.toLowerCase().includes('monorepo'))).toBe(true)
   })
 })
 
@@ -560,9 +533,11 @@ describe('hasMinimalDetection', () => {
     expect(hasMinimalDetection(result)).toBe(true)
   })
 
-  it('returns false when nothing is detected', async () => {
+  it('returns true when only name is detected from directory', async () => {
+    // Even for empty directories, name is inferred from directory name
     const result = await detectProject(testDir)
-    expect(hasMinimalDetection(result)).toBe(false)
+    // Since name is detected, hasMinimalDetection returns true
+    expect(hasMinimalDetection(result)).toBe(true)
   })
 })
 

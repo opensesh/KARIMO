@@ -30,15 +30,9 @@ type Runtime = 'bun' | 'node' | 'deno' | 'pnpm' | 'yarn' | 'npm'
 /**
  * Detect the package manager/runtime for command prefixes.
  */
-function detectPackageManager(
-  targetDir: string,
-  pkg: PackageJson | null
-): Runtime {
+function detectPackageManager(targetDir: string, pkg: PackageJson | null): Runtime {
   // Check lockfiles first
-  if (
-    existsSync(join(targetDir, 'bun.lockb')) ||
-    existsSync(join(targetDir, 'bun.lock'))
-  ) {
+  if (existsSync(join(targetDir, 'bun.lockb')) || existsSync(join(targetDir, 'bun.lock'))) {
     return 'bun'
   }
 
@@ -50,10 +44,7 @@ function detectPackageManager(
     return 'yarn'
   }
 
-  if (
-    existsSync(join(targetDir, 'deno.json')) ||
-    existsSync(join(targetDir, 'deno.jsonc'))
-  ) {
+  if (existsSync(join(targetDir, 'deno.json')) || existsSync(join(targetDir, 'deno.jsonc'))) {
     return 'deno'
   }
 
@@ -85,7 +76,6 @@ function getRunPrefix(pm: Runtime): string {
       return 'yarn'
     case 'deno':
       return 'deno task'
-    case 'npm':
     default:
       return 'npm run'
   }
@@ -104,7 +94,6 @@ function getTestCommand(pm: Runtime): string {
       return 'pnpm test'
     case 'yarn':
       return 'yarn test'
-    case 'npm':
     default:
       return 'npm test'
   }
@@ -127,9 +116,11 @@ function detectBuildCommand(
   }
 
   // Medium confidence: Next.js build
-  if (existsSync(join(targetDir, 'next.config.js')) ||
-      existsSync(join(targetDir, 'next.config.mjs')) ||
-      existsSync(join(targetDir, 'next.config.ts'))) {
+  if (
+    existsSync(join(targetDir, 'next.config.js')) ||
+    existsSync(join(targetDir, 'next.config.mjs')) ||
+    existsSync(join(targetDir, 'next.config.ts'))
+  ) {
     return medium(
       pm === 'bun' ? 'bun run next build' : 'npx next build',
       'next.config.*',
@@ -139,7 +130,11 @@ function detectBuildCommand(
 
   // Medium confidence: TypeScript project (tsc)
   if (existsSync(join(targetDir, 'tsconfig.json'))) {
-    return medium(`${prefix === 'bun run' ? 'bun' : prefix} tsc`, 'tsconfig.json', 'TypeScript project')
+    return medium(
+      `${prefix === 'bun run' ? 'bun' : prefix} tsc`,
+      'tsconfig.json',
+      'TypeScript project'
+    )
   }
 
   return null
@@ -162,11 +157,8 @@ function detectLintCommand(
   }
 
   // Medium confidence: Biome config exists
-  if (existsSync(join(targetDir, 'biome.json')) ||
-      existsSync(join(targetDir, 'biome.jsonc'))) {
-    const biomeCmd = pm === 'bun'
-      ? 'bunx @biomejs/biome check .'
-      : 'npx @biomejs/biome check .'
+  if (existsSync(join(targetDir, 'biome.json')) || existsSync(join(targetDir, 'biome.jsonc'))) {
+    const biomeCmd = pm === 'bun' ? 'bunx @biomejs/biome check .' : 'npx @biomejs/biome check .'
     return medium(biomeCmd, 'biome.json', 'Biome config found')
   }
 
@@ -276,9 +268,7 @@ function detectTypecheckCommand(
 
   // Medium confidence: tsconfig.json exists
   if (existsSync(join(targetDir, 'tsconfig.json'))) {
-    const tscCmd = pm === 'bun'
-      ? 'bunx tsc --noEmit'
-      : 'npx tsc --noEmit'
+    const tscCmd = pm === 'bun' ? 'bunx tsc --noEmit' : 'npx tsc --noEmit'
     return medium(tscCmd, 'tsconfig.json', 'TypeScript project')
   }
 

@@ -17,12 +17,7 @@ import {
   DEFAULT_COST,
   DEFAULT_FALLBACK_ENGINE,
 } from './defaults'
-import {
-  detectProject,
-  type Confidence,
-  type DetectedValue,
-  type DetectionResult,
-} from './detect'
+import { type Confidence, type DetectedValue, type DetectionResult, detectProject } from './detect'
 import type { KarimoConfig } from './schema'
 
 const CONFIG_DIR = '.karimo'
@@ -54,7 +49,7 @@ function getConfidenceIndicator(confidence: Confidence | null): string {
 function formatDetected<T>(
   label: string,
   detected: DetectedValue<T> | null,
-  fallback: string = 'not detected'
+  fallback = 'not detected'
 ): string {
   if (!detected) {
     return `${getConfidenceIndicator(null)} ${label}: ${fallback}`
@@ -95,9 +90,7 @@ async function writeConfig(config: KarimoConfig): Promise<string> {
 /**
  * Display scan progress and results.
  */
-async function displayScanProgress(
-  result: DetectionResult
-): Promise<void> {
+async function displayScanProgress(result: DetectionResult): Promise<void> {
   const lines: string[] = []
 
   lines.push(`✓ Project detected (${result.scanDurationMs}ms)`)
@@ -113,8 +106,7 @@ async function displayScanProgress(
   lines.push(`✓ Rules inferred: ${result.rules.length}`)
 
   const boundaryCount =
-    result.boundaries.never_touch.length +
-    result.boundaries.require_review.length
+    result.boundaries.never_touch.length + result.boundaries.require_review.length
   lines.push(`✓ Boundaries detected: ${boundaryCount} patterns`)
 
   lines.push(`✓ Sandbox configured: ${result.sandbox.allowed_env.length} env vars`)
@@ -132,15 +124,16 @@ async function displayScanProgress(
 /**
  * Confirm or edit project section.
  */
-async function confirmProjectSection(
-  result: DetectionResult
-): Promise<{
-  name: string
-  language: string
-  framework?: string
-  runtime: string
-  database?: string
-} | symbol> {
+async function confirmProjectSection(result: DetectionResult): Promise<
+  | {
+      name: string
+      language: string
+      framework?: string
+      runtime: string
+      database?: string
+    }
+  | symbol
+> {
   const projectNote = [
     formatDetected('Name', result.name),
     formatDetected('Language', result.language),
@@ -261,14 +254,15 @@ async function confirmProjectSection(
 /**
  * Confirm or edit commands section.
  */
-async function confirmCommandsSection(
-  result: DetectionResult
-): Promise<{
-  build: string
-  lint: string
-  test: string
-  typecheck: string
-} | symbol> {
+async function confirmCommandsSection(result: DetectionResult): Promise<
+  | {
+      build: string
+      lint: string
+      test: string
+      typecheck: string
+    }
+  | symbol
+> {
   const commandsNote = [
     formatDetected('Build', result.commands.build),
     formatDetected('Lint', result.commands.lint),
@@ -371,9 +365,7 @@ async function confirmCommandsSection(
 /**
  * Confirm or edit rules section using multi-select.
  */
-async function confirmRulesSection(
-  result: DetectionResult
-): Promise<string[] | symbol> {
+async function confirmRulesSection(result: DetectionResult): Promise<string[] | symbol> {
   if (result.rules.length === 0) {
     // No rules detected, ask for manual input
     const rulesInput = await p.text({
@@ -395,9 +387,7 @@ async function confirmRulesSection(
 
   // Show detected rules with multi-select
   const rulesNote = result.rules
-    .map(
-      (r) => `${getConfidenceIndicator(r.confidence)} ${r.value}`
-    )
+    .map((r) => `${getConfidenceIndicator(r.confidence)} ${r.value}`)
     .join('\n')
 
   p.note(rulesNote, 'Rules')
@@ -480,14 +470,11 @@ async function confirmRulesSection(
  * Get sandbox allowed_env from detection result.
  * Uses detected values directly, allowing user to customize.
  */
-async function confirmSandboxSection(
-  result: DetectionResult
-): Promise<string[] | symbol> {
+async function confirmSandboxSection(result: DetectionResult): Promise<string[] | symbol> {
   const detectedVars = result.sandbox.allowed_env.map((v) => v.value)
 
   // If we have detected vars, use them as defaults
-  const defaultVars =
-    detectedVars.length > 0 ? detectedVars : COMMON_ALLOWED_ENV
+  const defaultVars = detectedVars.length > 0 ? detectedVars : COMMON_ALLOWED_ENV
 
   const sandboxInput = await p.text({
     message: 'Allowed environment variables (comma-separated)',
@@ -510,9 +497,10 @@ async function confirmSandboxSection(
 /**
  * Build boundaries from detection result.
  */
-function buildBoundaries(
-  result: DetectionResult
-): { never_touch: string[]; require_review: string[] } {
+function buildBoundaries(result: DetectionResult): {
+  never_touch: string[]
+  require_review: string[]
+} {
   return {
     never_touch: result.boundaries.never_touch.map((b) => b.value),
     require_review: result.boundaries.require_review.map((b) => b.value),

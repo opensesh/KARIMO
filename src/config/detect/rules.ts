@@ -53,11 +53,7 @@ function detectTsConfigRules(targetDir: string): DetectedValue<string>[] {
     // Individual strict options
     if (opts.noImplicitAny === true) {
       rules.push(
-        high(
-          'No implicit `any` types',
-          'tsconfig.json',
-          'compilerOptions.noImplicitAny: true'
-        )
+        high('No implicit `any` types', 'tsconfig.json', 'compilerOptions.noImplicitAny: true')
       )
     }
     if (opts.strictNullChecks === true) {
@@ -108,11 +104,7 @@ function detectDependencyRules(pkg: PackageJson | null): DetectedValue<string>[]
   // Testing libraries
   if (deps['vitest'] || deps['jest'] || deps['@testing-library/react']) {
     rules.push(
-      medium(
-        'Write tests for new functionality',
-        'package.json',
-        'Testing library in dependencies'
-      )
+      medium('Write tests for new functionality', 'package.json', 'Testing library in dependencies')
     )
   }
 
@@ -148,16 +140,9 @@ function detectConfigRules(targetDir: string): DetectedValue<string>[] {
   const rules: DetectedValue<string>[] = []
 
   // Biome
-  if (
-    existsSync(join(targetDir, 'biome.json')) ||
-    existsSync(join(targetDir, 'biome.jsonc'))
-  ) {
+  if (existsSync(join(targetDir, 'biome.json')) || existsSync(join(targetDir, 'biome.jsonc'))) {
     rules.push(
-      high(
-        'Follow Biome linting and formatting rules',
-        'biome.json',
-        'Biome config found'
-      )
+      high('Follow Biome linting and formatting rules', 'biome.json', 'Biome config found')
     )
   }
 
@@ -173,13 +158,7 @@ function detectConfigRules(targetDir: string): DetectedValue<string>[] {
   if (!existsSync(join(targetDir, 'biome.json'))) {
     for (const config of eslintConfigs) {
       if (existsSync(join(targetDir, config))) {
-        rules.push(
-          high(
-            'Follow ESLint rules',
-            config,
-            'ESLint config found'
-          )
-        )
+        rules.push(high('Follow ESLint rules', config, 'ESLint config found'))
         break
       }
     }
@@ -233,10 +212,7 @@ function detectStructureRules(targetDir: string): DetectedValue<string>[] {
 /**
  * Detect rules from Next.js conventions.
  */
-function detectNextJsRules(
-  targetDir: string,
-  pkg: PackageJson | null
-): DetectedValue<string>[] {
+function detectNextJsRules(targetDir: string, pkg: PackageJson | null): DetectedValue<string>[] {
   const rules: DetectedValue<string>[] = []
   const deps = { ...pkg?.dependencies, ...pkg?.devDependencies }
 
@@ -274,10 +250,7 @@ function detectNextJsRules(
  * Detect all coding rules.
  * Capped at MAX_RULES to avoid overwhelming the user.
  */
-export function detectRules(
-  targetDir: string,
-  pkg: PackageJson | null
-): DetectedValue<string>[] {
+export function detectRules(targetDir: string, pkg: PackageJson | null): DetectedValue<string>[] {
   const allRules: DetectedValue<string>[] = []
 
   // Gather rules from all sources

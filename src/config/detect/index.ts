@@ -61,9 +61,7 @@ export function readPackageJsonSafe(targetDir: string): PackageJson | null {
  * @param targetDir - Directory to scan (defaults to cwd)
  * @returns Complete detection result with all findings
  */
-export async function detectProject(
-  targetDir: string = process.cwd()
-): Promise<DetectionResult> {
+export async function detectProject(targetDir: string = process.cwd()): Promise<DetectionResult> {
   const start = performance.now()
   const warnings: string[] = []
 
@@ -76,38 +74,34 @@ export async function detectProject(
   }
 
   // Run all detectors in parallel
-  const [projectInfo, commands, rules, boundaries, sandbox] = await Promise.all(
-    [
-      detectProjectInfo(targetDir, pkg).catch((error) => {
-        warnings.push(`Project detection failed: ${(error as Error).message}`)
-        return {
-          name: null,
-          language: null,
-          framework: null,
-          runtime: null,
-          database: null,
-        }
-      }),
-      Promise.resolve(detectCommands(targetDir, pkg)).catch((error) => {
-        warnings.push(`Commands detection failed: ${(error as Error).message}`)
-        return { build: null, lint: null, test: null, typecheck: null }
-      }),
-      Promise.resolve(detectRules(targetDir, pkg)).catch((error) => {
-        warnings.push(`Rules detection failed: ${(error as Error).message}`)
-        return []
-      }),
-      Promise.resolve(detectBoundaries(targetDir, pkg)).catch((error) => {
-        warnings.push(
-          `Boundaries detection failed: ${(error as Error).message}`
-        )
-        return { never_touch: [], require_review: [] }
-      }),
-      Promise.resolve(detectSandbox(targetDir)).catch((error) => {
-        warnings.push(`Sandbox detection failed: ${(error as Error).message}`)
-        return { allowed_env: [] }
-      }),
-    ]
-  )
+  const [projectInfo, commands, rules, boundaries, sandbox] = await Promise.all([
+    detectProjectInfo(targetDir, pkg).catch((error) => {
+      warnings.push(`Project detection failed: ${(error as Error).message}`)
+      return {
+        name: null,
+        language: null,
+        framework: null,
+        runtime: null,
+        database: null,
+      }
+    }),
+    Promise.resolve(detectCommands(targetDir, pkg)).catch((error) => {
+      warnings.push(`Commands detection failed: ${(error as Error).message}`)
+      return { build: null, lint: null, test: null, typecheck: null }
+    }),
+    Promise.resolve(detectRules(targetDir, pkg)).catch((error) => {
+      warnings.push(`Rules detection failed: ${(error as Error).message}`)
+      return []
+    }),
+    Promise.resolve(detectBoundaries(targetDir, pkg)).catch((error) => {
+      warnings.push(`Boundaries detection failed: ${(error as Error).message}`)
+      return { never_touch: [], require_review: [] }
+    }),
+    Promise.resolve(detectSandbox(targetDir)).catch((error) => {
+      warnings.push(`Sandbox detection failed: ${(error as Error).message}`)
+      return { allowed_env: [] }
+    }),
+  ])
 
   // Check for monorepo
   if (pkg?.workspaces) {
@@ -117,9 +111,7 @@ export async function detectProject(
       : Array.isArray(workspaceDef.packages) && workspaceDef.packages.length > 0
 
     if (hasWorkspaces) {
-      warnings.push(
-        'Monorepo detected. Consider running karimo init in individual packages.'
-      )
+      warnings.push('Monorepo detected. Consider running karimo init in individual packages.')
     }
   }
 

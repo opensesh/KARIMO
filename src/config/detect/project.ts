@@ -28,10 +28,7 @@ export interface ProjectDetectionResult {
 /**
  * Detect project name.
  */
-function detectName(
-  targetDir: string,
-  pkg: PackageJson | null
-): DetectedValue<string> | null {
+function detectName(targetDir: string, pkg: PackageJson | null): DetectedValue<string> | null {
   // High confidence: package.json name field
   if (pkg?.name && typeof pkg.name === 'string' && pkg.name.trim()) {
     return high(pkg.name, 'package.json', 'Name field in package.json')
@@ -60,11 +57,7 @@ async function detectLanguage(
 
   // High confidence: TypeScript in devDependencies
   if (pkg?.devDependencies?.['typescript']) {
-    return high(
-      'typescript',
-      'package.json',
-      'TypeScript in devDependencies'
-    )
+    return high('typescript', 'package.json', 'TypeScript in devDependencies')
   }
 
   // High confidence: Python project files
@@ -96,11 +89,7 @@ async function detectLanguage(
       try {
         const glob = new Bun.Glob('**/*.{ts,tsx}')
         for await (const _file of glob.scan({ cwd: srcDir, onlyFiles: true })) {
-          return high(
-            'typescript',
-            'src/**/*.ts',
-            'TypeScript files found in src/'
-          )
+          return high('typescript', 'src/**/*.ts', 'TypeScript files found in src/')
         }
       } catch {
         // Glob failed, continue
@@ -108,11 +97,7 @@ async function detectLanguage(
     }
 
     // Default to JavaScript if package.json exists
-    return medium(
-      'javascript',
-      'package.json',
-      'Node.js project without TypeScript'
-    )
+    return medium('javascript', 'package.json', 'Node.js project without TypeScript')
   }
 
   return null
@@ -192,10 +177,7 @@ function detectFramework(pkg: PackageJson | null): DetectedValue<string> | null 
 /**
  * Detect runtime from lockfiles and package.json fields.
  */
-function detectRuntime(
-  targetDir: string,
-  pkg: PackageJson | null
-): DetectedValue<string> | null {
+function detectRuntime(targetDir: string, pkg: PackageJson | null): DetectedValue<string> | null {
   // High confidence: bun.lockb exists
   if (existsSync(join(targetDir, 'bun.lockb'))) {
     return high('bun', 'bun.lockb', 'Bun lockfile found')
@@ -249,10 +231,7 @@ function detectRuntime(
   }
 
   // High confidence: deno.json or deno.jsonc
-  if (
-    existsSync(join(targetDir, 'deno.json')) ||
-    existsSync(join(targetDir, 'deno.jsonc'))
-  ) {
+  if (existsSync(join(targetDir, 'deno.json')) || existsSync(join(targetDir, 'deno.jsonc'))) {
     return high('deno', 'deno.json', 'Deno config found')
   }
 
@@ -286,13 +265,8 @@ function detectRuntime(
 /**
  * Detect database from dependencies or directory structure.
  */
-function detectDatabase(
-  targetDir: string,
-  pkg: PackageJson | null
-): DetectedValue<string> | null {
-  const deps = pkg
-    ? { ...pkg.dependencies, ...pkg.devDependencies }
-    : {}
+function detectDatabase(targetDir: string, pkg: PackageJson | null): DetectedValue<string> | null {
+  const deps = pkg ? { ...pkg.dependencies, ...pkg.devDependencies } : {}
 
   // High confidence: Supabase
   if (deps['@supabase/supabase-js'] || deps['supabase']) {
@@ -350,9 +324,7 @@ export async function detectProjectInfo(
   targetDir: string,
   pkg: PackageJson | null
 ): Promise<ProjectDetectionResult> {
-  const [language] = await Promise.all([
-    detectLanguage(targetDir, pkg),
-  ])
+  const [language] = await Promise.all([detectLanguage(targetDir, pkg)])
 
   return {
     name: detectName(targetDir, pkg),
