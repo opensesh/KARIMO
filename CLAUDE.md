@@ -279,3 +279,58 @@ bun run karimo:init         # Interactive config setup
 | `bun run onboard` | Verifies existing setup for new team member | Joining a configured project |
 
 **Key distinction:** `init` creates new config, `onboard` validates existing config.
+
+---
+
+## Phase 3 — PRD Parser, Dependency Resolver & File-Overlap Detection (Complete)
+
+- PRD module lives in `src/prd/`
+- Zod schemas validate the YAML task block
+- Types reused from `src/types/index.ts` (no duplication)
+- Config decoupling: parser reads values as-is, validation is separate
+- String-only file overlap detection (no glob expansion)
+- Union-Find for transitive overlap grouping
+- Tests live in `src/prd/__tests__/prd.test.ts`
+
+### PRD Module Files
+
+| File | Purpose |
+| ---- | ------- |
+| `src/prd/errors.ts` | Custom error classes |
+| `src/prd/types.ts` | ParsedPRD, ValidationResult, OverlapResult types |
+| `src/prd/schema.ts` | Zod schemas for task validation |
+| `src/prd/parser.ts` | YAML extraction and validation |
+| `src/prd/dependencies.ts` | Dependency graph and topological sort |
+| `src/prd/overlaps.ts` | File overlap detection |
+| `src/prd/validation.ts` | Computed field drift detection |
+| `src/prd/index.ts` | Public API (barrel exports) |
+
+### Public API
+
+| Function | Purpose |
+|----------|---------|
+| `parsePRDFile(path)` | Load and parse PRD markdown file |
+| `buildDependencyGraph(tasks)` | Build dependency graph from tasks |
+| `topologicalSort(graph)` | Get tasks in execution order |
+| `getReadyTasks(graph, completed)` | Get tasks ready to run |
+| `detectFileOverlaps(tasks)` | Detect file conflicts |
+| `validateComputedFields(task, config)` | Check for config drift |
+
+### Computed Field Formulas
+
+- `cost_ceiling = complexity × cost_multiplier`
+- `estimated_iterations = base_iterations + (complexity × iteration_multiplier)`
+- `revision_budget = cost_ceiling × (revision_budget_percent / 100)`
+
+### Error Classes
+
+| Error | When Thrown |
+|-------|-------------|
+| `PRDNotFoundError` | PRD file not found at path |
+| `PRDReadError` | Cannot read PRD file |
+| `PRDExtractionError` | Missing heading or YAML block |
+| `PRDParseError` | Invalid YAML syntax |
+| `PRDValidationError` | Zod validation failed |
+| `InvalidDependencyError` | Task references non-existent dependency |
+| `CyclicDependencyError` | Circular dependency detected |
+| `DuplicateTaskIdError` | Duplicate task ID in PRD |
