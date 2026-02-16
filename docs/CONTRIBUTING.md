@@ -22,12 +22,17 @@ cd KARIMO
 # Install dependencies
 bun install
 
+# Verify your setup (for new contributors)
+bun run onboard
+
 # Run type checking
 bun run typecheck
 
 # Run linting
 bun run lint
 ```
+
+> **Note:** If you're setting up KARIMO for a new target project, use `karimo init` to generate `.karimo/config.yaml`. The init command auto-detects project settings (language, framework, commands, rules) and lets you confirm before saving. For existing projects with config already committed, `bun run onboard` verifies your local setup is correct.
 
 ---
 
