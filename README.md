@@ -56,7 +56,7 @@ Each ring is designed to be completed as a self-contained loop that builds trust
 # Install
 bun add @karimo/core
 
-# Initialize in your project
+# Initialize your project (auto-detects settings, you confirm)
 karimo init
 
 # Run the PRD interview
@@ -68,6 +68,22 @@ karimo orchestrate --phase 1
 # Check status
 karimo status
 ```
+
+### First-Time Setup vs. Team Onboarding
+
+| Command | Purpose | When to Use |
+|---------|---------|-------------|
+| `karimo init` | Creates `.karimo/config.yaml` via auto-detection + confirmation | First-time project setup |
+| `bun run onboard` | Verifies existing setup for new team member | Joining a configured project |
+
+**Auto-detection scans your project for:**
+- Project metadata (name, language, framework, runtime)
+- Build commands (build, lint, test, typecheck)
+- Architecture rules (from existing config files)
+- File boundaries (never_touch, require_review patterns)
+- Sandbox variables (from .env.example)
+
+Each detected value shows a confidence indicator: `●` high, `◐` medium, `○` low, `?` not detected. You confirm or edit before saving.
 
 ---
 
