@@ -16,6 +16,8 @@
     "test": "bun test"
   },
   "dependencies": {
+    "@clack/prompts": "^0.8.0",
+    "yaml": "^2.7.0",
     "zod": "^3.24.0"
   },
   "devDependencies": {
