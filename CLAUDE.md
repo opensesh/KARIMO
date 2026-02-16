@@ -457,3 +457,125 @@ Does NOT throw — orchestrator decides what to do.
 | `PrCreateError` | PR creation failed |
 | `OctokitError` | GitHub API error |
 | `RepoAccessError` | Repository access denied |
+
+---
+
+## Phase 5 — Core Orchestrator Ring 0 (Complete)
+
+- Agents module lives in `src/agents/`
+- Orchestrator module lives in `src/orchestrator/`
+- Ring 0 scope: single-task execution only (no parallel, no cost tracking, no revision loops)
+- Agent engine interface supports future engines (Codex, Gemini)
+- Environment sandboxing with ALWAYS_INCLUDE/ALWAYS_EXCLUDE lists
+- Pre-PR checks: rebase, build, typecheck, boundary violations
+
+### Agents Module Files
+
+| File | Purpose |
+| ---- | ------- |
+| `src/agents/errors.ts` | Error classes: AgentNotFoundError, AgentSpawnError, etc. |
+| `src/agents/types.ts` | AgentEngineInterface, AgentExecuteOptions, AgentExecuteResult |
+| `src/agents/prompt-builder.ts` | buildAgentPrompt() — structured prompt generation |
+| `src/agents/sandbox.ts` | buildAgentEnvironment() — env variable filtering |
+| `src/agents/claude-code.ts` | ClaudeCodeEngine — spawns `claude --print` |
+| `src/agents/index.ts` | Public API (barrel exports) |
+
+### Orchestrator Module Files
+
+| File | Purpose |
+| ---- | ------- |
+| `src/orchestrator/errors.ts` | Error classes: TaskNotFoundError, PhaseNotFoundError, etc. |
+| `src/orchestrator/types.ts` | TaskRunR0, RunTaskOptions, PrePRCheckResult |
+| `src/orchestrator/pre-pr-checks.ts` | prePRChecks(), runCommand() |
+| `src/orchestrator/runner.ts` | runTask() — core orchestration loop |
+| `src/orchestrator/summary.ts` | Task summary formatting functions |
+| `src/orchestrator/index.ts` | Public API (barrel exports) |
+
+### CLI Command
+
+| File | Purpose |
+| ---- | ------- |
+| `src/cli/orchestrate-command.ts` | handleOrchestrate(), parseOrchestrateArgs() |
+
+### Agents Module Public API
+
+| Function | Purpose |
+|----------|---------|
+| `buildAgentPrompt(context)` | Build structured prompt from task and config |
+| `buildAgentEnvironment(config)` | Create sandboxed environment variables |
+| `createClaudeCodeEngine()` | Create Claude Code engine instance |
+
+### Orchestrator Module Public API
+
+| Function | Purpose |
+|----------|---------|
+| `runTask(options)` | Execute a single task from PRD to PR |
+| `createDryRunPlan(options)` | Preview execution plan without running |
+| `prePRChecks(options)` | Run pre-PR validation checks |
+| `runCommand(command, cwd)` | Execute shell command with timing |
+| `formatDuration(ms)` | Format duration in human-readable form |
+| `createTaskSummary(run, title, files)` | Create summary from run record |
+| `formatTaskSummary(summary)` | Format summary for terminal |
+| `printTaskSummary(summary)` | Print summary to console |
+| `formatDryRunPlan(plan)` | Format dry run plan |
+| `printDryRunPlan(plan)` | Print dry run plan to console |
+
+### runTask Execution Flow
+
+1. Load config from `.karimo/config.yaml`
+2. Resolve PRD path: `{rootDir}/.karimo/prds/{phaseId}.md`
+3. Parse PRD and find task by ID
+4. Create phase branch if needed (`feature/{phaseId}`)
+5. Create worktree and task branch (`feature/{phaseId}/{taskId}`)
+6. Build agent prompt and sandboxed environment
+7. Execute Claude Code agent
+8. Run pre-PR checks (rebase, build, typecheck)
+9. Detect caution files and never-touch violations
+10. Create PR with KARIMO-styled body
+11. Cleanup worktree
+12. Return result with summary
+
+### Environment Sandboxing
+
+**ALWAYS_INCLUDE:** PATH, HOME, TERM, SHELL, USER, LANG, LC_ALL, TZ, EDITOR, VISUAL
+
+**ALWAYS_EXCLUDE:** GITHUB_TOKEN, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, DATABASE_URL, DB_SERVICE_KEY, KARIMO_DASHBOARD_API_KEY, KARIMO_DASHBOARD_SECRET, OPENAI_API_KEY, ANTHROPIC_API_KEY
+
+### Commands
+
+```bash
+# Run a specific task
+bun run orchestrate --phase phase-1 --task 1a
+
+# Preview execution plan (dry run)
+bun run orchestrate --phase phase-1 --task 1a --dry-run
+```
+
+### Error Classes
+
+| Error | When Thrown |
+|-------|-------------|
+| `KarimoAgentError` | Base agent error |
+| `AgentNotFoundError` | CLI not installed |
+| `AgentSpawnError` | Process spawn failed |
+| `AgentTimeoutError` | Execution timed out |
+| `AgentExecutionError` | Non-zero exit code |
+| `KarimoOrchestratorError` | Base orchestrator error |
+| `TaskNotFoundError` | Task ID not in PRD |
+| `PhaseNotFoundError` | PRD file not found |
+| `PrePRCheckError` | Build/typecheck failed |
+| `NeverTouchViolationError` | Forbidden files modified |
+| `RebaseConflictError` | Merge conflicts detected |
+| `PhaseBranchError` | Cannot create phase branch |
+| `WorktreeError` | Worktree operation failed |
+| `PRCreationError` | PR creation failed |
+
+### What NOT in Ring 0
+
+- Parallel execution
+- Cost tracking / token parsing
+- Revision loops (score < 4 → retry)
+- GitHub Projects integration
+- Codex/Gemini engines
+- Fallback engine logic
+- Full phase execution (`--all-ready`)

@@ -53,3 +53,13 @@ export interface CLIResult {
   exitCode: number
   message?: string
 }
+
+// =============================================================================
+// Command Handlers
+// =============================================================================
+
+export {
+  handleOrchestrate,
+  parseOrchestrateArgs,
+  printOrchestrateHelp,
+} from './orchestrate-command'
