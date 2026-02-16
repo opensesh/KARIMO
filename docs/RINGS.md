@@ -14,7 +14,12 @@ KARIMO uses a ring-based adoption strategy. Each ring is a concentric circle of 
 - Bun installed
 
 **What you build:**
-- `.karimo/config.yaml` with rules, boundaries, and cost settings
+- Auto-detection system for `karimo init`:
+  - 5 parallel detectors: project, commands, rules, boundaries, sandbox
+  - Confidence levels: `●` high, `◐` medium, `○` low, `?` not detected
+  - Conservative detection (null over wrong guess)
+  - Performance target: < 500ms
+- `.karimo/config.yaml` generated via auto-detection + confirmation
 - Minimal orchestrator script that can:
   - Read a single task from a PRD.md YAML block
   - Create a git branch in a worktree
@@ -33,6 +38,7 @@ KARIMO uses a ring-based adoption strategy. Each ring is a concentric circle of 
 - Revision loops
 
 **Exit criteria:**
+- `karimo init` generates valid config via auto-detection (< 500ms scan time)
 - Agent produced a PR from the task spec
 - PR passes `bun run build && bun run typecheck`
 - You reviewed the PR manually and it's mergeable
