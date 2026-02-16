@@ -19,6 +19,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Architecture Spec Versions
 
+### v1.3 (February 2026)
+
+#### Added
+- Auto-detection system for `karimo init` (Phase 2b)
+- Detection modules: project, commands, rules, boundaries, sandbox
+- Confidence levels (high/medium/low) with source attribution
+- Detect-first, confirm-second UX flow
+- Detection performance target: < 500ms
+
+#### Changed
+- Ring 0 now includes auto-detection capability
+- CLI Setup section clarifies `karimo init` vs `bun run onboard`
+- New §5.3.1 documents auto-detection system
+
+#### Fixed
+- Ambiguity between project initialization and team member onboarding
+
 ### v1.2 (February 2026)
 
 #### Added
