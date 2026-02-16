@@ -231,3 +231,42 @@ Checkpoint data flows: Collection → Processing → Config Updates → Future A
 ```bash
 bun run karimo:init         # Interactive config setup
 ```
+
+---
+
+## Phase 2b — Auto-Detection (Complete)
+
+- Detection module lives in `src/config/detect/`
+- Five detectors: project, commands, rules, boundaries, sandbox
+- Every detected value carries confidence (high/medium/low) and source
+- `karimo init` scans first, then shows results for confirmation
+- Detection targets < 500ms for typical projects
+- Detectors run in parallel via Promise.all
+- Sandbox reads .env.example only (never actual .env files)
+- Rules capped at 10, boundaries only include existing files
+
+### Detection Module Files
+
+| File | Purpose |
+| ---- | ------- |
+| `src/config/detect/types.ts` | DetectionResult, DetectedValue, Confidence types |
+| `src/config/detect/project.ts` | Detect name, language, framework, runtime, database |
+| `src/config/detect/commands.ts` | Detect build, lint, test, typecheck commands |
+| `src/config/detect/rules.ts` | Infer coding rules from config files |
+| `src/config/detect/boundaries.ts` | Detect never_touch and require_review patterns |
+| `src/config/detect/sandbox.ts` | Detect safe environment variables |
+| `src/config/detect/index.ts` | Orchestrator running all detectors in parallel |
+
+### Confidence Levels
+
+- `●` **high** — Strong signal, auto-accepted
+- `◐` **medium** — Good signal, user should verify
+- `○` **low** — Weak signal, likely needs correction
+- `?` **not detected** — User must fill in
+
+### Init Flow
+
+1. **Scan** — Run all detectors in parallel (< 500ms)
+2. **Display** — Show detected values with confidence indicators
+3. **Confirm** — User confirms or edits each section
+4. **Write** — Generate and save config.yaml
