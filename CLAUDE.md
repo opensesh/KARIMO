@@ -211,7 +211,8 @@ Checkpoint data flows: Collection → Processing → Config Updates → Future A
 - `loadConfig()` finds, reads, and validates config with clear error messages
 - `runInit()` provides interactive setup using @clack/prompts
 - Dependencies added: `yaml`, `@clack/prompts`
-- All config fields have defaults except `project.name` and `commands.*`
+- Required fields: `project.name`, `commands.build`, `commands.lint`
+- Recommended fields: `commands.test`, `commands.typecheck` (default to `null`)
 - `phase_budget_cap` and `session_budget_cap` accept `null` (no limit)
 - Tests live in `src/config/__tests__/config.test.ts`
 
@@ -244,6 +245,7 @@ bun run karimo:init         # Interactive config setup
 - Detectors run in parallel via Promise.all
 - Sandbox reads .env.example only (never actual .env files)
 - Rules capped at 10, boundaries only include existing files
+- Stack-aware command recommendations when test/typecheck not detected
 
 ### Detection Module Files
 
@@ -255,6 +257,7 @@ bun run karimo:init         # Interactive config setup
 | `src/config/detect/rules.ts` | Infer coding rules from config files |
 | `src/config/detect/boundaries.ts` | Detect never_touch and require_review patterns |
 | `src/config/detect/sandbox.ts` | Detect safe environment variables |
+| `src/config/detect/recommendations.ts` | Stack-aware test/typecheck suggestions |
 | `src/config/detect/index.ts` | Orchestrator running all detectors in parallel |
 
 ### Confidence Levels
@@ -579,3 +582,17 @@ bun run orchestrate --phase phase-1 --task 1a --dry-run
 - Codex/Gemini engines
 - Fallback engine logic
 - Full phase execution (`--all-ready`)
+
+### Command Requirements
+
+| Command | Requirement | Executed In |
+|---------|-------------|-------------|
+| `build` | Required | Ring 0+ (pre-PR checks) |
+| `lint` | Required | Ring 2+ (Greptile review) |
+| `test` | Recommended | Ring 2+ (integration checks) |
+| `typecheck` | Recommended | Ring 0+ (pre-PR checks) |
+
+- Required commands block `karimo init` if not detected/provided
+- Recommended commands show a warning but can be skipped (set to `null`)
+- Empty strings are invalid — use `null` for intentional skips
+- Stack-aware recommendations are shown when commands not detected
