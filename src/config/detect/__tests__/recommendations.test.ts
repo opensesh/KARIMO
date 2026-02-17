@@ -5,6 +5,17 @@
 import { describe, expect, test } from 'bun:test'
 import { formatRecommendations, getCommandRecommendations } from '../recommendations'
 
+/**
+ * Helper to get first element safely (used in tests where we know arrays aren't empty)
+ */
+function first<T>(arr: T[]): T {
+  const item = arr[0]
+  if (item === undefined) {
+    throw new Error('Expected non-empty array')
+  }
+  return item
+}
+
 describe('getCommandRecommendations', () => {
   describe('TypeScript + Bun', () => {
     test('returns bun-specific recommendations', () => {
@@ -12,8 +23,8 @@ describe('getCommandRecommendations', () => {
 
       expect(recs.test.length).toBeGreaterThan(0)
       expect(recs.typecheck.length).toBeGreaterThan(0)
-      expect(recs.test[0].command).toBe('bun test')
-      expect(recs.typecheck[0].command).toBe('bunx tsc --noEmit')
+      expect(first(recs.test).command).toBe('bun test')
+      expect(first(recs.typecheck).command).toBe('bunx tsc --noEmit')
     })
   })
 
@@ -24,7 +35,7 @@ describe('getCommandRecommendations', () => {
       expect(recs.test.length).toBeGreaterThan(0)
       expect(recs.typecheck.length).toBeGreaterThan(0)
       expect(recs.test.some((r) => r.command.includes('vitest'))).toBe(true)
-      expect(recs.typecheck[0].command).toBe('npx tsc --noEmit')
+      expect(first(recs.typecheck).command).toBe('npx tsc --noEmit')
     })
   })
 
@@ -34,7 +45,7 @@ describe('getCommandRecommendations', () => {
 
       expect(recs.test.length).toBeGreaterThan(0)
       expect(recs.typecheck.length).toBeGreaterThan(0)
-      expect(recs.typecheck[0].command).toContain('--allowJs')
+      expect(first(recs.typecheck).command).toContain('--allowJs')
     })
   })
 
@@ -58,8 +69,8 @@ describe('getCommandRecommendations', () => {
     test('returns go recommendations', () => {
       const recs = getCommandRecommendations('go', 'go')
 
-      expect(recs.test[0].command).toBe('go test ./...')
-      expect(recs.typecheck[0].command).toBe('go vet ./...')
+      expect(first(recs.test).command).toBe('go test ./...')
+      expect(first(recs.typecheck).command).toBe('go vet ./...')
     })
   })
 
@@ -67,8 +78,8 @@ describe('getCommandRecommendations', () => {
     test('returns deno recommendations', () => {
       const recs = getCommandRecommendations('deno', null)
 
-      expect(recs.test[0].command).toBe('deno test')
-      expect(recs.typecheck[0].command).toBe('deno check .')
+      expect(first(recs.test).command).toBe('deno test')
+      expect(first(recs.typecheck).command).toBe('deno check .')
     })
   })
 
@@ -76,8 +87,8 @@ describe('getCommandRecommendations', () => {
     test('returns rust recommendations', () => {
       const recs = getCommandRecommendations('rust', 'rust')
 
-      expect(recs.test[0].command).toBe('cargo test')
-      expect(recs.typecheck[0].command).toBe('cargo check')
+      expect(first(recs.test).command).toBe('cargo test')
+      expect(first(recs.typecheck).command).toBe('cargo check')
     })
   })
 
@@ -101,7 +112,7 @@ describe('getCommandRecommendations', () => {
     test('handles uppercase runtime', () => {
       const recs = getCommandRecommendations('BUN', 'TypeScript')
 
-      expect(recs.test[0].command).toBe('bun test')
+      expect(first(recs.test).command).toBe('bun test')
     })
 
     test('handles mixed case', () => {
