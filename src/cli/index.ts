@@ -66,7 +66,44 @@ export {
 
 export { handleDoctor, parseDoctorArgs, runDoctorSilent } from './doctor-command'
 
+export { handleReset, parseResetArgs, printResetHelp } from './reset-command'
+
+export { handleNote, parseNoteArgs, printNoteHelp, type NoteTag, type NoteOptions } from './note-command'
+
 export { runFirstRunFlow, isFirstRun } from './first-run'
+
+// =============================================================================
+// Safety Check
+// =============================================================================
+
+export {
+  checkWorkingDirectory,
+  formatSafetyError,
+  PROJECT_SIGNALS,
+  MIN_SIGNAL_WEIGHT,
+  type SafetyCheckResult,
+  type SafetyBlockReason,
+  type ProjectSignal,
+} from './safety'
+
+// =============================================================================
+// Telemetry
+// =============================================================================
+
+export {
+  logCommandStart,
+  logCommandEnd,
+  logError,
+  logRetry,
+  withTelemetry,
+  writeTelemetryEvent,
+  getTelemetryPath,
+  type TelemetryEvent,
+  type CommandStartEvent,
+  type CommandEndEvent,
+  type ErrorEvent,
+  type RetryEvent,
+} from './telemetry'
 
 // =============================================================================
 // Main Entry Point
