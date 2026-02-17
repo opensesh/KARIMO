@@ -213,6 +213,136 @@ describe('KarimoConfigSchema', () => {
     })
   })
 
+  describe('nullable commands (test/typecheck)', () => {
+    test('accepts null for test command', () => {
+      const config = {
+        ...VALID_MINIMAL_CONFIG,
+        commands: {
+          ...VALID_MINIMAL_CONFIG.commands,
+          test: null,
+        },
+      }
+      const result = KarimoConfigSchema.safeParse(config)
+      expect(result.success).toBe(true)
+
+      if (result.success) {
+        expect(result.data.commands.test).toBeNull()
+      }
+    })
+
+    test('accepts null for typecheck command', () => {
+      const config = {
+        ...VALID_MINIMAL_CONFIG,
+        commands: {
+          ...VALID_MINIMAL_CONFIG.commands,
+          typecheck: null,
+        },
+      }
+      const result = KarimoConfigSchema.safeParse(config)
+      expect(result.success).toBe(true)
+
+      if (result.success) {
+        expect(result.data.commands.typecheck).toBeNull()
+      }
+    })
+
+    test('accepts both test and typecheck as null', () => {
+      const config = {
+        ...VALID_MINIMAL_CONFIG,
+        commands: {
+          build: VALID_MINIMAL_CONFIG.commands.build,
+          lint: VALID_MINIMAL_CONFIG.commands.lint,
+          test: null,
+          typecheck: null,
+        },
+      }
+      const result = KarimoConfigSchema.safeParse(config)
+      expect(result.success).toBe(true)
+
+      if (result.success) {
+        expect(result.data.commands.test).toBeNull()
+        expect(result.data.commands.typecheck).toBeNull()
+      }
+    })
+
+    test('rejects empty string for test command', () => {
+      const config = {
+        ...VALID_MINIMAL_CONFIG,
+        commands: {
+          ...VALID_MINIMAL_CONFIG.commands,
+          test: '',
+        },
+      }
+      const result = KarimoConfigSchema.safeParse(config)
+      expect(result.success).toBe(false)
+    })
+
+    test('rejects empty string for typecheck command', () => {
+      const config = {
+        ...VALID_MINIMAL_CONFIG,
+        commands: {
+          ...VALID_MINIMAL_CONFIG.commands,
+          typecheck: '',
+        },
+      }
+      const result = KarimoConfigSchema.safeParse(config)
+      expect(result.success).toBe(false)
+    })
+
+    test('rejects null for build command', () => {
+      const config = {
+        ...VALID_MINIMAL_CONFIG,
+        commands: {
+          ...VALID_MINIMAL_CONFIG.commands,
+          build: null,
+        },
+      }
+      const result = KarimoConfigSchema.safeParse(config)
+      expect(result.success).toBe(false)
+    })
+
+    test('rejects null for lint command', () => {
+      const config = {
+        ...VALID_MINIMAL_CONFIG,
+        commands: {
+          ...VALID_MINIMAL_CONFIG.commands,
+          lint: null,
+        },
+      }
+      const result = KarimoConfigSchema.safeParse(config)
+      expect(result.success).toBe(false)
+    })
+
+    test('backward compatible: accepts all string commands', () => {
+      const result = KarimoConfigSchema.safeParse(VALID_MINIMAL_CONFIG)
+      expect(result.success).toBe(true)
+
+      if (result.success) {
+        expect(result.data.commands.build).toBe('bun run build')
+        expect(result.data.commands.lint).toBe('bun run lint')
+        expect(result.data.commands.test).toBe('bun test')
+        expect(result.data.commands.typecheck).toBe('tsc --noEmit')
+      }
+    })
+
+    test('defaults test to null when omitted', () => {
+      const config = {
+        ...VALID_MINIMAL_CONFIG,
+        commands: {
+          build: VALID_MINIMAL_CONFIG.commands.build,
+          lint: VALID_MINIMAL_CONFIG.commands.lint,
+        },
+      }
+      const result = KarimoConfigSchema.safeParse(config)
+      expect(result.success).toBe(true)
+
+      if (result.success) {
+        expect(result.data.commands.test).toBeNull()
+        expect(result.data.commands.typecheck).toBeNull()
+      }
+    })
+  })
+
   describe('type validation', () => {
     test('rejects string where number expected', () => {
       const config = {
