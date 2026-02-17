@@ -164,3 +164,29 @@ export async function clearCurrentPRD(
     completed_prds: completedPrds,
   })
 }
+
+/**
+ * Mark onboarding as complete.
+ */
+export async function markOnboarded(projectRoot: string): Promise<KarimoState> {
+  return updateState(projectRoot, {
+    onboarded_at: new Date().toISOString(),
+  })
+}
+
+/**
+ * Record that doctor was run.
+ */
+export async function recordDoctorRun(projectRoot: string): Promise<KarimoState> {
+  return updateState(projectRoot, {
+    doctor_last_run: new Date().toISOString(),
+  })
+}
+
+/**
+ * Check if onboarding has been completed.
+ */
+export async function isOnboarded(projectRoot: string): Promise<boolean> {
+  const state = await loadState(projectRoot)
+  return state.onboarded_at !== undefined
+}

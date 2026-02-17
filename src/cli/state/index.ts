@@ -44,6 +44,9 @@ export {
   resetState,
   setCurrentPRD,
   clearCurrentPRD,
+  markOnboarded,
+  recordDoctorRun,
+  isOnboarded,
 } from './loader'
 
 // Detector
