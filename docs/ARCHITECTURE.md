@@ -208,7 +208,9 @@ Plugin commands for injecting expertise:
 Project-specific settings live in `.karimo/config.yaml`:
 
 - **Project metadata** — Name, language, framework, runtime
-- **Build commands** — build, lint, test, typecheck
+- **Build commands** — Required: build, lint. Recommended: test, typecheck
+  - Required commands must be provided during `karimo init`
+  - Recommended commands can be set to `null` if not applicable
 - **Rules** — Architecture rules agents must follow
 - **Boundaries** — `never_touch` and `require_review` file lists
 - **Cost settings** — Multipliers, caps, budgets
