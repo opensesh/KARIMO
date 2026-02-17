@@ -154,6 +154,29 @@ export class ClaudeCodeEngine implements AgentEngineInterface {
   }
 }
 
+  /**
+   * Enhance prompt with thinking mode instructions.
+   *
+   * Adds structured reasoning guidance to the prompt.
+   */
+  private enhancePromptForThinking(prompt: string): string {
+    const thinkingPrefix = `## Reasoning Mode
+
+Before implementing, take time to carefully analyze:
+1. What are the key requirements and constraints?
+2. What are the potential edge cases?
+3. What is the best approach and why?
+4. What could go wrong and how to prevent it?
+
+Think through each step methodically before writing code.
+
+---
+
+`
+    return thinkingPrefix + prompt
+  }
+}
+
 /**
  * Create a new Claude Code engine instance.
  *
