@@ -133,9 +133,7 @@ export function getCommandRecommendations(
       { command: 'npm test', suggestion: 'Common npm test script' },
       { command: 'npx vitest', suggestion: 'Vitest works with most projects' },
     ],
-    typecheck: [
-      { command: 'npx tsc --noEmit', suggestion: 'TypeScript compiler check' },
-    ],
+    typecheck: [{ command: 'npx tsc --noEmit', suggestion: 'TypeScript compiler check' }],
   }
 }
 

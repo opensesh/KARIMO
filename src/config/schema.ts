@@ -40,7 +40,11 @@ export const ProjectSchema = z.object({
 export const CommandsSchema = z.object({
   build: z.string().min(1, 'Build command is required'),
   lint: z.string().min(1, 'Lint command is required'),
-  test: z.string().min(1, 'Test command cannot be empty (use null to skip)').nullable().default(null),
+  test: z
+    .string()
+    .min(1, 'Test command cannot be empty (use null to skip)')
+    .nullable()
+    .default(null),
   typecheck: z
     .string()
     .min(1, 'Typecheck command cannot be empty (use null to skip)')

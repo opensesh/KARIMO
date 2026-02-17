@@ -319,9 +319,7 @@ async function confirmRecommendedCommand(
 ): Promise<string | null | symbol> {
   if (detected) {
     // Show detected value
-    p.log.info(
-      `${getConfidenceIndicator(detected.confidence)} ${commandName}: ${detected.value}`
-    )
+    p.log.info(`${getConfidenceIndicator(detected.confidence)} ${commandName}: ${detected.value}`)
 
     const confirmed = await p.confirm({
       message: `Use this ${commandName.toLowerCase()} command?`,
@@ -359,7 +357,7 @@ async function confirmRecommendedCommand(
   )
 
   const action = await p.select({
-    message: `What would you like to do?`,
+    message: 'What would you like to do?',
     options: [
       { value: 'provide', label: `Provide a ${commandName.toLowerCase()} command` },
       { value: 'skip', label: 'Skip for now (you can add it later)' },
@@ -369,9 +367,7 @@ async function confirmRecommendedCommand(
   if (p.isCancel(action)) return action
 
   if (action === 'skip') {
-    p.log.info(
-      `${commandName} skipped — you can add this later by editing .karimo/config.yaml`
-    )
+    p.log.info(`${commandName} skipped — you can add this later by editing .karimo/config.yaml`)
     return null
   }
 
