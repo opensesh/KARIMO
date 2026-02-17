@@ -9,91 +9,91 @@ import type { InterviewRound, RoundContext } from './types'
  * PRD section mapping for each round.
  */
 export interface PRDSectionMapping {
-	/** Section number in the PRD */
-	sectionNumber: number
-	/** Section title */
-	sectionTitle: string
-	/** Fields captured in this section */
-	fields: string[]
+  /** Section number in the PRD */
+  sectionNumber: number
+  /** Section title */
+  sectionTitle: string
+  /** Fields captured in this section */
+  fields: string[]
 }
 
 /**
  * Map rounds to PRD sections.
  */
 export const ROUND_TO_SECTIONS: Record<InterviewRound, PRDSectionMapping[]> = {
-	framing: [
-		{
-			sectionNumber: 1,
-			sectionTitle: 'Executive Summary',
-			fields: [
-				'one_liner',
-				'whats_changing',
-				'who_its_for',
-				'why_now',
-				'done_looks_like',
-				'primary_risk',
-			],
-		},
-	],
-	requirements: [
-		{
-			sectionNumber: 3,
-			sectionTitle: 'Goals, Non-Goals & Success Metrics',
-			fields: ['goals', 'non_goals', 'success_metrics'],
-		},
-		{
-			sectionNumber: 4,
-			sectionTitle: 'Requirements',
-			fields: ['must_have', 'should_have', 'could_have'],
-		},
-		{
-			sectionNumber: 5,
-			sectionTitle: 'UX & Interaction Notes',
-			fields: ['design_refs', 'screens_states', 'accessibility', 'responsive'],
-		},
-	],
-	dependencies: [
-		{
-			sectionNumber: 6,
-			sectionTitle: 'Dependencies & Risks',
-			fields: ['external_blockers', 'internal_deps', 'risks'],
-		},
-		{
-			sectionNumber: 7,
-			sectionTitle: 'Rollout Plan',
-			fields: ['phase', 'deployment', 'rollback', 'monitoring'],
-		},
-		{
-			sectionNumber: 8,
-			sectionTitle: 'Milestones & Release Criteria',
-			fields: ['milestones', 'release_criteria'],
-		},
-	],
-	'agent-context': [
-		{
-			sectionNumber: 11,
-			sectionTitle: 'Agent Boundaries (Phase-Specific)',
-			fields: ['reference_files', 'protected_files', 'arch_decisions', 'gotchas'],
-		},
-	],
-	retrospective: [
-		{
-			sectionNumber: 10,
-			sectionTitle: 'Checkpoint Learnings',
-			fields: ['patterns_to_reinforce', 'anti_patterns', 'estimate_calibration'],
-		},
-	],
+  framing: [
+    {
+      sectionNumber: 1,
+      sectionTitle: 'Executive Summary',
+      fields: [
+        'one_liner',
+        'whats_changing',
+        'who_its_for',
+        'why_now',
+        'done_looks_like',
+        'primary_risk',
+      ],
+    },
+  ],
+  requirements: [
+    {
+      sectionNumber: 3,
+      sectionTitle: 'Goals, Non-Goals & Success Metrics',
+      fields: ['goals', 'non_goals', 'success_metrics'],
+    },
+    {
+      sectionNumber: 4,
+      sectionTitle: 'Requirements',
+      fields: ['must_have', 'should_have', 'could_have'],
+    },
+    {
+      sectionNumber: 5,
+      sectionTitle: 'UX & Interaction Notes',
+      fields: ['design_refs', 'screens_states', 'accessibility', 'responsive'],
+    },
+  ],
+  dependencies: [
+    {
+      sectionNumber: 6,
+      sectionTitle: 'Dependencies & Risks',
+      fields: ['external_blockers', 'internal_deps', 'risks'],
+    },
+    {
+      sectionNumber: 7,
+      sectionTitle: 'Rollout Plan',
+      fields: ['phase', 'deployment', 'rollback', 'monitoring'],
+    },
+    {
+      sectionNumber: 8,
+      sectionTitle: 'Milestones & Release Criteria',
+      fields: ['milestones', 'release_criteria'],
+    },
+  ],
+  'agent-context': [
+    {
+      sectionNumber: 11,
+      sectionTitle: 'Agent Boundaries (Phase-Specific)',
+      fields: ['reference_files', 'protected_files', 'arch_decisions', 'gotchas'],
+    },
+  ],
+  retrospective: [
+    {
+      sectionNumber: 10,
+      sectionTitle: 'Checkpoint Learnings',
+      fields: ['patterns_to_reinforce', 'anti_patterns', 'estimate_calibration'],
+    },
+  ],
 }
 
 /**
  * Get the system prompt for a specific round.
  */
 export function getRoundSystemPrompt(
-	round: InterviewRound,
-	projectConfig: string,
-	checkpointData: string | null,
+  round: InterviewRound,
+  projectConfig: string,
+  checkpointData: string | null
 ): string {
-	const basePrompt = `You are KARIMO, an expert product manager conducting a PRD interview.
+  const basePrompt = `You are KARIMO, an expert product manager conducting a PRD interview.
 Your goal is to gather all the information needed to create an agent-executable PRD.
 
 ## Project Configuration
@@ -110,8 +110,8 @@ ${projectConfig}
 You are conducting Round ${getRoundNumber(round)} of 5: ${getRoundDisplayName(round)}
 `
 
-	const roundPrompts: Record<InterviewRound, string> = {
-		framing: `${basePrompt}
+  const roundPrompts: Record<InterviewRound, string> = {
+    framing: `${basePrompt}
 
 ## Round 1: Framing (~5 minutes)
 
@@ -136,7 +136,7 @@ Your goal is to establish scope, success criteria, and risk.
 
 Start by greeting the user and asking about what we're building.`,
 
-		requirements: `${basePrompt}
+    requirements: `${basePrompt}
 
 ## Round 2: Requirements (~10 minutes)
 
@@ -161,7 +161,7 @@ Your goal is to break the feature into concrete requirements with priorities and
 - Flag any requirements too large for a single task
 - Confirm before proceeding`,
 
-		dependencies: `${basePrompt}
+    dependencies: `${basePrompt}
 
 ## Round 3: Dependencies & Architecture (~5 minutes)
 
@@ -184,7 +184,7 @@ Your goal is to establish task ordering, parallel opportunities, and file-level 
 - Flag file overlaps
 - Confirm ordering makes sense`,
 
-		'agent-context': `${basePrompt}
+    'agent-context': `${basePrompt}
 
 ## Round 4: Agent Context (~5 minutes)
 
@@ -207,15 +207,15 @@ Your goal is to give agents specific guidance to produce mergeable code on the f
 - Flag under-specified tasks
 - Confirm if there's anything else to tell a developer`,
 
-		retrospective: `${basePrompt}
+    retrospective: `${basePrompt}
 
 ## Round 5: Retrospective Input (~3 minutes)
 
 Your goal is to feed compound learning data into the current plan.
 
 ${
-			checkpointData
-				? `### Checkpoint Data Available
+  checkpointData
+    ? `### Checkpoint Data Available
 ${checkpointData}
 
 ### Questions to Cover
@@ -228,115 +228,115 @@ ${checkpointData}
 ### After This Round
 - Note adjustments to estimates or context
 - Confirm you'll incorporate learnings into the PRD`
-				: `### No Checkpoint Data
+    : `### No Checkpoint Data
 No checkpoint data from previous phases. This will be collected after the first task completes.
 
 Let the user know this and ask if they have any general learnings from previous work they'd like to incorporate.`
-		}`,
-	}
+}`,
+  }
 
-	return roundPrompts[round]
+  return roundPrompts[round]
 }
 
 /**
  * Get round display name.
  */
 function getRoundDisplayName(round: InterviewRound): string {
-	const names: Record<InterviewRound, string> = {
-		framing: 'Framing',
-		requirements: 'Requirements',
-		dependencies: 'Dependencies & Architecture',
-		'agent-context': 'Agent Context',
-		retrospective: 'Retrospective Input',
-	}
-	return names[round]
+  const names: Record<InterviewRound, string> = {
+    framing: 'Framing',
+    requirements: 'Requirements',
+    dependencies: 'Dependencies & Architecture',
+    'agent-context': 'Agent Context',
+    retrospective: 'Retrospective Input',
+  }
+  return names[round]
 }
 
 /**
  * Get round number (1-5).
  */
 function getRoundNumber(round: InterviewRound): number {
-	const rounds: InterviewRound[] = [
-		'framing',
-		'requirements',
-		'dependencies',
-		'agent-context',
-		'retrospective',
-	]
-	return rounds.indexOf(round) + 1
+  const rounds: InterviewRound[] = [
+    'framing',
+    'requirements',
+    'dependencies',
+    'agent-context',
+    'retrospective',
+  ]
+  return rounds.indexOf(round) + 1
 }
 
 /**
  * Get round context for the interview agent.
  */
 export function getRoundContext(
-	round: InterviewRound,
-	projectConfig: string,
-	checkpointData: string | null,
+  round: InterviewRound,
+  projectConfig: string,
+  checkpointData: string | null
 ): RoundContext {
-	const sections = ROUND_TO_SECTIONS[round]
-	const dataFields = sections.flatMap((s) => s.fields)
+  const sections = ROUND_TO_SECTIONS[round]
+  const dataFields = sections.flatMap((s) => s.fields)
 
-	const estimatedMinutes: Record<InterviewRound, number> = {
-		framing: 5,
-		requirements: 10,
-		dependencies: 5,
-		'agent-context': 5,
-		retrospective: 3,
-	}
+  const estimatedMinutes: Record<InterviewRound, number> = {
+    framing: 5,
+    requirements: 10,
+    dependencies: 5,
+    'agent-context': 5,
+    retrospective: 3,
+  }
 
-	const questions: Record<InterviewRound, string[]> = {
-		framing: [
-			'What are we building?',
-			'What would you demo when this is done?',
-			'What\'s the biggest risk?',
-			'Is this MVP or polished?',
-			'Who uses this and how does their workflow change?',
-		],
-		requirements: [
-			'What are the Must Have requirements?',
-			'What are the Should Have requirements?',
-			'What are the Could Have requirements?',
-			'What are the acceptance criteria for each Must Have?',
-			'What should the agent definitely NOT do?',
-		],
-		dependencies: [
-			'Which requirements can be worked on independently?',
-			'What\'s the dependency chain?',
-			'Are there files multiple requirements will touch?',
-			'Are there external blockers?',
-			'What\'s the testing strategy?',
-		],
-		'agent-context': [
-			'Are there existing files or patterns to follow?',
-			'Any undocumented gotchas?',
-			'How should edge cases be handled?',
-			'What design tokens or libraries should be used?',
-			'What would make you reject a PR?',
-		],
-		retrospective: [
-			'What patterns worked well in previous work?',
-			'What anti-patterns should be avoided?',
-			'How accurate were previous cost estimates?',
-			'Should any new rules be added?',
-			'Does the cost multiplier feel right?',
-		],
-	}
+  const questions: Record<InterviewRound, string[]> = {
+    framing: [
+      'What are we building?',
+      'What would you demo when this is done?',
+      "What's the biggest risk?",
+      'Is this MVP or polished?',
+      'Who uses this and how does their workflow change?',
+    ],
+    requirements: [
+      'What are the Must Have requirements?',
+      'What are the Should Have requirements?',
+      'What are the Could Have requirements?',
+      'What are the acceptance criteria for each Must Have?',
+      'What should the agent definitely NOT do?',
+    ],
+    dependencies: [
+      'Which requirements can be worked on independently?',
+      "What's the dependency chain?",
+      'Are there files multiple requirements will touch?',
+      'Are there external blockers?',
+      "What's the testing strategy?",
+    ],
+    'agent-context': [
+      'Are there existing files or patterns to follow?',
+      'Any undocumented gotchas?',
+      'How should edge cases be handled?',
+      'What design tokens or libraries should be used?',
+      'What would make you reject a PR?',
+    ],
+    retrospective: [
+      'What patterns worked well in previous work?',
+      'What anti-patterns should be avoided?',
+      'How accurate were previous cost estimates?',
+      'Should any new rules be added?',
+      'Does the cost multiplier feel right?',
+    ],
+  }
 
-	return {
-		round,
-		systemPrompt: getRoundSystemPrompt(round, projectConfig, checkpointData),
-		questions: questions[round],
-		dataFields,
-		estimatedMinutes: estimatedMinutes[round],
-	}
+  return {
+    round,
+    systemPrompt: getRoundSystemPrompt(round, projectConfig, checkpointData),
+    questions: questions[round],
+    dataFields,
+    estimatedMinutes: estimatedMinutes[round],
+  }
 }
 
 /**
  * Get the review agent system prompt.
  */
 export function getReviewSystemPrompt(prdContent: string): string {
-	return `You are KARIMO's PRD Review Agent.
+  return `You are KARIMO's PRD Review Agent.
 Your job is to review a completed PRD and identify issues before it's finalized.
 
 ## The PRD to Review

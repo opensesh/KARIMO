@@ -4,7 +4,7 @@
  * Manages context window for Anthropic API calls.
  * Handles token counting, summarization, and handoff.
  */
-import type { InterviewSession, ConversationMessage, ConversationSummary } from './types'
+import type { ConversationMessage, ConversationSummary, InterviewSession } from './types'
 
 /**
  * Approximate characters per token (conservative estimate).
@@ -32,120 +32,120 @@ const RESERVED_TOKENS = 10000
  * Estimate token count for a string.
  */
 export function estimateTokens(text: string): number {
-	return Math.ceil(text.length / CHARS_PER_TOKEN)
+  return Math.ceil(text.length / CHARS_PER_TOKEN)
 }
 
 /**
  * Estimate token count for messages.
  */
 export function estimateMessagesTokens(messages: ConversationMessage[]): number {
-	let total = 0
+  let total = 0
 
-	for (const msg of messages) {
-		// Add overhead for role markers and message structure
-		total += estimateTokens(msg.content) + 10
-	}
+  for (const msg of messages) {
+    // Add overhead for role markers and message structure
+    total += estimateTokens(msg.content) + 10
+  }
 
-	return total
+  return total
 }
 
 /**
  * Estimate token count for summaries.
  */
 export function estimateSummariesTokens(summaries: ConversationSummary[]): number {
-	let total = 0
+  let total = 0
 
-	for (const summary of summaries) {
-		total += estimateTokens(summary.summary) + 20 // Overhead for metadata
-	}
+  for (const summary of summaries) {
+    total += estimateTokens(summary.summary) + 20 // Overhead for metadata
+  }
 
-	return total
+  return total
 }
 
 /**
  * Calculate total context tokens for a session.
  */
 export function calculateContextTokens(
-	session: InterviewSession,
-	systemPromptTokens: number,
-	prdContentTokens: number,
+  session: InterviewSession,
+  systemPromptTokens: number,
+  prdContentTokens: number
 ): number {
-	const messagesTokens = estimateMessagesTokens(session.messages)
-	const summariesTokens = estimateSummariesTokens(session.summaries)
+  const messagesTokens = estimateMessagesTokens(session.messages)
+  const summariesTokens = estimateSummariesTokens(session.summaries)
 
-	return systemPromptTokens + prdContentTokens + messagesTokens + summariesTokens
+  return systemPromptTokens + prdContentTokens + messagesTokens + summariesTokens
 }
 
 /**
  * Check if context is near capacity.
  */
 export function isNearCapacity(
-	currentTokens: number,
-	threshold: number = SUMMARIZATION_THRESHOLD,
+  currentTokens: number,
+  threshold: number = SUMMARIZATION_THRESHOLD
 ): boolean {
-	const effectiveMax = MAX_CONTEXT_TOKENS - RESERVED_TOKENS
-	return currentTokens >= effectiveMax * threshold
+  const effectiveMax = MAX_CONTEXT_TOKENS - RESERVED_TOKENS
+  return currentTokens >= effectiveMax * threshold
 }
 
 /**
  * Calculate available tokens for response.
  */
 export function getAvailableTokens(currentTokens: number): number {
-	return Math.max(0, MAX_CONTEXT_TOKENS - currentTokens - RESERVED_TOKENS)
+  return Math.max(0, MAX_CONTEXT_TOKENS - currentTokens - RESERVED_TOKENS)
 }
 
 /**
  * Context state for decision making.
  */
 export interface ContextState {
-	/** Current total tokens */
-	currentTokens: number
+  /** Current total tokens */
+  currentTokens: number
 
-	/** Maximum allowed tokens */
-	maxTokens: number
+  /** Maximum allowed tokens */
+  maxTokens: number
 
-	/** Whether summarization is needed */
-	needsSummarization: boolean
+  /** Whether summarization is needed */
+  needsSummarization: boolean
 
-	/** Available tokens for response */
-	availableTokens: number
+  /** Available tokens for response */
+  availableTokens: number
 
-	/** Utilization percentage (0-100) */
-	utilizationPercent: number
+  /** Utilization percentage (0-100) */
+  utilizationPercent: number
 }
 
 /**
  * Get current context state.
  */
 export function getContextState(
-	session: InterviewSession,
-	systemPromptTokens: number,
-	prdContentTokens: number,
+  session: InterviewSession,
+  systemPromptTokens: number,
+  prdContentTokens: number
 ): ContextState {
-	const currentTokens = calculateContextTokens(session, systemPromptTokens, prdContentTokens)
-	const effectiveMax = MAX_CONTEXT_TOKENS - RESERVED_TOKENS
+  const currentTokens = calculateContextTokens(session, systemPromptTokens, prdContentTokens)
+  const effectiveMax = MAX_CONTEXT_TOKENS - RESERVED_TOKENS
 
-	return {
-		currentTokens,
-		maxTokens: MAX_CONTEXT_TOKENS,
-		needsSummarization: isNearCapacity(currentTokens),
-		availableTokens: getAvailableTokens(currentTokens),
-		utilizationPercent: Math.round((currentTokens / effectiveMax) * 100),
-	}
+  return {
+    currentTokens,
+    maxTokens: MAX_CONTEXT_TOKENS,
+    needsSummarization: isNearCapacity(currentTokens),
+    availableTokens: getAvailableTokens(currentTokens),
+    utilizationPercent: Math.round((currentTokens / effectiveMax) * 100),
+  }
 }
 
 /**
  * Build a summarization prompt for the current conversation.
  */
 export function buildSummarizationPrompt(
-	messages: ConversationMessage[],
-	currentRound: string,
+  messages: ConversationMessage[],
+  currentRound: string
 ): string {
-	const conversation = messages
-		.map((m) => `${m.role === 'user' ? 'User' : 'Assistant'}: ${m.content}`)
-		.join('\n\n')
+  const conversation = messages
+    .map((m) => `${m.role === 'user' ? 'User' : 'Assistant'}: ${m.content}`)
+    .join('\n\n')
 
-	return `Summarize the following interview conversation from the "${currentRound}" round.
+  return `Summarize the following interview conversation from the "${currentRound}" round.
 Capture:
 - Key decisions made
 - Requirements discussed
@@ -165,63 +165,61 @@ Summary:`
  * Build context for a new API call after summarization.
  */
 export interface HandoffContext {
-	/** Previous summaries combined */
-	previousSummaries: string
+  /** Previous summaries combined */
+  previousSummaries: string
 
-	/** Current PRD content */
-	prdContent: string
+  /** Current PRD content */
+  prdContent: string
 
-	/** Last few messages (most recent context) */
-	recentMessages: ConversationMessage[]
+  /** Last few messages (most recent context) */
+  recentMessages: ConversationMessage[]
 
-	/** Round-specific context */
-	roundContext: string
+  /** Round-specific context */
+  roundContext: string
 }
 
 /**
  * Build handoff context after summarization.
  */
 export function buildHandoffContext(
-	session: InterviewSession,
-	prdContent: string,
-	roundContext: string,
-	recentMessageCount: number = 4,
+  session: InterviewSession,
+  prdContent: string,
+  roundContext: string,
+  recentMessageCount = 4
 ): HandoffContext {
-	// Combine all summaries
-	const previousSummaries = session.summaries
-		.map((s) => `[${s.round}] ${s.summary}`)
-		.join('\n\n')
+  // Combine all summaries
+  const previousSummaries = session.summaries.map((s) => `[${s.round}] ${s.summary}`).join('\n\n')
 
-	// Get most recent messages
-	const recentMessages = session.messages.slice(-recentMessageCount)
+  // Get most recent messages
+  const recentMessages = session.messages.slice(-recentMessageCount)
 
-	return {
-		previousSummaries,
-		prdContent,
-		recentMessages,
-		roundContext,
-	}
+  return {
+    previousSummaries,
+    prdContent,
+    recentMessages,
+    roundContext,
+  }
 }
 
 /**
  * Format handoff context for injection into system prompt.
  */
 export function formatHandoffContext(context: HandoffContext): string {
-	const parts: string[] = []
+  const parts: string[] = []
 
-	if (context.previousSummaries) {
-		parts.push(`## Previous Conversation Summary\n\n${context.previousSummaries}`)
-	}
+  if (context.previousSummaries) {
+    parts.push(`## Previous Conversation Summary\n\n${context.previousSummaries}`)
+  }
 
-	if (context.prdContent) {
-		parts.push(`## Current PRD State\n\n${context.prdContent}`)
-	}
+  if (context.prdContent) {
+    parts.push(`## Current PRD State\n\n${context.prdContent}`)
+  }
 
-	if (context.roundContext) {
-		parts.push(`## Current Round Context\n\n${context.roundContext}`)
-	}
+  if (context.roundContext) {
+    parts.push(`## Current Round Context\n\n${context.roundContext}`)
+  }
 
-	return parts.join('\n\n---\n\n')
+  return parts.join('\n\n---\n\n')
 }
 
 /**
@@ -229,24 +227,26 @@ export function formatHandoffContext(context: HandoffContext): string {
  * Keeps the most recent exchange to maintain conversational flow.
  */
 export function getMessagesToKeep(
-	messages: ConversationMessage[],
-	targetTokens: number = 2000,
+  messages: ConversationMessage[],
+  targetTokens = 2000
 ): ConversationMessage[] {
-	const result: ConversationMessage[] = []
-	let tokens = 0
+  const result: ConversationMessage[] = []
+  let tokens = 0
 
-	// Work backwards from most recent
-	for (let i = messages.length - 1; i >= 0; i--) {
-		const msg = messages[i]
-		const msgTokens = estimateTokens(msg.content) + 10
+  // Work backwards from most recent
+  for (let i = messages.length - 1; i >= 0; i--) {
+    const msg = messages[i]
+    if (!msg) continue
 
-		if (tokens + msgTokens > targetTokens) {
-			break
-		}
+    const msgTokens = estimateTokens(msg.content) + 10
 
-		result.unshift(msg)
-		tokens += msgTokens
-	}
+    if (tokens + msgTokens > targetTokens) {
+      break
+    }
 
-	return result
+    result.unshift(msg)
+    tokens += msgTokens
+  }
+
+  return result
 }

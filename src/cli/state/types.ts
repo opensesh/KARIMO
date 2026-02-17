@@ -14,103 +14,93 @@ export type KarimoLevel = 0 | 1 | 2 | 3 | 4 | 5
  * Maps to the 5 interview rounds plus review and finalized states.
  */
 export type PRDSection =
-	| 'framing' // Round 1
-	| 'requirements' // Round 2
-	| 'dependencies' // Round 3
-	| 'agent-context' // Round 4
-	| 'retrospective' // Round 5
-	| 'review' // Post-interview review
-	| 'finalized' // Ready for execution
+  | 'framing' // Round 1
+  | 'requirements' // Round 2
+  | 'dependencies' // Round 3
+  | 'agent-context' // Round 4
+  | 'retrospective' // Round 5
+  | 'review' // Post-interview review
+  | 'finalized' // Ready for execution
 
 /**
  * Project phase for routing.
  * Detected from .karimo/ directory contents.
  */
 export type ProjectPhase =
-	| 'welcome' // No .karimo/ directory
-	| 'init' // .karimo/ exists but no config.yaml
-	| 'create-prd' // config.yaml exists but no PRDs
-	| 'resume-prd' // PRD in progress (not finalized)
-	| 'execute' // Finalized PRDs with pending tasks
-	| 'complete' // All tasks complete
+  | 'welcome' // No .karimo/ directory
+  | 'init' // .karimo/ exists but no config.yaml
+  | 'create-prd' // config.yaml exists but no PRDs
+  | 'resume-prd' // PRD in progress (not finalized)
+  | 'execute' // Finalized PRDs with pending tasks
+  | 'complete' // All tasks complete
 
 /**
  * Persistent state stored in .karimo/state.json.
  */
 export interface KarimoState {
-	/**
-	 * Current KARIMO level (0-5).
-	 * Affects available features and execution modes.
-	 */
-	level: KarimoLevel
+  /**
+   * Current KARIMO level (0-5).
+   * Affects available features and execution modes.
+   */
+  level: KarimoLevel
 
-	/**
-	 * Currently active PRD slug.
-	 * Format: "NNN_slug" (e.g., "001_token-studio")
-	 */
-	current_prd: string | null
+  /**
+   * Currently active PRD slug.
+   * Format: "NNN_slug" (e.g., "001_token-studio")
+   */
+  current_prd: string | null
 
-	/**
-	 * Current section within the active PRD interview.
-	 * Null if no interview in progress.
-	 */
-	current_prd_section: PRDSection | null
+  /**
+   * Current section within the active PRD interview.
+   * Null if no interview in progress.
+   */
+  current_prd_section: PRDSection | null
 
-	/**
-	 * List of completed PRD slugs.
-	 */
-	completed_prds: string[]
+  /**
+   * List of completed PRD slugs.
+   */
+  completed_prds: string[]
 
-	/**
-	 * Number of completed execution cycles.
-	 */
-	completed_cycles: number
+  /**
+   * Number of completed execution cycles.
+   */
+  completed_cycles: number
 
-	/**
-	 * ISO timestamp of last activity.
-	 */
-	last_activity: string
+  /**
+   * ISO timestamp of last activity.
+   */
+  last_activity: string
 }
 
 /**
  * Default state for new projects.
  */
 export const DEFAULT_STATE: KarimoState = {
-	level: 0,
-	current_prd: null,
-	current_prd_section: null,
-	completed_prds: [],
-	completed_cycles: 0,
-	last_activity: new Date().toISOString(),
+  level: 0,
+  current_prd: null,
+  current_prd_section: null,
+  completed_prds: [],
+  completed_cycles: 0,
+  last_activity: new Date().toISOString(),
 }
 
 /**
  * PRD metadata extracted from markdown frontmatter.
+ * Re-exported from schema for type inference compatibility.
  */
-export interface PRDMetadata {
-	feature_name: string
-	feature_slug: string
-	owner: string
-	status: 'draft' | 'active' | 'complete'
-	created_date: string
-	target_date?: string
-	phase?: string
-	scope_type?: string
-	github_project?: string
-	links?: string[]
-	checkpoint_refs?: string[]
-}
+import type { PRDMetadataFromSchema } from './schema'
+export type PRDMetadata = PRDMetadataFromSchema
 
 /**
  * PRD file info for listing/selection.
  */
 export interface PRDFileInfo {
-	/** Full path to PRD file */
-	path: string
-	/** PRD slug (e.g., "001_token-studio") */
-	slug: string
-	/** Parsed metadata from frontmatter */
-	metadata: PRDMetadata | null
-	/** Whether PRD is finalized (has tasks ready for execution) */
-	finalized: boolean
+  /** Full path to PRD file */
+  path: string
+  /** PRD slug (e.g., "001_token-studio") */
+  slug: string
+  /** Parsed metadata from frontmatter */
+  metadata: PRDMetadata | null
+  /** Whether PRD is finalized (has tasks ready for execution) */
+  finalized: boolean
 }

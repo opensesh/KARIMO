@@ -71,53 +71,53 @@ const WORKFLOW_TEXT = `How KARIMO works:
  * @returns true if user wants to proceed, false if cancelled
  */
 export async function showWelcome(): Promise<boolean> {
-	// Display logo
-	console.log(LOGO)
+  // Display logo
+  console.log(LOGO)
 
-	// Display intro
-	p.intro('Autonomous Development Framework')
+  // Display intro
+  p.intro('Autonomous Development Framework')
 
-	// Show introduction
-	p.note(INTRO_TEXT, 'About KARIMO')
+  // Show introduction
+  p.note(INTRO_TEXT, 'About KARIMO')
 
-	// Show level explanation
-	p.note(LEVELS_TEXT, 'Build Levels')
+  // Show level explanation
+  p.note(LEVELS_TEXT, 'Build Levels')
 
-	// Show workflow
-	p.note(WORKFLOW_TEXT, 'Workflow')
+  // Show workflow
+  p.note(WORKFLOW_TEXT, 'Workflow')
 
-	// Confirmation prompt
-	const proceed = await p.confirm({
-		message: 'Ready to set up KARIMO for this project?',
-		initialValue: true,
-	})
+  // Confirmation prompt
+  const proceed = await p.confirm({
+    message: 'Ready to set up KARIMO for this project?',
+    initialValue: true,
+  })
 
-	if (p.isCancel(proceed)) {
-		p.cancel('Setup cancelled.')
-		process.exit(0)
-	}
+  if (p.isCancel(proceed)) {
+    p.cancel('Setup cancelled.')
+    process.exit(0)
+  }
 
-	if (!proceed) {
-		p.outro('Run `karimo` again when you\'re ready.')
-		return false
-	}
+  if (!proceed) {
+    p.outro("Run `karimo` again when you're ready.")
+    return false
+  }
 
-	return true
+  return true
 }
 
 /**
  * Show a brief welcome back message for returning users.
  */
 export async function showWelcomeBack(): Promise<void> {
-	p.intro('KARIMO')
-	p.log.info('Welcome back! Checking project status...')
+  p.intro('KARIMO')
+  p.log.info('Welcome back! Checking project status...')
 }
 
 /**
  * Show help for available commands.
  */
 export function showCommandHelp(): void {
-	console.log(`
+  console.log(`
 Commands:
   karimo               Run guided workflow based on project state
   karimo init          Initialize KARIMO configuration

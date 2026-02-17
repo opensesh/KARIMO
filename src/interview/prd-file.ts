@@ -4,10 +4,10 @@
  * Create, read, and update PRD markdown files.
  */
 import { existsSync, mkdirSync, readFileSync } from 'node:fs'
-import { basename, dirname, join } from 'node:path'
+import { join } from 'node:path'
 import { stringify as stringifyYaml } from 'yaml'
-import type { PRDSectionData, InterviewTask } from './types'
 import { PRDFileError } from './errors'
+import type { InterviewTask } from './types'
 
 const PRDS_DIR = '.karimo/prds'
 const TEMPLATE_PATH = 'templates/PRD_TEMPLATE.md'
@@ -16,48 +16,48 @@ const TEMPLATE_PATH = 'templates/PRD_TEMPLATE.md'
  * PRD metadata for frontmatter.
  */
 export interface PRDFrontmatter {
-	feature_name: string
-	feature_slug: string
-	owner: string
-	status: 'draft' | 'active' | 'complete'
-	created_date: string
-	target_date?: string
-	phase?: string
-	scope_type?: string
-	github_project?: string
-	links?: string[]
-	checkpoint_refs?: string[]
+  feature_name: string
+  feature_slug: string
+  owner: string
+  status: 'draft' | 'active' | 'complete'
+  created_date: string
+  target_date?: string
+  phase?: string
+  scope_type?: string
+  github_project?: string
+  links?: string[]
+  checkpoint_refs?: string[]
 }
 
 /**
  * Get the PRDs directory path.
  */
 export function getPRDsDir(projectRoot: string): string {
-	return join(projectRoot, PRDS_DIR)
+  return join(projectRoot, PRDS_DIR)
 }
 
 /**
  * Get the path for a PRD file by slug.
  */
 export function getPRDPath(projectRoot: string, slug: string): string {
-	return join(getPRDsDir(projectRoot), `${slug}.md`)
+  return join(getPRDsDir(projectRoot), `${slug}.md`)
 }
 
 /**
  * Check if PRDs directory exists.
  */
 export function prdsDirExists(projectRoot: string): boolean {
-	return existsSync(getPRDsDir(projectRoot))
+  return existsSync(getPRDsDir(projectRoot))
 }
 
 /**
  * Ensure PRDs directory exists.
  */
 export function ensurePRDsDir(projectRoot: string): void {
-	const prdsDir = getPRDsDir(projectRoot)
-	if (!existsSync(prdsDir)) {
-		mkdirSync(prdsDir, { recursive: true })
-	}
+  const prdsDir = getPRDsDir(projectRoot)
+  if (!existsSync(prdsDir)) {
+    mkdirSync(prdsDir, { recursive: true })
+  }
 }
 
 /**
@@ -65,195 +65,204 @@ export function ensurePRDsDir(projectRoot: string): void {
  * Format: "NNN_slug-name"
  */
 export function generatePRDSlug(number: string, featureName: string): string {
-	const slug = featureName
-		.toLowerCase()
-		.replace(/[^a-z0-9]+/g, '-')
-		.replace(/^-|-$/g, '')
-		.slice(0, 50)
+  const slug = featureName
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '')
+    .slice(0, 50)
 
-	return `${number}_${slug}`
+  return `${number}_${slug}`
 }
 
 /**
  * Create initial PRD file from template.
  */
 export async function createPRDFile(
-	projectRoot: string,
-	slug: string,
-	frontmatter: PRDFrontmatter,
+  projectRoot: string,
+  slug: string,
+  frontmatter: PRDFrontmatter
 ): Promise<string> {
-	ensurePRDsDir(projectRoot)
+  ensurePRDsDir(projectRoot)
 
-	const prdPath = getPRDPath(projectRoot, slug)
+  const prdPath = getPRDPath(projectRoot, slug)
 
-	if (existsSync(prdPath)) {
-		throw new PRDFileError(prdPath, 'create', 'File already exists')
-	}
+  if (existsSync(prdPath)) {
+    throw new PRDFileError(prdPath, 'create', 'File already exists')
+  }
 
-	// Read template
-	const templatePath = join(projectRoot, TEMPLATE_PATH)
-	let template: string
+  // Read template
+  const templatePath = join(projectRoot, TEMPLATE_PATH)
+  let template: string
 
-	if (existsSync(templatePath)) {
-		template = readFileSync(templatePath, 'utf-8')
-	} else {
-		// Use minimal template if project template not found
-		template = getMinimalTemplate()
-	}
+  if (existsSync(templatePath)) {
+    template = readFileSync(templatePath, 'utf-8')
+  } else {
+    // Use minimal template if project template not found
+    template = getMinimalTemplate()
+  }
 
-	// Build frontmatter YAML
-	const frontmatterYaml = stringifyYaml(frontmatter, {
-		indent: 2,
-		lineWidth: 100,
-	}).trim()
+  // Build frontmatter YAML
+  const frontmatterYaml = stringifyYaml(frontmatter, {
+    indent: 2,
+    lineWidth: 100,
+  }).trim()
 
-	// Replace template frontmatter with actual frontmatter
-	const content = template.replace(
-		/```yaml\n# =+\n# PRD METADATA[\s\S]*?---\n```/,
-		`\`\`\`yaml\n---\n${frontmatterYaml}\n---\n\`\`\``,
-	)
+  // Replace template frontmatter with actual frontmatter
+  const content = template.replace(
+    /```yaml\n# =+\n# PRD METADATA[\s\S]*?---\n```/,
+    `\`\`\`yaml\n---\n${frontmatterYaml}\n---\n\`\`\``
+  )
 
-	try {
-		await Bun.write(prdPath, content)
-		return prdPath
-	} catch (error) {
-		throw new PRDFileError(prdPath, 'create', (error as Error).message)
-	}
+  try {
+    await Bun.write(prdPath, content)
+    return prdPath
+  } catch (error) {
+    throw new PRDFileError(prdPath, 'create', (error as Error).message)
+  }
 }
 
 /**
  * Read PRD file content.
  */
 export async function readPRDFile(projectRoot: string, slug: string): Promise<string> {
-	const prdPath = getPRDPath(projectRoot, slug)
+  const prdPath = getPRDPath(projectRoot, slug)
 
-	if (!existsSync(prdPath)) {
-		throw new PRDFileError(prdPath, 'read', 'File not found')
-	}
+  if (!existsSync(prdPath)) {
+    throw new PRDFileError(prdPath, 'read', 'File not found')
+  }
 
-	try {
-		return await Bun.file(prdPath).text()
-	} catch (error) {
-		throw new PRDFileError(prdPath, 'read', (error as Error).message)
-	}
+  try {
+    return await Bun.file(prdPath).text()
+  } catch (error) {
+    throw new PRDFileError(prdPath, 'read', (error as Error).message)
+  }
 }
 
 /**
  * Update a specific section in the PRD file.
  */
 export async function updatePRDSection(
-	projectRoot: string,
-	slug: string,
-	sectionNumber: number,
-	sectionTitle: string,
-	content: string,
+  projectRoot: string,
+  slug: string,
+  sectionNumber: number,
+  sectionTitle: string,
+  content: string
 ): Promise<void> {
-	const prdPath = getPRDPath(projectRoot, slug)
-	let currentContent: string
+  const prdPath = getPRDPath(projectRoot, slug)
+  let currentContent: string
 
-	try {
-		currentContent = await readPRDFile(projectRoot, slug)
-	} catch (error) {
-		throw new PRDFileError(prdPath, 'update', (error as Error).message)
-	}
+  try {
+    currentContent = await readPRDFile(projectRoot, slug)
+  } catch (error) {
+    throw new PRDFileError(prdPath, 'update', (error as Error).message)
+  }
 
-	// Build section header pattern
-	const sectionPattern = new RegExp(
-		`(## ${sectionNumber}\\. ${sectionTitle}[\\s\\S]*?)(?=## \\d+\\.|$)`,
-		'g',
-	)
+  // Build section header pattern
+  const sectionPattern = new RegExp(
+    `(## ${sectionNumber}\\. ${sectionTitle}[\\s\\S]*?)(?=## \\d+\\.|$)`,
+    'g'
+  )
 
-	// Replace section content
-	const newContent = currentContent.replace(
-		sectionPattern,
-		`## ${sectionNumber}. ${sectionTitle}\n\n${content}\n\n`,
-	)
+  // Replace section content
+  const newContent = currentContent.replace(
+    sectionPattern,
+    `## ${sectionNumber}. ${sectionTitle}\n\n${content}\n\n`
+  )
 
-	try {
-		await Bun.write(prdPath, newContent)
-	} catch (error) {
-		throw new PRDFileError(prdPath, 'update', (error as Error).message)
-	}
+  try {
+    await Bun.write(prdPath, newContent)
+  } catch (error) {
+    throw new PRDFileError(prdPath, 'update', (error as Error).message)
+  }
 }
 
 /**
  * Update the frontmatter status.
  */
 export async function updatePRDStatus(
-	projectRoot: string,
-	slug: string,
-	status: 'draft' | 'active' | 'complete',
+  projectRoot: string,
+  slug: string,
+  status: 'draft' | 'active' | 'complete'
 ): Promise<void> {
-	const prdPath = getPRDPath(projectRoot, slug)
-	let content: string
+  const prdPath = getPRDPath(projectRoot, slug)
+  let content: string
 
-	try {
-		content = await readPRDFile(projectRoot, slug)
-	} catch (error) {
-		throw new PRDFileError(prdPath, 'update', (error as Error).message)
-	}
+  try {
+    content = await readPRDFile(projectRoot, slug)
+  } catch (error) {
+    throw new PRDFileError(prdPath, 'update', (error as Error).message)
+  }
 
-	// Update status in frontmatter
-	const newContent = content.replace(
-		/status:\s*["']?(?:draft|active|complete)["']?/,
-		`status: "${status}"`,
-	)
+  // Update status in frontmatter
+  const newContent = content.replace(
+    /status:\s*["']?(?:draft|active|complete)["']?/,
+    `status: "${status}"`
+  )
 
-	try {
-		await Bun.write(prdPath, newContent)
-	} catch (error) {
-		throw new PRDFileError(prdPath, 'update', (error as Error).message)
-	}
+  try {
+    await Bun.write(prdPath, newContent)
+  } catch (error) {
+    throw new PRDFileError(prdPath, 'update', (error as Error).message)
+  }
 }
 
 /**
  * Append tasks to the PRD file.
  */
 export async function appendTasks(
-	projectRoot: string,
-	slug: string,
-	tasks: InterviewTask[],
-	config: { cost_multiplier: number; base_iterations: number; iteration_multiplier: number; revision_budget_percent: number },
+  projectRoot: string,
+  slug: string,
+  tasks: InterviewTask[],
+  config: {
+    cost_multiplier: number
+    base_iterations: number
+    iteration_multiplier: number
+    revision_budget_percent: number
+  }
 ): Promise<void> {
-	const prdPath = getPRDPath(projectRoot, slug)
-	let content: string
+  const prdPath = getPRDPath(projectRoot, slug)
+  let content: string
 
-	try {
-		content = await readPRDFile(projectRoot, slug)
-	} catch (error) {
-		throw new PRDFileError(prdPath, 'update', (error as Error).message)
-	}
+  try {
+    content = await readPRDFile(projectRoot, slug)
+  } catch (error) {
+    throw new PRDFileError(prdPath, 'update', (error as Error).message)
+  }
 
-	// Build tasks YAML
-	const tasksYaml = tasks.map((task) => {
-		const costCeiling = task.complexity * config.cost_multiplier
-		const estimatedIterations = config.base_iterations + (task.complexity * config.iteration_multiplier)
-		const revisionBudget = costCeiling * (config.revision_budget_percent / 100)
+  // Build tasks YAML
+  const tasksYaml = tasks.map((task) => {
+    const costCeiling = task.complexity * config.cost_multiplier
+    const estimatedIterations =
+      config.base_iterations + task.complexity * config.iteration_multiplier
+    const revisionBudget = costCeiling * (config.revision_budget_percent / 100)
 
-		return {
-			id: task.id,
-			title: task.title,
-			description: task.description,
-			depends_on: task.dependsOn,
-			complexity: task.complexity,
-			estimated_iterations: estimatedIterations,
-			cost_ceiling: costCeiling,
-			revision_budget: revisionBudget,
-			priority: task.priority,
-			assigned_to: '',
-			success_criteria: task.successCriteria,
-			files_affected: task.filesAffected,
-			agent_context: task.agentContext ?? '',
-		}
-	})
+    return {
+      id: task.id,
+      title: task.title,
+      description: task.description,
+      depends_on: task.dependsOn,
+      complexity: task.complexity,
+      estimated_iterations: estimatedIterations,
+      cost_ceiling: costCeiling,
+      revision_budget: revisionBudget,
+      priority: task.priority,
+      assigned_to: '',
+      success_criteria: task.successCriteria,
+      files_affected: task.filesAffected,
+      agent_context: task.agentContext ?? '',
+    }
+  })
 
-	const tasksYamlStr = stringifyYaml({ tasks: tasksYaml }, {
-		indent: 2,
-		lineWidth: 100,
-	})
+  const tasksYamlStr = stringifyYaml(
+    { tasks: tasksYaml },
+    {
+      indent: 2,
+      lineWidth: 100,
+    }
+  )
 
-	// Find tasks section and replace/append
-	const tasksSection = `## Agent Tasks
+  // Find tasks section and replace/append
+  const tasksSection = `## Agent Tasks
 
 \`\`\`yaml
 # ============================================================
@@ -265,34 +274,31 @@ export async function appendTasks(
 ${tasksYamlStr}
 \`\`\``
 
-	// Check if tasks section exists
-	if (content.includes('## Agent Tasks')) {
-		// Replace existing tasks section
-		const newContent = content.replace(
-			/## Agent Tasks[\s\S]*?```yaml[\s\S]*?```/,
-			tasksSection,
-		)
-		try {
-			await Bun.write(prdPath, newContent)
-		} catch (error) {
-			throw new PRDFileError(prdPath, 'update', (error as Error).message)
-		}
-	} else {
-		// Append tasks section
-		const newContent = `${content.trim()}\n\n---\n\n${tasksSection}\n`
-		try {
-			await Bun.write(prdPath, newContent)
-		} catch (error) {
-			throw new PRDFileError(prdPath, 'update', (error as Error).message)
-		}
-	}
+  // Check if tasks section exists
+  if (content.includes('## Agent Tasks')) {
+    // Replace existing tasks section
+    const newContent = content.replace(/## Agent Tasks[\s\S]*?```yaml[\s\S]*?```/, tasksSection)
+    try {
+      await Bun.write(prdPath, newContent)
+    } catch (error) {
+      throw new PRDFileError(prdPath, 'update', (error as Error).message)
+    }
+  } else {
+    // Append tasks section
+    const newContent = `${content.trim()}\n\n---\n\n${tasksSection}\n`
+    try {
+      await Bun.write(prdPath, newContent)
+    } catch (error) {
+      throw new PRDFileError(prdPath, 'update', (error as Error).message)
+    }
+  }
 }
 
 /**
  * Get a minimal PRD template.
  */
 function getMinimalTemplate(): string {
-	return `# PRD
+  return `# PRD
 
 \`\`\`yaml
 ---

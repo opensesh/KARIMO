@@ -63,3 +63,43 @@ export {
   parseOrchestrateArgs,
   printOrchestrateHelp,
 } from './orchestrate-command'
+
+// =============================================================================
+// Main Entry Point
+// =============================================================================
+
+export { main, parseCommand } from './main'
+
+// =============================================================================
+// Guided Flow
+// =============================================================================
+
+export { showWelcome, showWelcomeBack, showCommandHelp } from './welcome'
+export { showExecutionFlow } from './execute-flow'
+
+// =============================================================================
+// State Management
+// =============================================================================
+
+export {
+  detectProjectPhase,
+  loadState,
+  saveState,
+  updateState,
+  setCurrentPRD,
+  clearCurrentPRD,
+  karimoDirExists,
+  configExists,
+  prdsDirExists,
+  getPRDFileInfos,
+  getNextPRDNumber,
+} from './state'
+
+export type {
+  KarimoState,
+  KarimoLevel,
+  PRDSection,
+  ProjectPhase,
+  PRDFileInfo,
+  PRDMetadata,
+} from './state'
