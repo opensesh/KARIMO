@@ -2,54 +2,49 @@
  * KARIMO Team Module Tests
  */
 
-import { describe, expect, it, beforeEach, afterEach } from 'bun:test'
+import { describe, expect, it } from 'bun:test'
 import { mkdirSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 
 import {
+  DEFAULT_SCHEDULER_CONFIG,
+  // Errors
+  QueueNotFoundError,
+  type TaskFinding,
   // Types
   type TeamTaskEntry,
   type TeamTaskQueue,
-  type TaskFinding,
-
-  // Errors
-  QueueNotFoundError,
-
-  // Queue operations
-  getQueuePath,
-  queueExists,
-  createQueue,
-  readQueue,
+  allTasksSucceeded,
   claimTask,
-  markTaskRunning,
   completeTask,
-  getReadyTasks,
-  getQueueStats,
-
+  createAffectsFileFinding,
   // Findings
   createFinding,
-  createAffectsFileFinding,
-  createWarningFinding,
   createInfoFinding,
-  formatFindingsForPrompt,
-  getBlockingFindings,
-  hasBlockingFindings,
-
-  // Scheduler
-  detectFileOverlaps,
-  getOverlapGroupForTask,
-  tasksOverlap,
-  getSchedulableTasks,
-  getNextBatch,
-  isQueueComplete,
-  allTasksSucceeded,
-  getQueueProgress,
-  DEFAULT_SCHEDULER_CONFIG,
-
+  createQueue,
+  createTaskEntriesFromPRD,
   // PM Agent
   createTaskEntry,
-  createTaskEntriesFromPRD,
+  createWarningFinding,
+  // Scheduler
+  detectFileOverlaps,
+  formatFindingsForPrompt,
+  getBlockingFindings,
+  getNextBatch,
+  getOverlapGroupForTask,
+  // Queue operations
+  getQueuePath,
+  getQueueProgress,
+  getQueueStats,
+  getReadyTasks,
+  getSchedulableTasks,
+  hasBlockingFindings,
+  isQueueComplete,
+  markTaskRunning,
+  queueExists,
+  readQueue,
+  tasksOverlap,
 } from '../index'
 
 // =============================================================================
@@ -231,7 +226,10 @@ describe('Team Queue', () => {
     it('should fail to claim blocked task', async () => {
       const ctx = createTestContext()
       try {
-        const tasks = [createTestTask('task-1'), createTestTask('task-2', { blockedBy: ['task-1'] })]
+        const tasks = [
+          createTestTask('task-1'),
+          createTestTask('task-2', { blockedBy: ['task-1'] }),
+        ]
         await createQueue(ctx.testDir, ctx.phaseId, tasks)
 
         const result = await claimTask(ctx.testDir, ctx.phaseId, 'task-2', {
@@ -374,7 +372,10 @@ describe('Team Queue', () => {
     it('should not return tasks with incomplete dependencies', async () => {
       const ctx = createTestContext()
       try {
-        const tasks = [createTestTask('task-1'), createTestTask('task-2', { blockedBy: ['task-1'] })]
+        const tasks = [
+          createTestTask('task-1'),
+          createTestTask('task-2', { blockedBy: ['task-1'] }),
+        ]
         await createQueue(ctx.testDir, ctx.phaseId, tasks)
 
         const ready = await getReadyTasks(ctx.testDir, ctx.phaseId)
@@ -672,13 +673,10 @@ describe('Team Scheduler', () => {
       }
 
       const runningIds = new Set(['task-1', 'task-2', 'task-3', 'task-4'])
-      const schedulable = getSchedulableTasks(
-        queue,
-        runningIds,
-        new Set(),
-        [],
-        { maxParallelAgents: 4, respectFileOverlaps: true }
-      )
+      const schedulable = getSchedulableTasks(queue, runningIds, new Set(), [], {
+        maxParallelAgents: 4,
+        respectFileOverlaps: true,
+      })
 
       expect(schedulable).toHaveLength(0)
     })
@@ -706,9 +704,7 @@ describe('Team Scheduler', () => {
       })
 
       // Should only include one of task-1/task-2 due to overlap
-      const overlappingInBatch = batch.filter(
-        (t) => t.taskId === 'task-1' || t.taskId === 'task-2'
-      )
+      const overlappingInBatch = batch.filter((t) => t.taskId === 'task-1' || t.taskId === 'task-2')
       expect(overlappingInBatch).toHaveLength(1)
       expect(batch.map((t) => t.taskId)).toContain('task-3')
     })

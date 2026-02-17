@@ -5,7 +5,7 @@
  * Uses file locking to prevent race conditions between parallel agents.
  */
 
-import { existsSync, mkdirSync, unlinkSync, writeFileSync, readFileSync } from 'node:fs'
+import { existsSync, mkdirSync, readFileSync, unlinkSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import {
   QueueLockError,
@@ -93,7 +93,7 @@ async function acquireLock(
       // Try exclusive file creation - fails if file already exists
       writeFileSync(lockPath, lockData, { flag: 'wx' })
       return true
-    } catch (err) {
+    } catch {
       // File exists - check if it's stale
       if (existsSync(lockPath)) {
         try {
