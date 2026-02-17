@@ -68,16 +68,16 @@ function formatDetected<T>(
 /**
  * Check if a config file already exists.
  */
-function configExists(): boolean {
-  const configPath = join(process.cwd(), CONFIG_DIR, CONFIG_FILE)
+function configExists(projectRoot: string): boolean {
+  const configPath = join(projectRoot, CONFIG_DIR, CONFIG_FILE)
   return existsSync(configPath)
 }
 
 /**
  * Write the configuration file.
  */
-async function writeConfig(config: KarimoConfig): Promise<string> {
-  const configDir = join(process.cwd(), CONFIG_DIR)
+async function writeConfig(projectRoot: string, config: KarimoConfig): Promise<string> {
+  const configDir = join(projectRoot, CONFIG_DIR)
   const configPath = join(configDir, CONFIG_FILE)
 
   if (!existsSync(configDir)) {
@@ -660,12 +660,13 @@ function displaySummary(config: KarimoConfig): void {
 
 /**
  * Run the interactive init flow with auto-detection.
+ * @param projectRoot - The project root directory (defaults to process.cwd())
  */
-export async function runInit(): Promise<void> {
+export async function runInit(projectRoot: string = process.cwd()): Promise<void> {
   p.intro('KARIMO Configuration')
 
   // Check if config already exists
-  if (configExists()) {
+  if (configExists(projectRoot)) {
     const shouldOverwrite = await p.confirm({
       message: 'Configuration file already exists. Overwrite?',
       initialValue: false,
@@ -683,7 +684,7 @@ export async function runInit(): Promise<void> {
 
   let result: DetectionResult
   try {
-    result = await detectProject(process.cwd())
+    result = await detectProject(projectRoot)
     scanSpinner.stop('Scan complete')
   } catch (error) {
     scanSpinner.stop('Scan failed')
@@ -773,7 +774,7 @@ export async function runInit(): Promise<void> {
   writeSpinner.start('Writing configuration...')
 
   try {
-    const configPath = await writeConfig(config)
+    const configPath = await writeConfig(projectRoot, config)
     writeSpinner.stop('Configuration written successfully.')
 
     p.note(
