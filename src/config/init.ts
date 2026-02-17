@@ -17,7 +17,15 @@ import {
   DEFAULT_COST,
   DEFAULT_FALLBACK_ENGINE,
 } from './defaults'
-import { type Confidence, type DetectedValue, type DetectionResult, detectProject } from './detect'
+import {
+  type CommandRecommendation,
+  type Confidence,
+  type DetectedValue,
+  type DetectionResult,
+  detectProject,
+  formatRecommendations,
+  getCommandRecommendations,
+} from './detect'
 import type { KarimoConfig } from './schema'
 
 const CONFIG_DIR = '.karimo'
@@ -252,113 +260,234 @@ async function confirmProjectSection(result: DetectionResult): Promise<
 }
 
 /**
+ * Confirm a required command (build or lint).
+ * Blocks until user provides a valid command.
+ */
+async function confirmRequiredCommand(
+  commandName: string,
+  detected: DetectedValue<string> | null,
+  placeholder: string,
+  examples: string[]
+): Promise<string | symbol> {
+  if (detected) {
+    // Show detected value
+    p.log.info(`${getConfidenceIndicator(detected.confidence)} ${commandName}: ${detected.value}`)
+
+    const confirmed = await p.confirm({
+      message: `Use this ${commandName.toLowerCase()} command?`,
+      initialValue: true,
+    })
+
+    if (p.isCancel(confirmed)) return confirmed
+
+    if (confirmed) {
+      return detected.value
+    }
+  } else {
+    // Not detected - explain why it's required
+    const exampleLines = examples.map((e) => `    ${e}`).join('\n')
+    p.log.warn(
+      `${commandName} command is required.\n  KARIMO runs ${commandName.toLowerCase()} after every PR to verify code integrity.\n\n  Common examples:\n${exampleLines}`
+    )
+  }
+
+  // Get user input
+  const input = await p.text({
+    message: `${commandName} command`,
+    placeholder,
+    validate: (value) => {
+      if (!value.trim()) return `${commandName} command is required`
+      return undefined
+    },
+  })
+
+  if (p.isCancel(input)) return input
+
+  return input as string
+}
+
+/**
+ * Confirm a recommended command (test or typecheck).
+ * Shows warning but allows user to skip.
+ */
+async function confirmRecommendedCommand(
+  commandName: string,
+  detected: DetectedValue<string> | null,
+  placeholder: string,
+  recommendations: CommandRecommendation[],
+  usageDescription: string
+): Promise<string | null | symbol> {
+  if (detected) {
+    // Show detected value
+    p.log.info(
+      `${getConfidenceIndicator(detected.confidence)} ${commandName}: ${detected.value}`
+    )
+
+    const confirmed = await p.confirm({
+      message: `Use this ${commandName.toLowerCase()} command?`,
+      initialValue: true,
+    })
+
+    if (p.isCancel(confirmed)) return confirmed
+
+    if (confirmed) {
+      return detected.value
+    }
+
+    // User wants to edit
+    const input = await p.text({
+      message: `${commandName} command`,
+      initialValue: detected.value,
+      placeholder,
+    })
+
+    if (p.isCancel(input)) return input
+
+    const trimmed = (input as string).trim()
+    if (!trimmed) {
+      p.log.info(`${commandName} skipped — ${usageDescription}`)
+      return null
+    }
+
+    return trimmed
+  }
+
+  // Not detected - show warning with recommendations
+  const suggestionLines = formatRecommendations(recommendations)
+  p.log.warn(
+    `No ${commandName.toLowerCase()} command detected.\n\n  ${usageDescription}\n\n  Suggestions for your stack:\n${suggestionLines}`
+  )
+
+  const action = await p.select({
+    message: `What would you like to do?`,
+    options: [
+      { value: 'provide', label: `Provide a ${commandName.toLowerCase()} command` },
+      { value: 'skip', label: 'Skip for now (you can add it later)' },
+    ],
+  })
+
+  if (p.isCancel(action)) return action
+
+  if (action === 'skip') {
+    p.log.info(
+      `${commandName} skipped — you can add this later by editing .karimo/config.yaml`
+    )
+    return null
+  }
+
+  // Get user input
+  const input = await p.text({
+    message: `${commandName} command`,
+    placeholder,
+  })
+
+  if (p.isCancel(input)) return input
+
+  const trimmed = (input as string).trim()
+  if (!trimmed) {
+    p.log.info(`${commandName} skipped — you can add this later by editing .karimo/config.yaml`)
+    return null
+  }
+
+  return trimmed
+}
+
+/**
  * Confirm or edit commands section.
+ * Build and lint are required; test and typecheck can be skipped.
  */
 async function confirmCommandsSection(result: DetectionResult): Promise<
   | {
       build: string
       lint: string
-      test: string
-      typecheck: string
+      test: string | null
+      typecheck: string | null
     }
   | symbol
 > {
+  // Display overview
   const commandsNote = [
-    formatDetected('Build', result.commands.build),
-    formatDetected('Lint', result.commands.lint),
-    formatDetected('Test', result.commands.test),
-    formatDetected('Typecheck', result.commands.typecheck),
+    formatDetected('Build', result.commands.build, 'required'),
+    formatDetected('Lint', result.commands.lint, 'required'),
+    formatDetected('Test', result.commands.test, 'recommended'),
+    formatDetected('Typecheck', result.commands.typecheck, 'recommended'),
   ].join('\n')
 
   p.note(commandsNote, 'Commands')
 
-  // If any command is missing, go straight to editing
-  const allDetected =
-    result.commands.build &&
-    result.commands.lint &&
-    result.commands.test &&
-    result.commands.typecheck
+  // Check if all required are detected
+  const allRequiredDetected = result.commands.build && result.commands.lint
+  const allRecommendedDetected = result.commands.test && result.commands.typecheck
 
-  let needsEdit = !allDetected
-
-  if (allDetected) {
+  // Fast path: everything detected, just confirm
+  if (allRequiredDetected && allRecommendedDetected) {
     const confirmed = await p.confirm({
       message: 'Everything look right?',
       initialValue: true,
     })
 
     if (p.isCancel(confirmed)) return confirmed
-    needsEdit = !confirmed
-  } else {
-    p.log.warn('Some commands were not detected. Please fill them in.')
-  }
 
-  if (!needsEdit) {
-    return {
-      build: result.commands.build?.value ?? '',
-      lint: result.commands.lint?.value ?? '',
-      test: result.commands.test?.value ?? '',
-      typecheck: result.commands.typecheck?.value ?? '',
+    if (confirmed) {
+      return {
+        build: result.commands.build?.value ?? '',
+        lint: result.commands.lint?.value ?? '',
+        test: result.commands.test?.value ?? null,
+        typecheck: result.commands.typecheck?.value ?? null,
+      }
     }
   }
 
-  // Edit commands
-  const edited = await p.group(
-    {
-      build: () =>
-        p.text({
-          message: 'Build command',
-          initialValue: result.commands.build?.value ?? '',
-          placeholder: 'bun run build',
-          validate: (value) => {
-            if (!value.trim()) return 'Build command is required'
-            return undefined
-          },
-        }),
-      lint: () =>
-        p.text({
-          message: 'Lint command',
-          initialValue: result.commands.lint?.value ?? '',
-          placeholder: 'bun run lint',
-          validate: (value) => {
-            if (!value.trim()) return 'Lint command is required'
-            return undefined
-          },
-        }),
-      test: () =>
-        p.text({
-          message: 'Test command',
-          initialValue: result.commands.test?.value ?? '',
-          placeholder: 'bun test',
-          validate: (value) => {
-            if (!value.trim()) return 'Test command is required'
-            return undefined
-          },
-        }),
-      typecheck: () =>
-        p.text({
-          message: 'Type check command',
-          initialValue: result.commands.typecheck?.value ?? '',
-          placeholder: 'bun run typecheck',
-          validate: (value) => {
-            if (!value.trim()) return 'Type check command is required'
-            return undefined
-          },
-        }),
-    },
-    {
-      onCancel: () => {
-        p.cancel('Init cancelled.')
-        process.exit(0)
-      },
-    }
+  // Get recommendations based on detected stack
+  const recommendations = getCommandRecommendations(
+    result.runtime?.value ?? null,
+    result.language?.value ?? null
   )
 
+  // Required commands
+  p.log.step('Required commands')
+
+  const build = await confirmRequiredCommand('Build', result.commands.build, 'bun run build', [
+    'Next.js:  bun run build / npm run build',
+    'Python:   python -m build',
+    'Go:       go build ./...',
+  ])
+  if (p.isCancel(build)) return build
+
+  const lint = await confirmRequiredCommand('Lint', result.commands.lint, 'bun run lint', [
+    'ESLint:   npx eslint . / bun run lint',
+    'Biome:    bunx biome check .',
+    'Ruff:     ruff check .',
+    'golangci: golangci-lint run',
+  ])
+  if (p.isCancel(lint)) return lint
+
+  // Recommended commands
+  p.log.step('Recommended commands (can be skipped)')
+
+  const test = await confirmRecommendedCommand(
+    'Test',
+    result.commands.test,
+    'bun test',
+    recommendations.test,
+    'KARIMO uses test as part of post-merge integration checks.'
+  )
+  if (p.isCancel(test)) return test
+
+  const typecheck = await confirmRecommendedCommand(
+    'Typecheck',
+    result.commands.typecheck,
+    'bun run typecheck',
+    recommendations.typecheck,
+    'KARIMO runs typecheck in pre-PR checks to catch type errors.'
+  )
+  if (p.isCancel(typecheck)) return typecheck
+
   return {
-    build: edited.build as string,
-    lint: edited.lint as string,
-    test: edited.test as string,
-    typecheck: edited.typecheck as string,
+    build: build as string,
+    lint: lint as string,
+    test: test as string | null,
+    typecheck: typecheck as string | null,
   }
 }
 
@@ -614,8 +743,8 @@ export async function runInit(): Promise<void> {
     commands: commands as {
       build: string
       lint: string
-      test: string
-      typecheck: string
+      test: string | null
+      typecheck: string | null
     },
     rules: rules as string[],
     boundaries:
