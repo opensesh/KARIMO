@@ -1,6 +1,6 @@
 # KARIMO Architecture
 
-**Version:** 1.3
+**Version:** 1.4
 **Status:** Active
 
 ---
@@ -10,6 +10,54 @@
 KARIMO is an open-source autonomous development framework — agent, tool, and repo agnostic. It turns product requirements into shipped code using AI agents, automated code review, and structured human oversight.
 
 **Core philosophy:** You are the architect, agents are the builders, Greptile is the inspector.
+
+---
+
+## State Detection & Guided Flow
+
+When you run `karimo` without arguments, it detects your project state and routes you automatically.
+
+### Project Phases
+
+```
+welcome → init → create-prd → resume-prd → execute → complete
+```
+
+| Phase | Trigger | What Happens |
+|-------|---------|--------------|
+| `welcome` | No `.karimo/` folder | Show introduction, proceed to init |
+| `init` | `.karimo/` exists, no config | Run interactive setup |
+| `create-prd` | Config exists, no PRDs | Start PRD interview |
+| `resume-prd` | PRD in progress | Resume interview at last round |
+| `execute` | Finalized PRD exists | Show task menu, run agents |
+| `complete` | All tasks done | Show completion summary |
+
+### State Storage
+
+State is persisted in `.karimo/state.json`:
+
+```json
+{
+  "level": 0,
+  "current_prd": "001_token-studio",
+  "current_prd_section": "requirements",
+  "completed_prds": [],
+  "completed_cycles": 0,
+  "last_activity": "2024-01-15T10:30:00Z"
+}
+```
+
+### PRD Sections (Interview Rounds)
+
+| Section | Round | PRD Sections Filled |
+|---------|-------|---------------------|
+| `framing` | 1 | §1 Executive Summary |
+| `requirements` | 2 | §3 Goals, §4 Requirements, §5 UX Notes |
+| `dependencies` | 3 | §6 Dependencies, §7 Rollout, §8 Milestones |
+| `agent-context` | 4 | §11 Agent Boundaries |
+| `retrospective` | 5 | §10 Checkpoint Learnings |
+| `review` | — | Review agent checks for gaps |
+| `finalized` | — | PRD ready for execution |
 
 ---
 
@@ -23,6 +71,52 @@ KARIMO is a human-centric engineering pipeline:
 4. **Code Review** — Greptile reviews the output automatically; score < 4 triggers revision loop
 5. **Merge** — PRs are created, reviewed, and merged with integration checks
 6. **Learning** — Compound learning system updates configs based on what worked and what didn't
+
+---
+
+## PRD Interview System
+
+The interview system uses direct Anthropic API calls (not Claude Code subagents) to have a conversation that generates a PRD.
+
+### Architecture
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    Interview System                          │
+├─────────────────────────────────────────────────────────────┤
+│  ┌─────────────┐  ┌──────────────────┐  ┌──────────────┐   │
+│  │  Interview  │  │  Investigation   │  │    Review    │   │
+│  │    Agent    │  │      Agent       │  │    Agent     │   │
+│  └─────────────┘  └──────────────────┘  └──────────────┘   │
+│         │                  │                    │           │
+│         ▼                  ▼                    ▼           │
+│  ┌─────────────────────────────────────────────────────┐   │
+│  │              Session State Machine                   │   │
+│  │  (tracks round, messages, summaries, PRD progress)   │   │
+│  └─────────────────────────────────────────────────────┘   │
+│                            │                                │
+│                            ▼                                │
+│  ┌─────────────────────────────────────────────────────┐   │
+│  │                    PRD File                          │   │
+│  │            .karimo/prds/NNN_slug.md                  │   │
+│  └─────────────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Agents
+
+| Agent | Purpose | Tools |
+|-------|---------|-------|
+| Interview Agent | Section-by-section conversation | None (conversational) |
+| Investigation Agent | Codebase scanning (opt-in during Round 3) | find_files, read_file, search_content, list_directory |
+| Review Agent | Gap detection after interview | None (analysis only) |
+
+### Context Management
+
+- Token count tracked (~4 chars/token estimate)
+- At 90% capacity: conversation summarized, API call restarted
+- User sees seamless continuation
+- Session resumable across terminal sessions
 
 ---
 
@@ -43,18 +137,17 @@ KARIMO is a human-centric engineering pipeline:
 ┌──────────────────────────┐  ┌────────────────────────────────────┐
 │   CLI (Execution)        │  │   DASHBOARD (Review & Merge)       │
 │                          │  │   [Level 5 — not needed until then] │
-│  bun run orchestrate     │  │                                    │
-│    --phase 1             │  │  ┌─────────┐  ┌────────────────┐   │
-│  bun run orchestrate     │  │  │ Phase   │  │ Dependency     │   │
-│    --task 1a             │  │  │ Overview│  │ Graph          │   │
-│  bun run status          │  │  └─────────┘  └────────────────┘   │
+│  karimo                  │  │                                    │
+│  karimo init             │  │  ┌─────────┐  ┌────────────────┐   │
+│  karimo orchestrate      │  │  │ Phase   │  │ Dependency     │   │
+│    --phase 1 --task 1a   │  │  │ Overview│  │ Graph          │   │
+│  karimo status           │  │  └─────────┘  └────────────────┘   │
 │  bun run checkpoint      │  │  ┌─────────┐  ┌────────────────┐   │
-│    --level 1              │  │  │ Merge   │  │ Cost           │   │
-│  bun run abort           │  │  │ Report  │  │ Tracker        │   │
-│  Ctrl+C                  │  │  └─────────┘  └────────────────┘   │
-└──────────────┬───────────┘  └──────────────┬─────────────────────┘
-               │                             │ reads from
-               ▼                             │
+│    --level 1             │  │  │ Merge   │  │ Cost           │   │
+│  Ctrl+C                  │  │  │ Report  │  │ Tracker        │   │
+└──────────────┬───────────┘  │  └─────────┘  └────────────────┘   │
+               │              └──────────────┬─────────────────────┘
+               ▼                             │ reads from
 ┌──────────────────────────┐  ┌──────────────┴──────────────────┐
 │   ORCHESTRATOR ENGINE    │  │       GITHUB PROJECTS           │
 │                          │  │  (Single source of truth for    │
@@ -144,16 +237,43 @@ KARIMO is a human-centric engineering pipeline:
 
 | Module | Purpose |
 | ------ | ------- |
+| `src/cli` | CLI entry point, command routing |
+| `src/cli/state/` | State detection, phase routing, persistence |
+| `src/cli/welcome.ts` | Welcome screen display |
+| `src/cli/execute-flow.ts` | Execution flow wrapper |
 | `src/orchestrator` | Core execution loop, task runner, phase management |
 | `src/config` | Config schema, validator, init command |
+| `src/interview/` | PRD interview system |
+| `src/interview/agents/` | Interview, Investigation, Review agents |
+| `src/interview/section-mapper.ts` | Round-to-PRD-section mapping |
 | `src/prd` | PRD parser, YAML task extraction, dependency resolver |
-| `src/git` | Worktree management, branch ops, PR creation, rebase |
-| `src/github` | GitHub Projects API integration, issue creation |
+| `src/git` | Worktree management, branch ops, rebase |
+| `src/github` | GitHub API integration, PR creation, issue management |
 | `src/agents` | Agent spawning, sandbox, environment filtering |
 | `src/learning` | Compound learning system (Layer 1 + Layer 2) |
 | `src/cost` | Cost tracking, ceiling enforcement, token parsing |
-| `src/cli` | CLI entry point, command routing |
 | `src/types` | Shared TypeScript types and interfaces |
+
+---
+
+## CLI Command Reference
+
+### Guided Mode (Default)
+
+```bash
+karimo              # Detect state, guide to next step
+```
+
+### Direct Commands
+
+| Command | Description | Available In |
+|---------|-------------|--------------|
+| `karimo init` | Initialize project config | Any phase |
+| `karimo orchestrate --phase X --task Y` | Execute specific task | execute phase |
+| `karimo orchestrate --phase X --task Y --dry-run` | Preview execution plan | execute phase |
+| `karimo status` | Show project state | Any phase |
+| `karimo help` | Show help | Any phase |
+| `karimo version` | Show version | Any phase |
 
 ---
 
