@@ -73,15 +73,15 @@ export interface KarimoState {
 
   /**
    * ISO timestamp when first-run onboarding was completed.
-   * Null if not yet onboarded.
+   * Undefined if not yet onboarded.
    */
-  onboarded_at?: string
+  onboarded_at?: string | undefined
 
   /**
    * ISO timestamp of last doctor run.
    * Used for tracking environment health over time.
    */
-  doctor_last_run?: string
+  doctor_last_run?: string | undefined
 }
 
 /**

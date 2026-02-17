@@ -15,7 +15,7 @@ export async function checkAnthropicApiKey(_projectRoot: string): Promise<CheckR
 
   if (apiKey && apiKey.trim().length > 0) {
     // Mask the key for display
-    const masked = apiKey.slice(0, 7) + '...' + apiKey.slice(-4)
+    const masked = `${apiKey.slice(0, 7)}...${apiKey.slice(-4)}`
 
     return {
       name: 'anthropic_api_key',

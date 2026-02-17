@@ -64,6 +64,10 @@ export {
   printOrchestrateHelp,
 } from './orchestrate-command'
 
+export { handleDoctor, parseDoctorArgs, runDoctorSilent } from './doctor-command'
+
+export { runFirstRunFlow, isFirstRun } from './first-run'
+
 // =============================================================================
 // Main Entry Point
 // =============================================================================
@@ -76,6 +80,19 @@ export { main, parseCommand } from './main'
 
 export { showWelcome, showWelcomeBack, showCommandHelp } from './welcome'
 export { showExecutionFlow } from './execute-flow'
+
+// =============================================================================
+// UI Components
+// =============================================================================
+
+export {
+  showWelcomeScreen,
+  showCompactHeader,
+  showTransitionToInit,
+  BORDER_WIDTH,
+} from './ui'
+
+export { OR, GN, RD, GY, WH, RST, BOLD, colorize, border } from './ui'
 
 // =============================================================================
 // State Management
@@ -93,6 +110,9 @@ export {
   prdsDirExists,
   getPRDFileInfos,
   getNextPRDNumber,
+  markOnboarded,
+  recordDoctorRun,
+  isOnboarded,
 } from './state'
 
 export type {

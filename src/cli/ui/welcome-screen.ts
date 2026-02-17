@@ -130,7 +130,9 @@ export async function showTransitionToInit(): Promise<boolean> {
   console.log(`${PAD}${ORD}│${RST}    • Code quality rules`)
   console.log(`${PAD}${ORD}│${RST}    • Files that need extra review`)
   console.log(`${PAD}${ORD}│${RST}`)
-  console.log(`${PAD}${ORD}│${RST}  This creates ${GY}.karimo/config.yaml${RST} — you can edit it anytime.`)
+  console.log(
+    `${PAD}${ORD}│${RST}  This creates ${GY}.karimo/config.yaml${RST} — you can edit it anytime.`
+  )
   console.log(`${PAD}${ORD}│${RST}`)
   console.log(`${PAD}${ORD}└${RST}`)
   console.log()

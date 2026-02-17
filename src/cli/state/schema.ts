@@ -41,16 +41,8 @@ export const KarimoStateSchema = z.object({
   completed_cycles: z.number().int().nonnegative(),
   last_activity: z.string().datetime({ offset: true }).or(z.string().datetime()),
   // Onboarding timestamps (optional for backwards compatibility)
-  onboarded_at: z
-    .string()
-    .datetime({ offset: true })
-    .or(z.string().datetime())
-    .optional(),
-  doctor_last_run: z
-    .string()
-    .datetime({ offset: true })
-    .or(z.string().datetime())
-    .optional(),
+  onboarded_at: z.string().datetime({ offset: true }).or(z.string().datetime()).optional(),
+  doctor_last_run: z.string().datetime({ offset: true }).or(z.string().datetime()).optional(),
 })
 
 /**

@@ -13,7 +13,7 @@ import {
   runDoctorChecks,
   runSingleCheck,
 } from '../doctor'
-import type { CheckResult, DoctorReport } from '../doctor/types'
+import type { DoctorReport } from '../doctor/types'
 
 // =============================================================================
 // Types
@@ -142,9 +142,7 @@ export async function handleDoctor(options: DoctorCommandOptions): Promise<numbe
   }
 
   // Offer to fix auto-fixable issues
-  const autoFixable = report.checks.filter(
-    (c) => c.status === 'fail' && c.autoFixable === true
-  )
+  const autoFixable = report.checks.filter((c) => c.status === 'fail' && c.autoFixable === true)
 
   for (const check of autoFixable) {
     console.log()

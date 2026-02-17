@@ -15,7 +15,7 @@ import {
   runDoctorChecks,
   runSingleCheck,
 } from '../doctor'
-import type { CheckResult, DoctorReport } from '../doctor/types'
+import type { CheckResult } from '../doctor/types'
 import { showTransitionToInit, showWelcomeScreen } from './ui'
 
 // =============================================================================

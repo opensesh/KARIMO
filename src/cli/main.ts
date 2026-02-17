@@ -13,6 +13,8 @@ import * as p from '@clack/prompts'
 export type CommandType =
   | 'guided' // No command - run guided flow
   | 'init'
+  | 'doctor'
+  | 'onboard'
   | 'orchestrate'
   | 'status'
   | 'help'
@@ -74,6 +76,10 @@ export function parseCommand(args: string[]): ParsedCommand {
   switch (command) {
     case 'init':
       return { type: 'init', args: positional.slice(1), flags }
+    case 'doctor':
+      return { type: 'doctor', args: positional.slice(1), flags }
+    case 'onboard':
+      return { type: 'onboard', args: positional.slice(1), flags }
     case 'orchestrate':
     case 'run':
       return { type: 'orchestrate', args: positional.slice(1), flags }
@@ -102,6 +108,24 @@ async function executeCommand(command: ParsedCommand, projectRoot: string): Prom
       // Import dynamically to avoid circular dependencies
       const { runInit } = await import('../config/init')
       await runInit(projectRoot)
+      break
+    }
+    case 'doctor': {
+      const { handleDoctor, parseDoctorArgs } = await import('./doctor-command')
+      const { recordDoctorRun } = await import('./state')
+      const doctorOptions = {
+        projectRoot,
+        ...parseDoctorArgs([...command.args, ...flagsToArgs(command.flags)]),
+      }
+      const exitCode = await handleDoctor(doctorOptions)
+      await recordDoctorRun(projectRoot)
+      if (exitCode !== 0) {
+        process.exit(exitCode)
+      }
+      break
+    }
+    case 'onboard': {
+      await handleOnboard(projectRoot)
       break
     }
     case 'orchestrate': {
@@ -154,15 +178,22 @@ function flagsToArgs(flags: Map<string, string | boolean>): string[] {
  */
 async function runGuidedFlow(projectRoot: string): Promise<void> {
   // Import state detection dynamically
-  const { detectProjectPhase } = await import('./state')
-  const { showWelcome } = await import('./welcome')
+  const { detectProjectPhase, markOnboarded } = await import('./state')
 
   const phase = await detectProjectPhase(projectRoot)
 
   switch (phase) {
     case 'welcome': {
-      // No .karimo directory - show welcome and transition to init
-      await showWelcome()
+      // No .karimo directory - run first-run flow with doctor checks
+      const { runFirstRunFlow } = await import('./first-run')
+      const shouldContinue = await runFirstRunFlow(projectRoot)
+
+      if (!shouldContinue) {
+        return
+      }
+
+      // Mark onboarding complete and run init
+      await markOnboarded(projectRoot)
       const { runInit } = await import('../config/init')
       await runInit(projectRoot)
       break
@@ -205,9 +236,65 @@ async function runGuidedFlow(projectRoot: string): Promise<void> {
     case 'complete': {
       // All tasks complete
       p.intro('KARIMO')
-      p.log.success('All tasks complete! 🎉')
+      p.log.success('All tasks complete!')
       break
     }
+  }
+}
+
+/**
+ * Handle the onboard command for team members joining existing projects.
+ */
+async function handleOnboard(projectRoot: string): Promise<void> {
+  const { karimoDirExists, configExists } = await import('./state')
+  const { runDoctorChecks, formatSetupChecklist } = await import('../doctor')
+  const { showCompactHeader } = await import('./ui')
+
+  // Show header
+  showCompactHeader()
+
+  // Check if project has KARIMO set up
+  if (!karimoDirExists(projectRoot)) {
+    p.log.error('This project has not been configured with KARIMO.')
+    p.log.info('Run `karimo init` to set up this project.')
+    return
+  }
+
+  if (!configExists(projectRoot)) {
+    p.log.error('.karimo/ exists but config.yaml is missing.')
+    p.log.info('Run `karimo init` to complete setup.')
+    return
+  }
+
+  // Run doctor checks
+  p.log.info('Verifying your environment...')
+  console.log()
+
+  const report = await runDoctorChecks({ projectRoot })
+
+  console.log(formatSetupChecklist(report))
+  console.log()
+
+  if (report.overall === 'pass') {
+    p.log.success('Your environment is ready to work on this project.')
+
+    // Show existing config summary
+    const { loadConfig } = await import('../config')
+    try {
+      const result = await loadConfig(projectRoot)
+      const cfg = result.config
+      console.log()
+      const configSummary = cfg.commands.test
+        ? `Project: ${cfg.project.name}\nBuild:   ${cfg.commands.build}\nLint:    ${cfg.commands.lint}\nTest:    ${cfg.commands.test}`
+        : `Project: ${cfg.project.name}\nBuild:   ${cfg.commands.build}\nLint:    ${cfg.commands.lint}`
+      p.note(configSummary, 'Project Configuration')
+    } catch {
+      // Config loading failed - already handled above
+    }
+  } else {
+    p.log.error('Your environment has issues that need to be resolved.')
+    p.log.info('Run `karimo doctor` for detailed fix instructions.')
+    process.exit(1)
   }
 }
 
@@ -222,6 +309,8 @@ KARIMO - Autonomous Development Framework
 Usage:
   karimo                   Run guided workflow (recommended)
   karimo init              Initialize KARIMO in current project
+  karimo doctor            Check environment prerequisites
+  karimo onboard           Verify setup for team members
   karimo orchestrate       Execute tasks from PRD
   karimo status            Show current project status
   karimo help              Show this help message
@@ -231,13 +320,18 @@ Options:
   --help, -h               Show help
   --version, -v            Show version
 
+Doctor Options:
+  --check                  CI mode (exit codes only)
+  --json                   Output JSON format
+
 Guided Workflow:
   Running \`karimo\` without arguments will detect your project state
   and guide you through the appropriate next step:
 
-  1. Welcome & Init - First-time setup
-  2. PRD Interview  - Create a PRD through conversation
-  3. Execute        - Run agents on finalized PRDs
+  1. Welcome & Doctor - First-time setup with prerequisite checks
+  2. Init             - Configure project settings
+  3. PRD Interview    - Create a PRD through conversation
+  4. Execute          - Run agents on finalized PRDs
 
 Documentation:
   https://github.com/opensesh/KARIMO

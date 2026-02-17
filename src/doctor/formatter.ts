@@ -185,9 +185,7 @@ export function formatIssueResolution(check: CheckResult): string {
       '  • Track progress via GitHub Projects',
       '  • Trigger automated code review',
     ],
-    anthropic_api_key: [
-      'KARIMO uses Claude to power the interview and agent systems.',
-    ],
+    anthropic_api_key: ['KARIMO uses Claude to power the interview and agent systems.'],
     claude_code: ['KARIMO uses Claude Code to execute tasks.'],
     bun: ['KARIMO requires Bun as its runtime.'],
     git: ['KARIMO requires Git for version control.'],
