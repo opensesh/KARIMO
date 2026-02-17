@@ -18,6 +18,7 @@
     "orchestrate": "bun run src/cli/orchestrate-command.ts"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.74.0",
     "@clack/prompts": "^0.8.0",
     "@octokit/graphql": "^8.0.0",
     "@octokit/rest": "^21.0.0",
