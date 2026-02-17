@@ -4,7 +4,7 @@
   "description": "Open-source autonomous development framework — agent, tool, and repo agnostic",
   "type": "module",
   "bin": {
-    "karimo": "src/cli/index.ts"
+    "karimo": "bin/karimo.ts"
   },
   "scripts": {
     "dev": "bun run src/cli/index.ts",
