@@ -161,19 +161,23 @@ export async function prePRChecks(options: PrePRCheckOptions): Promise<PrePRChec
     }
   }
 
-  // Step 3: Run typecheck command
-  const typecheckResult = await runCommand(typecheckCommand, worktreePath)
+  // Step 3: Run typecheck command (skip if null)
+  let typecheckResult: CommandResult | undefined
 
-  if (!typecheckResult.success) {
-    return {
-      success: false,
-      rebase: { success: true, conflictFiles: [] },
-      build: buildResult,
-      typecheck: typecheckResult,
-      changedFiles: [],
-      cautionFiles: [],
-      neverTouchViolations: [],
-      errorMessage: `Typecheck failed with exit code ${typecheckResult.exitCode}`,
+  if (typecheckCommand !== null) {
+    typecheckResult = await runCommand(typecheckCommand, worktreePath)
+
+    if (!typecheckResult.success) {
+      return {
+        success: false,
+        rebase: { success: true, conflictFiles: [] },
+        build: buildResult,
+        typecheck: typecheckResult,
+        changedFiles: [],
+        cautionFiles: [],
+        neverTouchViolations: [],
+        errorMessage: `Typecheck failed with exit code ${typecheckResult.exitCode}`,
+      }
     }
   }
 
@@ -192,7 +196,7 @@ export async function prePRChecks(options: PrePRCheckOptions): Promise<PrePRChec
       success: false,
       rebase: { success: true, conflictFiles: [] },
       build: buildResult,
-      typecheck: typecheckResult,
+      ...(typecheckResult !== undefined && { typecheck: typecheckResult }),
       changedFiles,
       cautionFiles,
       neverTouchViolations: violations,
@@ -205,7 +209,7 @@ export async function prePRChecks(options: PrePRCheckOptions): Promise<PrePRChec
     success: true,
     rebase: { success: true, conflictFiles: [] },
     build: buildResult,
-    typecheck: typecheckResult,
+    ...(typecheckResult !== undefined && { typecheck: typecheckResult }),
     changedFiles,
     cautionFiles,
     neverTouchViolations: [],
