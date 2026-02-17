@@ -1,8 +1,49 @@
 # PRD Interview Protocol
 
-**Version:** 1.0
+**Version:** 1.1
 **Purpose:** Conduct structured interviews that produce agent-executable PRDs
-**Output format:** See `PRD_TEMPLATE.md`
+**Output format:** See [PRD_TEMPLATE.md](./PRD_TEMPLATE.md)
+
+---
+
+## Quick Reference: Rounds to PRD Sections
+
+| Round | Name | Duration | PRD Sections Filled |
+|-------|------|----------|---------------------|
+| 1 | Framing | ~5 min | §1 Executive Summary |
+| 2 | Requirements | ~10 min | §3 Goals, §4 Requirements, §5 UX Notes |
+| 3 | Dependencies | ~5 min | §6 Dependencies, §7 Rollout, §8 Milestones |
+| 4 | Agent Context | ~5 min | §11 Agent Boundaries |
+| 5 | Retrospective | ~3 min | §10 Checkpoint Learnings |
+
+See [PRD_TEMPLATE.md](./PRD_TEMPLATE.md) for the complete PRD structure.
+
+---
+
+## Context Overflow Handling
+
+Long interviews may exceed the conversation context window. When this happens:
+
+1. **Detection** — Token count approaches 90% of model capacity (~4 chars/token estimate)
+2. **Summarization** — Completed rounds are condensed to key decisions
+3. **Continuation** — New API call with PRD file + summary as context
+4. **User experience** — Seamless; user doesn't notice the transition
+
+Summaries are stored in the session and enable resume across terminal sessions.
+
+---
+
+## Round Completion
+
+A round is complete when the user signals readiness to proceed. Common phrases:
+
+- "Ready to move on"
+- "Proceed to next round"
+- "That covers it"
+- "Next"
+- "Done with this section"
+
+The agent confirms round completion and transitions to the next.
 
 ---
 
@@ -10,7 +51,7 @@
 
 Before the first question, complete this checklist:
 
-- [ ] Developer triggers the interview (via `/karimo:plan` command or manually)
+- [ ] Developer triggers the interview (via `karimo` guided flow or `/karimo:plan` command)
 - [ ] Load the project's `.karimo/config.yaml` (rules, boundaries, cost settings)
 - [ ] Load any attached context documents (implementation plans, design specs, research notes)
 - [ ] Load the latest checkpoint data from completed phases (if any exist)
@@ -26,6 +67,8 @@ If no config exists, use defaults: `cost_multiplier: 3`, `base_iterations: 5`, `
 ## Round 1: Framing (~5 minutes)
 
 **Purpose:** Establish scope, success criteria, and risk.
+
+**PRD sections filled:** §1 Executive Summary
 
 ### Core Questions (always ask)
 
@@ -45,7 +88,7 @@ If no config exists, use defaults: `cost_multiplier: 3`, `base_iterations: 5`, `
 
 ### After Round 1
 
-- Summarize what you heard in 2–3 sentences
+- Summarize what you heard in 2-3 sentences
 - State the scope classification: **new feature** / **refactor** / **migration** / **integration**
 - Confirm: _"Does that capture it, or did I miss something?"_
 
@@ -62,6 +105,8 @@ If no config exists, use defaults: `cost_multiplier: 3`, `base_iterations: 5`, `
 ## Round 2: Requirements (~10 minutes)
 
 **Purpose:** Break the feature into concrete requirements with priorities and acceptance criteria.
+
+**PRD sections filled:** §3 Goals, Non-Goals & Success Metrics, §4 Requirements, §5 UX & Interaction Notes
 
 ### Question Flow
 
@@ -99,6 +144,8 @@ If no config exists, use defaults: `cost_multiplier: 3`, `base_iterations: 5`, `
 
 **Purpose:** Establish task ordering, parallel opportunities, and file-level scope.
 
+**PRD sections filled:** §6 Dependencies & Risks, §7 Rollout Plan, §8 Milestones & Release Criteria
+
 ### Question Flow
 
 1. _"Which requirements can be worked on independently — no shared state, no shared files?"_
@@ -106,6 +153,20 @@ If no config exists, use defaults: `cost_multiplier: 3`, `base_iterations: 5`, `
 3. _"Are there files that multiple requirements will touch?"_ (Explain file-overlap detection)
 4. _"Are there external blockers — APIs not ready, design decisions not made?"_
 5. _"What's the testing strategy? Existing tests that must keep passing? New tests needed?"_
+
+### Investigation Agent (Opt-In)
+
+During Round 3, the user may opt in to codebase scanning:
+
+> "Would you like me to scan the codebase to identify affected files and existing patterns?"
+
+If accepted, the Investigation Agent uses:
+- `find_files` — Locate files matching patterns
+- `read_file` — Read file contents
+- `search_content` — Search for code patterns
+- `list_directory` — Explore directory structure
+
+Results are summarized and used to populate `tasks[].files_affected`.
 
 ### Conditional Follow-Ups
 
@@ -133,6 +194,8 @@ If no config exists, use defaults: `cost_multiplier: 3`, `base_iterations: 5`, `
 ## Round 4: Agent Context (~5 minutes)
 
 **Purpose:** Give agents the specific guidance they need to produce mergeable code on the first attempt.
+
+**PRD sections filled:** §11 Agent Boundaries (Phase-Specific)
 
 ### Question Flow
 
@@ -169,11 +232,13 @@ If no config exists, use defaults: `cost_multiplier: 3`, `base_iterations: 5`, `
 
 **Purpose:** Feed compound learning data into the current plan. Skipped if no checkpoint data exists.
 
+**PRD sections filled:** §10 Checkpoint Learnings
+
 ### If No Checkpoint Data
 
 > "No checkpoint data from previous phases — we'll start collecting it after this feature's first task completes."
 
-Skip to Post-Interview.
+Ask if the user has any general learnings from previous work they'd like to incorporate, then proceed to Post-Interview.
 
 ### If Checkpoint Data Exists
 
@@ -203,15 +268,39 @@ Skip to Post-Interview.
 
 After all rounds complete:
 
-1. **Generate the PRD** following `PRD_TEMPLATE.md`
+1. **Generate the PRD** following [PRD_TEMPLATE.md](./PRD_TEMPLATE.md)
 2. **Calculate derived fields** using `.karimo/config.yaml` formulas:
    - `cost_ceiling = complexity × cost_multiplier`
    - `estimated_iterations = base_iterations + (complexity × iteration_multiplier)`
    - `revision_budget = cost_ceiling × (revision_budget_percent / 100)`
-3. **Present the full PRD** to the developer, highlighting:
+3. **Run Review Agent** to check for gaps:
+   - Missing acceptance criteria
+   - High-complexity tasks not split
+   - Conflicting requirements
+   - Missing edge cases
+4. **Present the full PRD** to the developer, highlighting:
    - Total estimated cost across all tasks
    - The dependency graph
    - Any tasks flagged as high-complexity (7+)
    - Any file overlaps forcing sequential execution
-4. **On approval:** Create GitHub Issues and populate the GitHub Project with all custom fields
-5. **Save the PRD** as `PRD_[feature-slug].md` in the project repo
+   - Issues found by the Review Agent
+5. **On approval:** Save the PRD as `.karimo/prds/NNN_slug.md`
+6. **Update state:** Set `current_prd_section` to `finalized`
+
+---
+
+## Session Resume
+
+If the interview is interrupted (terminal closed, Ctrl+C), the session can be resumed:
+
+1. **State persisted** — Session saved to `.karimo/sessions/{session_id}.json`
+2. **Resume flow** — Running `karimo` detects in-progress PRD
+3. **Context restored** — Conversation summaries + PRD progress reloaded
+4. **Continue from round** — User continues where they left off
+
+Session data includes:
+- `currentRound` — Which round to resume
+- `completedRounds` — Rounds already finished
+- `messages` — Recent conversation history
+- `summaries` — Condensed summaries from context overflow
+- `estimatedTokens` — Current context usage
