@@ -2,7 +2,7 @@
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Status](https://img.shields.io/badge/Status-In%20Development-yellow.svg)]()
-[![Ring](https://img.shields.io/badge/Ring-0-orange.svg)]()
+[![Level](https://img.shields.io/badge/Level-0-orange.svg)]()
 
 **Open-source autonomous development framework — agent, tool, and repo agnostic.**
 
@@ -29,14 +29,14 @@ KARIMO turns product requirements into shipped code using AI agents, automated c
 
 ---
 
-## Ring-Based Adoption
+## Level-Based Adoption
 
-KARIMO uses a ring-based build plan — each ring is a loop, not just a milestone. You start small (one agent, one task, one manual review), prove it works, and then add the next layer.
+KARIMO uses a level-based build plan — each level is a loop, not just a milestone. You start small (one agent, one task, one manual review), prove it works, and then add the next layer.
 
-This matters because autonomous development is high-stakes. You need to see what agents produce, understand how cost controls behave, and verify that integrity checks catch real problems — all before letting the system run overnight. By Ring 5, you've validated every component in isolation.
+This matters because autonomous development is high-stakes. You need to see what agents produce, understand how cost controls behave, and verify that integrity checks catch real problems — all before letting the system run overnight. By Level 5, you've validated every component in isolation.
 
-| Ring | Capability | What You Prove | Status |
-| ---- | ---------- | -------------- | ------ |
+| Level | Capability | What You Prove | Status |
+| ----- | ---------- | -------------- | ------ |
 | **0** | Basic agent execution | Agents can produce mergeable code | **Current** |
 | 1 | GitHub Projects integration | State management works end-to-end | Planned |
 | 2 | Automated review (Greptile) | Greptile + revision loops are reliable | Planned |
@@ -44,7 +44,7 @@ This matters because autonomous development is high-stakes. You need to see what
 | 4 | Parallel execution + fallback engines | Scale without file conflicts | Planned |
 | 5 | Dashboard | Morning review from a single screen | Planned |
 
-Each ring is designed to be completed as a self-contained loop that builds trust before moving on.
+Each level is designed to be completed as a self-contained loop that builds trust before moving on.
 
 ---
 
@@ -55,7 +55,7 @@ Each ring is designed to be completed as a self-contained loop that builds trust
 | **Task Source** | PRD.md per phase, generated through structured interview |
 | **Task State** | GitHub Projects with custom fields (complexity, cost, greptile_score) |
 | **Agent Execution** | TypeScript orchestrator with dependency resolution, cost ceilings, sandbox |
-| **Code Review** | Greptile auto-reviews (Ring 2+); score < 4 triggers cost-budgeted revision loop |
+| **Code Review** | Greptile auto-reviews (Level 2+); score < 4 triggers cost-budgeted revision loop |
 | **Code Integrity** | Mandatory rebase, file-overlap detection, caution-file enforcement |
 | **Cost Control** | Per-task ceilings, complexity-scaled iteration limits, phase/session budgets |
 | **Learning** | Two-layer compound system (see below) |
@@ -79,7 +79,7 @@ After every task, the orchestrator collects cost data, Greptile scores, and buil
 Plugin commands for injecting your expertise:
 
 - `/karimo:feedback` — Correct agent behavior; promoted to config
-- `/karimo:checkpoint` — Capture learnings at ring/phase boundaries
+- `/karimo:checkpoint` — Capture learnings at level/phase boundaries
 - `/karimo:plan` — Start a new PRD interview with checkpoint context
 
 ### The Closed Loop
@@ -102,7 +102,7 @@ Mistakes captured → Config updated → Future agents avoid them.
 
 ## Quick Start
 
-> **Note:** KARIMO is in early development (Ring 0). The quick start below is a placeholder for when Ring 0 is complete.
+> **Note:** KARIMO is in early development (Level 0). The quick start below is a placeholder for when Level 0 is complete.
 
 ```bash
 # Install
@@ -144,7 +144,7 @@ Each detected value shows a confidence indicator: `●` high, `◐` medium, `○
 | Document | Description |
 | -------- | ----------- |
 | [Architecture](docs/ARCHITECTURE.md) | System architecture and component design |
-| [Rings](docs/RINGS.md) | Ring-based build plan (Ring 0-5) |
+| [Levels](docs/LEVELS.md) | Level-based build plan (Level 0-5) |
 | [Contributing](docs/CONTRIBUTING.md) | How to contribute |
 | [Changelog](docs/CHANGELOG.md) | Version history |
 
@@ -160,9 +160,9 @@ Each detected value shows a confidence indicator: `●` high, `◐` medium, `○
 
 ## Status
 
-**In Development — Ring 0**
+**In Development — Level 0**
 
-This repository contains the scaffolding for KARIMO. The Ring 0 implementation (basic agent execution) is the current focus.
+This repository contains the scaffolding for KARIMO. The Level 0 implementation (basic agent execution) is the current focus.
 
 ---
 

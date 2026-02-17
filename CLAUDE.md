@@ -78,18 +78,18 @@ cli → orchestrator → {agents, git, github, cost, learning}
               config, prd, types
 ```
 
-### Ring-Based Development
+### Level-Based Development
 
-KARIMO follows a ring-based build plan. Current status: **Ring 0**.
+KARIMO follows a level-based build plan. Current status: **Level 0**.
 
-- **Ring 0:** Basic agent execution (current)
-- **Ring 1:** GitHub Projects integration
-- **Ring 2:** Automated review (Greptile)
-- **Ring 3:** Full orchestration
-- **Ring 4:** Parallel execution + fallback engines
-- **Ring 5:** Dashboard
+- **Level 0:** Basic agent execution (current)
+- **Level 1:** GitHub Projects integration
+- **Level 2:** Automated review (Greptile)
+- **Level 3:** Full orchestration
+- **Level 4:** Parallel execution + fallback engines
+- **Level 5:** Dashboard
 
-Only implement features appropriate for the current ring.
+Only implement features appropriate for the current level.
 
 ---
 
@@ -134,7 +134,7 @@ Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
 - **No files outside established structure** — Follow the module layout.
 - **No skipping types** — Everything must be properly typed.
 - **No circular dependencies** — Follow the dependency flow above.
-- **No implementing features beyond current ring** — Stay focused on Ring 0.
+- **No implementing features beyond current level** — Stay focused on Level 0.
 
 ---
 
@@ -163,13 +163,13 @@ bun run build               # Build for production
 | `templates/config.example.yaml` | Configuration reference |
 | `templates/PRD_TEMPLATE.md` | PRD output format |
 | `docs/ARCHITECTURE.md` | System architecture |
-| `docs/RINGS.md` | Ring-based build plan |
+| `docs/LEVELS.md` | Level-based build plan |
 
 ---
 
 ## When Adding New Code
 
-1. **Check the ring** — Is this feature appropriate for Ring 0?
+1. **Check the level** — Is this feature appropriate for Level 0?
 2. **Find the module** — Which module does this belong in?
 3. **Define types first** — Add to `src/types/index.ts` if shared
 4. **Write tests** — Add `*.test.ts` next to the source
@@ -463,11 +463,11 @@ Does NOT throw — orchestrator decides what to do.
 
 ---
 
-## Phase 5 — Core Orchestrator Ring 0 (Complete)
+## Phase 5 — Core Orchestrator Level 0 (Complete)
 
 - Agents module lives in `src/agents/`
 - Orchestrator module lives in `src/orchestrator/`
-- Ring 0 scope: single-task execution only (no parallel, no cost tracking, no revision loops)
+- Level 0 scope: single-task execution only (no parallel, no cost tracking, no revision loops)
 - Agent engine interface supports future engines (Codex, Gemini)
 - Environment sandboxing with ALWAYS_INCLUDE/ALWAYS_EXCLUDE lists
 - Pre-PR checks: rebase, build, typecheck, boundary violations
@@ -573,7 +573,7 @@ bun run orchestrate --phase phase-1 --task 1a --dry-run
 | `WorktreeError` | Worktree operation failed |
 | `PRCreationError` | PR creation failed |
 
-### What NOT in Ring 0
+### What NOT in Level 0
 
 - Parallel execution
 - Cost tracking / token parsing
@@ -587,10 +587,10 @@ bun run orchestrate --phase phase-1 --task 1a --dry-run
 
 | Command | Requirement | Executed In |
 |---------|-------------|-------------|
-| `build` | Required | Ring 0+ (pre-PR checks) |
-| `lint` | Required | Ring 2+ (Greptile review) |
-| `test` | Recommended | Ring 2+ (integration checks) |
-| `typecheck` | Recommended | Ring 0+ (pre-PR checks) |
+| `build` | Required | Level 0+ (pre-PR checks) |
+| `lint` | Required | Level 2+ (Greptile review) |
+| `test` | Recommended | Level 2+ (integration checks) |
+| `typecheck` | Recommended | Level 0+ (pre-PR checks) |
 
 - Required commands block `karimo init` if not detected/provided
 - Recommended commands show a warning but can be skipped (set to `null`)

@@ -14,16 +14,16 @@ Closes #
 - [ ] Documentation update
 - [ ] Refactoring (no functional changes)
 
-## Ring
+## Level
 
-Which ring does this change target?
+Which level does this change target?
 
-- [ ] Ring 0: Basic agent execution
-- [ ] Ring 1: GitHub Projects integration
-- [ ] Ring 2: Automated review
-- [ ] Ring 3: Full orchestration
-- [ ] Ring 4: Parallel execution + fallback engines
-- [ ] Ring 5: Dashboard
+- [ ] Level 0: Basic agent execution
+- [ ] Level 1: GitHub Projects integration
+- [ ] Level 2: Automated review
+- [ ] Level 3: Full orchestration
+- [ ] Level 4: Parallel execution + fallback engines
+- [ ] Level 5: Dashboard
 
 ## Checklist
 

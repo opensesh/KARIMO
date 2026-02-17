@@ -18,16 +18,16 @@ Describe the solution you'd like.
 
 What alternatives have you considered?
 
-## Ring Alignment
+## Level Alignment
 
-Which ring does this feature belong to?
+Which level does this feature belong to?
 
-- [ ] Ring 0: Basic agent execution
-- [ ] Ring 1: GitHub Projects integration
-- [ ] Ring 2: Automated review
-- [ ] Ring 3: Full orchestration
-- [ ] Ring 4: Parallel execution + fallback engines
-- [ ] Ring 5: Dashboard
+- [ ] Level 0: Basic agent execution
+- [ ] Level 1: GitHub Projects integration
+- [ ] Level 2: Automated review
+- [ ] Level 3: Full orchestration
+- [ ] Level 4: Parallel execution + fallback engines
+- [ ] Level 5: Dashboard
 
 ## Additional Context
 

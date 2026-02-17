@@ -163,7 +163,7 @@ export interface SandboxConfig {
 // Checkpoint & Learning Types
 // =============================================================================
 
-export type CheckpointType = 'ring' | 'task' | 'phase'
+export type CheckpointType = 'level' | 'task' | 'phase'
 
 export interface Checkpoint {
   id: string

@@ -2,7 +2,7 @@
  * KARIMO Orchestrate Command
  *
  * Handles the `karimo orchestrate` CLI command for running tasks.
- * Ring 0 implementation — single task execution only.
+ * Level 0 implementation — single task execution only.
  */
 
 import {
@@ -43,11 +43,11 @@ export async function handleOrchestrate(options: OrchestrateOptions): Promise<nu
   }
 
   if (!task) {
-    console.error('Error: --task is required for Ring 0')
+    console.error('Error: --task is required for Level 0')
     console.error('')
     console.error('Usage: karimo orchestrate --phase <phase-id> --task <task-id> [--dry-run]')
     console.error('')
-    console.error('Note: Running all ready tasks (--all-ready) will be available in Ring 1.')
+    console.error('Note: Running all ready tasks (--all-ready) will be available in Level 1.')
     return 1
   }
 
@@ -170,7 +170,7 @@ export function printOrchestrateHelp(): void {
   console.log('')
   console.log('Options:')
   console.log('  -p, --phase <id>     Phase ID (e.g., "phase-1") [required]')
-  console.log('  -t, --task <id>      Task ID (e.g., "1a") [required for Ring 0]')
+  console.log('  -t, --task <id>      Task ID (e.g., "1a") [required for Level 0]')
   console.log('  -n, --dry-run        Preview execution plan without running')
   console.log('  -e, --engine <name>  Agent engine to use (default: claude-code)')
   console.log('')

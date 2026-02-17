@@ -71,18 +71,18 @@ bun run format
 
 ## Architecture Rules
 
-### Ring-Based Development
+### Level-Based Development
 
-KARIMO follows a ring-based build plan. Each ring adds capabilities:
+KARIMO follows a level-based build plan. Each level adds capabilities:
 
-- **Ring 0:** Basic agent execution
-- **Ring 1:** GitHub Projects integration
-- **Ring 2:** Automated review (Greptile)
-- **Ring 3:** Full orchestration
-- **Ring 4:** Parallel execution + fallback engines
-- **Ring 5:** Dashboard
+- **Level 0:** Basic agent execution
+- **Level 1:** GitHub Projects integration
+- **Level 2:** Automated review (Greptile)
+- **Level 3:** Full orchestration
+- **Level 4:** Parallel execution + fallback engines
+- **Level 5:** Dashboard
 
-Contributions should target the current ring. See [RINGS.md](./RINGS.md) for details.
+Contributions should target the current level. See [LEVELS.md](./LEVELS.md) for details.
 
 ### Module Boundaries
 

@@ -8,7 +8,7 @@
 import type { TaskStatus } from '@/types'
 
 /**
- * Ring 0 task run record (minimal version for single-task execution).
+ * Level 0 task run record (minimal version for single-task execution).
  * Full TaskRun type in @/types is used for complete cost/iteration tracking.
  */
 export interface TaskRunR0 {

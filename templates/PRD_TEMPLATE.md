@@ -140,7 +140,7 @@ checkpoint_refs: []        # IDs of checkpoints consulted during Round 5
 
 ## 7. Rollout Plan
 
-**Phase/ring:** Where this sits in the build sequence.
+**Phase/level:** Where this sits in the build sequence.
 
 **Deployment strategy:** Feature flag, direct merge, staged rollout.
 

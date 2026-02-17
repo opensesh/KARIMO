@@ -42,14 +42,14 @@ KARIMO is a human-centric engineering pipeline:
               ▼                         ▼
 ┌──────────────────────────┐  ┌────────────────────────────────────┐
 │   CLI (Execution)        │  │   DASHBOARD (Review & Merge)       │
-│                          │  │   [Ring 5 — not needed until then] │
+│                          │  │   [Level 5 — not needed until then] │
 │  bun run orchestrate     │  │                                    │
 │    --phase 1             │  │  ┌─────────┐  ┌────────────────┐   │
 │  bun run orchestrate     │  │  │ Phase   │  │ Dependency     │   │
 │    --task 1a             │  │  │ Overview│  │ Graph          │   │
 │  bun run status          │  │  └─────────┘  └────────────────┘   │
 │  bun run checkpoint      │  │  ┌─────────┐  ┌────────────────┐   │
-│    --ring 1              │  │  │ Merge   │  │ Cost           │   │
+│    --level 1              │  │  │ Merge   │  │ Cost           │   │
 │  bun run abort           │  │  │ Report  │  │ Tracker        │   │
 │  Ctrl+C                  │  │  └─────────┘  └────────────────┘   │
 └──────────────┬───────────┘  └──────────────┬─────────────────────┘
@@ -101,8 +101,8 @@ KARIMO is a human-centric engineering pipeline:
                   ▼
 ┌─────────────────────────────────────┐
 │          CODE REVIEW                │
-│  Ring 0-1: Manual (you review)      │
-│  Ring 2+: Greptile auto-review      │
+│  Level 0-1: Manual (you review)      │
+│  Level 2+: Greptile auto-review      │
 │  Async — doesn't block pipeline     │
 └─────────────────┬───────────────────┘
                   │
@@ -289,7 +289,7 @@ One GitHub Project per feature phase with:
 
 ## Further Reading
 
-- [RINGS.md](./RINGS.md) — Ring-based build plan (Ring 0-5)
+- [LEVELS.md](./LEVELS.md) — Level-based build plan (Level 0-5)
 - [CHANGELOG.md](./CHANGELOG.md) — Version history
 - [CONTRIBUTING.md](./CONTRIBUTING.md) — Contributing guide
 - [templates/PRD_TEMPLATE.md](../templates/PRD_TEMPLATE.md) — PRD format

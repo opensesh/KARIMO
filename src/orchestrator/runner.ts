@@ -2,7 +2,7 @@
  * KARIMO Task Runner
  *
  * Core orchestration loop for running a single task from PRD to PR.
- * Ring 0 implementation — no parallel execution, no cost tracking,
+ * Level 0 implementation — no parallel execution, no cost tracking,
  * no revision loops. Just the single-task happy path.
  */
 

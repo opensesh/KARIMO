@@ -1,10 +1,10 @@
-# KARIMO Ring-Based Build Plan
+# KARIMO Level-Based Build Plan
 
-KARIMO uses a ring-based adoption strategy. Each ring is a concentric circle of capability — complete one before starting the next. The ring sequence matters more than dates.
+KARIMO uses a level-based adoption strategy. Each level is a validation loop. Complete one before starting the next. The level sequence matters more than dates.
 
 ---
 
-## Why Rings?
+## Why Levels?
 
 Autonomous development is high-stakes. Before letting agents run overnight, you need to:
 
@@ -12,13 +12,13 @@ Autonomous development is high-stakes. Before letting agents run overnight, you 
 - Understand how cost controls behave
 - Verify that code integrity checks catch real problems
 
-Each ring is a self-contained loop — not just a milestone. You complete a ring, validate it works, then add the next layer of capability. This provides a slow, steady integration path that builds trust without disrupting your existing workflow.
+Each level is a self-contained loop — not just a milestone. You complete a level, validate it works, then add the next layer of capability. This provides a slow, steady integration path that builds trust without disrupting your existing workflow.
 
-By the time you reach Ring 5 (dashboard, parallel execution, overnight runs), you've already validated every component in isolation.
+By the time you reach Level 5 (dashboard, parallel execution, overnight runs), you've already validated every component in isolation.
 
 ---
 
-## Ring 0: Foundation
+## Level 0: Foundation
 
 **Goal:** Prove that one agent can produce one mergeable PR from one task spec.
 
@@ -59,11 +59,11 @@ By the time you reach Ring 5 (dashboard, parallel execution, overnight runs), yo
 
 ---
 
-## Ring 1: State Management
+## Level 1: State Management
 
 **Goal:** Task state flows through GitHub Projects. The orchestrator reads and writes project state.
 
-**Entry criteria:** Ring 0 complete.
+**Entry criteria:** Level 0 complete.
 
 **What you build:**
 - `lib/github-projects.ts` — thin wrapper over GitHub Projects GraphQL API
@@ -88,11 +88,11 @@ By the time you reach Ring 5 (dashboard, parallel execution, overnight runs), yo
 
 ---
 
-## Ring 2: Automated Review
+## Level 2: Automated Review
 
 **Goal:** Greptile reviews PRs automatically. Revision loops work end-to-end with cost budgets.
 
-**Entry criteria:** Ring 1 complete.
+**Entry criteria:** Level 1 complete.
 
 **What you build:**
 - Greptile configuration on the target repo
@@ -115,11 +115,11 @@ By the time you reach Ring 5 (dashboard, parallel execution, overnight runs), yo
 
 ---
 
-## Ring 3: Orchestration
+## Level 3: Orchestration
 
 **Goal:** Full sequential multi-task execution overnight. Error classification, caution-file enforcement.
 
-**Entry criteria:** Ring 2 complete.
+**Entry criteria:** Level 2 complete.
 
 **What you build:**
 - Full sequential phase execution: `karimo orchestrate --phase 1`
@@ -141,11 +141,11 @@ By the time you reach Ring 5 (dashboard, parallel execution, overnight runs), yo
 
 ---
 
-## Ring 4: Scale
+## Level 4: Scale
 
 **Goal:** Parallel execution with safety. Fallback engines. Full cost reporting.
 
-**Entry criteria:** Ring 3 complete.
+**Entry criteria:** Level 3 complete.
 
 **What you build:**
 - Parallel execution with file-overlap detection
@@ -165,11 +165,11 @@ By the time you reach Ring 5 (dashboard, parallel execution, overnight runs), yo
 
 ---
 
-## Ring 5: Dashboard
+## Level 5: Dashboard
 
 **Goal:** Visual command center for morning review.
 
-**Entry criteria:** Ring 4 complete.
+**Entry criteria:** Level 4 complete.
 
 **What you build:**
 - Standalone Next.js dashboard app
@@ -191,6 +191,6 @@ By the time you reach Ring 5 (dashboard, parallel execution, overnight runs), yo
 
 ## Current Status
 
-**In Development — Ring 0**
+**In Development — Level 0**
 
-This repository contains the scaffolding for KARIMO. The Ring 0 implementation is the next step.
+This repository contains the scaffolding for KARIMO. The Level 0 implementation is the next step.

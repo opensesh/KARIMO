@@ -43,7 +43,7 @@ export interface StatusOptions {
 
 // Checkpoint command options
 export interface CheckpointOptions {
-  ring?: number
+  level?: number
   task?: string
   phase?: string
 }

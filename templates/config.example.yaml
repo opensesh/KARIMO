@@ -36,11 +36,11 @@ project:
 #
 # REQUIRED commands (must be configured for KARIMO to run):
 #   build — Verified after agent produces code (pre-PR check)
-#   lint  — Code quality gate for Greptile review (Ring 2+)
+#   lint  — Code quality gate for Greptile review (Level 2+)
 #
 # RECOMMENDED commands (can be set to null to skip):
-#   test      — Integration checks (Ring 2+), null to skip
-#   typecheck — Pre-PR checks (Ring 0+), null to skip
+#   test      — Integration checks (Level 2+), null to skip
+#   typecheck — Pre-PR checks (Level 0+), null to skip
 #
 # Empty strings are invalid — use null for intentional skips.
 # Source: package.json scripts, Makefile, existing task runners

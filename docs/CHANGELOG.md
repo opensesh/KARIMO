@@ -85,7 +85,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Detection performance target: < 500ms
 
 #### Changed
-- Ring 0 now includes auto-detection capability
+- Level 0 now includes auto-detection capability
 - CLI Setup section clarifies `karimo init` vs `bun run onboard`
 - New §5.3.1 documents auto-detection system
 
@@ -131,7 +131,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 #### Added
 - Initial architecture specification
-- Ring-based build plan (Ring 0-5)
+- Level-based build plan (Level 0-5)
 - Compound learning system (Layer 1 + Layer 2)
 - GitHub Projects integration design
 - PRD interview protocol

@@ -32,8 +32,8 @@ export const ProjectSchema = z.object({
  * - lint: Code quality gate
  *
  * Recommended commands (can be null if not applicable):
- * - test: Used in integration checks (Ring 2+)
- * - typecheck: Run in pre-PR checks (Ring 0+)
+ * - test: Used in integration checks (Level 2+)
+ * - typecheck: Run in pre-PR checks (Level 0+)
  *
  * Empty strings are invalid — use null for intentional skips.
  */
