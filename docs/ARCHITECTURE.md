@@ -1,6 +1,6 @@
 # KARIMO Architecture
 
-**Version:** 1.4
+**Version:** 1.5
 **Status:** Active
 
 ---
@@ -407,9 +407,57 @@ One GitHub Project per feature phase with:
 
 ---
 
+## Risk Mitigation
+
+| Risk | How KARIMO Handles It |
+|------|----------------------|
+| Agent breaks existing functionality | Mandatory rebase, phase-level integration check, merge rollback |
+| Runaway costs | Per-task cost ceiling, complexity-scaled iterations, revision cost budget, resilient token parsing |
+| Agent goes rogue | Agent sandbox, filtered environment variables, caution-file enforcement |
+| Merge cascade (sibling branches go stale) | Mandatory rebase before PR creation; conflicts → needs-human-rebase |
+| File overlap in parallel tasks | File-overlap detection forces sequential execution |
+| Greptile misses interaction bugs | Cumulative phase review against main |
+| Caution files modified silently | `require_review` enforcement — PR label + merge block |
+| Auth/rate-limit errors waste iterations | Scoped GitHub token, error classification, fallback engines |
+| Dashboard is attacked | API key auth + confirmation tokens on merge |
+| Secrets leak to agents | Environment variable filtering, explicit allowlist |
+| GitHub Projects API is painful | `lib/github-projects.ts` wrapper + offline mode |
+| Greptile blocks pipeline | Non-blocking — tasks move to `review-pending`, async processing |
+| Too many Day 1 dependencies | Level-based: Day 1 needs git, Bun, Claude Code only |
+| No cross-phase learning | Two-layer compound learning with structured checkpoints and feed-forward |
+| New team member confusion | `bun run onboard` flow + checkpoint-based learning |
+
+---
+
+## Key Principles
+
+1. **You design the product, agents execute the plan.** The PRD interview is where your product expertise lives. Agents handle implementation.
+
+2. **PRD is the narrative truth, GitHub Projects is the execution truth.** The PRD tells the story. GitHub Projects tracks where every task is right now.
+
+3. **Dependencies before execution.** Never let an agent start a task whose dependencies aren't met.
+
+4. **Fail fast, fail cheap.** Fatal errors abort immediately. Cost ceilings enforce budgets. Revision loops are cost-budgeted.
+
+5. **Compound the learnings — with structure.** Two layers: automatic orchestrator updates + developer feedback. Both feed forward into config, PRDs, and agent prompts.
+
+6. **Graceful degradation.** Dashboard → GitHub Projects → PRD.md. Online → offline. Greptile → manual review.
+
+7. **Build in levels.** Each level is a loop — run it, validate it works, then unlock the next.
+
+8. **Security is a constraint, not a feature.** Scoped tokens, sandboxed agents, authenticated endpoints — requirements from Level 0.
+
+---
+
 ## Further Reading
 
 - [LEVELS.md](./LEVELS.md) — Level-based build plan (Level 0-5)
+- [COMPONENTS.md](./COMPONENTS.md) — Component specifications
+- [COMPOUND-LEARNING.md](./COMPOUND-LEARNING.md) — Checkpoint system
+- [SECURITY.md](./SECURITY.md) — Security model and agent sandbox
+- [CODE-INTEGRITY.md](./CODE-INTEGRITY.md) — Pre-PR checks and safeguards
+- [DASHBOARD.md](./DASHBOARD.md) — Dashboard specifications (Level 5)
+- [DEPENDENCIES.md](./DEPENDENCIES.md) — Dependency inventory
 - [CHANGELOG.md](./CHANGELOG.md) — Version history
 - [CONTRIBUTING.md](./CONTRIBUTING.md) — Contributing guide
 - [templates/PRD_TEMPLATE.md](../templates/PRD_TEMPLATE.md) — PRD format
