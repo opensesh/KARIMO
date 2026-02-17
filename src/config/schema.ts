@@ -26,13 +26,26 @@ export const ProjectSchema = z.object({
 /**
  * Commands schema.
  * Shell commands for build, lint, test, and type checking.
- * All commands are required and must be non-empty.
+ *
+ * Required commands (must be non-empty strings):
+ * - build: Agent code must compile
+ * - lint: Code quality gate
+ *
+ * Recommended commands (can be null if not applicable):
+ * - test: Used in integration checks (Ring 2+)
+ * - typecheck: Run in pre-PR checks (Ring 0+)
+ *
+ * Empty strings are invalid — use null for intentional skips.
  */
 export const CommandsSchema = z.object({
   build: z.string().min(1, 'Build command is required'),
   lint: z.string().min(1, 'Lint command is required'),
-  test: z.string().min(1, 'Test command is required'),
-  typecheck: z.string().min(1, 'Typecheck command is required'),
+  test: z.string().min(1, 'Test command cannot be empty (use null to skip)').nullable().default(null),
+  typecheck: z
+    .string()
+    .min(1, 'Typecheck command cannot be empty (use null to skip)')
+    .nullable()
+    .default(null),
 })
 
 /**
