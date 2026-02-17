@@ -243,6 +243,72 @@ main
 
 ---
 
+## Automated Code Review with Greptile
+
+Starting at **Level 2**, you have the option to integrate [Greptile](https://greptile.com) for automated PR review. Greptile is a paid service that provides AI-powered code review specifically trained on your codebase.
+
+### What Greptile Does
+
+Greptile reviews every PR created by KARIMO agents and returns a score from 1–5:
+
+| Score | Meaning | KARIMO Action |
+|-------|---------|---------------|
+| 5/5 | Excellent — ready to merge | Mark task as `done` |
+| 4/5 | Good — minor issues acceptable | Mark task as `done` |
+| 3/5 or below | Issues found | Trigger revision loop |
+
+When a PR scores below 4, the orchestrator automatically:
+1. Extracts the specific feedback from Greptile
+2. Re-invokes the agent with that feedback
+3. Deducts the revision cost from the task's revision budget
+4. Repeats until score ≥ 4 or revision budget exhausted
+
+### Why Use Greptile
+
+**Without Greptile (Level 0–1):** You manually review every PR the agents create. This works, but it means you're the bottleneck — agents can produce PRs faster than you can review them.
+
+**With Greptile (Level 2+):** PRs are reviewed automatically. You only step in when:
+- Caution files are modified (always requires human approval)
+- The task fails after exhausting its revision budget
+- You want to spot-check high-complexity tasks
+
+This shifts your role from "reviewer of everything" to "reviewer of exceptions."
+
+### How Greptile Helps Code Integrity
+
+1. **Per-task review** — Every PR gets reviewed before it can merge, catching issues early.
+
+2. **Revision loops** — Bad code doesn't just get flagged, it gets fixed automatically (within budget).
+
+3. **Cumulative phase review** — After all tasks in a phase merge, Greptile reviews the entire phase branch diff against `main`. This catches interaction bugs that per-task reviews miss.
+
+4. **Non-blocking** — If Greptile times out, the task moves to `review-pending` and the pipeline continues. Results are processed asynchronously.
+
+5. **Engine evaluation** — At Level 4, Greptile scores are tracked per-engine (Claude vs. Codex vs. Gemini), helping you understand which agents produce better code for your codebase.
+
+### Configuration
+
+Greptile requires a `GREPTILE_TOKEN` in your environment. Add it to `.env.local` (never commit this):
+
+```bash
+# .env.local
+GREPTILE_TOKEN=your_token_here
+```
+
+The orchestrator handles Greptile polling automatically — no additional configuration needed in `config.yaml`.
+
+### Without Greptile
+
+Greptile is optional. If you skip it:
+- All PRs require manual review
+- No automated revision loops
+- You're responsible for catching issues before merge
+- Still works fine for small teams or low-volume projects
+
+See [LEVELS.md](./LEVELS.md) for the full progression and what each level adds.
+
+---
+
 ## Related Documentation
 
 - [SECURITY.md](./SECURITY.md) — Agent sandbox and boundary enforcement
