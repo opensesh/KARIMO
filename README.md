@@ -12,20 +12,82 @@ KARIMO turns product requirements into shipped code using AI agents, automated c
 
 ---
 
+## Getting Started
+
+KARIMO guides you through three steps:
+
+1. **Setup** — Run `karimo` and answer questions about your project
+2. **Interview** — Have a conversation to define what you want to build
+3. **Execute** — Let agents turn your requirements into pull requests
+
+### First Run
+
+```bash
+bun link              # Install globally (one time)
+cd your-project
+karimo                # Start guided flow
+```
+
+That's it. KARIMO detects your project state and guides you to the next step.
+
+---
+
+## Two Ways to Use KARIMO
+
+### Guided Flow (Recommended)
+
+Just run `karimo` with no arguments. KARIMO detects where you are and guides you:
+
+| If you have... | KARIMO will... |
+|----------------|----------------|
+| No `.karimo/` folder | Show welcome and start setup |
+| Config but no PRDs | Start the PRD interview |
+| PRD in progress | Offer to resume where you left off |
+| Finalized PRD | Show tasks ready for execution |
+
+### Direct Commands
+
+For experienced users who know what they need:
+
+| Command | Purpose |
+|---------|---------|
+| `karimo init` | Initialize project config |
+| `karimo orchestrate --phase X --task Y` | Run a specific task |
+| `karimo status` | Show current project state |
+| `karimo help` | Show all commands |
+
+---
+
 ## How It Works
 
 ```
-┌─────────────┐    ┌─────────────┐    ┌─────────────┐    ┌─────────────┐    ┌─────────────┐
-│  Interview  │ →  │  Generate   │ →  │   Execute   │ →  │   Review    │ →  │    Merge    │
-│   (human)   │    │     PRD     │    │    Tasks    │    │  (Greptile) │    │   (human)   │
-└─────────────┘    └─────────────┘    └─────────────┘    └─────────────┘    └─────────────┘
+┌──────────────┐    ┌───────────────┐    ┌─────────────┐    ┌────────────┐    ┌───────────┐
+│   Interview  │ →  │   PRD File    │ →  │   Execute   │ →  │   Review   │ →  │   Merge   │
+│  (5 rounds)  │    │  (generated)  │    │   (agents)  │    │  (checks)  │    │   (PR)    │
+└──────────────┘    └───────────────┘    └─────────────┘    └────────────┘    └───────────┘
 ```
 
-1. **Interview** — KARIMO interviews you about a feature: what it does, how it should work, what patterns to follow
-2. **Generate PRD** — The interview produces a structured PRD with tasks, dependencies, and success criteria
-3. **Execute Tasks** — Each task runs in an isolated worktree with cost controls and iteration limits
-4. **Review** — Greptile auto-reviews PRs; scores below threshold trigger revision loops
-5. **Merge** — PRs pass integration checks and merge; compound learning captures what worked
+1. **Interview** — Answer questions about what you're building (~28 min)
+2. **PRD Generated** — Your answers become a structured document
+3. **Execute** — Agents work on tasks from the PRD
+4. **Review** — Pre-PR checks (build, typecheck, boundaries)
+5. **Merge** — Pull request created for human review
+
+---
+
+## The PRD Interview
+
+KARIMO interviews you in 5 rounds to understand what you're building:
+
+| Round | Duration | What You'll Discuss |
+|-------|----------|---------------------|
+| 1. Framing | ~5 min | What's the feature? Who's it for? Why now? |
+| 2. Requirements | ~10 min | What must it do? What's out of scope? |
+| 3. Dependencies | ~5 min | What depends on what? Which files are involved? |
+| 4. Agent Context | ~5 min | What patterns should agents follow? |
+| 5. Retrospective | ~3 min | What did we learn from previous work? |
+
+You can pause anytime. Run `karimo` again to resume where you left off.
 
 ---
 
@@ -100,42 +162,17 @@ Mistakes captured → Config updated → Future agents avoid them.
 
 ---
 
-## Quick Start
+## Glossary
 
-> **Note:** KARIMO is in early development (Level 0). The quick start below is a placeholder for when Level 0 is complete.
-
-```bash
-# Install
-bun add @karimo/core
-
-# Initialize your project (auto-detects settings, you confirm)
-karimo init
-
-# Run the PRD interview
-karimo plan
-
-# Execute tasks
-karimo orchestrate --phase 1
-
-# Check status
-karimo status
-```
-
-### First-Time Setup vs. Team Onboarding
-
-| Command | Purpose | When to Use |
-|---------|---------|-------------|
-| `karimo init` | Creates `.karimo/config.yaml` via auto-detection + confirmation | First-time project setup |
-| `bun run onboard` | Verifies existing setup for new team member | Joining a configured project |
-
-**Auto-detection scans your project for:**
-- Project metadata (name, language, framework, runtime)
-- Build commands (build, lint, test, typecheck)
-- Architecture rules (from existing config files)
-- File boundaries (never_touch, require_review patterns)
-- Sandbox variables (from .env.example)
-
-Each detected value shows a confidence indicator: `●` high, `◐` medium, `○` low, `?` not detected. You confirm or edit before saving.
+| Term | What It Means |
+|------|---------------|
+| **PRD** | Product Requirements Document — describes what to build |
+| **Phase** | A set of related tasks from one PRD |
+| **Task** | A single unit of work for an agent |
+| **Complexity** | How hard a task is (1-10 scale) |
+| **Agent** | AI that writes code based on your requirements |
+| **Worktree** | Isolated git branch where agents work |
+| **Checkpoint** | Saved learnings from previous tasks |
 
 ---
 
