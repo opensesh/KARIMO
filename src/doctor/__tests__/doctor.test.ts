@@ -172,7 +172,7 @@ describe('Doctor Runner Helpers', () => {
       const autoFixable = getAutoFixableChecks(report)
 
       expect(autoFixable).toHaveLength(1)
-      expect(autoFixable[0].name).toBe('gh_auth')
+      expect(autoFixable[0]?.name).toBe('gh_auth')
     })
   })
 

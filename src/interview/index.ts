@@ -74,7 +74,15 @@ export {
   getRoundDisplayName,
   getRoundNumber,
   getRoundEstimatedMinutes,
+  // Subagent management
+  addSubagentExecution,
+  updateSubagentUsage,
+  recordSubagentExecution,
+  getSubagentUsageSummary,
+  clearSubagentHistory,
 } from './session'
+
+export type { SubagentUsageSummary } from './session'
 
 // =============================================================================
 // PRD File Operations
@@ -152,6 +160,40 @@ export {
   isReadyForFinalization,
   formatReviewResult,
 } from './agents/review-agent'
+
+// =============================================================================
+// Subagents
+// =============================================================================
+
+export type {
+  SubagentType,
+  SubagentSpawnRequest,
+  SubagentResult,
+  SubagentContext,
+  SubagentTokenUsage,
+  SubagentHistoryEntry,
+  SubagentExecution,
+  SubagentStatus,
+  SubagentResultData,
+  InterviewSubagentType,
+  InvestigationSubagentType,
+  ReviewSubagentType,
+  ParentAgentType,
+} from './subagents'
+
+export {
+  AgentRegistry,
+  createAgentRegistry,
+  SubagentSpawner,
+  createSubagentSpawner,
+  SubagentCostTracker,
+  createCostTracker,
+  calculateSingleUsageCost,
+  formatCost,
+  getSubagentPrompt,
+} from './subagents'
+
+export type { AggregatedUsage, SpawnOptions, ParallelSpawnOptions, CostCalculation } from './subagents'
 
 // =============================================================================
 // High-Level Interview Flow

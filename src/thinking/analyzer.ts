@@ -106,15 +106,20 @@ export function buildThinkingContext(params: {
 
   const analysis = analyzePrompt(combinedContent)
 
-  return {
+  const context: ThinkingContext = {
     complexity,
     filesAffectedCount: filesAffected.length,
     successCriteriaCount: successCriteria.length,
     promptContent: prompt,
     isReviewAgent,
-    taskDescription,
     additionalKeywords: [...analysis.architectureKeywords, ...analysis.refactorKeywords],
   }
+
+  if (taskDescription !== undefined) {
+    context.taskDescription = taskDescription
+  }
+
+  return context
 }
 
 /**
@@ -190,12 +195,17 @@ export function analyzeTaskForThinking(
   prompt: string,
   isReviewAgent = false
 ): ThinkingContext {
-  return buildThinkingContext({
+  const params: Parameters<typeof buildThinkingContext>[0] = {
     complexity: task.complexity,
     filesAffected: task.files_affected ?? [],
     successCriteria: task.success_criteria ?? [],
     prompt,
     isReviewAgent,
-    taskDescription: task.description,
-  })
+  }
+
+  if (task.description !== undefined) {
+    params.taskDescription = task.description
+  }
+
+  return buildThinkingContext(params)
 }

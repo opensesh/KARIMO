@@ -273,3 +273,124 @@ export function getRoundEstimatedMinutes(round: InterviewRound): number {
   }
   return minutes[round]
 }
+
+// =============================================================================
+// Subagent Management
+// =============================================================================
+
+/**
+ * Add a subagent execution to the session history.
+ */
+export function addSubagentExecution(
+  session: InterviewSession,
+  entry: SubagentHistoryEntry
+): InterviewSession {
+  return {
+    ...session,
+    subagentHistory: [...session.subagentHistory, entry],
+    updatedAt: new Date().toISOString(),
+  }
+}
+
+/**
+ * Update the aggregated subagent token usage.
+ */
+export function updateSubagentUsage(
+  session: InterviewSession,
+  usage: SubagentTokenUsage
+): InterviewSession {
+  const current = session.subagentUsage
+  return {
+    ...session,
+    subagentUsage: {
+      model: usage.model, // Use the most recent model
+      inputTokens: current.inputTokens + usage.inputTokens,
+      outputTokens: current.outputTokens + usage.outputTokens,
+      cacheReadTokens: (current.cacheReadTokens ?? 0) + (usage.cacheReadTokens ?? 0),
+    },
+    updatedAt: new Date().toISOString(),
+  }
+}
+
+/**
+ * Add a subagent execution and update usage in one operation.
+ */
+export function recordSubagentExecution(
+  session: InterviewSession,
+  entry: SubagentHistoryEntry
+): InterviewSession {
+  const withHistory = addSubagentExecution(session, entry)
+  return updateSubagentUsage(withHistory, entry.result.usage)
+}
+
+/**
+ * Get a summary of subagent usage for the session.
+ */
+export interface SubagentUsageSummary {
+  /** Total number of subagent executions */
+  totalExecutions: number
+  /** Number of successful executions */
+  successfulExecutions: number
+  /** Number of failed executions */
+  failedExecutions: number
+  /** Executions by type */
+  byType: Record<string, number>
+  /** Executions by parent agent */
+  byParent: Record<string, number>
+  /** Total input tokens */
+  totalInputTokens: number
+  /** Total output tokens */
+  totalOutputTokens: number
+  /** Total tokens (input + output) */
+  totalTokens: number
+}
+
+/**
+ * Get a summary of subagent usage for the session.
+ */
+export function getSubagentUsageSummary(session: InterviewSession): SubagentUsageSummary {
+  const summary: SubagentUsageSummary = {
+    totalExecutions: session.subagentHistory.length,
+    successfulExecutions: 0,
+    failedExecutions: 0,
+    byType: {},
+    byParent: {},
+    totalInputTokens: session.subagentUsage.inputTokens,
+    totalOutputTokens: session.subagentUsage.outputTokens,
+    totalTokens: session.subagentUsage.inputTokens + session.subagentUsage.outputTokens,
+  }
+
+  for (const entry of session.subagentHistory) {
+    // Count by status (from result)
+    if (entry.result.status === 'completed') {
+      summary.successfulExecutions++
+    } else if (entry.result.status === 'failed') {
+      summary.failedExecutions++
+    }
+
+    // Count by type (from request)
+    summary.byType[entry.request.type] = (summary.byType[entry.request.type] ?? 0) + 1
+
+    // Count by parent (from request)
+    summary.byParent[entry.request.parent] = (summary.byParent[entry.request.parent] ?? 0) + 1
+  }
+
+  return summary
+}
+
+/**
+ * Clear subagent history (useful for testing or resetting).
+ */
+export function clearSubagentHistory(session: InterviewSession): InterviewSession {
+  return {
+    ...session,
+    subagentHistory: [],
+    subagentUsage: {
+      model: 'claude-sonnet-4-20250514',
+      inputTokens: 0,
+      outputTokens: 0,
+      cacheReadTokens: 0,
+    },
+    updatedAt: new Date().toISOString(),
+  }
+}

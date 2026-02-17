@@ -254,10 +254,15 @@ export class AgentRegistry {
    * @returns Array of execution data
    */
   export(): Array<{ request: SubagentSpawnRequest; result?: SubagentResult }> {
-    return Array.from(this.executions.values()).map((e) => ({
-      request: e.request,
-      result: e.result,
-    }))
+    return Array.from(this.executions.values()).map((e) => {
+      const exported: { request: SubagentSpawnRequest; result?: SubagentResult } = {
+        request: e.request,
+      }
+      if (e.result !== undefined) {
+        exported.result = e.result
+      }
+      return exported
+    })
   }
 
   /**
@@ -274,7 +279,9 @@ export class AgentRegistry {
             ? 'completed'
             : 'failed'
           : 'pending',
-        result: item.result,
+      }
+      if (item.result !== undefined) {
+        execution.result = item.result
       }
       this.executions.set(item.request.id, execution)
     }

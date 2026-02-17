@@ -260,7 +260,8 @@ export async function sendMessageWithThinking(
     if (thinking) {
       // The Anthropic SDK types may not include thinking yet
       // Cast to allow the thinking parameter
-      ;(requestParams as Record<string, unknown>)['thinking'] = thinking
+      const paramsWithThinking = requestParams as unknown as Record<string, unknown>
+      paramsWithThinking['thinking'] = thinking
     }
 
     const response = await client.messages.create(requestParams)
@@ -282,16 +283,20 @@ export async function sendMessageWithThinking(
       throw new AnthropicAPIError(undefined, 'No text content in response')
     }
 
-    return {
-      text,
-      thinking: thinkingContent,
-      usage: response.usage
-        ? {
-            inputTokens: response.usage.input_tokens,
-            outputTokens: response.usage.output_tokens,
-          }
-        : undefined,
+    const result: ThinkingResponse = { text }
+
+    if (thinkingContent !== undefined) {
+      result.thinking = thinkingContent
     }
+
+    if (response.usage) {
+      result.usage = {
+        inputTokens: response.usage.input_tokens,
+        outputTokens: response.usage.output_tokens,
+      }
+    }
+
+    return result
   } catch (error) {
     if (error instanceof AnthropicAPIError) {
       throw error

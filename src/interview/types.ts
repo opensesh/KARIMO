@@ -320,7 +320,6 @@ export function createDefaultSession(prdSlug: string, prdPath: string): Intervie
       inputTokens: 0,
       outputTokens: 0,
       cacheReadTokens: 0,
-      cacheCreationTokens: 0,
     },
   }
 }

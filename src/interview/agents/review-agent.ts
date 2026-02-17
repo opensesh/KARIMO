@@ -268,13 +268,18 @@ Respond ONLY with the JSON object, no additional text.`
 function convertStructuredToLegacy(structured: StructuredReviewResult): ReviewResult {
   return {
     score: structured.score,
-    issues: structured.issues.map((issue) => ({
-      severity: issue.severity as ReviewIssue['severity'],
-      category: isValidCategory(issue.category) ? issue.category : 'other',
-      description: issue.description,
-      location: issue.location,
-      suggestion: issue.suggestion,
-    })),
+    issues: structured.issues.map((issue) => {
+      const reviewIssue: ReviewIssue = {
+        severity: issue.severity as ReviewIssue['severity'],
+        category: isValidCategory(issue.category) ? issue.category : 'other',
+        description: issue.description,
+        location: issue.location,
+      }
+      if (issue.suggestion !== undefined) {
+        reviewIssue.suggestion = issue.suggestion
+      }
+      return reviewIssue
+    }),
     summary: structured.summary,
     recommendations: structured.recommendations,
   }

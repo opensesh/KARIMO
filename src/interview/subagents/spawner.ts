@@ -115,6 +115,9 @@ export class SubagentSpawner {
 
       const durationMs = Date.now() - startTime
 
+      // Try to extract structured data based on type
+      const structuredData = this.extractStructuredData(request.type, response.text)
+
       // Build result
       const result: SubagentResult = {
         spawnId: request.id,
@@ -124,8 +127,10 @@ export class SubagentSpawner {
         durationMs,
       }
 
-      // Try to extract structured data based on type
-      result.data = this.extractStructuredData(request.type, response.text)
+      // Only assign data if we extracted something
+      if (structuredData !== undefined) {
+        result.data = structuredData
+      }
 
       // Complete the execution
       this.registry.complete(request.id, result)
@@ -243,11 +248,13 @@ export class SubagentSpawner {
         messages: messages.map((m) => ({ role: m.role, content: m.content })),
       })
 
-      // Extract text
-      const textBlocks = response.content.filter(
-        (block): block is { type: 'text'; text: string } => block.type === 'text'
-      )
-      const text = textBlocks.map((b) => b.text).join('\n')
+      // Extract text from response content
+      let text = ''
+      for (const block of response.content) {
+        if (block.type === 'text') {
+          text += block.text
+        }
+      }
 
       return {
         text,

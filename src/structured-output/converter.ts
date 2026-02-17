@@ -14,7 +14,7 @@ export interface JsonSchema {
   $schema?: string
   type?: string | string[]
   properties?: Record<string, JsonSchema>
-  items?: JsonSchema
+  items?: JsonSchema | JsonSchema[]
   required?: string[]
   enum?: unknown[]
   const?: unknown
@@ -65,10 +65,24 @@ export interface ConversionOptions {
 /**
  * Default conversion options.
  */
-const DEFAULT_OPTIONS: ConversionOptions = {
+const DEFAULT_OPTIONS: Required<ConversionOptions> = {
   includeSchema: true,
   schemaDialect: 'https://json-schema.org/draft/2020-12/schema',
   includeDescriptions: true,
+  name: '',
+}
+
+/**
+ * Internal type for Zod definition access.
+ * Zod's internal types are not exported, so we use a flexible record type.
+ */
+type ZodDef = Record<string, unknown>
+
+/**
+ * Get a property from a Zod definition safely.
+ */
+function getDefProp<T>(def: ZodDef, key: string): T | undefined {
+  return def[key] as T | undefined
 }
 
 /**
@@ -114,10 +128,10 @@ export function zodToJsonSchema(
  * Convert a single Zod type to JSON Schema.
  */
 function convertZodType(zodType: ZodSchema<unknown, ZodTypeDef, unknown>): JsonSchema {
-  const typeDef = zodType._def
+  const typeDef = zodType._def as ZodDef
 
   // Get the type name from Zod's internal structure
-  const typeName = typeDef.typeName as string | undefined
+  const typeName = getDefProp<string>(typeDef, 'typeName')
 
   switch (typeName) {
     case 'ZodString':
@@ -151,8 +165,10 @@ function convertZodType(zodType: ZodSchema<unknown, ZodTypeDef, unknown>): JsonS
     case 'ZodNativeEnum':
       return convertNativeEnum(typeDef)
 
-    case 'ZodLiteral':
-      return { const: typeDef.value }
+    case 'ZodLiteral': {
+      const value = getDefProp<unknown>(typeDef, 'value')
+      return { const: value }
+    }
 
     case 'ZodOptional':
     case 'ZodNullable':
@@ -171,9 +187,14 @@ function convertZodType(zodType: ZodSchema<unknown, ZodTypeDef, unknown>): JsonS
     case 'ZodUnknown':
       return {}
 
-    case 'ZodEffects':
+    case 'ZodEffects': {
       // For effects (transforms, refinements), use the inner type
-      return convertZodType(typeDef.schema)
+      const innerSchema = getDefProp<ZodSchema>(typeDef, 'schema')
+      if (innerSchema) {
+        return convertZodType(innerSchema)
+      }
+      return {}
+    }
 
     default:
       // Fallback for unknown types
@@ -184,10 +205,10 @@ function convertZodType(zodType: ZodSchema<unknown, ZodTypeDef, unknown>): JsonS
 /**
  * Convert ZodString to JSON Schema.
  */
-function convertString(typeDef: Record<string, unknown>): JsonSchema {
+function convertString(typeDef: ZodDef): JsonSchema {
   const schema: JsonSchema = { type: 'string' }
 
-  const checks = (typeDef.checks as Array<{ kind: string; value?: unknown }>) ?? []
+  const checks = getDefProp<Array<{ kind: string; value?: unknown }>>(typeDef, 'checks') ?? []
 
   for (const check of checks) {
     switch (check.kind) {
@@ -225,10 +246,10 @@ function convertString(typeDef: Record<string, unknown>): JsonSchema {
 /**
  * Convert ZodNumber to JSON Schema.
  */
-function convertNumber(typeDef: Record<string, unknown>): JsonSchema {
+function convertNumber(typeDef: ZodDef): JsonSchema {
   const schema: JsonSchema = { type: 'number' }
 
-  const checks = (typeDef.checks as Array<{ kind: string; value?: unknown }>) ?? []
+  const checks = getDefProp<Array<{ kind: string; value?: unknown }>>(typeDef, 'checks') ?? []
 
   for (const check of checks) {
     switch (check.kind) {
@@ -253,18 +274,24 @@ function convertNumber(typeDef: Record<string, unknown>): JsonSchema {
 /**
  * Convert ZodArray to JSON Schema.
  */
-function convertArray(typeDef: Record<string, unknown>): JsonSchema {
+function convertArray(typeDef: ZodDef): JsonSchema {
+  const innerType = getDefProp<ZodSchema>(typeDef, 'type')
   const schema: JsonSchema = {
     type: 'array',
-    items: convertZodType(typeDef.type as ZodSchema),
   }
 
-  if (typeDef.minLength !== null && typeDef.minLength !== undefined) {
-    schema.minItems = typeDef.minLength as number
+  if (innerType) {
+    schema.items = convertZodType(innerType)
   }
 
-  if (typeDef.maxLength !== null && typeDef.maxLength !== undefined) {
-    schema.maxItems = typeDef.maxLength as number
+  const minLength = getDefProp<number | null>(typeDef, 'minLength')
+  if (minLength !== null && minLength !== undefined) {
+    schema.minItems = minLength
+  }
+
+  const maxLength = getDefProp<number | null>(typeDef, 'maxLength')
+  if (maxLength !== null && maxLength !== undefined) {
+    schema.maxItems = maxLength
   }
 
   return schema
@@ -273,9 +300,12 @@ function convertArray(typeDef: Record<string, unknown>): JsonSchema {
 /**
  * Convert ZodObject to JSON Schema.
  */
-function convertObject(typeDef: Record<string, unknown>): JsonSchema {
-  const shape = typeDef.shape as () => Record<string, ZodSchema>
-  const shapeObj = typeof shape === 'function' ? shape() : shape
+function convertObject(typeDef: ZodDef): JsonSchema {
+  const shape = getDefProp<(() => Record<string, ZodSchema>) | Record<string, ZodSchema>>(
+    typeDef,
+    'shape'
+  )
+  const shapeObj = typeof shape === 'function' ? shape() : shape ?? {}
 
   const properties: Record<string, JsonSchema> = {}
   const required: string[] = []
@@ -284,8 +314,9 @@ function convertObject(typeDef: Record<string, unknown>): JsonSchema {
     properties[key] = convertZodType(value)
 
     // Check if the field is required (not optional)
-    const valueDef = value._def as { typeName?: string }
-    if (valueDef.typeName !== 'ZodOptional' && valueDef.typeName !== 'ZodDefault') {
+    const valueDef = value._def as ZodDef
+    const valueTypeName = getDefProp<string>(valueDef, 'typeName')
+    if (valueTypeName !== 'ZodOptional' && valueTypeName !== 'ZodDefault') {
       required.push(key)
     }
   }
@@ -300,7 +331,7 @@ function convertObject(typeDef: Record<string, unknown>): JsonSchema {
   }
 
   // Handle additionalProperties
-  const unknownKeys = typeDef.unknownKeys as string | undefined
+  const unknownKeys = getDefProp<string>(typeDef, 'unknownKeys')
   if (unknownKeys === 'strict') {
     schema.additionalProperties = false
   }
@@ -311,8 +342,8 @@ function convertObject(typeDef: Record<string, unknown>): JsonSchema {
 /**
  * Convert ZodUnion to JSON Schema.
  */
-function convertUnion(typeDef: Record<string, unknown>): JsonSchema {
-  const options = typeDef.options as ZodSchema[]
+function convertUnion(typeDef: ZodDef): JsonSchema {
+  const options = getDefProp<ZodSchema[]>(typeDef, 'options') ?? []
   return {
     anyOf: options.map(convertZodType),
   }
@@ -321,18 +352,20 @@ function convertUnion(typeDef: Record<string, unknown>): JsonSchema {
 /**
  * Convert ZodEnum to JSON Schema.
  */
-function convertEnum(typeDef: Record<string, unknown>): JsonSchema {
+function convertEnum(typeDef: ZodDef): JsonSchema {
+  const values = getDefProp<string[]>(typeDef, 'values') ?? []
   return {
     type: 'string',
-    enum: typeDef.values as string[],
+    enum: values,
   }
 }
 
 /**
  * Convert ZodNativeEnum to JSON Schema.
  */
-function convertNativeEnum(typeDef: Record<string, unknown>): JsonSchema {
-  const values = Object.values(typeDef.values as Record<string, unknown>)
+function convertNativeEnum(typeDef: ZodDef): JsonSchema {
+  const enumValues = getDefProp<Record<string, unknown>>(typeDef, 'values') ?? {}
+  const values = Object.values(enumValues)
   return {
     enum: values,
   }
@@ -341,13 +374,19 @@ function convertNativeEnum(typeDef: Record<string, unknown>): JsonSchema {
 /**
  * Convert ZodOptional/ZodNullable to JSON Schema.
  */
-function convertOptional(typeDef: Record<string, unknown>): JsonSchema {
-  const innerSchema = convertZodType(typeDef.innerType as ZodSchema)
+function convertOptional(typeDef: ZodDef): JsonSchema {
+  const innerType = getDefProp<ZodSchema>(typeDef, 'innerType')
+  if (!innerType) {
+    return {}
+  }
+
+  const innerSchema = convertZodType(innerType)
+  const currentTypeName = getDefProp<string>(typeDef, 'typeName')
 
   // For nullable, add null to the type
-  if ((typeDef.typeName as string) === 'ZodNullable') {
-    if (innerSchema.type) {
-      innerSchema.type = [innerSchema.type as string, 'null']
+  if (currentTypeName === 'ZodNullable') {
+    if (innerSchema.type && typeof innerSchema.type === 'string') {
+      innerSchema.type = [innerSchema.type, 'null']
     } else {
       return {
         anyOf: [innerSchema, { type: 'null' }],
@@ -361,32 +400,48 @@ function convertOptional(typeDef: Record<string, unknown>): JsonSchema {
 /**
  * Convert ZodDefault to JSON Schema.
  */
-function convertDefault(typeDef: Record<string, unknown>): JsonSchema {
-  const innerSchema = convertZodType(typeDef.innerType as ZodSchema)
-  innerSchema.default = typeDef.defaultValue
+function convertDefault(typeDef: ZodDef): JsonSchema {
+  const innerType = getDefProp<ZodSchema>(typeDef, 'innerType')
+  if (!innerType) {
+    return {}
+  }
+
+  const innerSchema = convertZodType(innerType)
+  const defaultValue = getDefProp<unknown>(typeDef, 'defaultValue')
+  if (defaultValue !== undefined) {
+    innerSchema.default = defaultValue
+  }
   return innerSchema
 }
 
 /**
  * Convert ZodRecord to JSON Schema.
  */
-function convertRecord(typeDef: Record<string, unknown>): JsonSchema {
-  return {
+function convertRecord(typeDef: ZodDef): JsonSchema {
+  const valueType = getDefProp<ZodSchema>(typeDef, 'valueType')
+  const schema: JsonSchema = {
     type: 'object',
-    additionalProperties: convertZodType(typeDef.valueType as ZodSchema),
   }
+
+  if (valueType) {
+    schema.additionalProperties = convertZodType(valueType)
+  }
+
+  return schema
 }
 
 /**
  * Convert ZodTuple to JSON Schema.
  */
-function convertTuple(typeDef: Record<string, unknown>): JsonSchema {
-  const items = (typeDef.items as ZodSchema[]).map(convertZodType)
+function convertTuple(typeDef: ZodDef): JsonSchema {
+  const tupleItems = getDefProp<ZodSchema[]>(typeDef, 'items') ?? []
+  const convertedItems = tupleItems.map(convertZodType)
+
   return {
     type: 'array',
-    items: items,
-    minItems: items.length,
-    maxItems: items.length,
+    items: convertedItems,
+    minItems: convertedItems.length,
+    maxItems: convertedItems.length,
   }
 }
 
@@ -411,6 +466,10 @@ export function createCliJsonSchema(
   zodSchema: ZodSchema<unknown, ZodTypeDef, unknown>,
   name?: string
 ): string {
-  const jsonSchema = zodToJsonSchema(zodSchema, { name, includeSchema: false })
+  const opts: ConversionOptions = { includeSchema: false }
+  if (name !== undefined) {
+    opts.name = name
+  }
+  const jsonSchema = zodToJsonSchema(zodSchema, opts)
   return stringifyJsonSchema(jsonSchema)
 }

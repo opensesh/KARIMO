@@ -105,12 +105,19 @@ export interface StructuredOutputConfig {
  * @returns Array of ValidationError objects
  */
 export function zodErrorToValidationErrors(zodError: ZodError): ValidationError[] {
-  return zodError.errors.map((error) => ({
-    path: error.path.map(String),
-    message: error.message,
-    expected: 'expected' in error ? String(error.expected) : undefined,
-    received: 'received' in error ? truncateValue(error.received) : undefined,
-  }))
+  return zodError.errors.map((error) => {
+    const validationError: ValidationError = {
+      path: error.path.map(String),
+      message: error.message,
+    }
+    if ('expected' in error) {
+      validationError.expected = String(error.expected)
+    }
+    if ('received' in error) {
+      validationError.received = truncateValue(error.received)
+    }
+    return validationError
+  })
 }
 
 /**
