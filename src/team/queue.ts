@@ -5,7 +5,7 @@
  * Uses file locking to prevent race conditions between parallel agents.
  */
 
-import { existsSync, mkdirSync } from 'node:fs'
+import { existsSync, mkdirSync, unlinkSync, writeFileSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import {
   QueueLockError,
@@ -78,43 +78,54 @@ export function queueExists(projectRoot: string, phaseId: string): boolean {
 }
 
 /**
- * Simple file lock implementation.
- * Uses a lock file with a timestamp to detect stale locks.
+ * Simple file lock implementation using exclusive file creation.
+ * Uses writeFileSync with 'wx' flag for atomic lock acquisition.
  */
 async function acquireLock(
   lockPath: string,
   timeout: number = DEFAULT_LOCK_TIMEOUT
 ): Promise<boolean> {
   const startTime = Date.now()
+  const lockData = JSON.stringify({ timestamp: Date.now(), pid: process.pid })
 
   while (Date.now() - startTime < timeout) {
-    if (!existsSync(lockPath)) {
-      // Try to create lock file
-      try {
-        await Bun.write(lockPath, JSON.stringify({ timestamp: Date.now(), pid: process.pid }))
-        // Double-check we own the lock
-        const lockContent = await Bun.file(lockPath).text()
-        const lockData = JSON.parse(lockContent) as { pid: number }
-        if (lockData.pid === process.pid) {
-          return true
-        }
-      } catch {
-        // Another process got the lock, continue waiting
-      }
-    } else {
-      // Check for stale lock (older than 30 seconds)
-      try {
-        const lockContent = await Bun.file(lockPath).text()
-        const lockData = JSON.parse(lockContent) as { timestamp: number }
-        if (Date.now() - lockData.timestamp > 30000) {
-          // Stale lock, try to remove and reacquire
-          await Bun.write(lockPath, '') // Clear file
+    try {
+      // Try exclusive file creation - fails if file already exists
+      writeFileSync(lockPath, lockData, { flag: 'wx' })
+      return true
+    } catch (err) {
+      // File exists - check if it's stale
+      if (existsSync(lockPath)) {
+        try {
+          const content = readFileSync(lockPath, 'utf8')
+          if (content.trim() === '') {
+            // Empty file, delete and retry
+            try {
+              unlinkSync(lockPath)
+            } catch {
+              // Ignore
+            }
+            continue
+          }
+          const data = JSON.parse(content) as { timestamp: number }
+          if (Date.now() - data.timestamp > 30000) {
+            // Stale lock (> 30 seconds), delete and retry
+            try {
+              unlinkSync(lockPath)
+            } catch {
+              // Ignore
+            }
+            continue
+          }
+        } catch {
+          // Malformed lock file, delete and retry
+          try {
+            unlinkSync(lockPath)
+          } catch {
+            // Ignore
+          }
           continue
         }
-      } catch {
-        // Malformed lock file, try to remove
-        await Bun.write(lockPath, '')
-        continue
       }
     }
 
@@ -128,9 +139,13 @@ async function acquireLock(
 /**
  * Release a file lock.
  */
-async function releaseLock(lockPath: string): Promise<void> {
-  if (existsSync(lockPath)) {
-    await Bun.write(lockPath, '') // Clear the lock file
+function releaseLock(lockPath: string): void {
+  try {
+    if (existsSync(lockPath)) {
+      unlinkSync(lockPath)
+    }
+  } catch {
+    // Ignore errors during lock release
   }
 }
 
@@ -153,24 +168,18 @@ export async function readQueue(projectRoot: string, phaseId: string): Promise<T
 }
 
 /**
- * Write a queue to disk.
+ * Write a queue to disk (internal, assumes lock is held).
+ * Does not acquire lock - caller must hold the lock.
  */
-export async function writeQueue(
+async function writeQueueInternal(
   projectRoot: string,
   queue: TeamTaskQueue,
   expectedVersion?: number
 ): Promise<void> {
   const queuePath = getQueuePath(projectRoot, queue.phaseId)
-  const lockPath = getLockPath(projectRoot, queue.phaseId)
 
   // Ensure directory exists
   ensureTeamDir(projectRoot, queue.phaseId)
-
-  // Acquire lock
-  const acquired = await acquireLock(lockPath)
-  if (!acquired) {
-    throw new QueueLockError(queue.phaseId, DEFAULT_LOCK_TIMEOUT)
-  }
 
   try {
     // Check version if expected
@@ -192,8 +201,33 @@ export async function writeQueue(
       throw error
     }
     throw new QueueWriteError(queue.phaseId, (error as Error).message)
+  }
+}
+
+/**
+ * Write a queue to disk.
+ * Acquires lock, writes, and releases lock.
+ */
+export async function writeQueue(
+  projectRoot: string,
+  queue: TeamTaskQueue,
+  expectedVersion?: number
+): Promise<void> {
+  const lockPath = getLockPath(projectRoot, queue.phaseId)
+
+  // Ensure directory exists before acquiring lock (lock file needs parent directory)
+  ensureTeamDir(projectRoot, queue.phaseId)
+
+  // Acquire lock
+  const acquired = await acquireLock(lockPath)
+  if (!acquired) {
+    throw new QueueLockError(queue.phaseId, DEFAULT_LOCK_TIMEOUT)
+  }
+
+  try {
+    await writeQueueInternal(projectRoot, queue, expectedVersion)
   } finally {
-    await releaseLock(lockPath)
+    releaseLock(lockPath)
   }
 }
 
@@ -227,6 +261,9 @@ export async function claimTask(
   options: ClaimOptions
 ): Promise<ClaimResult> {
   const lockPath = getLockPath(projectRoot, phaseId)
+
+  // Ensure directory exists before acquiring lock
+  ensureTeamDir(projectRoot, phaseId)
 
   // Acquire lock
   const acquired = await acquireLock(lockPath, options.timeout ?? DEFAULT_LOCK_TIMEOUT)
@@ -282,8 +319,9 @@ export async function claimTask(
     task.claimedBy = options.agentId
     task.claimedAt = new Date().toISOString()
 
-    // Write back
-    await writeQueue(projectRoot, queue, queue.version - 1) // -1 because writeQueue increments
+    // Write back (use internal since we already hold the lock)
+    // Pass current version as expected - writeQueueInternal checks this matches disk then increments
+    await writeQueueInternal(projectRoot, queue, queue.version)
 
     return {
       success: true,
@@ -302,7 +340,7 @@ export async function claimTask(
     }
     throw error
   } finally {
-    await releaseLock(lockPath)
+    releaseLock(lockPath)
   }
 }
 
@@ -315,6 +353,10 @@ export async function markTaskRunning(
   taskId: string
 ): Promise<void> {
   const lockPath = getLockPath(projectRoot, phaseId)
+
+  // Ensure directory exists before acquiring lock
+  ensureTeamDir(projectRoot, phaseId)
+
   const acquired = await acquireLock(lockPath)
   if (!acquired) {
     throw new QueueLockError(phaseId, DEFAULT_LOCK_TIMEOUT)
@@ -331,9 +373,11 @@ export async function markTaskRunning(
     task.status = 'running'
     task.startedAt = new Date().toISOString()
 
-    await writeQueue(projectRoot, queue, queue.version - 1)
+    // Use internal since we already hold the lock
+    // Pass current version as expected - writeQueueInternal checks this matches disk then increments
+    await writeQueueInternal(projectRoot, queue, queue.version)
   } finally {
-    await releaseLock(lockPath)
+    releaseLock(lockPath)
   }
 }
 
@@ -347,6 +391,10 @@ export async function completeTask(
   result: { success: boolean; error?: string; prUrl?: string; findings?: TaskFinding[] }
 ): Promise<void> {
   const lockPath = getLockPath(projectRoot, phaseId)
+
+  // Ensure directory exists before acquiring lock
+  ensureTeamDir(projectRoot, phaseId)
+
   const acquired = await acquireLock(lockPath)
   if (!acquired) {
     throw new QueueLockError(phaseId, DEFAULT_LOCK_TIMEOUT)
@@ -381,9 +429,11 @@ export async function completeTask(
       }
     }
 
-    await writeQueue(projectRoot, queue, queue.version - 1)
+    // Use internal since we already hold the lock
+    // Pass current version as expected - writeQueueInternal checks this matches disk then increments
+    await writeQueueInternal(projectRoot, queue, queue.version)
   } finally {
-    await releaseLock(lockPath)
+    releaseLock(lockPath)
   }
 }
 
