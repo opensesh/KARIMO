@@ -41,6 +41,12 @@ export interface AgentExecuteOptions {
   env: Record<string, string>
   /** Timeout in milliseconds (optional, defaults to no timeout) */
   timeoutMs?: number
+  /** JSON schema for structured output (optional) */
+  jsonSchema?: string
+  /** Enable extended thinking mode (optional) */
+  enableThinking?: boolean
+  /** Custom thinking budget in tokens (optional) */
+  thinkingBudget?: number
 }
 
 /**

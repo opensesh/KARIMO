@@ -1,13 +1,33 @@
-import { sendMessage } from '../conversation'
-import { ReviewError } from '../errors'
-import { getReviewSystemPrompt } from '../section-mapper'
 /**
  * KARIMO Review Agent
  *
  * Reviews completed PRDs for gaps, ambiguities, and issues.
  * Runs after all interview rounds are complete.
+ *
+ * Features:
+ * - Extended thinking for deeper analysis (auto-enabled)
+ * - Structured output validation with Zod schemas
+ * - Graceful fallback to text parsing on validation failure
  */
+import { validateOutput, ReviewResultSchema } from '@/structured-output'
+import type { ReviewResult as StructuredReviewResult } from '@/structured-output'
+import { getThinkingConfig, buildThinkingContext } from '@/thinking'
+import { sendMessage, sendMessageWithThinking } from '../conversation'
+import { ReviewError } from '../errors'
+import { getReviewSystemPrompt } from '../section-mapper'
 import type { ConversationMessage, ReviewIssue, ReviewResult } from '../types'
+
+/**
+ * Options for review with extended capabilities.
+ */
+export interface ReviewOptions {
+  /** Enable extended thinking (auto-determined if not specified) */
+  enableThinking?: boolean
+  /** Use structured output validation */
+  useStructuredOutput?: boolean
+  /** Custom thinking budget tokens */
+  thinkingBudget?: number
+}
 
 /**
  * Parse review result from agent response.
@@ -121,26 +141,142 @@ function isValidCategory(category: string): category is ReviewIssue['category'] 
 
 /**
  * Review a completed PRD.
+ *
+ * @param prdContent - The PRD markdown content to review
+ * @param options - Optional review configuration
+ * @returns Review result with score, issues, and recommendations
  */
-export async function reviewPRD(prdContent: string): Promise<ReviewResult> {
-  const systemPrompt = getReviewSystemPrompt(prdContent)
+export async function reviewPRD(
+  prdContent: string,
+  options?: ReviewOptions
+): Promise<ReviewResult> {
+  const { enableThinking, useStructuredOutput = true, thinkingBudget } = options ?? {}
+
+  // Build thinking context for auto-detection
+  const thinkingContext = buildThinkingContext({
+    complexity: 8, // Reviews are inherently complex
+    filesAffected: [],
+    successCriteria: [],
+    prompt: prdContent,
+    isReviewAgent: true,
+  })
+
+  // Determine if thinking should be enabled
+  const thinkingConfig =
+    enableThinking === false
+      ? undefined
+      : thinkingBudget
+        ? { type: 'enabled' as const, budget_tokens: thinkingBudget }
+        : getThinkingConfig(thinkingContext)
+
+  const systemPrompt = getReviewSystemPromptWithStructure(prdContent, useStructuredOutput)
 
   const messages: ConversationMessage[] = [
     {
       role: 'user',
-      content: 'Please review this PRD and provide a structured assessment.',
+      content: useStructuredOutput
+        ? 'Please review this PRD and provide a structured JSON assessment.'
+        : 'Please review this PRD and provide a structured assessment.',
       timestamp: new Date().toISOString(),
     },
   ]
 
   try {
+    // Use thinking-enabled endpoint if thinking is configured
+    if (thinkingConfig) {
+      const response = await sendMessageWithThinking(systemPrompt, messages, {
+        thinking: thinkingConfig,
+      })
+
+      // Try structured output validation first
+      if (useStructuredOutput) {
+        const validated = validateOutput(response.text, ReviewResultSchema)
+        if (validated.success && validated.data) {
+          return convertStructuredToLegacy(validated.data)
+        }
+        // Fall back to text parsing
+        console.warn('Structured output validation failed, falling back to text parsing')
+      }
+
+      return parseReviewResult(response.text)
+    }
+
+    // Standard non-thinking path
     const response = await sendMessage(systemPrompt, messages, {
-      temperature: 0.3, // Lower temperature for more consistent reviews
+      temperature: 0.3,
     })
+
+    // Try structured output validation first
+    if (useStructuredOutput) {
+      const validated = validateOutput(response, ReviewResultSchema)
+      if (validated.success && validated.data) {
+        return convertStructuredToLegacy(validated.data)
+      }
+      // Fall back to text parsing
+    }
 
     return parseReviewResult(response)
   } catch (error) {
     throw new ReviewError((error as Error).message)
+  }
+}
+
+/**
+ * Get review system prompt with optional structured output instructions.
+ */
+function getReviewSystemPromptWithStructure(
+  prdContent: string,
+  useStructuredOutput: boolean
+): string {
+  const basePrompt = getReviewSystemPrompt(prdContent)
+
+  if (!useStructuredOutput) {
+    return basePrompt
+  }
+
+  return `${basePrompt}
+
+## Output Format
+
+You MUST respond with a valid JSON object matching this schema:
+
+\`\`\`json
+{
+  "score": <number 1-10>,
+  "issues": [
+    {
+      "severity": "error" | "warning" | "suggestion",
+      "category": "missing-acceptance-criteria" | "high-complexity-not-split" | "conflicting-requirements" | "missing-edge-cases" | "unclear-scope" | "insufficient-context" | "security-concern" | "performance-concern" | "maintainability-concern" | "other",
+      "description": "<string>",
+      "location": "<section or task ID>",
+      "suggestion": "<optional fix suggestion>"
+    }
+  ],
+  "summary": "<overall assessment>",
+  "recommendations": ["<action item 1>", "<action item 2>"],
+  "readyForFinalization": <boolean>,
+  "strengths": ["<optional strength 1>"]
+}
+\`\`\`
+
+Respond ONLY with the JSON object, no additional text.`
+}
+
+/**
+ * Convert structured review result to legacy format.
+ */
+function convertStructuredToLegacy(structured: StructuredReviewResult): ReviewResult {
+  return {
+    score: structured.score,
+    issues: structured.issues.map((issue) => ({
+      severity: issue.severity as ReviewIssue['severity'],
+      category: isValidCategory(issue.category) ? issue.category : 'other',
+      description: issue.description,
+      location: issue.location,
+      suggestion: issue.suggestion,
+    })),
+    summary: structured.summary,
+    recommendations: structured.recommendations,
   }
 }
 

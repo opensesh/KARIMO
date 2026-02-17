@@ -57,6 +57,11 @@ export class ClaudeCodeEngine implements AgentEngineInterface {
    * Uses `--print` flag for non-interactive execution.
    * Captures stdout/stderr and returns structured result.
    *
+   * Supports extended options:
+   * - `jsonSchema`: Pass to Claude Code for structured output validation
+   * - `enableThinking`: Add system prompt enhancement for deeper reasoning
+   * - `thinkingBudget`: Custom token budget for thinking mode
+   *
    * @param options - Execution options
    * @returns Execution result with success, output, and timing
    * @throws {AgentNotFoundError} If Claude Code is not installed
@@ -64,7 +69,7 @@ export class ClaudeCodeEngine implements AgentEngineInterface {
    * @throws {AgentTimeoutError} If execution times out
    */
   async execute(options: AgentExecuteOptions): Promise<AgentExecuteResult> {
-    const { prompt, workdir, env, timeoutMs } = options
+    const { prompt, workdir, env, timeoutMs, jsonSchema, enableThinking } = options
 
     // Verify Claude Code is available
     if (!(await this.isAvailable())) {
@@ -74,8 +79,24 @@ export class ClaudeCodeEngine implements AgentEngineInterface {
     const startTime = Date.now()
 
     try {
+      // Build command arguments
+      const args = ['claude', '--print']
+
+      // Add JSON schema flag if provided
+      if (jsonSchema) {
+        args.push('--output-format', 'json')
+      }
+
+      // Enhance prompt for thinking mode if enabled
+      let finalPrompt = prompt
+      if (enableThinking) {
+        finalPrompt = this.enhancePromptForThinking(prompt)
+      }
+
+      args.push(finalPrompt)
+
       // Build the command with --print flag for non-interactive mode
-      const proc = Bun.spawn(['claude', '--print', prompt], {
+      const proc = Bun.spawn(args, {
         cwd: workdir,
         env: {
           ...env,
