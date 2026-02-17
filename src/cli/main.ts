@@ -17,6 +17,8 @@ export type CommandType =
   | 'onboard'
   | 'orchestrate'
   | 'status'
+  | 'reset'
+  | 'note'
   | 'help'
   | 'version'
 
@@ -85,6 +87,10 @@ export function parseCommand(args: string[]): ParsedCommand {
       return { type: 'orchestrate', args: positional.slice(1), flags }
     case 'status':
       return { type: 'status', args: positional.slice(1), flags }
+    case 'reset':
+      return { type: 'reset', args: positional.slice(1), flags }
+    case 'note':
+      return { type: 'note', args: positional.slice(1), flags }
     case 'help':
       return { type: 'help', args: positional.slice(1), flags }
     case 'version':
@@ -141,6 +147,29 @@ async function executeCommand(command: ParsedCommand, projectRoot: string): Prom
       // TODO: Implement status command
       p.log.info('Status command not yet implemented')
       break
+    case 'reset': {
+      const { handleReset, parseResetArgs } = await import('./reset-command')
+      const resetOptions = {
+        projectRoot,
+        ...parseResetArgs([...command.args, ...flagsToArgs(command.flags)]),
+      }
+      await handleReset(resetOptions)
+      break
+    }
+    case 'note': {
+      const { handleNote, parseNoteArgs, printNoteHelp } = await import('./note-command')
+      const noteResult = parseNoteArgs([...command.args, ...flagsToArgs(command.flags)])
+      if (!noteResult) {
+        printNoteHelp()
+        break
+      }
+      await handleNote({
+        projectRoot,
+        tag: noteResult.tag,
+        message: noteResult.message,
+      })
+      break
+    }
     case 'help':
       printHelp()
       break
@@ -313,6 +342,8 @@ Usage:
   karimo onboard           Verify setup for team members
   karimo orchestrate       Execute tasks from PRD
   karimo status            Show current project status
+  karimo note <message>    Capture dogfooding note
+  karimo reset             Reset KARIMO state
   karimo help              Show this help message
   karimo version           Show version
 
@@ -323,6 +354,13 @@ Options:
 Doctor Options:
   --check                  CI mode (exit codes only)
   --json                   Output JSON format
+
+Note Options:
+  --tag, -t <TAG>          Tag the note (NOTE, BUG, UX, FRICTION, IDEA)
+
+Reset Options:
+  --hard                   Delete entire .karimo directory
+  --force, -f              Skip confirmation prompt
 
 Guided Workflow:
   Running \`karimo\` without arguments will detect your project state
@@ -351,13 +389,29 @@ function printVersion(): void {
  * Main CLI entry point.
  */
 export async function main(projectRoot: string, args: string[]): Promise<void> {
+  // Safety check FIRST (skip for help and version)
   const command = parseCommand(args)
 
-  if (command.type !== 'guided') {
-    await executeCommand(command, projectRoot)
-    return
+  if (command.type !== 'help' && command.type !== 'version') {
+    const { checkWorkingDirectory, formatSafetyError } = await import('./safety')
+    const safetyResult = checkWorkingDirectory(projectRoot)
+    if (!safetyResult.safe) {
+      p.log.error('Cannot run KARIMO in this directory')
+      console.log()
+      console.log(formatSafetyError(safetyResult))
+      process.exit(1)
+    }
   }
 
-  // Run guided flow based on project state
-  await runGuidedFlow(projectRoot)
+  // Wrap in telemetry
+  const { withTelemetry } = await import('./telemetry')
+  await withTelemetry(projectRoot, command.type, args, async () => {
+    if (command.type !== 'guided') {
+      await executeCommand(command, projectRoot)
+      return
+    }
+
+    // Run guided flow based on project state
+    await runGuidedFlow(projectRoot)
+  })
 }
