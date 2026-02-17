@@ -193,7 +193,12 @@ export {
   getSubagentPrompt,
 } from './subagents'
 
-export type { AggregatedUsage, SpawnOptions, ParallelSpawnOptions, CostCalculation } from './subagents'
+export type {
+  AggregatedUsage,
+  SpawnOptions,
+  ParallelSpawnOptions,
+  CostCalculation,
+} from './subagents'
 
 // =============================================================================
 // High-Level Interview Flow

@@ -250,7 +250,7 @@ describe('Individual Checks', () => {
         if (original) {
           process.env['ANTHROPIC_API_KEY'] = original
         } else {
-          delete process.env['ANTHROPIC_API_KEY']
+          process.env['ANTHROPIC_API_KEY'] = undefined
         }
       }
     })

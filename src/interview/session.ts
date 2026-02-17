@@ -6,6 +6,7 @@
 import { existsSync, mkdirSync } from 'node:fs'
 import { join } from 'node:path'
 import { SessionLoadError, SessionSaveError } from './errors'
+import type { SubagentHistoryEntry, SubagentTokenUsage } from './subagents/types'
 import type {
   ConversationMessage,
   ConversationSummary,
@@ -13,7 +14,6 @@ import type {
   InterviewSession,
   InterviewStatus,
 } from './types'
-import type { SubagentHistoryEntry, SubagentTokenUsage } from './subagents/types'
 import { createDefaultSession } from './types'
 
 const SESSIONS_DIR = '.karimo/sessions'

@@ -305,7 +305,7 @@ function convertObject(typeDef: ZodDef): JsonSchema {
     typeDef,
     'shape'
   )
-  const shapeObj = typeof shape === 'function' ? shape() : shape ?? {}
+  const shapeObj = typeof shape === 'function' ? shape() : (shape ?? {})
 
   const properties: Record<string, JsonSchema> = {}
   const required: string[] = []

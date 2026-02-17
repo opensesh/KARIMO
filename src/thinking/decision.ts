@@ -69,7 +69,7 @@ function calculateThinkingScore(
   }
 
   // 4. Architecture keywords signal
-  const analysis = analyzePrompt(context.promptContent + ' ' + (context.taskDescription ?? ''))
+  const analysis = analyzePrompt(`${context.promptContent} ${context.taskDescription ?? ''}`)
 
   if (analysis.architectureKeywords.length > 0) {
     const archContribution = weights.architectureKeywords

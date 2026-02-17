@@ -59,8 +59,7 @@ export class SubagentCostTracker {
   calculateCost(): CostCalculation {
     let totalInputCost = 0
     let totalOutputCost = 0
-    const byModel: Record<string, { inputCost: number; outputCost: number; totalCost: number }> =
-      {}
+    const byModel: Record<string, { inputCost: number; outputCost: number; totalCost: number }> = {}
 
     for (const usage of this.usages) {
       const pricing = COST_PER_MILLION_TOKENS[usage.model] ?? COST_PER_MILLION_TOKENS['default']
