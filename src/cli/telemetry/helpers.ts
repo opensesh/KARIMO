@@ -49,20 +49,22 @@ export function logCommandEnd(
 /**
  * Log an error occurrence.
  */
-export function logError(
-  projectRoot: string,
-  error: Error,
-  options?: { fatal?: boolean }
-): void {
+export function logError(projectRoot: string, error: Error, options?: { fatal?: boolean }): void {
+  const errorInfo: { name: string; message: string; stack?: string } = {
+    name: error.name,
+    message: error.message,
+  }
+  if (error.stack !== undefined) {
+    errorInfo.stack = error.stack
+  }
+
   const event: ErrorEvent = {
     event: 'error',
     timestamp: now(),
-    error: {
-      name: error.name,
-      message: error.message,
-      stack: error.stack,
-    },
-    fatal: options?.fatal,
+    error: errorInfo,
+  }
+  if (options?.fatal !== undefined) {
+    event.fatal = options.fatal
   }
   writeTelemetryEvent(projectRoot, event)
 }
@@ -83,7 +85,9 @@ export function logRetry(
     operation,
     attempt,
     maxAttempts,
-    reason,
+  }
+  if (reason !== undefined) {
+    event.reason = reason
   }
   writeTelemetryEvent(projectRoot, event)
 }

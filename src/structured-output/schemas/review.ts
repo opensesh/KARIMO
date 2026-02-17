@@ -5,7 +5,7 @@
  */
 
 import { z } from 'zod'
-import { FileReferenceSchema, OutputMetadataSchema, SeveritySchema } from './common'
+import { OutputMetadataSchema, SeveritySchema } from './common'
 
 /**
  * Review issue category.

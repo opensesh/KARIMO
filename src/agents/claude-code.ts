@@ -152,7 +152,6 @@ export class ClaudeCodeEngine implements AgentEngineInterface {
       throw new AgentSpawnError('claude-code', message)
     }
   }
-}
 
   /**
    * Enhance prompt with thinking mode instructions.

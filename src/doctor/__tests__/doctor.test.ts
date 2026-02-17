@@ -2,15 +2,11 @@
  * KARIMO Doctor Module Tests
  */
 
-import { describe, expect, it, mock } from 'bun:test'
-import { mkdirSync, rmSync, writeFileSync } from 'node:fs'
-import { join } from 'node:path'
+import { describe, expect, it } from 'bun:test'
+import { mkdirSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
-import {
-  formatCompactStatus,
-  formatDoctorReport,
-  formatDoctorReportJson,
-} from '../formatter'
+import { join } from 'node:path'
+import { formatCompactStatus, formatDoctorReport, formatDoctorReportJson } from '../formatter'
 import { allCriticalChecksPassed, getAutoFixableChecks } from '../runner'
 import type { CheckResult, DoctorReport } from '../types'
 

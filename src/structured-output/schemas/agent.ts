@@ -11,7 +11,6 @@ import {
   ConfidenceSchema,
   FileReferenceSchema,
   OutputMetadataSchema,
-  RecommendationSchema,
   SeveritySchema,
 } from './common'
 
@@ -224,13 +223,7 @@ export const TaskFindingSchema = z.object({
   /** Target task ID */
   toTaskId: z.string(),
   /** Type of finding */
-  type: z.enum([
-    'affects-file',
-    'interface-change',
-    'discovered-dependency',
-    'warning',
-    'info',
-  ]),
+  type: z.enum(['affects-file', 'interface-change', 'discovered-dependency', 'warning', 'info']),
   /** Description of the finding */
   message: z.string(),
   /** Affected files */

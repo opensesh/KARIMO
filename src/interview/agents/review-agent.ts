@@ -9,9 +9,9 @@
  * - Structured output validation with Zod schemas
  * - Graceful fallback to text parsing on validation failure
  */
-import { validateOutput, ReviewResultSchema } from '@/structured-output'
+import { ReviewResultSchema, validateOutput } from '@/structured-output'
 import type { ReviewResult as StructuredReviewResult } from '@/structured-output'
-import { getThinkingConfig, buildThinkingContext } from '@/thinking'
+import { buildThinkingContext, getThinkingConfig } from '@/thinking'
 import { sendMessage, sendMessageWithThinking } from '../conversation'
 import { ReviewError } from '../errors'
 import { getReviewSystemPrompt } from '../section-mapper'

@@ -191,7 +191,7 @@ export function formatSafetyError(result: SafetyCheckResult): string {
     case 'karimo_repo':
       lines.push('This is the KARIMO repository itself.')
       lines.push('')
-      lines.push("KARIMO should not be used to modify its own codebase.")
+      lines.push('KARIMO should not be used to modify its own codebase.')
       lines.push('Navigate to a different project to use KARIMO:')
       lines.push('')
       lines.push('  cd ~/path/to/your/project')

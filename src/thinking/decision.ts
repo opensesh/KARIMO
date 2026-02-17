@@ -65,9 +65,7 @@ function calculateThinkingScore(
   if (context.successCriteriaCount >= thresholds.successCriteriaMin) {
     const criteriaContribution = weights.successCriteria
     score += criteriaContribution
-    reasons.push(
-      `Many success criteria (${context.successCriteriaCount}) +${criteriaContribution}`
-    )
+    reasons.push(`Many success criteria (${context.successCriteriaCount}) +${criteriaContribution}`)
   }
 
   // 4. Architecture keywords signal

@@ -241,11 +241,7 @@ export async function sendMessageWithThinking(
 ): Promise<ThinkingResponse> {
   const client = getAnthropicClient()
 
-  const {
-    model = DEFAULT_MODEL,
-    maxTokens = MAX_RESPONSE_TOKENS,
-    thinking,
-  } = options ?? {}
+  const { model = DEFAULT_MODEL, maxTokens = MAX_RESPONSE_TOKENS, thinking } = options ?? {}
 
   // When thinking is enabled, temperature must be 1
   const temperature = thinking ? 1 : (options?.temperature ?? 0.7)

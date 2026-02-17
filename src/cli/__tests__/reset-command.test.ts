@@ -87,10 +87,6 @@ describe('Reset Command Behavior', () => {
   test('soft reset preserves config.yaml', () => {
     setupKarimoDir()
 
-    // Manually perform soft reset logic
-    const preservedFiles = ['config.yaml', 'dogfood.log', 'telemetry.log']
-    const entries = Bun.file(karimoDir).name // Just for setup verification
-
     // Verify setup
     expect(existsSync(join(karimoDir, 'config.yaml'))).toBe(true)
     expect(existsSync(join(karimoDir, 'state.json'))).toBe(true)

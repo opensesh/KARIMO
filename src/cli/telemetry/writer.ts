@@ -39,7 +39,7 @@ export function writeTelemetryEvent(projectRoot: string, event: TelemetryEvent):
   try {
     ensureKarimoDir(projectRoot)
     const logPath = getTelemetryPath(projectRoot)
-    const line = JSON.stringify(event) + '\n'
+    const line = `${JSON.stringify(event)}\n`
     appendFileSync(logPath, line, 'utf-8')
   } catch {
     // Silently ignore all errors - telemetry should never break the CLI

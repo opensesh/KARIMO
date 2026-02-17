@@ -75,7 +75,7 @@ describe('parseNoteArgs', () => {
   })
 
   test('preserves all valid tags', () => {
-    const tags = ['NOTE', 'BUG', 'UX', 'FRICTION', 'IDEA']
+    const tags = ['NOTE', 'BUG', 'UX', 'FRICTION', 'IDEA'] as const
     for (const tag of tags) {
       const result = parseNoteArgs(['--tag', tag, 'message'])
       expect(result?.tag).toBe(tag)

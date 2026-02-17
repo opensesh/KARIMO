@@ -5,7 +5,7 @@
  * Provides type-safe agent outputs through Zod schema validation.
  */
 
-import type { ZodSchema, ZodError } from 'zod'
+import type { ZodError, ZodSchema } from 'zod'
 
 /**
  * Result of validating agent output.

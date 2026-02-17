@@ -4,7 +4,7 @@
  * Validates agent outputs against Zod schemas with graceful fallback.
  */
 
-import { ZodError, type ZodSchema, type ZodTypeDef } from 'zod'
+import type { ZodSchema, ZodTypeDef } from 'zod'
 import {
   DEFAULT_VALIDATION_OPTIONS,
   type ValidationError,
@@ -177,16 +177,11 @@ export function validateOutput<T>(
  * @returns The validated and typed data
  * @throws Error if validation fails
  */
-export function assertValidOutput<T>(
-  output: string,
-  schema: ZodSchema<T, ZodTypeDef, unknown>
-): T {
+export function assertValidOutput<T>(output: string, schema: ZodSchema<T, ZodTypeDef, unknown>): T {
   const result = validateOutput(output, schema, { allowFallback: false })
 
   if (!result.success) {
-    const errorMessages = result.errors
-      ?.map((e) => `${e.path.join('.')}: ${e.message}`)
-      .join('; ')
+    const errorMessages = result.errors?.map((e) => `${e.path.join('.')}: ${e.message}`).join('; ')
 
     throw new Error(`Output validation failed: ${errorMessages}`)
   }

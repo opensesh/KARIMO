@@ -68,7 +68,13 @@ export { handleDoctor, parseDoctorArgs, runDoctorSilent } from './doctor-command
 
 export { handleReset, parseResetArgs, printResetHelp } from './reset-command'
 
-export { handleNote, parseNoteArgs, printNoteHelp, type NoteTag, type NoteOptions } from './note-command'
+export {
+  handleNote,
+  parseNoteArgs,
+  printNoteHelp,
+  type NoteTag,
+  type NoteOptions,
+} from './note-command'
 
 export { runFirstRunFlow, isFirstRun } from './first-run'
 

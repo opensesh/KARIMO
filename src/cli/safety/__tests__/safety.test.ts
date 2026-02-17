@@ -7,7 +7,7 @@ import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
 import { mkdirSync, rmSync, writeFileSync } from 'node:fs'
 import { homedir, tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { checkWorkingDirectory, formatSafetyError, MIN_SIGNAL_WEIGHT } from '../index'
+import { MIN_SIGNAL_WEIGHT, checkWorkingDirectory, formatSafetyError } from '../index'
 
 describe('checkWorkingDirectory', () => {
   const testDir = join(tmpdir(), 'karimo-safety-test')
@@ -106,10 +106,7 @@ describe('checkWorkingDirectory', () => {
 
   test('detects KARIMO repo by package.json name', () => {
     // Create a fake KARIMO repo
-    writeFileSync(
-      join(testDir, 'package.json'),
-      JSON.stringify({ name: 'karimo' })
-    )
+    writeFileSync(join(testDir, 'package.json'), JSON.stringify({ name: 'karimo' }))
     mkdirSync(join(testDir, 'bin'), { recursive: true })
     mkdirSync(join(testDir, 'src/cli'), { recursive: true })
     writeFileSync(join(testDir, 'bin/karimo.ts'), '')
@@ -122,10 +119,7 @@ describe('checkWorkingDirectory', () => {
 
   test('does not block non-KARIMO package named karimo without required files', () => {
     // Just package.json with name karimo but missing karimo-specific files
-    writeFileSync(
-      join(testDir, 'package.json'),
-      JSON.stringify({ name: 'karimo' })
-    )
+    writeFileSync(join(testDir, 'package.json'), JSON.stringify({ name: 'karimo' }))
     const result = checkWorkingDirectory(testDir)
     expect(result.safe).toBe(true)
   })

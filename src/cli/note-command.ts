@@ -71,12 +71,11 @@ export function parseNoteArgs(args: string[]): { tag: NoteTag; message: string }
           tag = upperTag
           i += 2
           continue
-        } else {
-          // Invalid tag - treat as part of message
-          messageTokens.push(arg)
-          i++
-          continue
         }
+        // Invalid tag - treat as part of message
+        messageTokens.push(arg)
+        i++
+        continue
       }
     } else if (arg?.startsWith('--tag=')) {
       const tagValue = arg.slice(6).toUpperCase()
