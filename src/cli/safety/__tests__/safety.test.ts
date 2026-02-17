@@ -123,6 +123,19 @@ describe('checkWorkingDirectory', () => {
     const result = checkWorkingDirectory(testDir)
     expect(result.safe).toBe(true)
   })
+
+  test('detects KARIMO repo with @karimo/core package name', () => {
+    // Create a fake KARIMO repo with scoped package name
+    writeFileSync(join(testDir, 'package.json'), JSON.stringify({ name: '@karimo/core' }))
+    mkdirSync(join(testDir, 'bin'), { recursive: true })
+    mkdirSync(join(testDir, 'src/cli'), { recursive: true })
+    writeFileSync(join(testDir, 'bin/karimo.ts'), '')
+    writeFileSync(join(testDir, 'src/cli/main.ts'), '')
+
+    const result = checkWorkingDirectory(testDir)
+    expect(result.safe).toBe(false)
+    expect(result.reason).toBe('karimo_repo')
+  })
 })
 
 describe('formatSafetyError', () => {

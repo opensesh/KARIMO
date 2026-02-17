@@ -48,10 +48,14 @@ function isKarimoRepo(projectRoot: string): boolean {
   }
 
   try {
-    const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf-8'))
+    const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf-8')) as {
+      name?: string
+    }
 
-    // Check package.json name
-    if (packageJson.name !== 'karimo') {
+    // Check package.json name - could be 'karimo' or '@karimo/core'
+    const name = packageJson.name ?? ''
+    const isKarimoName = name === 'karimo' || name === '@karimo/core'
+    if (!isKarimoName) {
       return false
     }
 

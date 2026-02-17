@@ -4,6 +4,7 @@
  * Type definitions for the PRD interview system.
  */
 import type { KarimoConfig } from '../config/schema'
+import type { SubagentHistoryEntry, SubagentTokenUsage } from './subagents/types'
 
 /**
  * Interview round identifiers.
@@ -87,6 +88,12 @@ export interface InterviewSession {
 
   /** Session last updated at */
   updatedAt: string
+
+  /** Subagent execution history */
+  subagentHistory: SubagentHistoryEntry[]
+
+  /** Aggregated subagent token usage */
+  subagentUsage: SubagentTokenUsage
 }
 
 /**
@@ -307,5 +314,13 @@ export function createDefaultSession(prdSlug: string, prdPath: string): Intervie
     estimatedTokens: 0,
     startedAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
+    subagentHistory: [],
+    subagentUsage: {
+      model: 'claude-sonnet-4-20250514',
+      inputTokens: 0,
+      outputTokens: 0,
+      cacheReadTokens: 0,
+      cacheCreationTokens: 0,
+    },
   }
 }

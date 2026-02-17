@@ -13,6 +13,7 @@ import type {
   InterviewSession,
   InterviewStatus,
 } from './types'
+import type { SubagentHistoryEntry, SubagentTokenUsage } from './subagents/types'
 import { createDefaultSession } from './types'
 
 const SESSIONS_DIR = '.karimo/sessions'
