@@ -34,6 +34,14 @@ export { detectProjectInfo } from './project'
 export { detectRules } from './rules'
 export { detectSandbox } from './sandbox'
 
+// Re-export recommendations
+export {
+  type CommandRecommendation,
+  type CommandRecommendations,
+  formatRecommendations,
+  getCommandRecommendations,
+} from './recommendations'
+
 /**
  * Safely read and parse package.json.
  */
