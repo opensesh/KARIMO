@@ -107,8 +107,8 @@ export interface PrePRCheckOptions {
   targetBranch: string
   /** Build command */
   buildCommand: string
-  /** Typecheck command */
-  typecheckCommand: string
+  /** Typecheck command (null to skip typecheck) */
+  typecheckCommand: string | null
   /** Files matching never_touch patterns */
   neverTouchPatterns: string[]
   /** Files matching require_review patterns */
@@ -197,6 +197,6 @@ export interface DryRunPlan {
   /** Commands that would be run */
   commands: {
     build: string
-    typecheck: string
+    typecheck: string | null
   }
 }
