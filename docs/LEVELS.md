@@ -18,6 +18,20 @@ By the time you reach Level 5 (dashboard, parallel execution, overnight runs), y
 
 ---
 
+## Agent Capabilities by Level
+
+| Capability | Available At | Description |
+|------------|--------------|-------------|
+| Extended Thinking | Level 0+ | Auto-enabled based on complexity signals |
+| Structured Output | Level 0+ | JSON schema validation for agent outputs |
+| Interview Subagents | Level 0+ | Focused subagents for clarification, research, review |
+| Task Queue | Level 3+ | File-based queue for sequential multi-task execution |
+| Findings System | Level 3+ | Cross-task communication for discovered dependencies |
+| PMAgent Coordination | Level 4+ | TypeScript coordinator for parallel execution |
+| File Overlap Detection | Level 4+ | Forces overlapping tasks to run sequentially |
+
+---
+
 ## Level 0: Foundation (Day 1–2)
 
 **Goal:** Prove that one agent can produce one mergeable PR from one task spec.
@@ -51,6 +65,11 @@ By the time you reach Level 5 (dashboard, parallel execution, overnight runs), y
 - Cost tracking
 - Fallback engines
 - Revision loops
+
+**Agent Capabilities Available:**
+- Extended thinking (auto-enabled based on complexity)
+- Structured output validation (for interview agents)
+- Interview subagents (clarification, research, scope validation)
 
 **Exit criteria:**
 - `karimo init` generates valid config from project scan
@@ -131,6 +150,8 @@ By the time you reach Level 5 (dashboard, parallel execution, overnight runs), y
 
 **What you build:**
 - Full sequential phase execution: `karimo orchestrate --phase 1`
+- Task queue system for tracking execution state
+- Findings propagation between dependent tasks
 - Error classification (fatal vs. retryable) with appropriate handling
 - Caution-file enforcement (`require_review` list — flags PRs, blocks auto-merge)
 - Phase-level integration check (build + typecheck + test after each merge)
@@ -141,6 +162,11 @@ By the time you reach Level 5 (dashboard, parallel execution, overnight runs), y
 - Task lockfiles for partial work recovery
 - `karimo recover` command
 - First full overnight run
+
+**Agent Capabilities Used:**
+- Extended thinking for complex tasks
+- Structured output for review agents
+- Subagents for section-level reviews
 
 **Exit criteria:**
 - `karimo orchestrate --phase 1` runs a full phase sequentially overnight
@@ -160,7 +186,11 @@ By the time you reach Level 5 (dashboard, parallel execution, overnight runs), y
 **Entry criteria:** Level 3 complete.
 
 **What you build:**
-- Parallel execution with file-overlap detection (overlaps force sequential)
+- **PMAgent coordinator** for parallel task execution:
+  - File-based task queue with atomic locking
+  - File-overlap detection (overlaps force sequential)
+  - Findings system for cross-agent communication
+  - Scheduler with dependency resolution
 - Fallback engine support (Codex, Gemini) with budget caps and `--engine` flag
 - Engine evaluation tracking (Greptile scores per engine)
 - Task ownership (`assigned_to` field), multi-user CLI (`--user` flag)
@@ -169,9 +199,15 @@ By the time you reach Level 5 (dashboard, parallel execution, overnight runs), y
 - Onboarding flow for new team members
 - Docker/Podman container isolation for agents (hardened sandbox)
 
+**Agent Capabilities Used:**
+- All Level 3 capabilities
+- PMAgent coordinates multiple concurrent agents
+- Findings propagate discoveries between tasks
+
 **Exit criteria:**
 - Multiple tasks run in parallel safely
 - File-overlap detection forces sequential when needed
+- Findings from Task A appear in Task B's context
 - Fallback engine activates on rate-limit errors
 - Cost reporting shows accurate per-task and per-engine breakdowns
 - `/karimo:feedback` captures developer corrections and promotes them to config
