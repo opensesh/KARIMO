@@ -101,8 +101,10 @@ export function formatDoctorReport(report: DoctorReport): string {
     }
 
     lines.push(
-      `${PAD}${ORD}└─${RST} ${GY}${report.passed} passed, ${RD}${report.failed} failed${RST}. Run the commands above to fix.`
+      `${PAD}${ORD}│${RST}  ${GY}${report.passed} passed, ${RD}${report.failed} failed${RST}. Run the commands above to fix.`
     )
+    lines.push(`${PAD}${ORD}│${RST}`)
+    lines.push(`${PAD}${ORD}└─${RST} ${GY}Stuck? https://github.com/opensesh/KARIMO/issues${RST}`)
   }
 
   return lines.join('\n')
@@ -149,7 +151,8 @@ export function formatSetupChecklist(report: DoctorReport): string {
   // Header
   lines.push(`${PAD}${ORD}◆${RST} ${WH}${BOLD}Setup Checklist${RST}`)
   lines.push(`${PAD}${ORD}│${RST}`)
-  lines.push(`${PAD}${ORD}│${RST}  Let's make sure everything is ready.`)
+  lines.push(`${PAD}${ORD}│${RST}  Verifying prerequisites for KARIMO:`)
+  lines.push(`${PAD}${ORD}│${RST}  ${GY}CLI tools, API access, and repository state${RST}`)
   lines.push(`${PAD}${ORD}│${RST}`)
 
   // Check results
@@ -164,8 +167,10 @@ export function formatSetupChecklist(report: DoctorReport): string {
     lines.push(`${PAD}${ORD}└${RST}  ${GN}All systems ready.${RST} Let's configure your project.`)
   } else {
     lines.push(
-      `${PAD}${ORD}└${RST}  ${OR}${report.failed} issue${report.failed === 1 ? '' : 's'} need${report.failed === 1 ? 's' : ''} to be resolved${RST} before continuing.`
+      `${PAD}${ORD}│${RST}  ${OR}${report.failed} issue${report.failed === 1 ? '' : 's'} need${report.failed === 1 ? 's' : ''} to be resolved${RST} before continuing.`
     )
+    lines.push(`${PAD}${ORD}│${RST}`)
+    lines.push(`${PAD}${ORD}└${RST}  ${GY}Stuck? https://github.com/opensesh/KARIMO/issues${RST}`)
   }
 
   return lines.join('\n')
@@ -236,7 +241,7 @@ export function formatIssueResolution(check: CheckResult): string {
   }
 
   lines.push(`${PAD}${ORD}│${RST}`)
-  lines.push(`${PAD}${ORD}└${RST}  Need help? Visit ${GY}docs.karimo.dev/setup${RST}`)
+  lines.push(`${PAD}${ORD}└${RST}  Need help? ${GY}https://github.com/opensesh/KARIMO/issues${RST}`)
 
   return lines.join('\n')
 }
