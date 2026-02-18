@@ -121,13 +121,17 @@ export function getOrchestrationFlowLines(): string[] {
   const flowLines: string[] = ['', '', '', '']
   for (let row = 0; row < 4; row++) {
     for (let box = 0; box < boxes.length; box++) {
-      flowLines[row] += boxes[box][row]
-      if (box < boxes.length - 1) {
-        // Add arrow connector (only on middle rows)
-        if (row === 1 || row === 2) {
-          flowLines[row] += ` ${GYD}${BOX.arrow}${RST} `
-        } else {
-          flowLines[row] += '   '
+      const currentBox = boxes[box]
+      const currentRow = currentBox?.[row]
+      if (currentBox && currentRow !== undefined) {
+        flowLines[row] += currentRow
+        if (box < boxes.length - 1) {
+          // Add arrow connector (only on middle rows)
+          if (row === 1 || row === 2) {
+            flowLines[row] += ` ${GYD}${BOX.arrow}${RST} `
+          } else {
+            flowLines[row] += '   '
+          }
         }
       }
     }

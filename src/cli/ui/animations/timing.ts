@@ -185,7 +185,7 @@ export function createAnimationLoop(
   onComplete?: () => void
 ): { stop: () => void } {
   let startTime: number | null = null
-  let lastFrameTime: number = 0
+  let lastFrameTime = 0
   let animationHandle: ReturnType<typeof setTimeout> | null = null
   let stopped = false
 

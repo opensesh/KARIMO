@@ -11,13 +11,13 @@
 import * as p from '@clack/prompts'
 
 import {
+  type AnimationPhase,
+  TOTAL_ANIMATION_MS,
   calculatePulseIntensity,
   createAnimationLoop,
   getCurrentPhase,
   isSectionVisible,
   pulseColor,
-  TOTAL_ANIMATION_MS,
-  type AnimationPhase,
 } from './animations'
 import { GY, OR, RST, WH } from './colors'
 import {
@@ -414,7 +414,7 @@ export async function showSimpleAnimatedWelcome(): Promise<boolean> {
   // Wait for user input
   const proceed = await p.confirm({
     message: `${OR}●${RST} ${WH}Continue?${RST}`,
-    active: 'Yes, let\'s go',
+    active: "Yes, let's go",
     inactive: 'Exit',
     initialValue: true,
   })

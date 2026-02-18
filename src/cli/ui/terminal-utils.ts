@@ -168,14 +168,14 @@ export function isTTY(): boolean {
  */
 export function isCI(): boolean {
   return (
-    process.env.CI === 'true' ||
-    process.env.CI === '1' ||
-    process.env.CONTINUOUS_INTEGRATION === 'true' ||
-    process.env.GITHUB_ACTIONS === 'true' ||
-    process.env.JENKINS_URL !== undefined ||
-    process.env.TRAVIS === 'true' ||
-    process.env.CIRCLECI === 'true' ||
-    process.env.GITLAB_CI === 'true'
+    process.env['CI'] === 'true' ||
+    process.env['CI'] === '1' ||
+    process.env['CONTINUOUS_INTEGRATION'] === 'true' ||
+    process.env['GITHUB_ACTIONS'] === 'true' ||
+    process.env['JENKINS_URL'] !== undefined ||
+    process.env['TRAVIS'] === 'true' ||
+    process.env['CIRCLECI'] === 'true' ||
+    process.env['GITLAB_CI'] === 'true'
   )
 }
 
@@ -184,12 +184,12 @@ export function isCI(): boolean {
  */
 export function supportsColor(): boolean {
   // Explicit disable
-  if (process.env.NO_COLOR !== undefined) {
+  if (process.env['NO_COLOR'] !== undefined) {
     return false
   }
 
   // Explicit enable
-  if (process.env.FORCE_COLOR !== undefined) {
+  if (process.env['FORCE_COLOR'] !== undefined) {
     return true
   }
 
@@ -199,7 +199,7 @@ export function supportsColor(): boolean {
   }
 
   // Check TERM
-  const term = process.env.TERM || ''
+  const term = process.env['TERM'] ?? ''
   if (term === 'dumb') {
     return false
   }
@@ -306,14 +306,14 @@ export function write(content: string): void {
  * Write content to stdout with newline.
  */
 export function writeLine(content: string): void {
-  process.stdout.write(content + '\n')
+  process.stdout.write(`${content}\n`)
 }
 
 /**
  * Write multiple lines at once (buffered for performance).
  */
 export function writeLines(lines: string[]): void {
-  process.stdout.write(lines.join('\n') + '\n')
+  process.stdout.write(`${lines.join('\n')}\n`)
 }
 
 /**

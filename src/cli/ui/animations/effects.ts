@@ -135,17 +135,17 @@ export function fadeLine(line: string, progress: number): string {
   }
 
   // For partial progress, apply dim effect
-  // This is a simple approach - multiply brightness
-  const dimLevel = Math.round(progress * 100)
   return `\x1b[2m${line}${RST}`
 }
+
+/** ANSI escape code pattern - ESC [ followed by params and 'm' */
+const ANSI_PATTERN = new RegExp(`${String.fromCharCode(27)}\\[[0-9;]*m`, 'g')
 
 /**
  * Strip ANSI escape codes from a string.
  */
 export function stripAnsi(str: string): string {
-  // eslint-disable-next-line no-control-regex
-  return str.replace(/\x1b\[[0-9;]*m/g, '')
+  return str.replace(ANSI_PATTERN, '')
 }
 
 // =============================================================================
@@ -281,7 +281,7 @@ export function cascadeReveal(line: string, progress: number): string {
 export function cascadeRevealLines(
   lines: string[],
   progress: number,
-  staggerDelay: number = 0.1
+  staggerDelay = 0.1
 ): string[] {
   return lines.map((line, index) => {
     const lineStart = index * staggerDelay
