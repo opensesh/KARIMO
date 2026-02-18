@@ -107,3 +107,4 @@ export type {
 // =============================================================================
 
 export { runInit } from './init'
+export type { InitResult } from './init'
