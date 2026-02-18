@@ -88,18 +88,22 @@ const BOX = {
 
 /**
  * Create a flow box with centered text.
+ * Width auto-adjusts to fit content.
  */
 function flowBox(top: string, bottom: string): string[] {
-  const width = 10
-  const topPad = Math.floor((width - 2 - top.length) / 2)
-  const topPadEnd = width - 2 - top.length - topPad
-  const bottomPad = Math.floor((width - 2 - bottom.length) / 2)
-  const bottomPadEnd = width - 2 - bottom.length - bottomPad
+  // Calculate width based on longest text (min 10 inner chars)
+  const innerWidth = Math.max(10, top.length + 2, bottom.length + 2)
+  const width = innerWidth
+
+  const topPad = Math.floor((innerWidth - top.length) / 2)
+  const topPadEnd = innerWidth - top.length - topPad
+  const bottomPad = Math.floor((innerWidth - bottom.length) / 2)
+  const bottomPadEnd = innerWidth - bottom.length - bottomPad
 
   return [
     `${OR}${BOX.tl}${BOX.h.repeat(width)}${BOX.tr}${RST}`,
-    `${OR}${BOX.v}${RST}${' '.repeat(topPad + 1)}${WH}${top}${RST}${' '.repeat(topPadEnd + 1)}${OR}${BOX.v}${RST}`,
-    `${OR}${BOX.v}${RST}${' '.repeat(bottomPad + 1)}${GY}${bottom}${RST}${' '.repeat(bottomPadEnd + 1)}${OR}${BOX.v}${RST}`,
+    `${OR}${BOX.v}${RST}${' '.repeat(topPad)}${WH}${top}${RST}${' '.repeat(topPadEnd)}${OR}${BOX.v}${RST}`,
+    `${OR}${BOX.v}${RST}${' '.repeat(bottomPad)}${GY}${bottom}${RST}${' '.repeat(bottomPadEnd)}${OR}${BOX.v}${RST}`,
     `${OR}${BOX.bl}${BOX.h.repeat(width)}${BOX.br}${RST}`,
   ]
 }
