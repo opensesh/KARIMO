@@ -4,6 +4,8 @@
  * Handles command parsing, state detection, and routing to appropriate handlers.
  * When no command is provided, runs the guided workflow based on project state.
  */
+import { existsSync } from 'node:fs'
+import { resolve } from 'node:path'
 import * as p from '@clack/prompts'
 
 // =============================================================================
@@ -348,6 +350,7 @@ Usage:
   karimo version           Show version
 
 Options:
+  --root <PATH>            Run KARIMO in a different directory
   --help, -h               Show help
   --version, -v            Show version
 
@@ -389,12 +392,26 @@ function printVersion(): void {
  * Main CLI entry point.
  */
 export async function main(projectRoot: string, args: string[]): Promise<void> {
-  // Safety check FIRST (skip for help and version)
   const command = parseCommand(args)
 
+  // Honor --root flag if provided
+  let effectiveProjectRoot = projectRoot
+  const rootFlag = command.flags.get('root')
+  if (typeof rootFlag === 'string') {
+    // Resolve relative paths (e.g., --root ../BOS-3.0)
+    effectiveProjectRoot = resolve(rootFlag)
+
+    // Verify the directory exists
+    if (!existsSync(effectiveProjectRoot)) {
+      p.log.error(`Directory not found: ${effectiveProjectRoot}`)
+      process.exit(1)
+    }
+  }
+
+  // Safety check (skip for help and version)
   if (command.type !== 'help' && command.type !== 'version') {
     const { checkWorkingDirectory, formatSafetyError } = await import('./safety')
-    const safetyResult = checkWorkingDirectory(projectRoot)
+    const safetyResult = checkWorkingDirectory(effectiveProjectRoot)
     if (!safetyResult.safe) {
       p.log.error('Cannot run KARIMO in this directory')
       console.log()
@@ -405,13 +422,13 @@ export async function main(projectRoot: string, args: string[]): Promise<void> {
 
   // Wrap in telemetry
   const { withTelemetry } = await import('./telemetry')
-  await withTelemetry(projectRoot, command.type, args, async () => {
+  await withTelemetry(effectiveProjectRoot, command.type, args, async () => {
     if (command.type !== 'guided') {
-      await executeCommand(command, projectRoot)
+      await executeCommand(command, effectiveProjectRoot)
       return
     }
 
     // Run guided flow based on project state
-    await runGuidedFlow(projectRoot)
+    await runGuidedFlow(effectiveProjectRoot)
   })
 }
