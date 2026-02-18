@@ -51,9 +51,8 @@ export function getWordmarkLines(): string[] {
 export function getHeaderLines(): string[] {
   return [
     '',
-    `   ${GYD}${VERSION}${RST}`,
-    `   ${WH}Open-source autonomous development framework${RST}`,
-    `   ${GY}Model & Codebase Agnostic${RST}`,
+    `   ${GYD}${VERSION}${RST}  ${WH}Open-source autonomous development framework${RST}`,
+    `   ${GY}Choose your model, select your codebase${RST}`,
     '',
   ]
 }
@@ -114,8 +113,8 @@ function flowBox(top: string, bottom: string): string[] {
 export function getOrchestrationFlowLines(): string[] {
   // Create the 5 flow boxes
   const boxes = [
-    flowBox('Interview', '(5 rounds)'),
-    flowBox('PRD File', '(generated)'),
+    flowBox('PRD', 'Interview'),
+    flowBox('Tasks', '(generated)'),
     flowBox('Execute', '(agents)'),
     flowBox('Review', '(checks)'),
     flowBox('Merge', '(PR)'),
