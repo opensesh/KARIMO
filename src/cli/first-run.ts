@@ -16,7 +16,7 @@ import {
   runSingleCheck,
 } from '../doctor'
 import type { CheckResult } from '../doctor/types'
-import { showTransitionToInit, showWelcomeScreen } from './ui'
+import { showSimpleAnimatedWelcome, showTransitionToInit } from './ui'
 
 // =============================================================================
 // Auto-Fix Handlers
@@ -133,8 +133,8 @@ async function resolveIssue(check: CheckResult, projectRoot: string): Promise<bo
  * @returns true if user is ready to proceed to init
  */
 export async function runFirstRunFlow(projectRoot: string): Promise<boolean> {
-  // Step 1: Welcome screen
-  const continueAfterWelcome = await showWelcomeScreen()
+  // Step 1: Animated welcome screen
+  const continueAfterWelcome = await showSimpleAnimatedWelcome()
 
   if (!continueAfterWelcome) {
     return false
