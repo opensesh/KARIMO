@@ -190,3 +190,29 @@ export async function isOnboarded(projectRoot: string): Promise<boolean> {
   const state = await loadState(projectRoot)
   return state.onboarded_at !== undefined
 }
+
+/**
+ * Check if onboarding has been completed (synchronous version).
+ * Used for first-run detection before async operations like telemetry.
+ *
+ * This checks for state.json with onboarded_at field rather than
+ * just the existence of .karimo/ directory, to avoid race conditions
+ * with telemetry which may create .karimo/ before onboarding completes.
+ */
+export function isOnboardedSync(projectRoot: string): boolean {
+  const statePath = getStatePath(projectRoot)
+
+  if (!existsSync(statePath)) {
+    return false
+  }
+
+  try {
+    // Use sync read for the check
+    const fs = require('node:fs') as typeof import('node:fs')
+    const text = fs.readFileSync(statePath, 'utf-8')
+    const json = JSON.parse(text) as unknown
+    return typeof json === 'object' && json !== null && 'onboarded_at' in json
+  } catch {
+    return false
+  }
+}

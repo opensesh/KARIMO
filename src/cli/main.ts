@@ -109,25 +109,34 @@ export function parseCommand(args: string[]): ParsedCommand {
 
 /**
  * Execute a specific command.
+ * @param command - Parsed command object
+ * @param projectRoot - Root directory of the project
+ * @param firstRunHandled - If true, skip first-run flow (already handled before telemetry)
  */
-async function executeCommand(command: ParsedCommand, projectRoot: string): Promise<void> {
+async function executeCommand(
+  command: ParsedCommand,
+  projectRoot: string,
+  firstRunHandled = false
+): Promise<void> {
   switch (command.type) {
     case 'init': {
-      // Import dynamically to avoid circular dependencies
-      const { karimoDirExists } = await import('./state')
+      // Skip first-run flow if already handled before telemetry wrapper
+      if (!firstRunHandled) {
+        const { isOnboardedSync } = await import('./state')
 
-      // Show animated welcome on fresh projects (no .karimo directory)
-      if (!karimoDirExists(projectRoot)) {
-        const { runFirstRunFlow } = await import('./first-run')
-        const shouldContinue = await runFirstRunFlow(projectRoot)
+        // Show animated welcome on fresh projects (not onboarded)
+        if (!isOnboardedSync(projectRoot)) {
+          const { runFirstRunFlow } = await import('./first-run')
+          const shouldContinue = await runFirstRunFlow(projectRoot)
 
-        if (!shouldContinue) {
-          return
+          if (!shouldContinue) {
+            return
+          }
+
+          // Mark onboarding complete
+          const { markOnboarded } = await import('./state')
+          await markOnboarded(projectRoot)
         }
-
-        // Mark onboarding complete
-        const { markOnboarded } = await import('./state')
-        await markOnboarded(projectRoot)
       }
 
       const { runInit } = await import('../config/init')
@@ -222,8 +231,10 @@ function flagsToArgs(flags: Map<string, string | boolean>): string[] {
 
 /**
  * Run the guided workflow based on project state.
+ * @param projectRoot - Root directory of the project
+ * @param firstRunHandled - If true, skip first-run/welcome flow (already handled before telemetry)
  */
-async function runGuidedFlow(projectRoot: string): Promise<void> {
+async function runGuidedFlow(projectRoot: string, firstRunHandled = false): Promise<void> {
   // Import state detection dynamically
   const { detectProjectPhase, markOnboarded } = await import('./state')
 
@@ -231,7 +242,15 @@ async function runGuidedFlow(projectRoot: string): Promise<void> {
 
   switch (phase) {
     case 'welcome': {
-      // No .karimo directory - run first-run flow with doctor checks
+      // Skip first-run flow if already handled before telemetry wrapper
+      if (firstRunHandled) {
+        // Already onboarded, just run init
+        const { runInit } = await import('../config/init')
+        await runInit(projectRoot)
+        break
+      }
+
+      // Not yet onboarded - run first-run flow with doctor checks
       const { runFirstRunFlow } = await import('./first-run')
       const shouldContinue = await runFirstRunFlow(projectRoot)
 
@@ -241,8 +260,8 @@ async function runGuidedFlow(projectRoot: string): Promise<void> {
 
       // Mark onboarding complete and run init
       await markOnboarded(projectRoot)
-      const { runInit } = await import('../config/init')
-      await runInit(projectRoot)
+      const { runInit: runInitAgain2 } = await import('../config/init')
+      await runInitAgain2(projectRoot)
       break
     }
 
@@ -436,15 +455,37 @@ export async function main(projectRoot: string, args: string[]): Promise<void> {
     }
   }
 
-  // Wrap in telemetry
+  // BEFORE telemetry wrapper, check if this is a first run for 'init' or 'guided'
+  // This avoids a race condition where telemetry creates .karimo/ before
+  // the welcome check runs. We check for state.json with onboarded_at instead
+  // of just the directory existence.
+  let firstRunHandled = false
+  if (command.type === 'init' || command.type === 'guided') {
+    const { isOnboardedSync } = await import('./state')
+
+    if (!isOnboardedSync(effectiveProjectRoot)) {
+      const { runFirstRunFlow } = await import('./first-run')
+      const shouldContinue = await runFirstRunFlow(effectiveProjectRoot)
+
+      if (!shouldContinue) {
+        return // User cancelled during welcome
+      }
+
+      const { markOnboarded } = await import('./state')
+      await markOnboarded(effectiveProjectRoot)
+      firstRunHandled = true
+    }
+  }
+
+  // Wrap in telemetry (safe to create .karimo/ now since onboarding is complete)
   const { withTelemetry } = await import('./telemetry')
   await withTelemetry(effectiveProjectRoot, command.type, args, async () => {
     if (command.type !== 'guided') {
-      await executeCommand(command, effectiveProjectRoot)
+      await executeCommand(command, effectiveProjectRoot, firstRunHandled)
       return
     }
 
     // Run guided flow based on project state
-    await runGuidedFlow(effectiveProjectRoot)
+    await runGuidedFlow(effectiveProjectRoot, firstRunHandled)
   })
 }

@@ -47,6 +47,7 @@ export {
   markOnboarded,
   recordDoctorRun,
   isOnboarded,
+  isOnboardedSync,
 } from './loader'
 
 // Detector

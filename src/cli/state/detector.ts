@@ -6,7 +6,7 @@
 import { existsSync, readdirSync, statSync } from 'node:fs'
 import { basename, join } from 'node:path'
 import { parse as parseYaml } from 'yaml'
-import { karimoDirExists, loadState } from './loader'
+import { isOnboardedSync, loadState } from './loader'
 import { PRDMetadataSchema } from './schema'
 import type { PRDFileInfo, PRDMetadata, PRDSection, ProjectPhase } from './types'
 
@@ -195,10 +195,14 @@ export async function getCurrentPRDSection(
 /**
  * Detect the current project phase.
  * Used for routing in the guided flow.
+ *
+ * Note: We check for onboarding completion (state.json with onboarded_at)
+ * rather than just .karimo/ directory existence to avoid race conditions
+ * with telemetry which may create .karimo/ before onboarding completes.
  */
 export async function detectProjectPhase(projectRoot: string): Promise<ProjectPhase> {
-  // Phase 1: Check if .karimo directory exists
-  if (!karimoDirExists(projectRoot)) {
+  // Phase 1: Check if user has completed onboarding
+  if (!isOnboardedSync(projectRoot)) {
     return 'welcome'
   }
 
