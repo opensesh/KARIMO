@@ -7,7 +7,7 @@
     "karimo": "bin/karimo.ts"
   },
   "scripts": {
-    "dev": "bun run src/cli/index.ts",
+    "dev": "bun run bin/karimo.ts",
     "build": "bun build src/cli/index.ts --outdir dist --target bun",
     "lint": "biome check .",
     "lint:fix": "biome check . --write",
