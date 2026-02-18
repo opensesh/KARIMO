@@ -1,14 +1,30 @@
-# KARIMO
+<div align="center">
+
+```
+██╗  ██╗   █████╗   ██████╗   ██╗  ███╗   ███╗   ██████╗
+██║ ██╔╝  ██╔══██╗  ██╔══██╗  ██║  ████╗ ████║  ██╔═══██╗
+█████╔╝   ███████║  ██████╔╝  ██║  ██╔████╔██║  ██║   ██║
+██╔═██╗   ██╔══██║  ██╔══██╗  ██║  ██║╚██╔╝██║  ██║   ██║
+██║  ██╗  ██║  ██║  ██║  ██║  ██║  ██║ ╚═╝ ██║  ╚██████╔╝
+╚═╝  ╚═╝  ╚═╝  ╚═╝  ╚═╝  ╚═╝  ╚═╝  ╚═╝     ╚═╝   ╚═════╝
+```
+
+**Open-Source Autonomous Development Framework**
+
+*Choose your model, select your codebase*
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Status](https://img.shields.io/badge/Status-In%20Development-yellow.svg)]()
 [![Level](https://img.shields.io/badge/Level-0-orange.svg)]()
 
-**Open-source autonomous development framework — agent, tool, and repo agnostic.**
+---
 
-KARIMO turns product requirements into shipped code using AI agents, automated code review, and structured human oversight.
+Turn product requirements into shipped code using AI agents,<br>
+automated code review, and structured human oversight.
 
 **You are the architect, agents are the builders, Greptile is the inspector.**
+
+</div>
 
 ---
 
