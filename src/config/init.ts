@@ -653,6 +653,22 @@ function buildBoundaries(result: DetectionResult): {
 }
 
 /**
+ * Collect source attributions for boundaries.
+ */
+function collectBoundariesSources(result: DetectionResult): string {
+  const sources = new Set<string>()
+  for (const item of result.boundaries.never_touch) {
+    sources.add(item.source)
+  }
+  for (const item of result.boundaries.require_review) {
+    sources.add(item.source)
+  }
+  // Simplify common patterns and limit to 3
+  const sourceList = [...sources].slice(0, 3)
+  return sources.size > 3 ? `${sourceList.join(', ')}, ...` : sourceList.join(', ') || 'defaults'
+}
+
+/**
  * Display final summary before writing.
  */
 function displaySummary(config: KarimoConfig): void {
@@ -726,6 +742,12 @@ export async function runInit(projectRoot: string = process.cwd()): Promise<Init
   }
 
   // Commands section
+  p.note(
+    `These commands verify agent work after every task.
+PRs are only created when all commands pass.`,
+    'Verification Commands'
+  )
+
   const commands = await confirmCommandsSection(result)
   if (p.isCancel(commands)) {
     p.cancel('Init cancelled.')
@@ -733,6 +755,12 @@ export async function runInit(projectRoot: string = process.cwd()): Promise<Init
   }
 
   // Rules section
+  p.note(
+    `Coding standards that guide agent behavior.
+Agents follow these patterns and flag deviations.`,
+    'Coding Standards'
+  )
+
   const rules = await confirmRulesSection(result)
   if (p.isCancel(rules)) {
     p.cancel('Init cancelled.')
@@ -740,6 +768,12 @@ export async function runInit(projectRoot: string = process.cwd()): Promise<Init
   }
 
   // Sandbox section
+  p.note(
+    `Agents run in a sandboxed environment.
+Only listed variables are exposed to prevent secret leakage.`,
+    'Agent Environment'
+  )
+
   const allowedEnv = await confirmSandboxSection(result)
   if (p.isCancel(allowedEnv)) {
     p.cancel('Init cancelled.')
@@ -748,6 +782,20 @@ export async function runInit(projectRoot: string = process.cwd()): Promise<Init
 
   // Build boundaries from detection
   const boundaries = buildBoundaries(result)
+
+  // Display boundaries with sources (read-only, not editable inline)
+  const boundariesSources = collectBoundariesSources(result)
+  if (boundaries.never_touch.length > 0 || boundaries.require_review.length > 0) {
+    const neverTouchList = boundaries.never_touch.join(', ') || 'none'
+    const reviewList = boundaries.require_review.join(', ') || 'none'
+
+    p.note(
+      `Protect critical files from agent modifications.
+never_touch: ${neverTouchList}
+require_review: ${reviewList}`,
+      `File Boundaries (from ${boundariesSources})`
+    )
+  }
 
   // Use defaults for cost and fallback (not part of interactive flow)
   const config: KarimoConfig = {
