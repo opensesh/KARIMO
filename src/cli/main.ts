@@ -114,6 +114,22 @@ async function executeCommand(command: ParsedCommand, projectRoot: string): Prom
   switch (command.type) {
     case 'init': {
       // Import dynamically to avoid circular dependencies
+      const { karimoDirExists } = await import('./state')
+
+      // Show animated welcome on fresh projects (no .karimo directory)
+      if (!karimoDirExists(projectRoot)) {
+        const { runFirstRunFlow } = await import('./first-run')
+        const shouldContinue = await runFirstRunFlow(projectRoot)
+
+        if (!shouldContinue) {
+          return
+        }
+
+        // Mark onboarding complete
+        const { markOnboarded } = await import('./state')
+        await markOnboarded(projectRoot)
+      }
+
       const { runInit } = await import('../config/init')
       await runInit(projectRoot)
       break
