@@ -181,6 +181,7 @@ Mistakes captured → Config updated → Future agents avoid them.
 | Document | Description |
 | -------- | ----------- |
 | [Architecture](docs/ARCHITECTURE.md) | System architecture and component design |
+| [Components](docs/COMPONENTS.md) | Detailed component specifications |
 | [Levels](docs/LEVELS.md) | Level-based build plan (Level 0-5) |
 | [Contributing](docs/CONTRIBUTING.md) | How to contribute |
 | [Changelog](docs/CHANGELOG.md) | Version history |
