@@ -11,6 +11,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - **Animated Welcome Screen**: Section-by-section reveal animation for first-run experience with ASCII wordmark, orchestration flow diagram, level-based build plan, and getting started guidance
+- **Init → PRD Transition**: Seamless flow from config initialization to PRD interview in the same terminal session
+- **Section Explanations**: Context notes explaining what KARIMO does with each config section (commands, rules, sandbox, boundaries)
+- **Boundaries Source Attribution**: Display where boundary patterns were detected from during init
+- **Checkpoint Command Stub**: Placeholder for Level 2 learning checkpoints with guidance to use `karimo note`
+
+### Changed
+- **runInit() Return Type**: Now returns `InitResult` instead of calling `process.exit()`, enabling composable CLI flows
+- **Doctor Checklist**: Added context explanation and GitHub issues link for getting help
 
 ---
 

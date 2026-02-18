@@ -237,6 +237,7 @@ Checkpoint data flows: Collection → Processing → Config Updates → Future A
 - Types are inferred from Zod — never duplicate manually
 - `loadConfig()` finds, reads, and validates config with clear error messages
 - `runInit()` provides interactive setup using @clack/prompts
+- `runInit()` returns `InitResult` (not `process.exit()`) enabling composable CLI flows
 - Dependencies added: `yaml`, `@clack/prompts`
 - Required fields: `project.name`, `commands.build`, `commands.lint`
 - Recommended fields: `commands.test`, `commands.typecheck` (default to `null`)
@@ -253,6 +254,22 @@ Checkpoint data flows: Collection → Processing → Config Updates → Future A
 | `src/config/errors.ts` | Custom error classes with clear messages |
 | `src/config/init.ts` | Interactive config initialization |
 | `src/config/index.ts` | Public API (barrel exports) |
+
+### InitResult Type
+
+```typescript
+interface InitResult {
+  success: boolean    // Whether config was created
+  cancelled: boolean  // Whether user cancelled (vs. error)
+  configPath?: string // Path to created config (on success)
+}
+```
+
+### Init UX Features
+
+- **Section explanations**: `p.note()` blocks before each section explaining what KARIMO does with the config
+- **Boundaries display**: Shows detected patterns with source attribution before writing config
+- **PRD transition**: After successful init, prompts "Ready to create your first PRD?"
 
 ### Commands
 
