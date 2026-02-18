@@ -118,6 +118,106 @@ The interview system uses direct Anthropic API calls (not Claude Code subagents)
 - User sees seamless continuation
 - Session resumable across terminal sessions
 
+### Interview Subagents
+
+Interview agents can spawn focused subagents for specialized tasks:
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    Parent Agent                              │
+│  (Interview, Investigation, or Review)                       │
+├─────────────────────────────────────────────────────────────┤
+│                           │                                  │
+│         ┌─────────────────┼─────────────────┐               │
+│         ▼                 ▼                 ▼               │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐         │
+│  │ Subagent A  │  │ Subagent B  │  │ Subagent C  │         │
+│  │(clarify)    │  │(research)   │  │(validate)   │         │
+│  └─────────────┘  └─────────────┘  └─────────────┘         │
+│         │                 │                 │               │
+│         └─────────────────┼─────────────────┘               │
+│                           ▼                                  │
+│               Results injected back                          │
+│               into parent context                            │
+└─────────────────────────────────────────────────────────────┘
+```
+
+Subagent types:
+- **clarification** — Deep-dive on ambiguous requirements
+- **research** — Investigate codebase during interview
+- **scope-validator** — Validate scope against existing code
+- **pattern-analyzer** — Analyze specific code patterns
+- **section-reviewer** — Review specific PRD section (parallelizable)
+- **complexity-validator** — Validate complexity scores
+
+---
+
+## Agent Architecture Enhancements
+
+### Extended Thinking
+
+Auto-enables deeper reasoning based on task complexity signals:
+
+```
+Complexity Score (0-100)
+    │
+    ├── 0-30:  Disabled (0 tokens)
+    ├── 31-50: Minimal (1,024 tokens)
+    ├── 51-70: Moderate (4,096 tokens)
+    └── 71+:   Deep (16,384 tokens)
+```
+
+Signal weights:
+- Complexity >= 7: +25 points
+- Files affected >= 8: +15 points
+- Success criteria >= 6: +15 points
+- Architecture keywords: +20 points
+- Refactor keywords: +15 points
+- Review agent calls: +30 points (always triggers)
+
+### Structured Output
+
+Enforces JSON schemas on agent outputs:
+
+1. Extract JSON from output (handles markdown blocks)
+2. Parse with retry logic (trailing commas, etc.)
+3. Validate against Zod schema
+4. On failure: return errors with optional fallback to raw output
+
+Includes Zod-to-JSON Schema converter for CLI tools.
+
+### Agent Teams
+
+Parallel task execution with coordination:
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                      PMAgent Coordinator                     │
+│                   (TypeScript orchestration)                 │
+├─────────────────────────────────────────────────────────────┤
+│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐   │
+│  │ Agent 1  │  │ Agent 2  │  │ Agent 3  │  │ Agent N  │   │
+│  │ Task 1a  │  │ Task 1b  │  │ Task 1c  │  │   ...    │   │
+│  └────┬─────┘  └────┬─────┘  └────┬─────┘  └────┬─────┘   │
+│       │             │             │             │          │
+│       └─────────────┼─────────────┼─────────────┘          │
+│                     ▼                                       │
+│  ┌─────────────────────────────────────────────────────┐   │
+│  │              File-Based Task Queue                   │   │
+│  │  .karimo/team/{phaseId}/queue.json                  │   │
+│  │  - Atomic file locking                              │   │
+│  │  - Optimistic concurrency (version checking)        │   │
+│  │  - Findings propagation between tasks               │   │
+│  └─────────────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────────┘
+```
+
+Key capabilities:
+- **File overlap detection** — Tasks with shared files run sequentially
+- **Findings system** — Cross-agent communication (affects-file, interface-change, warnings)
+- **Dependency resolution** — Tasks wait for dependencies before starting
+- **Graceful failure handling** — Stop-on-failure mode or continue-on-failure
+
 ---
 
 ## System Components
@@ -245,11 +345,15 @@ The interview system uses direct Anthropic API calls (not Claude Code subagents)
 | `src/config` | Config schema, validator, init command |
 | `src/interview/` | PRD interview system |
 | `src/interview/agents/` | Interview, Investigation, Review agents |
+| `src/interview/subagents/` | Spawnable focused subagents (clarification, research, review) |
 | `src/interview/section-mapper.ts` | Round-to-PRD-section mapping |
 | `src/prd` | PRD parser, YAML task extraction, dependency resolver |
 | `src/git` | Worktree management, branch ops, rebase |
 | `src/github` | GitHub API integration, PR creation, issue management |
 | `src/agents` | Agent spawning, sandbox, environment filtering |
+| `src/thinking` | Extended thinking auto-enablement based on complexity |
+| `src/structured-output` | Zod schema validation, JSON Schema conversion |
+| `src/team` | Agent team coordination (PMAgent, queue, findings, scheduler) |
 | `src/learning` | Compound learning system (Layer 1 + Layer 2) |
 | `src/cost` | Cost tracking, ceiling enforcement, token parsing |
 | `src/types` | Shared TypeScript types and interfaces |
