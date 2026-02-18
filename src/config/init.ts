@@ -32,6 +32,18 @@ const CONFIG_DIR = '.karimo'
 const CONFIG_FILE = 'config.yaml'
 
 /**
+ * Result of running the init flow.
+ */
+export interface InitResult {
+  /** Whether configuration was successfully created */
+  success: boolean
+  /** Whether the user cancelled (vs. an error) */
+  cancelled: boolean
+  /** Path to the created config file (only set on success) */
+  configPath?: string
+}
+
+/**
  * Get confidence indicator symbol.
  * ● high (auto-accepted)
  * ◐ medium (user should verify)
@@ -181,6 +193,9 @@ async function confirmProjectSection(result: DetectionResult): Promise<
   }
 
   // User wants to edit - show form with pre-filled values
+  // Track if user cancelled during group
+  let wasCancelled = false
+
   const edited = await p.group(
     {
       name: () =>
@@ -231,11 +246,16 @@ async function confirmProjectSection(result: DetectionResult): Promise<
     },
     {
       onCancel: () => {
+        wasCancelled = true
         p.cancel('Init cancelled.')
-        process.exit(0)
       },
     }
   )
+
+  // Return cancel symbol if user cancelled during group
+  if (wasCancelled) {
+    return Symbol.for('cancel')
+  }
 
   const editedProject: {
     name: string
@@ -661,8 +681,9 @@ function displaySummary(config: KarimoConfig): void {
 /**
  * Run the interactive init flow with auto-detection.
  * @param projectRoot - The project root directory (defaults to process.cwd())
+ * @returns InitResult indicating success/cancellation and config path
  */
-export async function runInit(projectRoot: string = process.cwd()): Promise<void> {
+export async function runInit(projectRoot: string = process.cwd()): Promise<InitResult> {
   p.intro('KARIMO Configuration')
 
   // Check if config already exists
@@ -674,7 +695,7 @@ export async function runInit(projectRoot: string = process.cwd()): Promise<void
 
     if (p.isCancel(shouldOverwrite) || !shouldOverwrite) {
       p.cancel('Init cancelled.')
-      process.exit(0)
+      return { success: false, cancelled: true }
     }
   }
 
@@ -689,7 +710,7 @@ export async function runInit(projectRoot: string = process.cwd()): Promise<void
   } catch (error) {
     scanSpinner.stop('Scan failed')
     p.cancel(`Detection error: ${(error as Error).message}`)
-    process.exit(1)
+    return { success: false, cancelled: false }
   }
 
   // Display scan results
@@ -701,28 +722,28 @@ export async function runInit(projectRoot: string = process.cwd()): Promise<void
   const project = await confirmProjectSection(result)
   if (p.isCancel(project)) {
     p.cancel('Init cancelled.')
-    process.exit(0)
+    return { success: false, cancelled: true }
   }
 
   // Commands section
   const commands = await confirmCommandsSection(result)
   if (p.isCancel(commands)) {
     p.cancel('Init cancelled.')
-    process.exit(0)
+    return { success: false, cancelled: true }
   }
 
   // Rules section
   const rules = await confirmRulesSection(result)
   if (p.isCancel(rules)) {
     p.cancel('Init cancelled.')
-    process.exit(0)
+    return { success: false, cancelled: true }
   }
 
   // Sandbox section
   const allowedEnv = await confirmSandboxSection(result)
   if (p.isCancel(allowedEnv)) {
     p.cancel('Init cancelled.')
-    process.exit(0)
+    return { success: false, cancelled: true }
   }
 
   // Build boundaries from detection
@@ -766,7 +787,7 @@ export async function runInit(projectRoot: string = process.cwd()): Promise<void
 
   if (p.isCancel(shouldWrite) || !shouldWrite) {
     p.cancel('Init cancelled.')
-    process.exit(0)
+    return { success: false, cancelled: true }
   }
 
   // Write config
@@ -783,9 +804,10 @@ export async function runInit(projectRoot: string = process.cwd()): Promise<void
     )
 
     p.outro('KARIMO is ready.')
+    return { success: true, cancelled: false, configPath }
   } catch (error) {
     writeSpinner.stop('Failed to write configuration.')
     p.cancel(`Error: ${(error as Error).message}`)
-    process.exit(1)
+    return { success: false, cancelled: false }
   }
 }
