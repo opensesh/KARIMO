@@ -463,6 +463,256 @@ This is a **Level 1** feature. It should be the first thing a user runs after `k
 
 ---
 
+---
+
+## 5.9 Extended Thinking System
+
+Auto-enables extended thinking based on task complexity signals. Higher complexity = more reasoning tokens allocated.
+
+### The Flow
+
+1. Build context from task data (complexity, files, criteria, prompt)
+2. Analyze prompt for architecture/refactor keywords
+3. Calculate score (0-100) from weighted signals
+4. Map score to token budget tier
+5. Return decision with enabled flag, budget, and reasons
+
+### Signal Weights
+
+| Signal | Points | Trigger |
+|--------|--------|---------|
+| Complexity | +25 | complexity >= 7 |
+| Files affected | +15 | files >= 8 |
+| Success criteria | +15 | criteria >= 6 |
+| Architecture keywords | +20 | "architecture", "migration", "security", etc. |
+| Refactor keywords | +15 | "refactor", "restructure", "decouple", etc. |
+| Review agent | +30 | Always triggers for review calls |
+
+### Token Budget Tiers
+
+| Score | Level | Tokens | When |
+|-------|-------|--------|------|
+| 0-30 | Disabled | 0 | Simple tasks, clear requirements |
+| 31-50 | Minimal | 1,024 | Moderate complexity |
+| 51-70 | Moderate | 4,096 | Complex tasks, multiple signals |
+| 71+ | Deep | 16,384 | Very complex, review agent |
+
+### Module Reference
+
+| File | Purpose |
+|------|---------|
+| `src/thinking/types.ts` | ThinkingContext, ThinkingDecision, weights, tiers |
+| `src/thinking/analyzer.ts` | Prompt analysis, context building |
+| `src/thinking/decision.ts` | Core decision logic, API config generation |
+| `src/thinking/index.ts` | Public API |
+
+---
+
+## 5.10 Structured Output System
+
+Type-safe agent output validation through Zod schemas with graceful fallback.
+
+### The Flow
+
+1. Agent returns text output (may include markdown code blocks)
+2. Extract JSON from output (handles ```json blocks)
+3. Parse with retry logic (trailing commas, whitespace, etc.)
+4. Validate against Zod schema
+5. Return typed data or errors with optional raw fallback
+
+### Validation Behavior
+
+- **allowFallback: true** (default) — On failure, returns raw output
+- **allowFallback: false** — On failure, returns only errors
+- **maxParseAttempts: 3** — Retry parsing with different strategies
+- **stripMarkdownBlocks: true** — Extract from ```json blocks
+
+### JSON Schema Conversion
+
+Converts Zod schemas to JSON Schema for CLI tools:
+
+```typescript
+const jsonSchema = zodToJsonSchema(ReviewResultSchema)
+// Use: claude --json-schema '...'
+```
+
+Supported Zod types: string, number, boolean, array, object, union, enum, optional, nullable, default, record, tuple.
+
+### Available Schemas
+
+| Schema | Purpose |
+|--------|---------|
+| `ReviewResultSchema` | Complete review with score, issues, recommendations |
+| `SectionReviewSchema` | Section-specific review for parallel processing |
+| `TaskResultSchema` | Task execution result |
+| `InvestigationResultSchema` | Codebase investigation findings |
+| `FileReferenceSchema` | File path with optional line numbers |
+| `CodeSnippetSchema` | Code with file location |
+| `TokenUsageSchema` | Token consumption statistics |
+
+### Module Reference
+
+| File | Purpose |
+|------|---------|
+| `src/structured-output/types.ts` | ValidationResult, ValidationError, options |
+| `src/structured-output/converter.ts` | Zod-to-JSON Schema conversion |
+| `src/structured-output/validator.ts` | Output validation with retry logic |
+| `src/structured-output/schemas/` | Pre-defined schemas for common outputs |
+| `src/structured-output/index.ts` | Public API |
+
+---
+
+## 5.11 Interview Subagents
+
+Spawnable focused subagents that handle specialized tasks within the interview system.
+
+### Architecture
+
+Subagents use the same API client as parent agents (not separate processes):
+- Minimize connection overhead
+- Share rate limit awareness
+- Simplify authentication
+
+### Subagent Types
+
+| Parent | Type | Purpose |
+|--------|------|---------|
+| Interview | `clarification` | Deep-dive on ambiguous requirements |
+| Interview | `research` | Investigate codebase during interview |
+| Interview | `scope-validator` | Validate scope against existing code |
+| Investigation | `pattern-analyzer` | Analyze specific code patterns |
+| Investigation | `dependency-mapper` | Map import/dependency chains |
+| Review | `section-reviewer` | Review specific PRD section (parallelizable) |
+| Review | `complexity-validator` | Validate complexity scores |
+
+### The Flow
+
+1. Parent agent decides a focused task is needed
+2. Build spawn request with type, task, and context
+3. Register execution in AgentRegistry
+4. Execute via SubagentSpawner (same API client)
+5. Track token usage
+6. Return structured result to parent
+7. Parent incorporates result into conversation
+
+### Parallel Execution
+
+Section reviews can run concurrently:
+
+```typescript
+const reviews = await spawner.spawnParallel([
+  { id: 'review-1', type: 'section-reviewer', task: 'Review requirements' },
+  { id: 'review-2', type: 'section-reviewer', task: 'Review dependencies' },
+  { id: 'review-3', type: 'section-reviewer', task: 'Review agent-context' },
+], { maxConcurrency: 3 })
+```
+
+### Cost Tracking
+
+```typescript
+const costTracker = createCostTracker()
+costTracker.recordUsage(result.usage)
+const cost = costTracker.calculateCost()
+```
+
+### Module Reference
+
+| File | Purpose |
+|------|---------|
+| `src/interview/subagents/types.ts` | Spawn request, result, data types |
+| `src/interview/subagents/registry.ts` | Execution tracking, usage aggregation |
+| `src/interview/subagents/spawner.ts` | Sequential and parallel execution |
+| `src/interview/subagents/prompts/` | System prompts for each subagent type |
+| `src/interview/subagents/cost.ts` | Cost calculation utilities |
+| `src/interview/subagents/index.ts` | Public API |
+
+---
+
+## 5.12 Agent Teams & PM Agent
+
+Parallel task execution with coordination for phase-level orchestration.
+
+### Architecture
+
+PMAgent is a TypeScript coordinator (NOT an AI agent):
+
+1. Initialize file-based task queue
+2. Detect file overlaps upfront
+3. Spawn agents for ready tasks (respecting parallelism limits)
+4. Wait for completions, process findings
+5. Update queue, unblock dependent tasks
+6. Continue until queue complete
+
+### Task Queue
+
+File-based storage with atomic operations:
+
+- **Location:** `.karimo/team/{phaseId}/queue.json`
+- **Locking:** File-based locks prevent race conditions
+- **Concurrency:** Version checking prevents lost updates
+
+### Task States
+
+| State | Meaning |
+|-------|---------|
+| `pending` | Ready to be claimed |
+| `claimed` | Claimed but not yet running |
+| `running` | Currently being executed |
+| `completed` | Successfully completed |
+| `failed` | Execution failed |
+| `blocked` | Waiting on dependencies |
+
+### Findings System
+
+Cross-agent communication for discovered information:
+
+| Type | Purpose | Blocking |
+|------|---------|----------|
+| `affects-file` | Task modified a file another task depends on | Optional |
+| `interface-change` | API/interface was modified | Optional |
+| `discovered-dependency` | Found dependency not in original graph | Optional |
+| `warning` | Non-blocking warning | No |
+| `info` | Informational message | No |
+
+Findings from Task A appear in Task B's prompt context automatically.
+
+### File Overlap Detection
+
+Tasks with shared files are forced to run sequentially:
+
+```typescript
+const overlaps = detectFileOverlaps(tasks)
+// Returns: [{ id: 'group-1', taskIds: ['1a', '1c'], sharedFiles: ['src/auth.ts'] }]
+```
+
+### Scheduler Decisions
+
+The scheduler determines which tasks can run:
+
+1. Dependencies must be completed
+2. File overlap groups run sequentially
+3. Respect `maxParallelAgents` limit
+4. Higher priority tasks scheduled first
+
+### Error Handling
+
+- **stopOnFailure: true** — Cancel remaining tasks on first failure
+- **stopOnFailure: false** — Continue other tasks, mark failed task
+
+### Module Reference
+
+| File | Purpose |
+|------|---------|
+| `src/team/types.ts` | TaskEntry, Queue, Finding, PMAgentOptions |
+| `src/team/errors.ts` | Error classes for queue and scheduling |
+| `src/team/queue.ts` | File-based queue with atomic locking |
+| `src/team/findings.ts` | Finding creation and formatting |
+| `src/team/scheduler.ts` | File overlap detection, batch scheduling |
+| `src/team/pm-agent.ts` | PMAgent coordinator class |
+| `src/team/index.ts` | Public API |
+
+---
+
 ## Related Documentation
 
 - [ARCHITECTURE.md](./ARCHITECTURE.md) — System overview
