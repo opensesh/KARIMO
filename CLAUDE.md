@@ -65,6 +65,10 @@ Each module in `src/` has a clear, single responsibility:
 | `agents` | Agent process management |
 | `learning` | Checkpoint collection and config updates |
 | `cost` | Cost tracking and budget enforcement |
+| `thinking` | Extended thinking auto-enablement based on complexity |
+| `structured-output` | Zod schema validation for agent outputs |
+| `interview` | PRD interview system with subagents |
+| `team` | Parallel task coordination (PMAgent, queue, findings) |
 | `cli` | Command-line interface |
 | `types` | Shared type definitions |
 
@@ -596,3 +600,217 @@ bun run orchestrate --phase phase-1 --task 1a --dry-run
 - Recommended commands show a warning but can be skipped (set to `null`)
 - Empty strings are invalid — use `null` for intentional skips
 - Stack-aware recommendations are shown when commands not detected
+
+---
+
+## Phase 6 — Extended Thinking System (Complete)
+
+- Thinking module lives in `src/thinking/`
+- Auto-enables extended thinking based on task complexity signals
+- Calculates a score (0-100) from multiple signals, maps to token budget tiers
+- No config dependency — pure functions that analyze context and return decisions
+
+### Thinking Module Files
+
+| File | Purpose |
+| ---- | ------- |
+| `src/thinking/types.ts` | ThinkingContext, ThinkingDecision, signal weights, token tiers |
+| `src/thinking/analyzer.ts` | analyzePrompt(), buildThinkingContext(), estimateComplexityFromDescription() |
+| `src/thinking/decision.ts` | shouldEnableExtendedThinking(), getThinkingConfig() |
+| `src/thinking/index.ts` | Public API (barrel exports) |
+
+### Thinking Module Public API
+
+| Function | Purpose |
+|----------|---------|
+| `shouldEnableExtendedThinking(context)` | Core decision function returning enabled/budget/score/reasons |
+| `getThinkingConfig(context)` | Returns API-ready config object or undefined |
+| `buildThinkingContext(params)` | Build context from task data |
+| `analyzePrompt(content)` | Detect architecture/refactor keywords in text |
+| `analyzeTaskForThinking(task, prompt)` | Convenience wrapper for task analysis |
+| `isThinkingRecommended(context)` | Quick boolean check |
+
+### Signal Weights
+
+| Signal | Points | Trigger |
+|--------|--------|---------|
+| Complexity | +25 | complexity >= 7 |
+| Files affected | +15 | files >= 8 |
+| Success criteria | +15 | criteria >= 6 |
+| Architecture keywords | +20 | Keywords like "architecture", "migration", "security" |
+| Refactor keywords | +15 | Keywords like "refactor", "restructure", "decouple" |
+| Review agent | +30 | Always triggers for review calls |
+
+### Token Budget Tiers
+
+| Score | Level | Tokens |
+|-------|-------|--------|
+| 0-30 | Disabled | 0 |
+| 31-50 | Minimal | 1,024 |
+| 51-70 | Moderate | 4,096 |
+| 71+ | Deep | 16,384 |
+
+---
+
+## Phase 7 — Structured Output System (Complete)
+
+- Structured output module lives in `src/structured-output/`
+- Validates agent JSON outputs against Zod schemas
+- Converts Zod schemas to JSON Schema for CLI tools
+- Graceful fallback when validation fails
+
+### Structured Output Module Files
+
+| File | Purpose |
+| ---- | ------- |
+| `src/structured-output/types.ts` | ValidationResult, ValidationError, ValidationOptions |
+| `src/structured-output/converter.ts` | zodToJsonSchema(), createCliJsonSchema() |
+| `src/structured-output/validator.ts` | validateOutput(), createValidator(), formatValidationErrors() |
+| `src/structured-output/schemas/common.ts` | FileReferenceSchema, CodeSnippetSchema, TokenUsageSchema |
+| `src/structured-output/schemas/review.ts` | ReviewResultSchema, SectionReviewSchema |
+| `src/structured-output/schemas/agent.ts` | TaskResultSchema, InvestigationResultSchema |
+| `src/structured-output/index.ts` | Public API (barrel exports) |
+
+### Structured Output Public API
+
+| Function | Purpose |
+|----------|---------|
+| `validateOutput(output, schema)` | Validate agent output against Zod schema |
+| `assertValidOutput(output, schema)` | Validate or throw |
+| `tryValidateOutput(output, schema)` | Validate, return undefined on failure |
+| `createValidator(schema)` | Create a reusable validator function |
+| `zodToJsonSchema(schema)` | Convert Zod schema to JSON Schema |
+| `createCliJsonSchema(schema)` | Create CLI-ready JSON schema string |
+| `formatValidationErrors(errors)` | Format errors for display |
+
+### Validation Behavior
+
+1. Extract JSON from output (handles markdown code blocks)
+2. Parse JSON with retry logic for common issues (trailing commas, etc.)
+3. Validate against Zod schema
+4. On failure: return errors with optional fallback to raw output
+
+---
+
+## Phase 8 — Interview Subagents (Complete)
+
+- Subagents module lives in `src/interview/subagents/`
+- Interview agents can spawn focused subagents for specialized tasks
+- Subagents use the same API client as parent (not separate processes)
+- Results injected back into parent conversation
+- Supports sequential and parallel execution
+
+### Interview Subagents Module Files
+
+| File | Purpose |
+| ---- | ------- |
+| `src/interview/subagents/types.ts` | SubagentType, SubagentSpawnRequest, SubagentResult, result data types |
+| `src/interview/subagents/registry.ts` | AgentRegistry class for tracking executions |
+| `src/interview/subagents/spawner.ts` | SubagentSpawner class for executing subagents |
+| `src/interview/subagents/prompts/index.ts` | System prompts for each subagent type |
+| `src/interview/subagents/cost.ts` | SubagentCostTracker for cost aggregation |
+| `src/interview/subagents/index.ts` | Public API (barrel exports) |
+
+### Subagent Types
+
+| Parent | Subagent Type | Purpose |
+|--------|---------------|---------|
+| Interview | `clarification` | Deep-dive on ambiguous requirements |
+| Interview | `research` | Investigate codebase during interview |
+| Interview | `scope-validator` | Validate scope against existing code |
+| Investigation | `pattern-analyzer` | Analyze specific code patterns |
+| Investigation | `dependency-mapper` | Map import/dependency chains |
+| Review | `section-reviewer` | Review specific PRD section (parallelizable) |
+| Review | `complexity-validator` | Validate complexity scores |
+
+### Interview Subagents Public API
+
+| Function | Purpose |
+|----------|---------|
+| `createAgentRegistry()` | Create a new registry instance |
+| `createSubagentSpawner(registry)` | Create a spawner instance |
+| `spawner.spawn(request)` | Spawn single subagent, wait for completion |
+| `spawner.spawnParallel(requests)` | Spawn multiple subagents in parallel |
+| `registry.getAggregatedUsage()` | Get total token usage across all subagents |
+| `createCostTracker()` | Create cost tracking instance |
+
+### Why Subagents?
+
+- **Focused context** — Subagents get only relevant context, not full conversation
+- **Parallel execution** — Section reviews can run concurrently
+- **Cost efficiency** — Smaller prompts, lower per-call cost
+- **Clear separation** — Parent delegates, subagent executes, results return
+
+---
+
+## Phase 9 — Agent Teams (Complete)
+
+- Team module lives in `src/team/`
+- Enables parallel task execution with coordination
+- PMAgent (TypeScript coordinator) manages file-based task queue
+- Tasks communicate via "findings" — messages propagated between dependent tasks
+- Scheduler detects file overlaps to prevent conflicts
+
+### Team Module Files
+
+| File | Purpose |
+| ---- | ------- |
+| `src/team/types.ts` | TeamTaskEntry, TeamTaskQueue, TaskFinding, PMAgentOptions |
+| `src/team/errors.ts` | Error classes: QueueLockError, TaskAlreadyClaimedError, etc. |
+| `src/team/queue.ts` | File-based queue with atomic locking |
+| `src/team/findings.ts` | Finding creation and formatting utilities |
+| `src/team/scheduler.ts` | File overlap detection, batch scheduling |
+| `src/team/pm-agent.ts` | PMAgent coordinator class |
+| `src/team/index.ts` | Public API (barrel exports) |
+
+### Team Module Public API
+
+| Function | Purpose |
+|----------|---------|
+| `createQueue(projectRoot, phaseId, tasks)` | Initialize task queue for a phase |
+| `claimTask(projectRoot, phaseId, taskId, options)` | Claim a task for execution |
+| `completeTask(projectRoot, phaseId, taskId, result)` | Mark task complete with findings |
+| `getReadyTasks(projectRoot, phaseId)` | Get tasks ready to be claimed |
+| `detectFileOverlaps(tasks)` | Find tasks with shared files |
+| `getNextBatch(queue, running, completed, overlaps, config)` | Get next batch of schedulable tasks |
+| `runPMAgent(options, tasks, executor)` | Run the PMAgent coordination loop |
+| `createTaskEntriesFromPRD(prdTasks)` | Create task entries from PRD data |
+
+### PMAgent Coordination Loop
+
+1. Initialize queue from PRD tasks
+2. Detect file overlaps upfront
+3. Loop: spawn agents for ready tasks (respecting parallelism limits)
+4. Wait for completions, process findings
+5. Update queue, unblock dependent tasks
+6. Continue until queue complete
+
+### Task Queue Design
+
+- **File-based** — Stored in `.karimo/team/{phaseId}/queue.json`
+- **Atomic locking** — Uses lock files to prevent race conditions
+- **Optimistic concurrency** — Version checking prevents lost updates
+- **Findings propagation** — Task A's findings appear in Task B's context
+
+### Finding Types
+
+| Type | Purpose |
+|------|---------|
+| `affects-file` | Task modified a file another task depends on |
+| `interface-change` | API/interface was modified |
+| `discovered-dependency` | Found a dependency not in original graph |
+| `warning` | Non-blocking warning |
+| `info` | Informational message |
+
+### Error Classes
+
+| Error | When Thrown |
+|-------|-------------|
+| `QueueNotFoundError` | Queue file not found |
+| `QueueLockError` | Cannot acquire lock within timeout |
+| `QueueVersionConflictError` | Optimistic concurrency violation |
+| `TaskNotFoundError` | Task ID not in queue |
+| `TaskAlreadyClaimedError` | Task claimed by another agent |
+| `TaskBlockedError` | Task has unmet dependencies |
+| `PMAgentError` | Coordination error |
+| `AllTasksFailedError` | All tasks in phase failed |
