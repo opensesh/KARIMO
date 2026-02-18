@@ -21,6 +21,7 @@ export type CommandType =
   | 'status'
   | 'reset'
   | 'note'
+  | 'checkpoint'
   | 'help'
   | 'version'
 
@@ -93,6 +94,8 @@ export function parseCommand(args: string[]): ParsedCommand {
       return { type: 'reset', args: positional.slice(1), flags }
     case 'note':
       return { type: 'note', args: positional.slice(1), flags }
+    case 'checkpoint':
+      return { type: 'checkpoint', args: positional.slice(1), flags }
     case 'help':
       return { type: 'help', args: positional.slice(1), flags }
     case 'version':
@@ -140,7 +143,23 @@ async function executeCommand(
       }
 
       const { runInit } = await import('../config/init')
-      await runInit(projectRoot)
+      const initResult = await runInit(projectRoot)
+
+      // Offer PRD transition after successful init
+      if (initResult.success) {
+        console.log()
+        const startPRD = await p.confirm({
+          message: 'Ready to create your first PRD?',
+          initialValue: true,
+        })
+
+        if (!p.isCancel(startPRD) && startPRD) {
+          const { startInterview } = await import('../interview')
+          await startInterview(projectRoot)
+        } else {
+          p.log.info('Run `karimo` anytime to start your first PRD.')
+        }
+      }
       break
     }
     case 'doctor': {
@@ -197,6 +216,13 @@ async function executeCommand(
       })
       break
     }
+    case 'checkpoint': {
+      p.log.info('Checkpoint command coming in Level 2.')
+      console.log()
+      p.log.info('For now, capture feedback with:')
+      p.log.info('  karimo note "your observation"')
+      break
+    }
     case 'help':
       printHelp()
       break
@@ -246,7 +272,23 @@ async function runGuidedFlow(projectRoot: string, firstRunHandled = false): Prom
       if (firstRunHandled) {
         // Already onboarded, just run init
         const { runInit } = await import('../config/init')
-        await runInit(projectRoot)
+        const initResult = await runInit(projectRoot)
+
+        // Offer PRD transition after successful init
+        if (initResult.success) {
+          console.log()
+          const startPRD = await p.confirm({
+            message: 'Ready to create your first PRD?',
+            initialValue: true,
+          })
+
+          if (!p.isCancel(startPRD) && startPRD) {
+            const { startInterview } = await import('../interview')
+            await startInterview(projectRoot)
+          } else {
+            p.log.info('Run `karimo` anytime to start your first PRD.')
+          }
+        }
         break
       }
 
@@ -261,14 +303,46 @@ async function runGuidedFlow(projectRoot: string, firstRunHandled = false): Prom
       // Mark onboarding complete and run init
       await markOnboarded(projectRoot)
       const { runInit: runInitAgain2 } = await import('../config/init')
-      await runInitAgain2(projectRoot)
+      const initResult2 = await runInitAgain2(projectRoot)
+
+      // Offer PRD transition after successful init
+      if (initResult2.success) {
+        console.log()
+        const startPRD = await p.confirm({
+          message: 'Ready to create your first PRD?',
+          initialValue: true,
+        })
+
+        if (!p.isCancel(startPRD) && startPRD) {
+          const { startInterview } = await import('../interview')
+          await startInterview(projectRoot)
+        } else {
+          p.log.info('Run `karimo` anytime to start your first PRD.')
+        }
+      }
       break
     }
 
     case 'init': {
       // .karimo exists but no config - run init
       const { runInit: runInitAgain } = await import('../config/init')
-      await runInitAgain(projectRoot)
+      const initResult = await runInitAgain(projectRoot)
+
+      // Offer PRD transition after successful init
+      if (initResult.success) {
+        console.log()
+        const startPRD = await p.confirm({
+          message: 'Ready to create your first PRD?',
+          initialValue: true,
+        })
+
+        if (!p.isCancel(startPRD) && startPRD) {
+          const { startInterview } = await import('../interview')
+          await startInterview(projectRoot)
+        } else {
+          p.log.info('Run `karimo` anytime to start your first PRD.')
+        }
+      }
       break
     }
 
@@ -380,6 +454,7 @@ Usage:
   karimo orchestrate       Execute tasks from PRD
   karimo status            Show current project status
   karimo note <message>    Capture dogfooding note
+  karimo checkpoint        Capture learning checkpoint (Level 2)
   karimo reset             Reset KARIMO state
   karimo help              Show this help message
   karimo version           Show version
@@ -411,6 +486,9 @@ Guided Workflow:
 
 Documentation:
   https://github.com/opensesh/KARIMO
+
+Get Help:
+  https://github.com/opensesh/KARIMO/issues
 `)
 }
 
