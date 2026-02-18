@@ -13,6 +13,35 @@ _No unreleased changes._
 
 ---
 
+## [0.1.0] - 2026-02-17
+
+### Added
+- **Agent Teams (Phase 9)**: Parallel task execution with PMAgent coordination, file-based queue, findings propagation
+- **Interview Subagents (Phase 8)**: Focused subagent spawning for clarification, research, scope validation, and review tasks
+- **Structured Output**: Zod schema validation for agent outputs with JSON Schema conversion
+- **Extended Thinking**: Auto-enable extended thinking based on task complexity signals
+- **Doctor Command**: Health checks for runtime, config, git, and GitHub authentication
+- **First-Run Flow**: Welcome screen with ASCII wordmark and guided onboarding
+- **Telemetry Module**: Dogfooding event tracking for CLI usage
+- **Safety Check**: Working directory validation to prevent running outside KARIMO projects
+- **Note Command**: Quick feedback capture during dogfooding
+- **Reset Command**: Clear KARIMO state and cached data
+- **Husky Pre-Push Hook**: Changelog reminder warnings for versioning discipline
+
+### Fixed
+- CLI dev script pointing to correct entry point
+- Team queue file lock and version conflict issues
+- Safety check detection for @karimo/core
+- TypeScript and lint issues in new modules
+
+### Documentation
+- Agent capabilities by level summary
+- Component specs for thinking, structured output, subagents, and teams
+- Architecture enhancements section
+- Extended thinking, structured output, subagents, and team modules in CLAUDE.md
+
+---
+
 ## [1.4.0] - 2026-02-17
 
 ### Added
