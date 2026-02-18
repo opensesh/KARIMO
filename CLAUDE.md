@@ -129,6 +129,29 @@ Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
 - `test:` — Test additions/updates
 - `chore:` — Maintenance tasks
 
+### Changelog Updates
+
+When completing `feat:` or `fix:` level work (not every commit):
+
+1. Open `CHANGELOG.md`
+2. Add entry under `## [Unreleased]` section
+3. Use appropriate category: Added, Fixed, Changed, Deprecated, Removed, Security
+4. Format: `- **Component/Feature**: Brief description`
+
+**When to update:**
+- After completing a feature (feat commits)
+- After fixing a user-facing bug (fix commits)
+- After significant refactors that change behavior
+
+**When NOT to update:**
+- Style/formatting changes
+- Internal refactors with no behavior change
+- Test additions
+- Chore/maintenance tasks
+
+**Release process:**
+When releasing a version, move `[Unreleased]` entries to a new version section and reset `[Unreleased]` to empty (with a placeholder like `_No unreleased changes._`).
+
 ---
 
 ## Forbidden
