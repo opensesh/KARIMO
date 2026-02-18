@@ -1,0 +1,25 @@
+#!/usr/bin/env sh
+
+# Check if this is a feat: or fix: commit that should update CHANGELOG
+COMMIT_MSG=$(cat "$1")
+COMMIT_TYPE=$(echo "$COMMIT_MSG" | head -1 | grep -oE "^(feat|fix)" || true)
+
+if [ -n "$COMMIT_TYPE" ]; then
+  # Check if CHANGELOG.md is staged in this commit
+  CHANGELOG_STAGED=$(git diff --cached --name-only | grep -E "^CHANGELOG.md$" || true)
+
+  if [ -z "$CHANGELOG_STAGED" ]; then
+    echo ""
+    echo "⚠️  This is a $COMMIT_TYPE commit but CHANGELOG.md wasn't updated."
+    echo ""
+    echo "   Add an entry under ## [Unreleased] before committing:"
+    echo "   - **Component**: Brief description of the change"
+    echo ""
+    echo "   To skip this check (use sparingly):"
+    echo "   git commit --no-verify -m \"$COMMIT_TYPE: ...\""
+    echo ""
+    exit 1
+  fi
+fi
+
+exit 0
