@@ -49,10 +49,18 @@ export function getWordmarkLines(): string[] {
  * Get header lines (version and taglines).
  */
 export function getHeaderLines(): string[] {
+  const frameworkName = 'OS Autonomous Development Framework'
+  const tagline = 'Choose your model, select your codebase'
+
+  // Calculate spacing to right-align version (match divider width of 77)
+  const lineWidth = 74
+  const leftPad = 3
+  const spacing = lineWidth - leftPad - frameworkName.length - VERSION.length
+
   return [
     '',
-    `   ${GYD}${VERSION}${RST}  ${WH}Open-source autonomous development framework${RST}`,
-    `   ${GY}Choose your model, select your codebase${RST}`,
+    `   ${OR}${frameworkName}${RST}${' '.repeat(spacing)}${GYD}${VERSION}${RST}`,
+    `   ${GY}${tagline}${RST}`,
     '',
   ]
 }
