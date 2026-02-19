@@ -298,6 +298,194 @@ export interface InterviewTask {
   agentContext?: string
 }
 
+// =============================================================================
+// Conversational Interview Types (Track B)
+// =============================================================================
+
+/**
+ * Scope type for the feature being defined.
+ */
+export type ScopeType = 'new-feature' | 'refactor' | 'migration' | 'integration'
+
+/**
+ * Result from the intake agent processing initial context.
+ */
+export interface IntakeResult {
+  /** Suggested PRD title */
+  suggestedTitle: string
+
+  /** Suggested slug (URL-safe) */
+  suggestedSlug: string
+
+  /** One-line executive summary */
+  executiveSummary: string
+
+  /** Type of scope */
+  scopeType: ScopeType
+
+  /** Topics identified in user input */
+  identifiedTopics: string[]
+
+  /** Gaps that need exploration */
+  gapsToExplore: string[]
+
+  /** Initial section content extracted */
+  initialSections: Record<string, string>
+}
+
+/**
+ * Status of a PRD section.
+ */
+export type SectionStatusValue = 'empty' | 'partial' | 'complete'
+
+/**
+ * PRD section status tracking.
+ */
+export interface SectionStatus {
+  /** Section identifier (e.g., "executive-summary") */
+  id: string
+
+  /** Human-readable section title */
+  title: string
+
+  /** PRD section number (1-11) */
+  prdSection: number
+
+  /** Current status */
+  status: SectionStatusValue
+
+  /** Confidence score (0-100) */
+  confidence: number
+
+  /** Section weight for progress calculation (percentage) */
+  weight: number
+
+  /** Last updated timestamp */
+  lastUpdated: Date | null
+}
+
+/**
+ * Type of conflict detected during interview.
+ */
+export type ConflictType = 'user-vs-user' | 'user-vs-codebase' | 'user-vs-prd'
+
+/**
+ * Resolution status for conflicts.
+ */
+export type ConflictResolution = 'unresolved' | 'resolved'
+
+/**
+ * Record of a detected conflict.
+ */
+export interface ConflictRecord {
+  /** Unique conflict ID */
+  id: string
+
+  /** Type of conflict */
+  type: ConflictType
+
+  /** Description of the conflict */
+  description: string
+
+  /** Section affected by this conflict */
+  sectionAffected: string
+
+  /** Earlier statement that conflicts */
+  earlierStatement: string
+
+  /** Later statement that conflicts */
+  laterStatement: string
+
+  /** Resolution status */
+  resolution: ConflictResolution
+
+  /** How the conflict was resolved (if resolved) */
+  resolvedAs?: string
+
+  /** When the conflict was detected */
+  detectedAt: Date
+}
+
+/**
+ * Overall PRD progress tracking.
+ */
+export interface PRDProgress {
+  /** Status of each section */
+  sections: SectionStatus[]
+
+  /** Overall completion percentage (0-100) */
+  overallPercent: number
+
+  /** Number of complete sections */
+  completeSections: number
+
+  /** Total number of sections */
+  totalSections: number
+
+  /** Suggested topics to explore next */
+  suggestedNextTopics: string[]
+
+  /** Active conflicts that need resolution */
+  conflicts: ConflictRecord[]
+}
+
+/**
+ * Section weights for progress calculation.
+ * Weights must sum to 100.
+ */
+export const SECTION_WEIGHTS: Record<string, number> = {
+  'executive-summary': 15,
+  'problem-context': 10,
+  'goals-metrics': 15,
+  requirements: 20,
+  'ux-notes': 10,
+  'dependencies-risks': 10,
+  rollout: 5,
+  milestones: 5,
+  'open-questions': 0, // Doesn't count toward completion
+  'checkpoint-learnings': 5,
+  'agent-boundaries': 5,
+}
+
+/**
+ * PRD section definitions with metadata.
+ */
+export const PRD_SECTIONS: SectionStatus[] = [
+  { id: 'executive-summary', title: 'Executive Summary', prdSection: 1, status: 'empty', confidence: 0, weight: 15, lastUpdated: null },
+  { id: 'problem-context', title: 'Problem & Context', prdSection: 2, status: 'empty', confidence: 0, weight: 10, lastUpdated: null },
+  { id: 'goals-metrics', title: 'Goals & Metrics', prdSection: 3, status: 'empty', confidence: 0, weight: 15, lastUpdated: null },
+  { id: 'requirements', title: 'Requirements', prdSection: 4, status: 'empty', confidence: 0, weight: 20, lastUpdated: null },
+  { id: 'ux-notes', title: 'UX Notes', prdSection: 5, status: 'empty', confidence: 0, weight: 10, lastUpdated: null },
+  { id: 'dependencies-risks', title: 'Dependencies & Risks', prdSection: 6, status: 'empty', confidence: 0, weight: 10, lastUpdated: null },
+  { id: 'rollout', title: 'Rollout', prdSection: 7, status: 'empty', confidence: 0, weight: 5, lastUpdated: null },
+  { id: 'milestones', title: 'Milestones', prdSection: 8, status: 'empty', confidence: 0, weight: 5, lastUpdated: null },
+  { id: 'open-questions', title: 'Open Questions', prdSection: 9, status: 'empty', confidence: 0, weight: 0, lastUpdated: null },
+  { id: 'checkpoint-learnings', title: 'Checkpoint Learnings', prdSection: 10, status: 'empty', confidence: 0, weight: 5, lastUpdated: null },
+  { id: 'agent-boundaries', title: 'Agent Boundaries', prdSection: 11, status: 'empty', confidence: 0, weight: 5, lastUpdated: null },
+]
+
+/**
+ * Interview mode for the session.
+ * - 'conversational': New free-form interview flow
+ * - 'legacy': Original 5-round structured interview
+ */
+export type InterviewMode = 'conversational' | 'legacy'
+
+/**
+ * Conversational interview session state.
+ * Extends base session with progress tracking and conflicts.
+ */
+export interface ConversationalSession extends Omit<InterviewSession, 'currentRound' | 'completedRounds'> {
+  /** Interview mode */
+  mode: 'conversational'
+
+  /** PRD progress tracking */
+  progress: PRDProgress
+
+  /** Intake result from initial context processing */
+  intakeResult: IntakeResult | null
+}
+
 /**
  * Default interview session state.
  */
