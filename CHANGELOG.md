@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Long Input Handler**: Editor fallback (`/edit` command) for composing long responses using $EDITOR
 - **Conversational Interview System**: Free-form interview replacing rigid 5-round structure with progress tracking and conflict detection
 - **Streaming Tool APIs**: Real-time streaming with tool use support via `streamMessageWithTools` and `streamContinueWithToolResults`
+- **Intake Agent**: Context analysis and structure extraction for open-ended interview initialization
 - **Animated Welcome Screen**: Section-by-section reveal animation for first-run experience with ASCII wordmark, orchestration flow diagram, level-based build plan, and getting started guidance
 - **Init → PRD Transition**: Seamless flow from config initialization to PRD interview in the same terminal session
 - **Section Explanations**: Context notes explaining what KARIMO does with each config section (commands, rules, sandbox, boundaries)
