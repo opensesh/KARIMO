@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **CLI**: Add compact 3-line ASCII wordmark banner for returning users
 - **Text Formatting Utilities**: ANSI-aware text wrapping for terminal output with streaming support, preventing mid-word breaks during agent responses
 - **Long Input Handler**: Editor fallback (`/edit` command) for composing long responses using $EDITOR
 - **Conversational Interview System**: Free-form interview replacing rigid 5-round structure with progress tracking and conflict detection
@@ -31,6 +32,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.1.0] - 2026-02-17
 
 ### Added
+- **CLI**: Add compact 3-line ASCII wordmark banner for returning users
 - **Agent Teams (Phase 9)**: Parallel task execution with PMAgent coordination, file-based queue, findings propagation
 - **Interview Subagents (Phase 8)**: Focused subagent spawning for clarification, research, scope validation, and review tasks
 - **Structured Output**: Zod schema validation for agent outputs with JSON Schema conversion
@@ -60,6 +62,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.4.0] - 2026-02-17
 
 ### Added
+- **CLI**: Add compact 3-line ASCII wordmark banner for returning users
 - **docs/CODE-INTEGRITY.md**: Greptile section explaining automated review integration
 
 ---
@@ -82,6 +85,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.1.0] - 2026-02-17
 
 ### Added
+- **CLI**: Add compact 3-line ASCII wordmark banner for returning users
 - **docs/DASHBOARD.md**: Dashboard documentation for Level 5
 - **docs/DEPENDENCIES.md**: Dependency inventory and portability guide
 - **docs/COMPONENTS.md**: Comprehensive component specifications
@@ -93,6 +97,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.0.0] - 2026-02-17
 
 ### Added
+- **CLI**: Add compact 3-line ASCII wordmark banner for returning users
 - **templates/config.example.yaml**: Configuration reference for `.karimo/config.yaml`
   - Project metadata (name, language, framework)
   - Command definitions (build, lint, test, typecheck)
