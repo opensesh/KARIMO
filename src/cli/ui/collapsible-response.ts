@@ -6,6 +6,7 @@
  */
 
 import { DIM, GYD, RST } from './colors'
+import type { ProcessedInput } from './input-sanitizer'
 import { clearLine, isTTY, moveCursorUp, write } from './terminal-utils'
 import { getEffectiveWidth, getVisualWidth, wrapTextWithMargin } from './text-format'
 
@@ -47,8 +48,14 @@ export interface CollapsibleOptions {
  * Collapsible renderer for user responses.
  */
 export interface CollapsibleRenderer {
-  /** Render input as collapsible (auto-collapses previous) */
-  render: (input: string) => void
+  /**
+   * Render input as collapsible (auto-collapses previous).
+   * Accepts either a raw string or a ProcessedInput object.
+   * When ProcessedInput is provided:
+   * - display text is used for terminal rendering
+   * - original text is stored for expand/collapse
+   */
+  render: (input: string | ProcessedInput) => void
   /** Toggle the most recent submission */
   toggleLast: () => void
   /** Collapse all expanded sections */
@@ -281,31 +288,49 @@ export function createCollapsibleRenderer(options: CollapsibleOptions = {}): Col
   }
 
   /**
+   * Extract original and display text from input.
+   * Handles both raw string and ProcessedInput objects.
+   */
+  function extractContent(input: string | ProcessedInput): {
+    original: string
+    display: string
+  } {
+    if (typeof input === 'string') {
+      return { original: input, display: input }
+    }
+    return { original: input.original, display: input.display }
+  }
+
+  /**
    * Render a new user input as collapsible.
    * Replaces clack's output with our styled view.
    */
-  function render(input: string): void {
+  function render(input: string | ProcessedInput): void {
+    const { original, display } = extractContent(input)
+
     // Skip in non-TTY environments
     if (!isTTY()) {
-      renderNonTTY(input)
+      renderNonTTY(original)
       return
     }
 
     // Auto-collapse any previously expanded sections
     collapseAll()
 
-    // Count lines in input
+    // Count lines in display text (what we show collapsed)
+    // But use original for line estimation since clack rendered the original
     const effectiveWidth = getEffectiveWidth(margin)
-    const lineCount = countVisualLines(input, effectiveWidth)
+    const lineCount = countVisualLines(original, effectiveWidth)
 
-    // Estimate and clear clack's output
-    const clackLines = estimateClackOutputLines(input)
+    // Estimate and clear clack's output (based on original since that's what clack rendered)
+    const clackLines = estimateClackOutputLines(original)
     clearLines(clackLines)
 
     // Create state for this submission
+    // Store original for expand/collapse toggle (display is only for initial render)
     const state: CollapsibleState = {
       id: nextId++,
-      fullContent: input,
+      fullContent: original,
       isExpanded: false,
       lineCount,
       previewLineCount: previewLines,
@@ -313,14 +338,15 @@ export function createCollapsibleRenderer(options: CollapsibleOptions = {}): Col
     }
 
     // Render based on line count
+    // Use display text for the rendered view
     let outputLines: string[]
     if (lineCount <= collapseThreshold) {
       // Short text - show fully, no collapse mechanism
-      outputLines = renderShortText(input, margin)
+      outputLines = renderShortText(display, margin)
       // Mark as "expanded" to indicate full content is shown
       state.isExpanded = true
     } else {
-      // Long text - show collapsed
+      // Long text - show collapsed (uses state.fullContent internally)
       outputLines = renderCollapsedView(state, previewLines, margin)
     }
 
