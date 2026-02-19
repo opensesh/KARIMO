@@ -47,17 +47,25 @@ State is persisted in `.karimo/state.json`:
 }
 ```
 
-### PRD Sections (Interview Rounds)
+### PRD Sections (Weighted Progress)
 
-| Section | Round | PRD Sections Filled |
-|---------|-------|---------------------|
-| `framing` | 1 | §1 Executive Summary |
-| `requirements` | 2 | §3 Goals, §4 Requirements, §5 UX Notes |
-| `dependencies` | 3 | §6 Dependencies, §7 Rollout, §8 Milestones |
-| `agent-context` | 4 | §11 Agent Boundaries |
-| `retrospective` | 5 | §10 Checkpoint Learnings |
-| `review` | — | Review agent checks for gaps |
-| `finalized` | — | PRD ready for execution |
+The conversational interview captures content for these sections, weighted by importance:
+
+| Section | PRD § | Weight | Description |
+|---------|-------|--------|-------------|
+| Executive Summary | §1 | 15% | One-liner, scope type, target user |
+| Problem & Context | §2 | 10% | Why now, what's the pain point |
+| Goals & Metrics | §3 | 15% | Success criteria, measurable outcomes |
+| Requirements | §4 | 20% | Must/Should/Could with acceptance criteria |
+| UX Notes | §5 | 10% | Interaction patterns, edge cases |
+| Dependencies & Risks | §6 | 10% | Blockers, file overlaps, risk mitigation |
+| Rollout | §7 | 5% | Feature flags, staged deployment |
+| Milestones | §8 | 5% | Release criteria, checkpoints |
+| Open Questions | §9 | 0% | Unresolved items (tracked, not weighted) |
+| Checkpoint Learnings | §10 | 5% | Previous phase patterns |
+| Agent Boundaries | §11 | 5% | Never-touch, require-review, patterns |
+
+Progress is calculated as weighted sum of complete sections. At 80%+, finalization is offered.
 
 ---
 
@@ -65,8 +73,8 @@ State is persisted in `.karimo/state.json`:
 
 KARIMO is a human-centric engineering pipeline:
 
-1. **Interview** — KARIMO interviews you about a feature: what it does, how it should work, what patterns to follow
-2. **PRD Generation** — The interview generates a PRD with structured tasks
+1. **Interview** — Have a conversation about what you're building; the agent captures structure as you speak
+2. **PRD Generation** — The conversation becomes a structured PRD with tasks
 3. **Task Execution** — Each task is executed by an agent in a cost-controlled loop until it meets success criteria
 4. **Code Review** — Greptile reviews the output automatically; score < 4 triggers revision loop
 5. **Merge** — PRs are created, reviewed, and merged with integration checks
@@ -85,14 +93,14 @@ The interview system uses direct Anthropic API calls (not Claude Code subagents)
 │                    Interview System                          │
 ├─────────────────────────────────────────────────────────────┤
 │  ┌─────────────┐  ┌──────────────────┐  ┌──────────────┐   │
-│  │  Interview  │  │  Investigation   │  │    Review    │   │
-│  │    Agent    │  │      Agent       │  │    Agent     │   │
+│  │   Intake    │  │  Conversational  │  │ Investigation│   │
+│  │   Agent     │  │      Agent       │  │    Agent     │   │
 │  └─────────────┘  └──────────────────┘  └──────────────┘   │
 │         │                  │                    │           │
 │         ▼                  ▼                    ▼           │
 │  ┌─────────────────────────────────────────────────────┐   │
-│  │              Session State Machine                   │   │
-│  │  (tracks round, messages, summaries, PRD progress)   │   │
+│  │               Section Tracker                        │   │
+│  │  (weighted progress, conflict detection, PRD state)  │   │
 │  └─────────────────────────────────────────────────────┘   │
 │                            │                                │
 │                            ▼                                │
@@ -107,9 +115,10 @@ The interview system uses direct Anthropic API calls (not Claude Code subagents)
 
 | Agent | Purpose | Tools |
 |-------|---------|-------|
-| Interview Agent | Section-by-section conversation | None (conversational) |
-| Investigation Agent | Codebase scanning (opt-in during Round 3) | find_files, read_file, search_content, list_directory |
-| Review Agent | Gap detection after interview | None (analysis only) |
+| Intake Agent | Process initial context dump, extract structure | None (analysis only) |
+| Conversational Agent | Tool-enabled conversation for PRD capture | capture_section, capture_requirement, flag_conflict, report_progress |
+| Investigation Agent | Codebase scanning (opt-in) | find_files, read_file, search_content, list_directory |
+| Review Agent | Gap detection before finalization | None (analysis only) |
 
 ### Context Management
 
@@ -344,9 +353,10 @@ Key capabilities:
 | `src/orchestrator` | Core execution loop, task runner, phase management |
 | `src/config` | Config schema, validator, init command |
 | `src/interview/` | PRD interview system |
-| `src/interview/agents/` | Interview, Investigation, Review agents |
+| `src/interview/agents/` | Intake, Conversational, Investigation, Review agents |
 | `src/interview/subagents/` | Spawnable focused subagents (clarification, research, review) |
-| `src/interview/section-mapper.ts` | Round-to-PRD-section mapping |
+| `src/interview/tools/` | Tool definitions for conversational capture |
+| `src/interview/section-tracker.ts` | Weighted progress tracking, conflict detection |
 | `src/prd` | PRD parser, YAML task extraction, dependency resolver |
 | `src/git` | Worktree management, branch ops, rebase |
 | `src/github` | GitHub API integration, PR creation, issue management |
