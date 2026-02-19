@@ -99,3 +99,18 @@ export {
   type LongInputOptions,
   type LongInputResult,
 } from './long-input'
+
+// Collapsible responses
+export {
+  createCollapsibleRenderer,
+  type CollapsibleRenderer,
+  type CollapsibleOptions,
+  type CollapsibleState,
+} from './collapsible-response'
+
+// Keypress management
+export {
+  createKeypressManager,
+  type KeypressManager,
+  type KeypressHandler,
+} from './keypress-manager'
