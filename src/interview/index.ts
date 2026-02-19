@@ -12,6 +12,8 @@ import {
   createCollapsibleRenderer,
   createKeypressManager,
   createStreamRenderer,
+  formatAgentResponse,
+  processUserInput,
 } from '../cli/ui'
 import { loadConfig } from '../config/loader'
 import {
@@ -51,16 +53,23 @@ import type { IntakeResult, InterviewSession } from './types'
 
 /**
  * Create a stream renderer for agent output.
- * Returns the renderer and a flush callback for use after streaming completes.
+ * Buffers the full response for post-stream formatting.
  */
 function createAgentStreamRenderer(): {
   renderer: StreamRenderer
   onChunk: (chunk: string) => void
+  getFullResponse: () => string
 } {
   const renderer = createStreamRenderer({ margin: 2 })
+  let fullResponse = ''
+
   return {
     renderer,
-    onChunk: renderer.handler,
+    onChunk: (chunk: string) => {
+      fullResponse += chunk
+      renderer.handler(chunk)
+    },
+    getFullResponse: () => fullResponse,
   }
 }
 
@@ -487,7 +496,9 @@ async function runInterviewLoop(
 
       // Replace clack's output with collapsible view
       // (auto-collapses any previously expanded sections)
-      collapsible.render(input)
+      // Use processUserInput to sanitize display while preserving original
+      const processed = processUserInput(input)
+      collapsible.render(processed)
 
       // Activate Ctrl+O listener (before streaming)
       keypress.activate([{ key: 'ctrl+o', callback: () => collapsible.toggleLast() }])
@@ -496,13 +507,13 @@ async function runInterviewLoop(
       const prdContent = await readPRDFile(projectRoot, session.prdSlug)
 
       // Create stream renderer for this message
-      const { renderer, onChunk } = createAgentStreamRenderer()
+      const { renderer, onChunk, getFullResponse } = createAgentStreamRenderer()
 
       // PAUSE keypresses during streaming
       keypress.pause()
 
-      // Process message
-      const result = await processMessage(session, input, {
+      // Process message (send original text to agent)
+      const result = await processMessage(session, processed.original, {
         projectRoot,
         projectConfig,
         checkpointData,
@@ -520,6 +531,15 @@ async function runInterviewLoop(
       })
 
       renderer.flush()
+
+      // Apply response formatting (question highlighting, bold conversion)
+      const fullResponse = getFullResponse()
+      if (fullResponse) {
+        const formatted = formatAgentResponse(fullResponse)
+        // Note: Response already streamed; formatting visible in next interaction
+        // For now, this prepares for future cursor-based re-rendering
+      }
+
       console.log('\n')
       session = result.session
 
@@ -846,28 +866,30 @@ async function runConversationalLoop(state: ConversationalState): Promise<void> 
 
       // Replace clack's output with collapsible view
       // (auto-collapses any previously expanded sections)
-      collapsible.render(input)
+      // Use processUserInput to sanitize display while preserving original
+      const processed = processUserInput(input)
+      collapsible.render(processed)
 
       // Activate Ctrl+O listener (before streaming)
       keypress.activate([{ key: 'ctrl+o', callback: () => collapsible.toggleLast() }])
 
-      // Add user message to history
+      // Add user message to history (use original text)
       state.messages.push({
         role: 'user',
-        content: input,
+        content: processed.original,
       })
 
       // Load current PRD content
       const prdContent = await readPRDFile(projectRoot, prdSlug)
 
       // Create stream renderer
-      const { renderer, onChunk } = createAgentStreamRenderer()
+      const { renderer, onChunk, getFullResponse } = createAgentStreamRenderer()
 
       // PAUSE keypresses during streaming
       keypress.pause()
 
-      // Process message
-      const result = await processConversationalMessage(state.messages, input, {
+      // Process message (send original text to agent)
+      const result = await processConversationalMessage(state.messages, processed.original, {
         projectRoot,
         prdSlug,
         prdContent,
@@ -898,6 +920,14 @@ async function runConversationalLoop(state: ConversationalState): Promise<void> 
       })
 
       renderer.flush()
+
+      // Apply response formatting (question highlighting, bold conversion)
+      const fullResponse = getFullResponse()
+      if (fullResponse) {
+        const formatted = formatAgentResponse(fullResponse)
+        // Note: Response already streamed; formatting visible in next interaction
+        // For now, this prepares for future cursor-based re-rendering
+      }
 
       // RESUME keypresses after streaming (user can toggle while reviewing)
       keypress.resume()
