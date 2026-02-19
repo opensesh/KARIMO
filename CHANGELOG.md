@@ -50,6 +50,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Husky Pre-Push Hook**: Changelog reminder warnings for versioning discipline
 
 ### Fixed
+- **CLI**: Fix LoadConfigResult property access and import formatting in session info
 - CLI dev script pointing to correct entry point
 - Team queue file lock and version conflict issues
 - Safety check detection for @karimo/core
