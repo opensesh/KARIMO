@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **CLI**: Add response formatter for highlighting questions and bold text in agent output
 - **CLI**: Update collapsible response to accept ProcessedInput for sanitized display
 - **CLI**: Add input sanitizer for safe terminal display of numbered and bulleted text
 - **CLI**: Export collapsible response renderer and keypress manager from UI module
@@ -42,6 +43,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.1.0] - 2026-02-17
 
 ### Added
+- **CLI**: Add response formatter for highlighting questions and bold text in agent output
 - **CLI**: Update collapsible response to accept ProcessedInput for sanitized display
 - **CLI**: Add input sanitizer for safe terminal display of numbered and bulleted text
 - **CLI**: Export collapsible response renderer and keypress manager from UI module
@@ -80,6 +82,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.4.0] - 2026-02-17
 
 ### Added
+- **CLI**: Add response formatter for highlighting questions and bold text in agent output
 - **CLI**: Update collapsible response to accept ProcessedInput for sanitized display
 - **CLI**: Add input sanitizer for safe terminal display of numbered and bulleted text
 - **CLI**: Export collapsible response renderer and keypress manager from UI module
@@ -110,6 +113,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.1.0] - 2026-02-17
 
 ### Added
+- **CLI**: Add response formatter for highlighting questions and bold text in agent output
 - **CLI**: Update collapsible response to accept ProcessedInput for sanitized display
 - **CLI**: Add input sanitizer for safe terminal display of numbered and bulleted text
 - **CLI**: Export collapsible response renderer and keypress manager from UI module
@@ -129,6 +133,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.0.0] - 2026-02-17
 
 ### Added
+- **CLI**: Add response formatter for highlighting questions and bold text in agent output
 - **CLI**: Update collapsible response to accept ProcessedInput for sanitized display
 - **CLI**: Add input sanitizer for safe terminal display of numbered and bulleted text
 - **CLI**: Export collapsible response renderer and keypress manager from UI module
