@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - **Text Formatting Utilities**: ANSI-aware text wrapping for terminal output with streaming support, preventing mid-word breaks during agent responses
+- **Long Input Handler**: Editor fallback (`/edit` command) for composing long responses using $EDITOR
 - **Animated Welcome Screen**: Section-by-section reveal animation for first-run experience with ASCII wordmark, orchestration flow diagram, level-based build plan, and getting started guidance
 - **Init → PRD Transition**: Seamless flow from config initialization to PRD interview in the same terminal session
 - **Section Explanations**: Context notes explaining what KARIMO does with each config section (commands, rules, sandbox, boundaries)
