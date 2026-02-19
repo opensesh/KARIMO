@@ -146,6 +146,48 @@ async function executeCommand(
         }
       }
 
+      // Returning user check — show returning welcome if config already exists
+      const { configExists, detectProjectPhase } = await import('./state')
+      if (configExists(projectRoot)) {
+        const phase = await detectProjectPhase(projectRoot)
+        const { showReturningWelcome } = await import('./returning-welcome')
+        const action = await showReturningWelcome(projectRoot, phase)
+
+        if (!action || action === 'exit') {
+          return
+        }
+
+        // Route based on selected action
+        switch (action) {
+          case 'init':
+          case 'reconfigure': {
+            const { runInit } = await import('../config/init')
+            await runInit(projectRoot)
+            break
+          }
+          case 'resume-prd': {
+            const { resumeInterview } = await import('../interview')
+            await resumeInterview(projectRoot)
+            break
+          }
+          case 'start-prd': {
+            const { startInterview } = await import('../interview')
+            await startInterview(projectRoot)
+            break
+          }
+          case 'execute': {
+            const { showExecutionFlow } = await import('./execute-flow')
+            await showExecutionFlow(projectRoot)
+            break
+          }
+          case 'help':
+            printHelp()
+            break
+        }
+        return
+      }
+
+      // No config yet — run init directly
       const { runInit } = await import('../config/init')
       const initResult = await runInit(projectRoot)
 
@@ -395,7 +437,8 @@ async function runGuidedFlow(projectRoot: string, firstRunHandled = false): Prom
           await showExecutionFlow(projectRoot)
           break
         }
-        case 'init': {
+        case 'init':
+        case 'reconfigure': {
           const { runInit } = await import('../config/init')
           await runInit(projectRoot)
           break
