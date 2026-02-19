@@ -68,12 +68,12 @@ For experienced users who know what they need:
 ```
 ┌──────────────┐    ┌───────────────┐    ┌─────────────┐    ┌────────────┐    ┌───────────┐
 │   Interview  │ →  │   PRD File    │ →  │   Execute   │ →  │   Review   │ →  │   Merge   │
-│  (5 rounds)  │    │  (generated)  │    │   (agents)  │    │  (checks)  │    │   (PR)    │
+│(conversation)│    │  (generated)  │    │   (agents)  │    │  (checks)  │    │   (PR)    │
 └──────────────┘    └───────────────┘    └─────────────┘    └────────────┘    └───────────┘
 ```
 
-1. **Interview** — Answer questions about what you're building (~28 min)
-2. **PRD Generated** — Your answers become a structured document
+1. **Interview** — Have a conversation about what you're building
+2. **PRD Generated** — Your conversation becomes a structured document
 3. **Execute** — Agents work on tasks from the PRD
 4. **Review** — Pre-PR checks (build, typecheck, boundaries)
 5. **Merge** — Pull request created for human review
@@ -82,15 +82,14 @@ For experienced users who know what they need:
 
 ## The PRD Interview
 
-KARIMO interviews you in 5 rounds to understand what you're building:
+KARIMO has a conversation with you to understand what you're building:
 
-| Round | Duration | What You'll Discuss |
-|-------|----------|---------------------|
-| 1. Framing | ~5 min | What's the feature? Who's it for? Why now? |
-| 2. Requirements | ~10 min | What must it do? What's out of scope? |
-| 3. Dependencies | ~5 min | What depends on what? Which files are involved? |
-| 4. Agent Context | ~5 min | What patterns should agents follow? |
-| 5. Retrospective | ~3 min | What did we learn from previous work? |
+1. **Start** — Describe your feature in your own words
+2. **Extract** — Agent identifies requirements, risks, scope
+3. **Refine** — Fill gaps through natural conversation
+4. **Finalize** — Review captured PRD, resolve any conflicts
+
+No rigid rounds. Talk naturally — the agent captures structure as you speak.
 
 You can pause anytime. Run `karimo` again to resume where you left off.
 
