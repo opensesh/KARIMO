@@ -22,6 +22,7 @@ export type CommandType =
   | 'reset'
   | 'note'
   | 'checkpoint'
+  | 'info'
   | 'help'
   | 'version'
 
@@ -96,6 +97,9 @@ export function parseCommand(args: string[]): ParsedCommand {
       return { type: 'note', args: positional.slice(1), flags }
     case 'checkpoint':
       return { type: 'checkpoint', args: positional.slice(1), flags }
+    case 'info':
+    case 'about':
+      return { type: 'info', args: positional.slice(1), flags }
     case 'help':
       return { type: 'help', args: positional.slice(1), flags }
     case 'version':
@@ -223,6 +227,11 @@ async function executeCommand(
       p.log.info('  karimo note "your observation"')
       break
     }
+    case 'info': {
+      const { handleInfo } = await import('./commands/info')
+      handleInfo()
+      break
+    }
     case 'help':
       printHelp()
       break
@@ -324,59 +333,77 @@ async function runGuidedFlow(projectRoot: string, firstRunHandled = false): Prom
     }
 
     case 'init': {
-      // .karimo exists but no config - run init
-      const { runInit: runInitAgain } = await import('../config/init')
-      const initResult = await runInitAgain(projectRoot)
+      // .karimo exists but no config - show returning welcome for init
+      const { showReturningWelcome } = await import('./returning-welcome')
+      const action = await showReturningWelcome(projectRoot, phase)
 
-      // Offer PRD transition after successful init
-      if (initResult.success) {
-        console.log()
-        const startPRD = await p.confirm({
-          message: 'Ready to create your first PRD?',
-          initialValue: true,
-        })
+      if (!action || action === 'exit') {
+        return
+      }
 
-        if (!p.isCancel(startPRD) && startPRD) {
-          const { startInterview } = await import('../interview')
-          await startInterview(projectRoot)
-        } else {
-          p.log.info('Run `karimo` anytime to start your first PRD.')
+      if (action === 'init') {
+        const { runInit: runInitAgain } = await import('../config/init')
+        const initResult = await runInitAgain(projectRoot)
+
+        // Offer PRD transition after successful init
+        if (initResult.success) {
+          console.log()
+          const startPRD = await p.confirm({
+            message: 'Ready to create your first PRD?',
+            initialValue: true,
+          })
+
+          if (!p.isCancel(startPRD) && startPRD) {
+            const { startInterview } = await import('../interview')
+            await startInterview(projectRoot)
+          } else {
+            p.log.info('Run `karimo` anytime to start your first PRD.')
+          }
         }
+      } else if (action === 'help') {
+        printHelp()
       }
       break
     }
 
-    case 'create-prd': {
-      // Config exists but no PRDs - start PRD interview
-      p.intro('KARIMO')
-      p.log.info('No PRDs found. Starting PRD interview...')
-      const { startInterview } = await import('../interview')
-      await startInterview(projectRoot)
-      break
-    }
-
-    case 'resume-prd': {
-      // PRD in progress - offer to resume
-      p.intro('KARIMO')
-      p.log.info('Found PRD in progress. Resuming interview...')
-      const { resumeInterview } = await import('../interview')
-      await resumeInterview(projectRoot)
-      break
-    }
-
-    case 'execute': {
-      // Finalized PRDs with pending tasks - show execution options
-      p.intro('KARIMO')
-      p.log.info('Ready to execute tasks.')
-      const { showExecutionFlow } = await import('./execute-flow')
-      await showExecutionFlow(projectRoot)
-      break
-    }
-
+    case 'create-prd':
+    case 'resume-prd':
+    case 'execute':
     case 'complete': {
-      // All tasks complete
-      p.intro('KARIMO')
-      p.log.success('All tasks complete!')
+      // Returning user flow - show compact welcome with action selection
+      const { showReturningWelcome } = await import('./returning-welcome')
+      const action = await showReturningWelcome(projectRoot, phase)
+
+      if (!action || action === 'exit') {
+        return
+      }
+
+      // Route based on selected action
+      switch (action) {
+        case 'resume-prd': {
+          const { resumeInterview } = await import('../interview')
+          await resumeInterview(projectRoot)
+          break
+        }
+        case 'start-prd': {
+          const { startInterview } = await import('../interview')
+          await startInterview(projectRoot)
+          break
+        }
+        case 'execute': {
+          const { showExecutionFlow } = await import('./execute-flow')
+          await showExecutionFlow(projectRoot)
+          break
+        }
+        case 'init': {
+          const { runInit } = await import('../config/init')
+          await runInit(projectRoot)
+          break
+        }
+        case 'help':
+          printHelp()
+          break
+      }
       break
     }
   }
@@ -456,6 +483,7 @@ Usage:
   karimo note <message>    Capture dogfooding note
   karimo checkpoint        Capture learning checkpoint (Level 2)
   karimo reset             Reset KARIMO state
+  karimo info              Show version and project info
   karimo help              Show this help message
   karimo version           Show version
 
