@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **CLI**: Update collapsible response to accept ProcessedInput for sanitized display
 - **CLI**: Add input sanitizer for safe terminal display of numbered and bulleted text
 - **CLI**: Export collapsible response renderer and keypress manager from UI module
 - **CLI**: Add keypress manager for Ctrl+O toggle handling with safe raw mode lifecycle
@@ -41,6 +42,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.1.0] - 2026-02-17
 
 ### Added
+- **CLI**: Update collapsible response to accept ProcessedInput for sanitized display
 - **CLI**: Add input sanitizer for safe terminal display of numbered and bulleted text
 - **CLI**: Export collapsible response renderer and keypress manager from UI module
 - **CLI**: Add keypress manager for Ctrl+O toggle handling with safe raw mode lifecycle
@@ -78,6 +80,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.4.0] - 2026-02-17
 
 ### Added
+- **CLI**: Update collapsible response to accept ProcessedInput for sanitized display
 - **CLI**: Add input sanitizer for safe terminal display of numbered and bulleted text
 - **CLI**: Export collapsible response renderer and keypress manager from UI module
 - **CLI**: Add keypress manager for Ctrl+O toggle handling with safe raw mode lifecycle
@@ -107,6 +110,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.1.0] - 2026-02-17
 
 ### Added
+- **CLI**: Update collapsible response to accept ProcessedInput for sanitized display
 - **CLI**: Add input sanitizer for safe terminal display of numbered and bulleted text
 - **CLI**: Export collapsible response renderer and keypress manager from UI module
 - **CLI**: Add keypress manager for Ctrl+O toggle handling with safe raw mode lifecycle
@@ -125,6 +129,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.0.0] - 2026-02-17
 
 ### Added
+- **CLI**: Update collapsible response to accept ProcessedInput for sanitized display
 - **CLI**: Add input sanitizer for safe terminal display of numbered and bulleted text
 - **CLI**: Export collapsible response renderer and keypress manager from UI module
 - **CLI**: Add keypress manager for Ctrl+O toggle handling with safe raw mode lifecycle
