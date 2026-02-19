@@ -30,6 +30,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Doctor Checklist**: Added context explanation and GitHub issues link for getting help
 - **Husky commit-msg Hook**: Auto-generates CHANGELOG entries for `feat:`/`fix:` commits using Claude Code instead of blocking
 
+### Fixed
+- **CLI**: Show returning welcome when running `karimo init` with existing config instead of immediately asking to overwrite
+
 ---
 
 ## [0.1.0] - 2026-02-17
