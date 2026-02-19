@@ -1,6 +1,16 @@
 # PRD Interview Protocol
 
-**Version:** 1.1
+> **Note:** This document describes the legacy 5-round interview structure.
+> The new conversational interview system (introduced in v0.2.0) replaces this
+> with a free-form conversation. See `src/interview/index.ts` for the current flow.
+>
+> **Key differences:**
+> - No fixed rounds — talk naturally, agent captures structure
+> - Tool-based capture — `capture_section`, `capture_requirement`, `flag_conflict`
+> - Weighted progress — sections contribute proportionally to overall completion
+> - Conflict detection — contradictions surfaced and resolved before finalization
+
+**Version:** 1.1 (Legacy)
 **Purpose:** Conduct structured interviews that produce agent-executable PRDs
 **Output format:** See [PRD_TEMPLATE.md](./PRD_TEMPLATE.md)
 
