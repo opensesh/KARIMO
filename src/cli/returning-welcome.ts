@@ -263,13 +263,6 @@ export async function showReturningWelcome(
 
   // Show action prompt
   const options = getActionOptions(phase)
-  const helpOption = options.find((o) => o.value === 'help')
-
-  // Add help hint
-  if (helpOption) {
-    console.log(`${GYD}  ? for help${RST}`)
-    console.log()
-  }
 
   const action = await p.select({
     message: 'What would you like to do?',
