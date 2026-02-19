@@ -6,6 +6,7 @@
 import * as p from '@clack/prompts'
 import { stringify as stringifyYaml } from 'yaml'
 import { getNextPRDNumber, loadState, setCurrentPRD } from '../cli/state'
+import { type StreamRenderer, createStreamRenderer } from '../cli/ui'
 import { loadConfig } from '../config/loader'
 import {
   processMessage,
@@ -24,6 +25,25 @@ import {
   sessionExists,
 } from './session'
 import type { InterviewSession } from './types'
+
+// =============================================================================
+// Stream Rendering Helper
+// =============================================================================
+
+/**
+ * Create a stream renderer for agent output.
+ * Returns the renderer and a flush callback for use after streaming completes.
+ */
+function createAgentStreamRenderer(): {
+  renderer: StreamRenderer
+  onChunk: (chunk: string) => void
+} {
+  const renderer = createStreamRenderer({ margin: 2 })
+  return {
+    renderer,
+    onChunk: renderer.handler,
+  }
+}
 
 // =============================================================================
 // Types
@@ -269,18 +289,23 @@ export async function startInterview(projectRoot: string): Promise<void> {
   // Load PRD content
   const prdContent = await readPRDFile(projectRoot, prdSlug)
 
+  // Create stream renderer for wrapped output
+  const { renderer, onChunk } = createAgentStreamRenderer()
+
   // Start the interview agent
   const result = await startInterviewAgent(session, {
     projectRoot,
     projectConfig: configYaml,
     checkpointData: null, // TODO: Load checkpoint data when available
     prdContent,
-    onChunk: (chunk) => process.stdout.write(chunk),
+    onChunk,
     onRoundComplete: (round) => {
+      renderer.flush()
       p.log.success(`Round ${getRoundNumber(round)} complete: ${getRoundDisplayName(round)}`)
     },
   })
 
+  renderer.flush()
   console.log('\n')
 
   // Continue interview loop
@@ -320,18 +345,23 @@ export async function resumeInterview(projectRoot: string): Promise<void> {
   // Load PRD content
   const prdContent = await readPRDFile(projectRoot, prdSlug)
 
+  // Create stream renderer for wrapped output
+  const { renderer, onChunk } = createAgentStreamRenderer()
+
   // Resume the interview
   const result = await resumeInterviewAgent(session, {
     projectRoot,
     projectConfig: configYaml,
     checkpointData: null,
     prdContent,
-    onChunk: (chunk) => process.stdout.write(chunk),
+    onChunk,
     onRoundComplete: (round) => {
+      renderer.flush()
       p.log.success(`Round ${getRoundNumber(round)} complete: ${getRoundDisplayName(round)}`)
     },
   })
 
+  renderer.flush()
   console.log('\n')
 
   // Continue interview loop
@@ -372,22 +402,28 @@ async function runInterviewLoop(
     // Load PRD content
     const prdContent = await readPRDFile(projectRoot, session.prdSlug)
 
+    // Create stream renderer for this message
+    const { renderer, onChunk } = createAgentStreamRenderer()
+
     // Process message
     const result = await processMessage(session, input, {
       projectRoot,
       projectConfig,
       checkpointData,
       prdContent,
-      onChunk: (chunk) => process.stdout.write(chunk),
+      onChunk,
       onRoundComplete: (round) => {
+        renderer.flush()
         console.log('\n')
         p.log.success(`Round ${getRoundNumber(round)} complete: ${getRoundDisplayName(round)}`)
       },
       onSummarization: () => {
+        renderer.flush()
         p.log.info('Context summarized to maintain quality.')
       },
     })
 
+    renderer.flush()
     console.log('\n')
     session = result.session
 

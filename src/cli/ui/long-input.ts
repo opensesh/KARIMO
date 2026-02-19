@@ -116,7 +116,7 @@ export function isEditCommand(input: string): boolean {
 /**
  * Create a temporary file for editing.
  */
-async function createTempFile(content: string = ''): Promise<string> {
+async function createTempFile(content = ''): Promise<string> {
   const timestamp = Date.now()
   const random = Math.random().toString(36).substring(2, 8)
   const filename = `${TEMP_FILE_PREFIX}${timestamp}-${random}.md`
@@ -262,7 +262,7 @@ export async function getLongInput(prompt: string): Promise<string> {
  * @param maxLines - Maximum lines to show
  * @returns Formatted preview
  */
-export function formatInputPreview(input: string, maxLines: number = 5): string {
+export function formatInputPreview(input: string, maxLines = 5): string {
   const lines = input.split('\n')
 
   if (lines.length <= maxLines) {

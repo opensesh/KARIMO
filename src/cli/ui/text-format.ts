@@ -133,13 +133,16 @@ export interface StreamRenderer {
  * @returns Stream renderer with handler and flush methods
  */
 export function createStreamRenderer(options: StreamRendererOptions = {}): StreamRenderer {
-  const { margin = DEFAULT_MARGIN, maxWidth, output = (text: string) => process.stdout.write(text) } = options
+  const {
+    margin = DEFAULT_MARGIN,
+    maxWidth,
+    output = (text: string) => process.stdout.write(text),
+  } = options
 
   const effectiveWidth = maxWidth ?? getEffectiveWidth(margin)
   const marginPad = ' '.repeat(margin)
 
   let buffer = ''
-  let currentLineLength = 0
 
   /**
    * Wrap and output a complete line.
@@ -163,8 +166,6 @@ export function createStreamRenderer(options: StreamRendererOptions = {}): Strea
       const wrappedLine = wrappedLines[i] ?? ''
       output(`${marginPad}${wrappedLine}\n`)
     }
-
-    currentLineLength = 0
   }
 
   /**
@@ -174,15 +175,13 @@ export function createStreamRenderer(options: StreamRendererOptions = {}): Strea
     buffer += chunk
 
     // Process complete lines
-    let newlineIndex: number
-    while ((newlineIndex = buffer.indexOf('\n')) !== -1) {
+    let newlineIndex = buffer.indexOf('\n')
+    while (newlineIndex !== -1) {
       const line = buffer.slice(0, newlineIndex)
       buffer = buffer.slice(newlineIndex + 1)
       outputLine(line)
+      newlineIndex = buffer.indexOf('\n')
     }
-
-    // Track visual width of remaining buffer for partial line handling
-    currentLineLength = getVisualWidth(buffer)
   }
 
   /**
@@ -208,7 +207,6 @@ export function createStreamRenderer(options: StreamRendererOptions = {}): Strea
       }
 
       buffer = ''
-      currentLineLength = 0
     }
   }
 
@@ -217,7 +215,6 @@ export function createStreamRenderer(options: StreamRendererOptions = {}): Strea
    */
   const reset = (): void => {
     buffer = ''
-    currentLineLength = 0
   }
 
   return { handler, flush, reset }
@@ -235,7 +232,7 @@ export function createStreamRenderer(options: StreamRendererOptions = {}): Strea
  * @param suffix - Suffix to add when truncated (default: '...')
  * @returns Truncated text
  */
-export function truncateText(text: string, maxWidth: number, suffix: string = '...'): string {
+export function truncateText(text: string, maxWidth: number, suffix = '...'): string {
   const textWidth = getVisualWidth(text)
 
   if (textWidth <= maxWidth) {
@@ -294,7 +291,7 @@ export function centerText(text: string, width?: number): string {
  * @param width - Width (defaults to effective terminal width)
  * @returns Divider string
  */
-export function createDivider(char: string = '─', width?: number): string {
+export function createDivider(char = '─', width?: number): string {
   const targetWidth = width ?? getEffectiveWidth()
   return char.repeat(targetWidth)
 }
