@@ -854,3 +854,81 @@ bun run orchestrate --phase phase-1 --task 1a --dry-run
 | `TaskBlockedError` | Task has unmet dependencies |
 | `PMAgentError` | Coordination error |
 | `AllTasksFailedError` | All tasks in phase failed |
+
+---
+
+## Phase 10 — Conversational Interview System (Complete)
+
+- Interview module enhanced in `src/interview/`
+- Open-ended intake replaces rigid round structure
+- Tool-enabled conversation with real-time PRD updates
+- Section tracker with weighted progress calculation
+- Conflict detection (user-vs-user, user-vs-codebase, user-vs-prd)
+
+### Interview Module Files
+
+| File | Purpose |
+| ---- | ------- |
+| `src/interview/agents/intake-agent.ts` | Process initial context, extract structure |
+| `src/interview/agents/conversational-agent.ts` | Tool-enabled conversational loop |
+| `src/interview/section-tracker.ts` | Track PRD completion with weighted sections |
+| `src/interview/tools/section-tools.ts` | Tool definitions for capture and conflict detection |
+| `src/interview/tools/executor.ts` | Tool executor for interview actions |
+| `src/interview/conversation.ts` | Streaming APIs with tool support |
+
+### Interview Flow
+
+1. Open-ended intake prompt
+2. Intake agent extracts: title, slug, scope type, initial sections
+3. User confirms/edits suggested title
+4. Conversational loop with tools:
+   - `capture_section` — Write/update PRD section
+   - `capture_requirement` — Add requirement with priority
+   - `flag_conflict` — Detect and surface contradictions
+   - `report_progress` — Report completion milestones
+5. At 80%+ progress, offer finalization
+6. Resolve unresolved conflicts, mark PRD ready for review
+
+### Section Weights
+
+| Section | Weight | PRD § |
+|---------|--------|-------|
+| Executive Summary | 15% | §1 |
+| Problem & Context | 10% | §2 |
+| Goals & Metrics | 15% | §3 |
+| Requirements | 20% | §4 |
+| UX Notes | 10% | §5 |
+| Dependencies & Risks | 10% | §6 |
+| Rollout | 5% | §7 |
+| Milestones | 5% | §8 |
+| Open Questions | 0% | §9 |
+| Checkpoint Learnings | 5% | §10 |
+| Agent Boundaries | 5% | §11 |
+
+### Conflict Types
+
+| Type | Description |
+|------|-------------|
+| `user-vs-user` | User contradicted earlier statement |
+| `user-vs-codebase` | User's claim conflicts with discovered code patterns |
+| `user-vs-prd` | New statement conflicts with already-captured PRD content |
+
+### Progress Thresholds
+
+- **80%+** — Offer finalization
+- **95%+** — Proactively suggest finalization (if no conflicts)
+- **100%** — All conflicts resolved, PRD ready for execution
+
+### Streaming Tool APIs
+
+| Function | Purpose |
+|----------|---------|
+| `streamMessageWithTools(options)` | Stream message with tool definitions |
+| `streamContinueWithToolResults(options)` | Continue conversation after tool execution |
+
+### CLI Enhancements
+
+| File | Purpose |
+| ---- | ------- |
+| `src/cli/ui/text-format.ts` | ANSI-aware text wrapping for streaming output |
+| `src/cli/ui/long-input.ts` | Editor fallback (`/edit` command) for long input |
