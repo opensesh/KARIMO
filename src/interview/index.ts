@@ -7,7 +7,12 @@
 import * as p from '@clack/prompts'
 import { stringify as stringifyYaml } from 'yaml'
 import { getNextPRDNumber, loadState, setCurrentPRD } from '../cli/state'
-import { type StreamRenderer, createStreamRenderer } from '../cli/ui'
+import {
+  type StreamRenderer,
+  createCollapsibleRenderer,
+  createKeypressManager,
+  createStreamRenderer,
+} from '../cli/ui'
 import { loadConfig } from '../config/loader'
 import {
   type ConversationMessageSimple,
@@ -452,63 +457,89 @@ async function runInterviewLoop(
 ): Promise<void> {
   let session = initialSession
 
-  while (session.status === 'in-progress') {
-    // Get user input
-    const input = await p.text({
-      message: `Round ${getRoundNumber(session.currentRound)}`,
-      placeholder: 'Your response...',
-    })
+  // Create collapsible renderer and keypress manager
+  const collapsible = createCollapsibleRenderer({ previewLines: 3 })
+  const keypress = createKeypressManager()
 
-    if (p.isCancel(input)) {
-      const shouldSave = await p.confirm({
-        message: 'Save progress and exit?',
-        initialValue: true,
+  try {
+    while (session.status === 'in-progress') {
+      // CRITICAL: Deactivate before prompt (let clack handle input)
+      keypress.deactivate()
+
+      // Get user input
+      const input = await p.text({
+        message: `Round ${getRoundNumber(session.currentRound)}`,
+        placeholder: 'Your response...',
       })
 
-      if (p.isCancel(shouldSave) || shouldSave) {
-        await saveSession(projectRoot, session)
-        p.log.info('Progress saved. Run `karimo` to resume.')
+      if (p.isCancel(input)) {
+        const shouldSave = await p.confirm({
+          message: 'Save progress and exit?',
+          initialValue: true,
+        })
+
+        if (p.isCancel(shouldSave) || shouldSave) {
+          await saveSession(projectRoot, session)
+          p.log.info('Progress saved. Run `karimo` to resume.')
+        }
+        return
       }
-      return
+
+      // Replace clack's output with collapsible view
+      // (auto-collapses any previously expanded sections)
+      collapsible.render(input)
+
+      // Activate Ctrl+O listener (before streaming)
+      keypress.activate([{ key: 'ctrl+o', callback: () => collapsible.toggleLast() }])
+
+      // Load PRD content
+      const prdContent = await readPRDFile(projectRoot, session.prdSlug)
+
+      // Create stream renderer for this message
+      const { renderer, onChunk } = createAgentStreamRenderer()
+
+      // PAUSE keypresses during streaming
+      keypress.pause()
+
+      // Process message
+      const result = await processMessage(session, input, {
+        projectRoot,
+        projectConfig,
+        checkpointData,
+        prdContent,
+        onChunk,
+        onRoundComplete: (round) => {
+          renderer.flush()
+          console.log('\n')
+          p.log.success(`Round ${getRoundNumber(round)} complete: ${getRoundDisplayName(round)}`)
+        },
+        onSummarization: () => {
+          renderer.flush()
+          p.log.info('Context summarized to maintain quality.')
+        },
+      })
+
+      renderer.flush()
+      console.log('\n')
+      session = result.session
+
+      // RESUME keypresses after streaming (user can toggle while reviewing)
+      keypress.resume()
+
+      if (result.allComplete) {
+        p.log.success('All interview rounds complete!')
+        break
+      }
     }
 
-    // Load PRD content
-    const prdContent = await readPRDFile(projectRoot, session.prdSlug)
-
-    // Create stream renderer for this message
-    const { renderer, onChunk } = createAgentStreamRenderer()
-
-    // Process message
-    const result = await processMessage(session, input, {
-      projectRoot,
-      projectConfig,
-      checkpointData,
-      prdContent,
-      onChunk,
-      onRoundComplete: (round) => {
-        renderer.flush()
-        console.log('\n')
-        p.log.success(`Round ${getRoundNumber(round)} complete: ${getRoundDisplayName(round)}`)
-      },
-      onSummarization: () => {
-        renderer.flush()
-        p.log.info('Context summarized to maintain quality.')
-      },
-    })
-
-    renderer.flush()
-    console.log('\n')
-    session = result.session
-
-    if (result.allComplete) {
-      p.log.success('All interview rounds complete!')
-      break
+    // Move to review if all rounds complete
+    if (session.status === 'reviewing') {
+      await runReview(projectRoot, session)
     }
-  }
-
-  // Move to review if all rounds complete
-  if (session.status === 'reviewing') {
-    await runReview(projectRoot, session)
+  } finally {
+    // Cleanup on exit
+    keypress.deactivate()
+    collapsible.cleanup()
   }
 }
 
@@ -782,95 +813,126 @@ export async function startNewInterview(projectRoot: string): Promise<void> {
 async function runConversationalLoop(state: ConversationalState): Promise<void> {
   const { projectRoot, prdSlug, tracker, configYaml } = state
 
-  while (true) {
-    // Get user input
-    const progress = tracker.getProgress()
-    const promptMsg =
-      progress.overallPercent >= 80 ? 'Your response (or "done" to finalize)' : 'Your response'
+  // Create collapsible renderer and keypress manager
+  const collapsible = createCollapsibleRenderer({ previewLines: 3 })
+  const keypress = createKeypressManager()
 
-    const input = await p.text({
-      message: promptMsg,
-      placeholder: 'Continue describing your feature...',
-    })
+  try {
+    while (true) {
+      // CRITICAL: Deactivate before prompt (let clack handle input)
+      keypress.deactivate()
 
-    if (p.isCancel(input)) {
-      // Save progress and exit
-      p.log.info('Progress saved to PRD file.')
-      return
-    }
+      // Get user input
+      const progress = tracker.getProgress()
+      const promptMsg =
+        progress.overallPercent >= 80 ? 'Your response (or "done" to finalize)' : 'Your response'
 
-    // Check for done command
-    if (input.toLowerCase().trim() === 'done' && progress.overallPercent >= 80) {
-      await handleFinalization(state)
-      return
-    }
-
-    // Add user message to history
-    state.messages.push({
-      role: 'user',
-      content: input,
-    })
-
-    // Load current PRD content
-    const prdContent = await readPRDFile(projectRoot, prdSlug)
-
-    // Create stream renderer
-    const { renderer, onChunk } = createAgentStreamRenderer()
-
-    // Process message
-    const result = await processConversationalMessage(state.messages, input, {
-      projectRoot,
-      prdSlug,
-      prdContent,
-      projectConfig: configYaml,
-      tracker,
-      onChunk,
-      onToolResult: (toolResult) => {
-        renderer.flush()
-        if (toolResult.isConflict) {
-          console.log('\n')
-          p.log.warn(toolResult.message)
-        } else if (toolResult.success) {
-          console.log(`\n  ${toolResult.message}`)
-        }
-      },
-      onProgress: (prog) => {
-        // Show progress at milestones
-        const milestones = [25, 50, 75, 95]
-        const lastPercent = state.tracker.getProgress().overallPercent
-        for (const milestone of milestones) {
-          if (lastPercent < milestone && prog.overallPercent >= milestone) {
-            console.log(`\n  🌟 ${milestone}% milestone: ${formatProgressBar(prog.overallPercent)}`)
-          }
-        }
-      },
-    })
-
-    renderer.flush()
-
-    // Add assistant response to messages
-    if (result.response) {
-      state.messages.push({
-        role: 'assistant',
-        content: result.response,
-      })
-      console.log('\n')
-    }
-
-    // Check if we should suggest finalization
-    if (result.suggestFinalize) {
-      const finalize = await p.confirm({
-        message: 'PRD is looking comprehensive. Would you like to finalize it?',
-        initialValue: true,
+      const input = await p.text({
+        message: promptMsg,
+        placeholder: 'Continue describing your feature...',
       })
 
-      if (!p.isCancel(finalize) && finalize) {
+      if (p.isCancel(input)) {
+        // Save progress and exit
+        p.log.info('Progress saved to PRD file.')
+        return
+      }
+
+      // Check for done command
+      if (input.toLowerCase().trim() === 'done' && progress.overallPercent >= 80) {
         await handleFinalization(state)
         return
       }
-    } else if (result.offerFinalize) {
-      p.log.info('Tip: Type "done" when you\'re ready to finalize the PRD.')
+
+      // Replace clack's output with collapsible view
+      // (auto-collapses any previously expanded sections)
+      collapsible.render(input)
+
+      // Activate Ctrl+O listener (before streaming)
+      keypress.activate([{ key: 'ctrl+o', callback: () => collapsible.toggleLast() }])
+
+      // Add user message to history
+      state.messages.push({
+        role: 'user',
+        content: input,
+      })
+
+      // Load current PRD content
+      const prdContent = await readPRDFile(projectRoot, prdSlug)
+
+      // Create stream renderer
+      const { renderer, onChunk } = createAgentStreamRenderer()
+
+      // PAUSE keypresses during streaming
+      keypress.pause()
+
+      // Process message
+      const result = await processConversationalMessage(state.messages, input, {
+        projectRoot,
+        prdSlug,
+        prdContent,
+        projectConfig: configYaml,
+        tracker,
+        onChunk,
+        onToolResult: (toolResult) => {
+          renderer.flush()
+          if (toolResult.isConflict) {
+            console.log('\n')
+            p.log.warn(toolResult.message)
+          } else if (toolResult.success) {
+            console.log(`\n  ${toolResult.message}`)
+          }
+        },
+        onProgress: (prog) => {
+          // Show progress at milestones
+          const milestones = [25, 50, 75, 95]
+          const lastPercent = state.tracker.getProgress().overallPercent
+          for (const milestone of milestones) {
+            if (lastPercent < milestone && prog.overallPercent >= milestone) {
+              console.log(
+                `\n  🌟 ${milestone}% milestone: ${formatProgressBar(prog.overallPercent)}`
+              )
+            }
+          }
+        },
+      })
+
+      renderer.flush()
+
+      // RESUME keypresses after streaming (user can toggle while reviewing)
+      keypress.resume()
+
+      // Add assistant response to messages
+      if (result.response) {
+        state.messages.push({
+          role: 'assistant',
+          content: result.response,
+        })
+        console.log('\n')
+      }
+
+      // Check if we should suggest finalization
+      if (result.suggestFinalize) {
+        // Deactivate keypress before confirm prompt
+        keypress.deactivate()
+
+        const finalize = await p.confirm({
+          message: 'PRD is looking comprehensive. Would you like to finalize it?',
+          initialValue: true,
+        })
+
+        if (!p.isCancel(finalize) && finalize) {
+          await handleFinalization(state)
+          return
+        }
+      } else if (result.offerFinalize) {
+        p.log.info('Tip: Type "done" when you\'re ready to finalize the PRD.')
+      }
     }
+  } finally {
+    // Cleanup on exit
+    keypress.deactivate()
+    collapsible.cleanup()
   }
 }
 
