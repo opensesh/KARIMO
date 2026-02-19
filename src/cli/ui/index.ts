@@ -49,3 +49,32 @@ export {
   GITHUB_URL,
   VERSION,
 } from './welcome-content'
+
+// Text formatting (ANSI-aware wrapping)
+export {
+  centerText,
+  createDivider,
+  createStreamRenderer,
+  getEffectiveWidth,
+  getTerminalWidth,
+  getVisualWidth,
+  truncateText,
+  wrapText,
+  wrapTextWithMargin,
+  type StreamRenderer,
+  type StreamRendererOptions,
+} from './text-format'
+
+// Long input handling
+export {
+  formatInputPreview,
+  getEditor,
+  getInputStats,
+  getLongInput,
+  isEditCommand,
+  isEditorAvailable,
+  openEditor,
+  shouldUseEditor,
+  type LongInputOptions,
+  type LongInputResult,
+} from './long-input'
