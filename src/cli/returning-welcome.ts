@@ -10,8 +10,8 @@ import * as p from '@clack/prompts'
 import { buildDependencyGraph, getReadyTasks, parsePRDFile } from '../prd'
 import { getPRDFileInfos, loadState } from './state'
 import type { KarimoState, PRDSection, ProjectPhase } from './state/types'
-import { getCompactBannerString } from './ui/compact-banner'
 import { GN, GY, GYD, OR, RST, WH } from './ui/colors'
+import { getCompactBannerString } from './ui/compact-banner'
 import { buildSessionContext, getSessionInfoString } from './ui/session-info'
 import { isTTY } from './ui/terminal-utils'
 
@@ -38,13 +38,7 @@ export interface StateContext {
 /**
  * Available user actions based on state.
  */
-export type ReturningAction =
-  | 'resume-prd'
-  | 'start-prd'
-  | 'execute'
-  | 'init'
-  | 'help'
-  | 'exit'
+export type ReturningAction = 'resume-prd' | 'start-prd' | 'execute' | 'init' | 'help' | 'exit'
 
 // =============================================================================
 // State Hint Generation
@@ -70,9 +64,7 @@ function getStateHint(context: StateContext): string {
   switch (context.phase) {
     case 'resume-prd': {
       const prdName = context.currentPRDName ?? 'untitled'
-      const section = context.currentSection
-        ? SECTION_DISPLAY[context.currentSection]
-        : 'unknown'
+      const section = context.currentSection ? SECTION_DISPLAY[context.currentSection] : 'unknown'
       return `${OR}●${RST} ${WH}PRD in progress${RST} ${GY}—${RST} ${WH}"${prdName}"${RST} ${GYD}(${section})${RST}`
     }
 

@@ -5,8 +5,8 @@
  * `karimo info` — Quick about block for the project.
  */
 
-import { getCompactBannerString } from '../ui/compact-banner'
 import { GY, GYD, OR, RST, WH } from '../ui/colors'
+import { getCompactBannerString } from '../ui/compact-banner'
 import { GITHUB_URL, VERSION } from '../ui/welcome-content'
 
 // =============================================================================

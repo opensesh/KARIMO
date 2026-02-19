@@ -119,11 +119,8 @@ export async function buildSessionContext(projectRoot: string): Promise<SessionC
   try {
     // Dynamic import to avoid circular dependency
     const { loadConfig } = await import('../../config')
-    const configResult = await loadConfig(projectRoot)
-
-    if (configResult.success && configResult.data) {
-      modelPreference = configResult.data.cost.model_preference
-    }
+    const result = await loadConfig(projectRoot)
+    modelPreference = result.config.cost.model_preference
   } catch {
     // Config not available, that's fine
     modelPreference = null
