@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **CLI**: Add info command and integrate returning welcome flow for non-first-time users
 - **CLI**: Add returning user welcome orchestrator with session info and action selection
 - **CLI**: Add compact 3-line ASCII wordmark banner for returning users
 - **Text Formatting Utilities**: ANSI-aware text wrapping for terminal output with streaming support, preventing mid-word breaks during agent responses
@@ -33,6 +34,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.1.0] - 2026-02-17
 
 ### Added
+- **CLI**: Add info command and integrate returning welcome flow for non-first-time users
 - **CLI**: Add returning user welcome orchestrator with session info and action selection
 - **CLI**: Add compact 3-line ASCII wordmark banner for returning users
 - **Agent Teams (Phase 9)**: Parallel task execution with PMAgent coordination, file-based queue, findings propagation
@@ -64,6 +66,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.4.0] - 2026-02-17
 
 ### Added
+- **CLI**: Add info command and integrate returning welcome flow for non-first-time users
 - **CLI**: Add returning user welcome orchestrator with session info and action selection
 - **CLI**: Add compact 3-line ASCII wordmark banner for returning users
 - **docs/CODE-INTEGRITY.md**: Greptile section explaining automated review integration
@@ -88,6 +91,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.1.0] - 2026-02-17
 
 ### Added
+- **CLI**: Add info command and integrate returning welcome flow for non-first-time users
 - **CLI**: Add returning user welcome orchestrator with session info and action selection
 - **CLI**: Add compact 3-line ASCII wordmark banner for returning users
 - **docs/DASHBOARD.md**: Dashboard documentation for Level 5
@@ -101,6 +105,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.0.0] - 2026-02-17
 
 ### Added
+- **CLI**: Add info command and integrate returning welcome flow for non-first-time users
 - **CLI**: Add returning user welcome orchestrator with session info and action selection
 - **CLI**: Add compact 3-line ASCII wordmark banner for returning users
 - **templates/config.example.yaml**: Configuration reference for `.karimo/config.yaml`

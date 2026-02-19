@@ -34,6 +34,27 @@ export {
 // Animated welcome
 export { showAnimatedWelcome, showSimpleAnimatedWelcome } from './animated-welcome'
 
+// Compact banner (returning users)
+export {
+  COMPACT_WORDMARK_LINES,
+  getColoredCompactWordmark,
+  getCompactBannerString,
+  getCompactWordmarkLines,
+  renderCompactBanner,
+  supportsUnicodeBlocks,
+} from './compact-banner'
+
+// Session info (returning users)
+export {
+  buildSessionContext,
+  collapsePath,
+  formatModelInfo,
+  getSessionInfoLines,
+  getSessionInfoString,
+  renderSessionInfo,
+  type SessionContext,
+} from './session-info'
+
 // Terminal utilities
 export {
   canRunAnimation,
