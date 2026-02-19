@@ -114,3 +114,31 @@ export {
   type KeypressManager,
   type KeypressHandler,
 } from './keypress-manager'
+
+// Input sanitization
+export {
+  createFlattenedPreview,
+  hasComplexFormatting,
+  processUserInput,
+  sanitizeForDisplay,
+  type ProcessedInput,
+} from './input-sanitizer'
+
+// Boundaries display
+export {
+  formatBoundariesDisplay,
+  formatBoundaryList,
+  truncatePattern,
+  type BoundariesDisplayOptions,
+} from './boundaries-display'
+
+// Response formatting
+export {
+  convertMarkdownBold,
+  countQuestions,
+  findQuestionBlocks,
+  formatAgentResponse,
+  hasQuestions,
+  isQuestionLine,
+  type ResponseFormatOptions,
+} from './response-formatter'
