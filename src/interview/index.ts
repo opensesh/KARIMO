@@ -12,7 +12,6 @@ import {
   createCollapsibleRenderer,
   createKeypressManager,
   createStreamRenderer,
-  formatAgentResponse,
   processUserInput,
 } from '../cli/ui'
 import { loadConfig } from '../config/loader'
@@ -532,13 +531,13 @@ async function runInterviewLoop(
 
       renderer.flush()
 
-      // Apply response formatting (question highlighting, bold conversion)
-      const fullResponse = getFullResponse()
-      if (fullResponse) {
-        const formatted = formatAgentResponse(fullResponse)
-        // Note: Response already streamed; formatting visible in next interaction
-        // For now, this prepares for future cursor-based re-rendering
-      }
+      // TODO: Future enhancement - apply response formatting after streaming
+      // The getFullResponse() function buffers the complete response for:
+      // - Question highlighting (green)
+      // - Bold markdown conversion
+      // This will require cursor-based re-rendering to update in place.
+      // For now, responses display as streamed.
+      void getFullResponse() // Acknowledge buffered response
 
       console.log('\n')
       session = result.session
@@ -921,13 +920,13 @@ async function runConversationalLoop(state: ConversationalState): Promise<void> 
 
       renderer.flush()
 
-      // Apply response formatting (question highlighting, bold conversion)
-      const fullResponse = getFullResponse()
-      if (fullResponse) {
-        const formatted = formatAgentResponse(fullResponse)
-        // Note: Response already streamed; formatting visible in next interaction
-        // For now, this prepares for future cursor-based re-rendering
-      }
+      // TODO: Future enhancement - apply response formatting after streaming
+      // The getFullResponse() function buffers the complete response for:
+      // - Question highlighting (green)
+      // - Bold markdown conversion
+      // This will require cursor-based re-rendering to update in place.
+      // For now, responses display as streamed.
+      void getFullResponse() // Acknowledge buffered response
 
       // RESUME keypresses after streaming (user can toggle while reviewing)
       keypress.resume()

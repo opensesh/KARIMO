@@ -27,8 +27,10 @@ describe('isQuestionLine', () => {
   })
 
   it('should handle case-insensitive question words', () => {
-    expect(isQuestionLine('WHAT is this')).toBe(false) // We check lowercase
+    // Question detection is case-insensitive (we lowercase before checking)
+    expect(isQuestionLine('WHAT is this')).toBe(true)
     expect(isQuestionLine('what is this')).toBe(true)
+    expect(isQuestionLine('What Is This')).toBe(true)
   })
 
   it('should detect continuation list items', () => {
