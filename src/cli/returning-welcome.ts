@@ -38,7 +38,14 @@ export interface StateContext {
 /**
  * Available user actions based on state.
  */
-export type ReturningAction = 'resume-prd' | 'start-prd' | 'execute' | 'init' | 'help' | 'exit'
+export type ReturningAction =
+  | 'resume-prd'
+  | 'start-prd'
+  | 'execute'
+  | 'init'
+  | 'reconfigure'
+  | 'help'
+  | 'exit'
 
 // =============================================================================
 // State Hint Generation
@@ -163,6 +170,7 @@ function getActionOptions(phase: ProjectPhase): Array<{
       return [
         { value: 'resume-prd', label: 'Resume PRD interview', hint: 'Continue where you left off' },
         { value: 'start-prd', label: 'Start new PRD', hint: 'Create a different feature' },
+        { value: 'reconfigure', label: 'Reconfigure project', hint: 'Update config.yaml' },
         { value: 'help', label: 'Show help', hint: 'Available commands' },
         { value: 'exit', label: 'Exit', hint: 'Ctrl+C' },
       ]
@@ -171,6 +179,7 @@ function getActionOptions(phase: ProjectPhase): Array<{
       return [
         { value: 'execute', label: 'Execute tasks', hint: 'Run ready tasks' },
         { value: 'start-prd', label: 'Create new PRD', hint: 'Add another feature' },
+        { value: 'reconfigure', label: 'Reconfigure project', hint: 'Update config.yaml' },
         { value: 'help', label: 'Show help', hint: 'Available commands' },
         { value: 'exit', label: 'Exit', hint: 'Ctrl+C' },
       ]
@@ -178,6 +187,7 @@ function getActionOptions(phase: ProjectPhase): Array<{
     case 'create-prd':
       return [
         { value: 'start-prd', label: 'Create PRD', hint: 'Start PRD interview' },
+        { value: 'reconfigure', label: 'Reconfigure project', hint: 'Update config.yaml' },
         { value: 'help', label: 'Show help', hint: 'Available commands' },
         { value: 'exit', label: 'Exit', hint: 'Ctrl+C' },
       ]
@@ -192,6 +202,7 @@ function getActionOptions(phase: ProjectPhase): Array<{
     case 'complete':
       return [
         { value: 'start-prd', label: 'Create new PRD', hint: 'Start a new feature' },
+        { value: 'reconfigure', label: 'Reconfigure project', hint: 'Update config.yaml' },
         { value: 'help', label: 'Show help', hint: 'Available commands' },
         { value: 'exit', label: 'Exit', hint: 'Ctrl+C' },
       ]
