@@ -6,8 +6,8 @@
  */
 
 import { DIM, GYD, RST } from './colors'
-import { getEffectiveWidth, getVisualWidth, wrapTextWithMargin } from './text-format'
 import { clearLine, isTTY, moveCursorUp, write } from './terminal-utils'
+import { getEffectiveWidth, getVisualWidth, wrapTextWithMargin } from './text-format'
 
 // =============================================================================
 // Types
