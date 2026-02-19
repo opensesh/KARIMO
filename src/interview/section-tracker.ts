@@ -71,11 +71,7 @@ export class SectionTracker {
   /**
    * Update a section's status.
    */
-  updateSection(
-    sectionId: string,
-    status: SectionStatusValue,
-    confidence: number
-  ): void {
+  updateSection(sectionId: string, status: SectionStatusValue, confidence: number): void {
     const section = this.sections.get(sectionId)
     if (!section) {
       throw new Error(`Unknown section: ${sectionId}`)
@@ -266,10 +262,7 @@ export class SectionTracker {
    * Check if PRD should proactively suggest finalization (95%+).
    */
   shouldSuggestFinalization(): boolean {
-    return (
-      this.getProgress().overallPercent >= 95 &&
-      !this.hasUnresolvedConflicts()
-    )
+    return this.getProgress().overallPercent >= 95 && !this.hasUnresolvedConflicts()
   }
 
   /**

@@ -5,14 +5,14 @@
  * Handles capture_section, capture_requirement, flag_conflict, and report_progress.
  */
 import { updatePRDSection } from '../prd-file'
-import { SectionTracker, formatConflict, formatProgressBar } from '../section-tracker'
+import { type SectionTracker, formatConflict, formatProgressBar } from '../section-tracker'
 import type { ConflictType, PRDProgress } from '../types'
 import {
-  CaptureSectionInputSchema,
   CaptureRequirementInputSchema,
+  CaptureSectionInputSchema,
   FlagConflictInputSchema,
-  ReportProgressInputSchema,
   type InterviewToolName,
+  ReportProgressInputSchema,
 } from './section-tools'
 
 // =============================================================================
@@ -277,10 +277,7 @@ async function executeFlagConflictTool(
 /**
  * Execute report_progress tool.
  */
-function executeReportProgressTool(
-  input: unknown,
-  context: ExecutionContext
-): ToolExecutionResult {
+function executeReportProgressTool(input: unknown, context: ExecutionContext): ToolExecutionResult {
   // Validate input
   const parsed = ReportProgressInputSchema.safeParse(input)
   if (!parsed.success) {
@@ -339,11 +336,19 @@ function getSectionInfo(sectionId: string): SectionInfo | null {
     'goals-metrics': { number: 3, title: 'Goals & Metrics', heading: '3. Goals & Metrics' },
     requirements: { number: 4, title: 'Requirements', heading: '4. Requirements' },
     'ux-notes': { number: 5, title: 'UX Notes', heading: '5. UX Notes' },
-    'dependencies-risks': { number: 6, title: 'Dependencies & Risks', heading: '6. Dependencies & Risks' },
+    'dependencies-risks': {
+      number: 6,
+      title: 'Dependencies & Risks',
+      heading: '6. Dependencies & Risks',
+    },
     rollout: { number: 7, title: 'Rollout', heading: '7. Rollout' },
     milestones: { number: 8, title: 'Milestones', heading: '8. Milestones' },
     'open-questions': { number: 9, title: 'Open Questions', heading: '9. Open Questions' },
-    'checkpoint-learnings': { number: 10, title: 'Checkpoint Learnings', heading: '10. Checkpoint Learnings' },
+    'checkpoint-learnings': {
+      number: 10,
+      title: 'Checkpoint Learnings',
+      heading: '10. Checkpoint Learnings',
+    },
     'agent-boundaries': { number: 11, title: 'Agent Boundaries', heading: '11. Agent Boundaries' },
   }
 
@@ -355,8 +360,7 @@ function getSectionInfo(sectionId: string): SectionInfo | null {
  */
 export function createToolExecutor(context: ExecutionContext) {
   return {
-    execute: (toolName: InterviewToolName, input: unknown) =>
-      executeTool(toolName, input, context),
+    execute: (toolName: InterviewToolName, input: unknown) => executeTool(toolName, input, context),
     getProgress: () => context.tracker.getProgress(),
     getTracker: () => context.tracker,
   }

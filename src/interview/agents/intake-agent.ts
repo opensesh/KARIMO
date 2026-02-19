@@ -17,7 +17,10 @@ import type { IntakeResult, ScopeType } from '../types'
  */
 const IntakeResultSchema = z.object({
   suggestedTitle: z.string().min(1),
-  suggestedSlug: z.string().min(1).regex(/^[a-z0-9-]+$/),
+  suggestedSlug: z
+    .string()
+    .min(1)
+    .regex(/^[a-z0-9-]+$/),
   executiveSummary: z.string().min(1),
   scopeType: z.enum(['new-feature', 'refactor', 'migration', 'integration']),
   identifiedTopics: z.array(z.string()),
@@ -146,7 +149,7 @@ function parseIntakeResponse(response: string): IntakeResult {
   let parsed: unknown
   try {
     parsed = JSON.parse(jsonStr)
-  } catch (error) {
+  } catch {
     // Try to extract JSON object from response
     const objectMatch = response.match(/\{[\s\S]*\}/)
     if (objectMatch) {

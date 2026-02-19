@@ -19,7 +19,9 @@ export const CaptureSectionInputSchema = z.object({
   mode: z
     .enum(['replace', 'append', 'refine'])
     .default('replace')
-    .describe('How to update the section: replace (overwrite), append (add to end), refine (improve existing)'),
+    .describe(
+      'How to update the section: replace (overwrite), append (add to end), refine (improve existing)'
+    ),
   confidence: z
     .number()
     .min(0)
@@ -209,7 +211,8 @@ After flagging, present the conflict to the user and ask which direction they wa
   },
   {
     name: 'report_progress',
-    description: `Report current PRD completion progress. Use this at milestones (25%, 50%, 75%) to keep the user informed of progress.`,
+    description:
+      'Report current PRD completion progress. Use this at milestones (25%, 50%, 75%) to keep the user informed of progress.',
     input_schema: zodToJsonSchema(ReportProgressInputSchema),
   },
 ]
@@ -224,11 +227,17 @@ export function getToolByName(name: string): ToolDefinition | undefined {
 /**
  * Valid tool names.
  */
-export type InterviewToolName = 'capture_section' | 'capture_requirement' | 'flag_conflict' | 'report_progress'
+export type InterviewToolName =
+  | 'capture_section'
+  | 'capture_requirement'
+  | 'flag_conflict'
+  | 'report_progress'
 
 /**
  * Check if a string is a valid tool name.
  */
 export function isValidToolName(name: string): name is InterviewToolName {
-  return ['capture_section', 'capture_requirement', 'flag_conflict', 'report_progress'].includes(name)
+  return ['capture_section', 'capture_requirement', 'flag_conflict', 'report_progress'].includes(
+    name
+  )
 }

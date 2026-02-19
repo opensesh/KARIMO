@@ -451,17 +451,105 @@ export const SECTION_WEIGHTS: Record<string, number> = {
  * PRD section definitions with metadata.
  */
 export const PRD_SECTIONS: SectionStatus[] = [
-  { id: 'executive-summary', title: 'Executive Summary', prdSection: 1, status: 'empty', confidence: 0, weight: 15, lastUpdated: null },
-  { id: 'problem-context', title: 'Problem & Context', prdSection: 2, status: 'empty', confidence: 0, weight: 10, lastUpdated: null },
-  { id: 'goals-metrics', title: 'Goals & Metrics', prdSection: 3, status: 'empty', confidence: 0, weight: 15, lastUpdated: null },
-  { id: 'requirements', title: 'Requirements', prdSection: 4, status: 'empty', confidence: 0, weight: 20, lastUpdated: null },
-  { id: 'ux-notes', title: 'UX Notes', prdSection: 5, status: 'empty', confidence: 0, weight: 10, lastUpdated: null },
-  { id: 'dependencies-risks', title: 'Dependencies & Risks', prdSection: 6, status: 'empty', confidence: 0, weight: 10, lastUpdated: null },
-  { id: 'rollout', title: 'Rollout', prdSection: 7, status: 'empty', confidence: 0, weight: 5, lastUpdated: null },
-  { id: 'milestones', title: 'Milestones', prdSection: 8, status: 'empty', confidence: 0, weight: 5, lastUpdated: null },
-  { id: 'open-questions', title: 'Open Questions', prdSection: 9, status: 'empty', confidence: 0, weight: 0, lastUpdated: null },
-  { id: 'checkpoint-learnings', title: 'Checkpoint Learnings', prdSection: 10, status: 'empty', confidence: 0, weight: 5, lastUpdated: null },
-  { id: 'agent-boundaries', title: 'Agent Boundaries', prdSection: 11, status: 'empty', confidence: 0, weight: 5, lastUpdated: null },
+  {
+    id: 'executive-summary',
+    title: 'Executive Summary',
+    prdSection: 1,
+    status: 'empty',
+    confidence: 0,
+    weight: 15,
+    lastUpdated: null,
+  },
+  {
+    id: 'problem-context',
+    title: 'Problem & Context',
+    prdSection: 2,
+    status: 'empty',
+    confidence: 0,
+    weight: 10,
+    lastUpdated: null,
+  },
+  {
+    id: 'goals-metrics',
+    title: 'Goals & Metrics',
+    prdSection: 3,
+    status: 'empty',
+    confidence: 0,
+    weight: 15,
+    lastUpdated: null,
+  },
+  {
+    id: 'requirements',
+    title: 'Requirements',
+    prdSection: 4,
+    status: 'empty',
+    confidence: 0,
+    weight: 20,
+    lastUpdated: null,
+  },
+  {
+    id: 'ux-notes',
+    title: 'UX Notes',
+    prdSection: 5,
+    status: 'empty',
+    confidence: 0,
+    weight: 10,
+    lastUpdated: null,
+  },
+  {
+    id: 'dependencies-risks',
+    title: 'Dependencies & Risks',
+    prdSection: 6,
+    status: 'empty',
+    confidence: 0,
+    weight: 10,
+    lastUpdated: null,
+  },
+  {
+    id: 'rollout',
+    title: 'Rollout',
+    prdSection: 7,
+    status: 'empty',
+    confidence: 0,
+    weight: 5,
+    lastUpdated: null,
+  },
+  {
+    id: 'milestones',
+    title: 'Milestones',
+    prdSection: 8,
+    status: 'empty',
+    confidence: 0,
+    weight: 5,
+    lastUpdated: null,
+  },
+  {
+    id: 'open-questions',
+    title: 'Open Questions',
+    prdSection: 9,
+    status: 'empty',
+    confidence: 0,
+    weight: 0,
+    lastUpdated: null,
+  },
+  {
+    id: 'checkpoint-learnings',
+    title: 'Checkpoint Learnings',
+    prdSection: 10,
+    status: 'empty',
+    confidence: 0,
+    weight: 5,
+    lastUpdated: null,
+  },
+  {
+    id: 'agent-boundaries',
+    title: 'Agent Boundaries',
+    prdSection: 11,
+    status: 'empty',
+    confidence: 0,
+    weight: 5,
+    lastUpdated: null,
+  },
 ]
 
 /**
@@ -475,7 +563,8 @@ export type InterviewMode = 'conversational' | 'legacy'
  * Conversational interview session state.
  * Extends base session with progress tracking and conflicts.
  */
-export interface ConversationalSession extends Omit<InterviewSession, 'currentRound' | 'completedRounds'> {
+export interface ConversationalSession
+  extends Omit<InterviewSession, 'currentRound' | 'completedRounds'> {
   /** Interview mode */
   mode: 'conversational'
 

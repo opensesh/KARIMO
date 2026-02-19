@@ -478,3 +478,228 @@ export async function continueWithToolResults(
     throw new AnthropicAPIError(undefined, (error as Error).message)
   }
 }
+
+/**
+ * Tool result for continuing a conversation.
+ */
+export interface ToolResultInput {
+  toolUseId: string
+  content: string
+}
+
+/**
+ * Result from streaming tool-enabled conversation.
+ */
+export interface StreamToolResult {
+  /** Collected text response */
+  response: string
+  /** Tool use requests (if any) */
+  toolUse: ToolUseResult[]
+}
+
+/**
+ * Stream a message with tool use capabilities.
+ * Calls onChunk for each text chunk as it arrives.
+ */
+export async function streamMessageWithTools(
+  systemPrompt: string,
+  messages: Array<{ role: 'user' | 'assistant'; content: string }>,
+  tools: ToolDefinition[],
+  onChunk?: (chunk: string) => void,
+  options?: {
+    model?: string
+    maxTokens?: number
+    temperature?: number
+  }
+): Promise<StreamToolResult> {
+  const client = getAnthropicClient()
+
+  const {
+    model = DEFAULT_MODEL,
+    maxTokens = MAX_RESPONSE_TOKENS,
+    temperature = 0.7,
+  } = options ?? {}
+
+  try {
+    const stream = await client.messages.stream({
+      model,
+      max_tokens: maxTokens,
+      temperature,
+      system: systemPrompt,
+      messages: messages as MessageParam[],
+      tools: tools.map((tool) => ({
+        name: tool.name,
+        description: tool.description,
+        input_schema: tool.input_schema as Anthropic.Messages.Tool.InputSchema,
+      })),
+    })
+
+    const textChunks: string[] = []
+    const toolUse: ToolUseResult[] = []
+
+    // Track current tool being built
+    let currentToolId: string | null = null
+    let currentToolName: string | null = null
+    let currentToolInputJson = ''
+
+    for await (const event of stream) {
+      if (event.type === 'content_block_start') {
+        const block = event.content_block
+        if (block.type === 'tool_use') {
+          currentToolId = block.id
+          currentToolName = block.name
+          currentToolInputJson = ''
+        }
+      } else if (event.type === 'content_block_delta') {
+        if (event.delta.type === 'text_delta') {
+          textChunks.push(event.delta.text)
+          onChunk?.(event.delta.text)
+        } else if (event.delta.type === 'input_json_delta') {
+          currentToolInputJson += event.delta.partial_json
+        }
+      } else if (event.type === 'content_block_stop') {
+        // If we were building a tool, finalize it
+        if (currentToolId && currentToolName) {
+          try {
+            const input = currentToolInputJson ? JSON.parse(currentToolInputJson) : {}
+            toolUse.push({
+              type: 'tool_use',
+              id: currentToolId,
+              name: currentToolName,
+              input: input as Record<string, unknown>,
+            })
+          } catch {
+            // Failed to parse JSON, skip this tool
+          }
+          currentToolId = null
+          currentToolName = null
+          currentToolInputJson = ''
+        }
+      }
+    }
+
+    return {
+      response: textChunks.join(''),
+      toolUse,
+    }
+  } catch (error) {
+    if (error instanceof Anthropic.APIError) {
+      throw new AnthropicAPIError(error.status, error.message)
+    }
+
+    throw new AnthropicAPIError(undefined, (error as Error).message)
+  }
+}
+
+/**
+ * Continue a streaming conversation with multiple tool results.
+ */
+export async function streamContinueWithToolResults(
+  systemPrompt: string,
+  messages: Array<{ role: 'user' | 'assistant'; content: string }>,
+  assistantContent: Array<
+    | { type: 'text'; text: string }
+    | { type: 'tool_use'; id: string; name: string; input: Record<string, unknown> }
+  >,
+  toolResults: ToolResultInput[],
+  tools: ToolDefinition[],
+  onChunk?: (chunk: string) => void,
+  options?: {
+    model?: string
+    maxTokens?: number
+    temperature?: number
+  }
+): Promise<StreamToolResult> {
+  const client = getAnthropicClient()
+
+  const {
+    model = DEFAULT_MODEL,
+    maxTokens = MAX_RESPONSE_TOKENS,
+    temperature = 0.7,
+  } = options ?? {}
+
+  // Build messages with assistant's tool use and user's tool results
+  const updatedMessages: MessageParam[] = [
+    ...(messages as MessageParam[]),
+    {
+      role: 'assistant',
+      content: assistantContent,
+    },
+    {
+      role: 'user',
+      content: toolResults.map((tr) => ({
+        type: 'tool_result' as const,
+        tool_use_id: tr.toolUseId,
+        content: tr.content,
+      })),
+    },
+  ]
+
+  try {
+    const stream = await client.messages.stream({
+      model,
+      max_tokens: maxTokens,
+      temperature,
+      system: systemPrompt,
+      messages: updatedMessages,
+      tools: tools.map((tool) => ({
+        name: tool.name,
+        description: tool.description,
+        input_schema: tool.input_schema as Anthropic.Messages.Tool.InputSchema,
+      })),
+    })
+
+    const textChunks: string[] = []
+    const toolUse: ToolUseResult[] = []
+
+    let currentToolId: string | null = null
+    let currentToolName: string | null = null
+    let currentToolInputJson = ''
+
+    for await (const event of stream) {
+      if (event.type === 'content_block_start') {
+        const block = event.content_block
+        if (block.type === 'tool_use') {
+          currentToolId = block.id
+          currentToolName = block.name
+          currentToolInputJson = ''
+        }
+      } else if (event.type === 'content_block_delta') {
+        if (event.delta.type === 'text_delta') {
+          textChunks.push(event.delta.text)
+          onChunk?.(event.delta.text)
+        } else if (event.delta.type === 'input_json_delta') {
+          currentToolInputJson += event.delta.partial_json
+        }
+      } else if (event.type === 'content_block_stop') {
+        if (currentToolId && currentToolName) {
+          try {
+            const input = currentToolInputJson ? JSON.parse(currentToolInputJson) : {}
+            toolUse.push({
+              type: 'tool_use',
+              id: currentToolId,
+              name: currentToolName,
+              input: input as Record<string, unknown>,
+            })
+          } catch {
+            // Failed to parse JSON, skip this tool
+          }
+          currentToolId = null
+          currentToolName = null
+          currentToolInputJson = ''
+        }
+      }
+    }
+
+    return {
+      response: textChunks.join(''),
+      toolUse,
+    }
+  } catch (error) {
+    if (error instanceof Anthropic.APIError) {
+      throw new AnthropicAPIError(error.status, error.message)
+    }
+
+    throw new AnthropicAPIError(undefined, (error as Error).message)
+  }
+}
