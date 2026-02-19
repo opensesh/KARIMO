@@ -1,25 +1,129 @@
 #!/usr/bin/env sh
 
-# Check if this is a feat: or fix: commit that should update CHANGELOG
-COMMIT_MSG=$(cat "$1")
+# Auto-generate CHANGELOG entries for feat:/fix: commits
+# Falls back to blocking behavior if Claude CLI is unavailable
+
+COMMIT_MSG_FILE="$1"
+COMMIT_MSG=$(cat "$COMMIT_MSG_FILE")
 COMMIT_TYPE=$(echo "$COMMIT_MSG" | head -1 | grep -oE "^(feat|fix)" || true)
 
-if [ -n "$COMMIT_TYPE" ]; then
-  # Check if CHANGELOG.md is staged in this commit
-  CHANGELOG_STAGED=$(git diff --cached --name-only | grep -E "^CHANGELOG.md$" || true)
-
-  if [ -z "$CHANGELOG_STAGED" ]; then
-    echo ""
-    echo "⚠️  This is a $COMMIT_TYPE commit but CHANGELOG.md wasn't updated."
-    echo ""
-    echo "   Add an entry under ## [Unreleased] before committing:"
-    echo "   - **Component**: Brief description of the change"
-    echo ""
-    echo "   To skip this check (use sparingly):"
-    echo "   git commit --no-verify -m \"$COMMIT_TYPE: ...\""
-    echo ""
-    exit 1
-  fi
+# Exit early if not a feat/fix commit
+if [ -z "$COMMIT_TYPE" ]; then
+  exit 0
 fi
+
+# Check if CHANGELOG.md is already staged
+CHANGELOG_STAGED=$(git diff --cached --name-only | grep -E "^CHANGELOG.md$" || true)
+
+if [ -n "$CHANGELOG_STAGED" ]; then
+  # User already staged CHANGELOG, nothing to do
+  exit 0
+fi
+
+# Check if CHANGELOG.md exists
+if [ ! -f "CHANGELOG.md" ]; then
+  echo "⚠️  CHANGELOG.md not found. Skipping auto-generation."
+  exit 0
+fi
+
+# Check if Claude CLI is available
+if ! command -v claude >/dev/null 2>&1; then
+  echo ""
+  echo "⚠️  Claude CLI not found. Cannot auto-generate CHANGELOG entry."
+  echo ""
+  echo "   This is a $COMMIT_TYPE commit but CHANGELOG.md wasn't updated."
+  echo "   Add an entry under ## [Unreleased] before committing:"
+  echo "   - **Component**: Brief description of the change"
+  echo ""
+  echo "   To skip this check: git commit --no-verify"
+  echo ""
+  exit 1
+fi
+
+# Get staged files for context
+STAGED_FILES=$(git diff --cached --name-only | tr '\n' ', ' | sed 's/,$//')
+
+# Extract scope from commit message (e.g., "cli" from "feat(cli): add command")
+COMMIT_SCOPE=$(echo "$COMMIT_MSG" | head -1 | grep -oE "^\w+\([^)]+\)" | sed 's/.*(\(.*\))/\1/' || true)
+
+echo "Generating CHANGELOG entry..."
+
+# Generate entry using Claude Code
+ENTRY=$(claude -p "Generate a single CHANGELOG entry for this git commit.
+
+Commit message: $COMMIT_MSG
+Files changed: $STAGED_FILES
+Scope: $COMMIT_SCOPE
+
+Rules:
+1. Output ONLY the entry line, nothing else - no markdown code blocks, no explanation
+2. Format: - **Component**: Brief description
+3. If scope exists, capitalize it for Component (e.g., 'cli' → 'CLI', 'config' → 'Config')
+4. If no scope, infer Component from the files changed or commit message
+5. Keep description under 15 words
+6. Use present tense (\"Add\" not \"Added\", \"Fix\" not \"Fixed\")
+7. Be specific about what changed, not generic
+
+Examples:
+- **CLI**: Add checkpoint command stub for Level 2 learning system
+- **Config**: Fix validation error when sandbox variables contain special characters
+- **Git**: Add worktree cleanup on task completion" --max-turns 1 2>/dev/null)
+
+# Check if Claude returned something useful
+if [ -z "$ENTRY" ] || [ ${#ENTRY} -lt 10 ]; then
+  echo ""
+  echo "⚠️  Failed to generate CHANGELOG entry."
+  echo ""
+  echo "   This is a $COMMIT_TYPE commit but CHANGELOG.md wasn't updated."
+  echo "   Add an entry under ## [Unreleased] before committing:"
+  echo "   - **Component**: Brief description of the change"
+  echo ""
+  echo "   To skip this check: git commit --no-verify"
+  echo ""
+  exit 1
+fi
+
+# Clean up entry (remove any leading/trailing whitespace, ensure it starts with "- ")
+ENTRY=$(echo "$ENTRY" | sed 's/^[[:space:]]*//' | sed 's/[[:space:]]*$//')
+if ! echo "$ENTRY" | grep -q "^- "; then
+  ENTRY="- $ENTRY"
+fi
+
+# Determine which section to use
+if [ "$COMMIT_TYPE" = "feat" ]; then
+  SECTION="### Added"
+elif [ "$COMMIT_TYPE" = "fix" ]; then
+  SECTION="### Fixed"
+fi
+
+# Insert entry into CHANGELOG.md
+# Strategy: Find [Unreleased], then find or create the appropriate section
+
+# Check if the section exists under [Unreleased]
+if grep -q "^$SECTION" CHANGELOG.md; then
+  # Section exists - insert entry after the section header
+  # Use awk for reliable multi-line handling
+  awk -v section="$SECTION" -v entry="$ENTRY" '
+    $0 == section { print; print entry; next }
+    { print }
+  ' CHANGELOG.md > CHANGELOG.md.tmp && mv CHANGELOG.md.tmp CHANGELOG.md
+else
+  # Section doesn't exist - create it after [Unreleased]
+  awk -v section="$SECTION" -v entry="$ENTRY" '
+    /^## \[Unreleased\]/ {
+      print
+      print ""
+      print section
+      print entry
+      next
+    }
+    { print }
+  ' CHANGELOG.md > CHANGELOG.md.tmp && mv CHANGELOG.md.tmp CHANGELOG.md
+fi
+
+# Stage the updated CHANGELOG
+git add CHANGELOG.md
+
+echo "✓ Auto-generated CHANGELOG entry: $ENTRY"
 
 exit 0

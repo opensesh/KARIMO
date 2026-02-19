@@ -24,7 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - **runInit() Return Type**: Now returns `InitResult` instead of calling `process.exit()`, enabling composable CLI flows
 - **Doctor Checklist**: Added context explanation and GitHub issues link for getting help
-- **Husky commit-msg Hook**: Blocks `feat:`/`fix:` commits that don't update CHANGELOG.md
+- **Husky commit-msg Hook**: Auto-generates CHANGELOG entries for `feat:`/`fix:` commits using Claude Code instead of blocking
 
 ---
 
