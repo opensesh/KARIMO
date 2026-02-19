@@ -11,6 +11,7 @@ import { existsSync, mkdirSync } from 'node:fs'
 import { join } from 'node:path'
 import * as p from '@clack/prompts'
 import { stringify as stringifyYaml } from 'yaml'
+import { formatBoundariesDisplay } from '../cli/ui/boundaries-display'
 import {
   COMMON_ALLOWED_ENV,
   DEFAULT_BOUNDARIES,
@@ -784,17 +785,14 @@ Only listed variables are exposed to prevent secret leakage.`,
   const boundaries = buildBoundaries(result)
 
   // Display boundaries with sources (read-only, not editable inline)
+  // Use formatBoundariesDisplay for proper terminal width handling
   const boundariesSources = collectBoundariesSources(result)
   if (boundaries.never_touch.length > 0 || boundaries.require_review.length > 0) {
-    const neverTouchList = boundaries.never_touch.join(', ') || 'none'
-    const reviewList = boundaries.require_review.join(', ') || 'none'
-
-    p.note(
-      `Protect critical files from agent modifications.
-never_touch: ${neverTouchList}
-require_review: ${reviewList}`,
-      `File Boundaries (from ${boundariesSources})`
+    const boundariesContent = formatBoundariesDisplay(
+      boundaries.never_touch,
+      boundaries.require_review
     )
+    p.note(boundariesContent, `File Boundaries (from ${boundariesSources})`)
   }
 
   // Use defaults for cost and fallback (not part of interactive flow)
