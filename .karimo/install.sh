@@ -69,6 +69,7 @@ cp "$KARIMO_ROOT/.claude/agents/karimo-interviewer.md" "$TARGET_DIR/.claude/agen
 cp "$KARIMO_ROOT/.claude/agents/karimo-investigator.md" "$TARGET_DIR/.claude/agents/"
 cp "$KARIMO_ROOT/.claude/agents/karimo-reviewer.md" "$TARGET_DIR/.claude/agents/"
 cp "$KARIMO_ROOT/.claude/agents/karimo-pm.md" "$TARGET_DIR/.claude/agents/"
+cp "$KARIMO_ROOT/.claude/agents/karimo-learn-auditor.md" "$TARGET_DIR/.claude/agents/"
 
 # Copy commands
 echo "Copying commands..."
@@ -76,6 +77,7 @@ cp "$KARIMO_ROOT/.claude/commands/plan.md" "$TARGET_DIR/.claude/commands/"
 cp "$KARIMO_ROOT/.claude/commands/execute.md" "$TARGET_DIR/.claude/commands/"
 cp "$KARIMO_ROOT/.claude/commands/feedback.md" "$TARGET_DIR/.claude/commands/"
 cp "$KARIMO_ROOT/.claude/commands/status.md" "$TARGET_DIR/.claude/commands/"
+cp "$KARIMO_ROOT/.claude/commands/learn.md" "$TARGET_DIR/.claude/commands/"
 
 # Copy skills
 echo "Copying skills..."
@@ -88,6 +90,7 @@ cp "$KARIMO_ROOT/.karimo/templates/PRD_TEMPLATE.md" "$TARGET_DIR/.karimo/templat
 cp "$KARIMO_ROOT/.karimo/templates/INTERVIEW_PROTOCOL.md" "$TARGET_DIR/.karimo/templates/"
 cp "$KARIMO_ROOT/.karimo/templates/TASK_SCHEMA.md" "$TARGET_DIR/.karimo/templates/"
 cp "$KARIMO_ROOT/.karimo/templates/STATUS_SCHEMA.md" "$TARGET_DIR/.karimo/templates/"
+cp "$KARIMO_ROOT/.karimo/templates/LEARN_INTERVIEW_PROTOCOL.md" "$TARGET_DIR/.karimo/templates/"
 
 # Copy GitHub workflows
 echo "Copying GitHub workflows..."
@@ -130,11 +133,12 @@ This project uses KARIMO for autonomous development.
 - `/karimo:plan` — Start PRD interview
 - `/karimo:execute` — Run tasks from PRD
 - `/karimo:status` — View execution state
-- `/karimo:feedback` — Capture learnings
+- `/karimo:feedback` — Quick capture of single learnings
+- `/karimo:learn` — Deep learning cycle with investigation
 
 **Rules:** See `.claude/KARIMO_RULES.md` for agent behavior rules
 
-**Learnings:** Captured below via `/karimo:feedback`
+**Learnings:** Captured below via `/karimo:feedback` or `/karimo:learn`
 
 ## KARIMO Learnings
 
@@ -178,11 +182,11 @@ echo -e "${GREEN}│  Installation Complete!                                    
 echo -e "${GREEN}╰──────────────────────────────────────────────────────────────╯${NC}"
 echo
 echo "Installed files:"
-echo "  .claude/agents/           4 agent definitions"
-echo "  .claude/commands/         4 slash commands"
+echo "  .claude/agents/           5 agent definitions"
+echo "  .claude/commands/         5 slash commands"
 echo "  .claude/skills/           2 skill definitions"
 echo "  .claude/KARIMO_RULES.md   Agent behavior rules"
-echo "  .karimo/templates/        4 templates"
+echo "  .karimo/templates/        5 templates"
 echo "  .github/workflows/        3 GitHub Actions"
 echo "  .github/ISSUE_TEMPLATE/   1 issue template"
 echo "  CLAUDE.md                 Updated with reference block"
@@ -191,6 +195,7 @@ echo
 echo "Next steps:"
 echo "  1. Run '/karimo:plan' to create your first PRD"
 echo "  2. Run '/karimo:execute --prd {slug}' to start execution"
-echo "  3. Run '/karimo:feedback' after tasks to capture learnings"
+echo "  3. Run '/karimo:feedback' for quick single-rule capture"
+echo "  4. Run '/karimo:learn' for periodic deep learning cycles"
 echo
 echo "For more information, see: https://github.com/opensesh/KARIMO"
