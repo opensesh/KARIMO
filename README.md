@@ -152,7 +152,8 @@ Agents work through tasks in parallel, creating PRs for each.
 | `/karimo:review --prd {slug}` | Approve PRD and generate task briefs |
 | `/karimo:execute --prd {slug}` | Execute approved tasks from a PRD |
 | `/karimo:status` | View execution progress across all PRDs |
-| `/karimo:feedback` | Capture learnings to improve future execution |
+| `/karimo:feedback` | Quick capture of single learnings (~2 min) |
+| `/karimo:learn` | Deep learning cycle with investigation (~45 min) |
 
 ### /karimo:plan
 
@@ -227,6 +228,7 @@ KARIMO includes specialized agents:
 | `karimo-reviewer` | Validates PRD, generates task DAG |
 | `karimo-brief-writer` | Generates self-contained task briefs |
 | `karimo-pm` | Coordinates execution, never writes code |
+| `karimo-learn-auditor` | Investigates learning directives |
 
 Agents live in `.claude/agents/` and follow strict rules from `KARIMO_RULES.md`.
 
@@ -256,11 +258,13 @@ After installation, your project contains:
     karimo-investigator.md
     karimo-reviewer.md
     karimo-pm.md
+    karimo-learn-auditor.md
   commands/
     plan.md
     execute.md
     status.md
     feedback.md
+    learn.md
   skills/
     git-worktree-ops.md
     github-project-ops.md
@@ -272,12 +276,19 @@ After installation, your project contains:
     INTERVIEW_PROTOCOL.md
     TASK_SCHEMA.md
     STATUS_SCHEMA.md
+    LEARN_INTERVIEW_PROTOCOL.md
   prds/
     {prd-slug}/
       prd.md
       tasks.yaml
       dag.json
       status.json
+  learn/
+    {timestamp}/
+      interview.md
+      findings.md
+      action-plan.md
+      changes-applied.md
 
 .github/
   workflows/
@@ -350,20 +361,29 @@ Triggered when KARIMO PR is merged:
 
 ## Compound Learning
 
-KARIMO learns from execution through two layers:
+KARIMO learns from execution through two scopes:
 
-### Layer 1: Automatic
-- Task outcomes refine iteration estimates
-- Build failures add to `never_touch` lists
-- Pattern violations become rules
-
-### Layer 2: Manual
-Use `/karimo:feedback` to capture learnings:
+### Scope 1: Quick Capture (`/karimo:feedback`)
+Single observation → single rule in ~2 minutes:
 
 ```
 /karimo:feedback
 
 > "Always use the existing Button component, don't create new ones"
+```
+
+### Scope 2: Deep Learning (`/karimo:learn`)
+Three-mode investigation cycle in ~45 minutes:
+
+1. **Interview** — Opus-guided conversation surfaces pain points
+2. **Audit** — Agent investigates with evidence from PRs, status files
+3. **Review & Act** — Human approves changes before applying
+
+```
+/karimo:learn
+# Mode 1: 5-round interview → audit directives
+# Mode 2: Evidence-based investigation → findings
+# Mode 3: Per-change approval → applied to config/docs
 ```
 
 Learnings are stored in `CLAUDE.md` under `## KARIMO Learnings`.
