@@ -29,6 +29,45 @@ KARIMO provides a structured methodology for autonomous development:
 
 ---
 
+## How It Works
+
+```
+┌──────────────┐    ┌───────────────┐    ┌─────────────┐    ┌────────────┐    ┌───────────┐
+│   Interview  │ →  │   PRD + DAG   │ →  │   Execute   │ →  │   Review   │ →  │   Merge   │
+│  (/plan)     │    │  (generated)  │    │   (agents)  │    │ (Greptile) │    │   (PR)    │
+└──────────────┘    └───────────────┘    └─────────────┘    └────────────┘    └───────────┘
+```
+
+### Interview Phase
+
+The interviewer agent conducts a structured conversation:
+
+1. Understands your vision and goals
+2. Identifies scope and boundaries
+3. Spawns investigator to scan your codebase
+4. Breaks work into tasks with dependencies
+5. Reviewer validates and generates execution graph
+
+### Execution Phase
+
+The PM Agent coordinates parallel execution:
+
+1. Parses `dag.json` for task dependencies
+2. Creates worktrees for parallel work
+3. Spawns agents for ready tasks
+4. Monitors completion, propagates findings
+5. Creates PRs when tasks complete
+
+### Review Phase (Phase 2)
+
+GitHub Actions handle automated review:
+
+1. **karimo-review.yml** — Triggers Greptile code review
+2. **karimo-integration.yml** — Runs build/test on review pass
+3. **karimo-sync.yml** — Updates status when PRs merge
+
+---
+
 ## Adoption Phases
 
 KARIMO uses three optional adoption phases. Start in Phase 1 and build up as needed.
@@ -162,45 +201,6 @@ Captures learnings that improve future execution:
 ```
 
 Generates rules appended to `CLAUDE.md` under `## KARIMO Learnings`.
-
----
-
-## How It Works
-
-```
-┌──────────────┐    ┌───────────────┐    ┌─────────────┐    ┌────────────┐    ┌───────────┐
-│   Interview  │ →  │   PRD + DAG   │ →  │   Execute   │ →  │   Review   │ →  │   Merge   │
-│  (/plan)     │    │  (generated)  │    │   (agents)  │    │ (Greptile) │    │   (PR)    │
-└──────────────┘    └───────────────┘    └─────────────┘    └────────────┘    └───────────┘
-```
-
-### Interview Phase
-
-The interviewer agent conducts a structured conversation:
-
-1. Understands your vision and goals
-2. Identifies scope and boundaries
-3. Spawns investigator to scan your codebase
-4. Breaks work into tasks with dependencies
-5. Reviewer validates and generates execution graph
-
-### Execution Phase
-
-The PM Agent coordinates parallel execution:
-
-1. Parses `dag.json` for task dependencies
-2. Creates worktrees for parallel work
-3. Spawns agents for ready tasks
-4. Monitors completion, propagates findings
-5. Creates PRs when tasks complete
-
-### Review Phase (Phase 2)
-
-GitHub Actions handle automated review:
-
-1. **karimo-review.yml** — Triggers Greptile code review
-2. **karimo-integration.yml** — Runs build/test on review pass
-3. **karimo-sync.yml** — Updates status when PRs merge
 
 ---
 
