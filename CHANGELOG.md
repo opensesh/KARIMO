@@ -9,6 +9,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+**Documentation Compression**
+- Merged `SECURITY.md` + `CODE-INTEGRITY.md` → `SAFEGUARDS.md`
+- Merged `GETTING-STARTED.md` + `INTEGRATING.md` → `GETTING-STARTED.md`
+- Updated Greptile: optional → "optional but highly recommended"
+- Simplified Phase 3 (Dashboard): "Coming soon" instead of feature lists
+- Added "Your CI/CD Responsibility" section to SAFEGUARDS.md
+- Added FAQ section to GETTING-STARTED.md
+- Updated cross-references across all documentation
+
+### Removed
+- `SECURITY.md` — merged into `SAFEGUARDS.md`
+- `CODE-INTEGRITY.md` — merged into `SAFEGUARDS.md`
+- `INTEGRATING.md` — merged into `GETTING-STARTED.md`
+
 ---
 
 ## [2.0.0] - 2026-02-19
