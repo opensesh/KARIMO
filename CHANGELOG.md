@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to KARIMO documentation and templates will be documented in this file.
+All notable changes to KARIMO will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
@@ -9,211 +9,138 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+---
+
+## [2.0.0] - 2026-02-19
+
+**KARIMO v2: Claude Code Configuration Framework**
+
+Complete architectural transformation from TypeScript CLI application to Claude Code configuration framework. KARIMO is now a methodology delivered through agents, commands, skills, and templates.
+
 ### Added
-- **Commands**: Add `/karimo:feedback` command for capturing execution learnings
-- **Workflows**: Add karimo-integration GitHub Action for automated PR checks
-- **GitHub**: Add issue template for KARIMO automated task creation
-- **Skills**: Add git-worktree-ops skill documenting worktree management patterns
-- **Commands**: Add `/karimo:execute` slash command for autonomous PRD execution
-- **Templates**: Add v2 templates for PRD, interview protocol, and task schema
-- **Agents**: Add karimo-investigator agent for codebase scanning and file analysis
-- **Commands**: Add `/karimo:plan` slash command for PRD interview orchestration
-- **CLI**: Export input-sanitizer, boundaries-display, and response-formatter modules from UI barrel
-- **Interview**: Integrate input sanitization and response formatting in conversation loops
-- **CLI**: Add response formatter for highlighting questions and bold text in agent output
-- **CLI**: Update collapsible response to accept ProcessedInput for sanitized display
-- **CLI**: Add input sanitizer for safe terminal display of numbered and bulleted text
-- **CLI**: Export collapsible response renderer and keypress manager from UI module
-- **CLI**: Add keypress manager for Ctrl+O toggle handling with safe raw mode lifecycle
-- **CLI**: Add reconfigure action to returning welcome for config updates
-- **CLI**: Add info command and integrate returning welcome flow for non-first-time users
-- **CLI**: Add returning user welcome orchestrator with session info and action selection
-- **CLI**: Add compact 3-line ASCII wordmark banner for returning users
-- **Text Formatting Utilities**: ANSI-aware text wrapping for terminal output with streaming support, preventing mid-word breaks during agent responses
-- **Long Input Handler**: Editor fallback (`/edit` command) for composing long responses using $EDITOR
-- **Conversational Interview System**: Free-form interview replacing rigid 5-round structure with progress tracking and conflict detection
-- **Streaming Tool APIs**: Real-time streaming with tool use support via `streamMessageWithTools` and `streamContinueWithToolResults`
-- **Intake Agent**: Context analysis and structure extraction for open-ended interview initialization
-- **Animated Welcome Screen**: Section-by-section reveal animation for first-run experience with ASCII wordmark, orchestration flow diagram, level-based build plan, and getting started guidance
-- **Init → PRD Transition**: Seamless flow from config initialization to PRD interview in the same terminal session
-- **Section Explanations**: Context notes explaining what KARIMO does with each config section (commands, rules, sandbox, boundaries)
-- **Boundaries Source Attribution**: Display where boundary patterns were detected from during init
-- **Checkpoint Command Stub**: Placeholder for Level 2 learning checkpoints with guidance to use `karimo note`
+
+**Documentation**
+- `GETTING-STARTED.md` — Installation and first PRD walkthrough
+- `COMMANDS.md` — Slash command reference for all 4 commands
+- `CONFIG-REFERENCE.md` — Full `.karimo/config.yaml` documentation
+- `INTEGRATING.md` — Guide for existing Claude Code projects
+- `PHASES.md` — Three-phase adoption system (replaces LEVELS.md)
+
+**Adoption Phases**
+- **Phase 1: Execute PRD** — Agent teams, worktrees, GitHub Projects (starting point)
+- **Phase 2: Automate Review** — Greptile integration for code review (optional)
+- **Phase 3: Monitor & Review** — Dashboard for oversight (future)
+
+**Install Script**
+- Modular CLAUDE.md integration (~20 lines appended instead of ~210)
+- KARIMO_RULES.md installed as separate file
+- Reference block with commands, rules pointer, and learnings section
 
 ### Changed
-- **runInit() Return Type**: Now returns `InitResult` instead of calling `process.exit()`, enabling composable CLI flows
-- **Doctor Checklist**: Added context explanation and GitHub issues link for getting help
-- **Husky commit-msg Hook**: Auto-generates CHANGELOG entries for `feat:`/`fix:` commits using Claude Code instead of blocking
 
-### Fixed
-- **CLI**: Show returning welcome when running `karimo init` with existing config instead of immediately asking to overwrite
+**Architecture**
+- Transformed from TypeScript CLI to Claude Code configuration framework
+- Methodology delivered via markdown files (agents, commands, skills)
+- No build step, no runtime dependencies, no CLI to install
 
----
+**Documentation Rewrites**
+- `CLAUDE.md` — Concise configuration guide (~100 lines from ~936)
+- `CONTRIBUTING.md` — Claude Code component contribution guide
+- `README.md` — Updated positioning as configuration framework
+- `ARCHITECTURE.md` — v2 system design with integration guide
+- `CODE-INTEGRITY.md` — Worktrees, branches, Greptile approach
+- `COMPOUND-LEARNING.md` — Two-layer learning system
+- `SECURITY.md` — Agent boundaries via KARIMO_RULES.md
 
-## [0.1.0] - 2026-02-17
+**Terminology**
+- "Levels 0-5" → "Phases 1-3"
+- "TypeScript CLI" → "Claude Code configuration"
+- "Installation" → "Integration"
 
-### Added
-- **Commands**: Add `/karimo:feedback` command for capturing execution learnings
-- **Workflows**: Add karimo-integration GitHub Action for automated PR checks
-- **GitHub**: Add issue template for KARIMO automated task creation
-- **Skills**: Add git-worktree-ops skill documenting worktree management patterns
-- **Commands**: Add `/karimo:execute` slash command for autonomous PRD execution
-- **Templates**: Add v2 templates for PRD, interview protocol, and task schema
-- **Agents**: Add karimo-investigator agent for codebase scanning and file analysis
-- **Commands**: Add `/karimo:plan` slash command for PRD interview orchestration
-- **CLI**: Export input-sanitizer, boundaries-display, and response-formatter modules from UI barrel
-- **Interview**: Integrate input sanitization and response formatting in conversation loops
-- **CLI**: Add response formatter for highlighting questions and bold text in agent output
-- **CLI**: Update collapsible response to accept ProcessedInput for sanitized display
-- **CLI**: Add input sanitizer for safe terminal display of numbered and bulleted text
-- **CLI**: Export collapsible response renderer and keypress manager from UI module
-- **CLI**: Add keypress manager for Ctrl+O toggle handling with safe raw mode lifecycle
-- **CLI**: Add reconfigure action to returning welcome for config updates
-- **CLI**: Add info command and integrate returning welcome flow for non-first-time users
-- **CLI**: Add returning user welcome orchestrator with session info and action selection
-- **CLI**: Add compact 3-line ASCII wordmark banner for returning users
-- **Agent Teams (Phase 9)**: Parallel task execution with PMAgent coordination, file-based queue, findings propagation
-- **Interview Subagents (Phase 8)**: Focused subagent spawning for clarification, research, scope validation, and review tasks
-- **Structured Output**: Zod schema validation for agent outputs with JSON Schema conversion
-- **Extended Thinking**: Auto-enable extended thinking based on task complexity signals
-- **Doctor Command**: Health checks for runtime, config, git, and GitHub authentication
-- **First-Run Flow**: Welcome screen with ASCII wordmark and guided onboarding
-- **Telemetry Module**: Dogfooding event tracking for CLI usage
-- **Safety Check**: Working directory validation to prevent running outside KARIMO projects
-- **Note Command**: Quick feedback capture during dogfooding
-- **Reset Command**: Clear KARIMO state and cached data
-- **Husky Pre-Push Hook**: Changelog reminder warnings for versioning discipline
+### Removed
 
-### Fixed
-- **CLI**: Fix LoadConfigResult property access and import formatting in session info
-- CLI dev script pointing to correct entry point
-- Team queue file lock and version conflict issues
-- Safety check detection for @karimo/core
-- TypeScript and lint issues in new modules
+**Documentation**
+- `COMPONENTS.md` — No longer applicable (no TypeScript components)
+- `DEPENDENCIES.md` — No longer applicable (no npm dependencies)
+- `LEVELS.md` — Replaced by `PHASES.md`
 
-### Documentation
-- Agent capabilities by level summary
-- Component specs for thinking, structured output, subagents, and teams
-- Architecture enhancements section
-- Extended thinking, structured output, subagents, and team modules in CLAUDE.md
+### Archived
+
+**v1 TypeScript Implementation** (moved to `/archive/v1/`)
+- `src/` — TypeScript source code
+- `bin/` — CLI entry point
+- `dist/` — Build output
+- `templates/` (root) — Original templates
+- `package.json`, `bun.lock`, `biome.json`, `tsconfig.json`
+
+The v1 implementation is preserved for reference but no longer maintained. KARIMO v2 is configuration-only.
 
 ---
 
-## [1.4.0] - 2026-02-17
+## [1.x] - v1 TypeScript CLI (Archived)
 
-### Added
-- **Commands**: Add `/karimo:feedback` command for capturing execution learnings
-- **Workflows**: Add karimo-integration GitHub Action for automated PR checks
-- **GitHub**: Add issue template for KARIMO automated task creation
-- **Skills**: Add git-worktree-ops skill documenting worktree management patterns
-- **Commands**: Add `/karimo:execute` slash command for autonomous PRD execution
-- **Templates**: Add v2 templates for PRD, interview protocol, and task schema
-- **Agents**: Add karimo-investigator agent for codebase scanning and file analysis
-- **Commands**: Add `/karimo:plan` slash command for PRD interview orchestration
-- **CLI**: Export input-sanitizer, boundaries-display, and response-formatter modules from UI barrel
-- **Interview**: Integrate input sanitization and response formatting in conversation loops
-- **CLI**: Add response formatter for highlighting questions and bold text in agent output
-- **CLI**: Update collapsible response to accept ProcessedInput for sanitized display
-- **CLI**: Add input sanitizer for safe terminal display of numbered and bulleted text
-- **CLI**: Export collapsible response renderer and keypress manager from UI module
-- **CLI**: Add keypress manager for Ctrl+O toggle handling with safe raw mode lifecycle
-- **CLI**: Add reconfigure action to returning welcome for config updates
-- **CLI**: Add info command and integrate returning welcome flow for non-first-time users
-- **CLI**: Add returning user welcome orchestrator with session info and action selection
-- **CLI**: Add compact 3-line ASCII wordmark banner for returning users
+The v1 changelog entries below document the TypeScript CLI implementation, which has been archived to `/archive/v1/`. This implementation is no longer maintained.
+
+<details>
+<summary>View v1 changelog history</summary>
+
+### [1.4.0] - 2026-02-17
+
+#### Added
 - **docs/CODE-INTEGRITY.md**: Greptile section explaining automated review integration
 
----
+### [1.3.0] - 2026-02-17
 
-## [1.3.0] - 2026-02-17
-
-### Changed
+#### Changed
 - **templates/INTERVIEW_PROTOCOL.md**: Added round-to-section mapping and context handling
 
----
+### [1.2.0] - 2026-02-17
 
-## [1.2.0] - 2026-02-17
-
-### Changed
+#### Changed
 - **templates/PRD_TEMPLATE.md**: Renamed "ring" → "level" terminology
-- **templates/config.example.yaml**: Renamed "ring" → "level", tiered command requirements, auto-detection annotations
+- **templates/config.example.yaml**: Renamed "ring" → "level", tiered command requirements
 
----
+### [1.1.0] - 2026-02-17
 
-## [1.1.0] - 2026-02-17
-
-### Added
-- **Commands**: Add `/karimo:feedback` command for capturing execution learnings
-- **Workflows**: Add karimo-integration GitHub Action for automated PR checks
-- **GitHub**: Add issue template for KARIMO automated task creation
-- **Skills**: Add git-worktree-ops skill documenting worktree management patterns
-- **Commands**: Add `/karimo:execute` slash command for autonomous PRD execution
-- **Templates**: Add v2 templates for PRD, interview protocol, and task schema
-- **Agents**: Add karimo-investigator agent for codebase scanning and file analysis
-- **Commands**: Add `/karimo:plan` slash command for PRD interview orchestration
-- **CLI**: Export input-sanitizer, boundaries-display, and response-formatter modules from UI barrel
-- **Interview**: Integrate input sanitization and response formatting in conversation loops
-- **CLI**: Add response formatter for highlighting questions and bold text in agent output
-- **CLI**: Update collapsible response to accept ProcessedInput for sanitized display
-- **CLI**: Add input sanitizer for safe terminal display of numbered and bulleted text
-- **CLI**: Export collapsible response renderer and keypress manager from UI module
-- **CLI**: Add keypress manager for Ctrl+O toggle handling with safe raw mode lifecycle
-- **CLI**: Add reconfigure action to returning welcome for config updates
-- **CLI**: Add info command and integrate returning welcome flow for non-first-time users
-- **CLI**: Add returning user welcome orchestrator with session info and action selection
-- **CLI**: Add compact 3-line ASCII wordmark banner for returning users
+#### Added
 - **docs/DASHBOARD.md**: Dashboard documentation for Level 5
 - **docs/DEPENDENCIES.md**: Dependency inventory and portability guide
 - **docs/COMPONENTS.md**: Comprehensive component specifications
 - **docs/LEVELS.md**: Updated with detailed timelines and exit criteria
 - **docs/ARCHITECTURE.md**: Risk Mitigation and Key Principles sections
 
+### [1.0.0] - 2026-02-17
+
+#### Added
+- **templates/config.example.yaml**: Configuration reference
+- **templates/PRD_TEMPLATE.md**: PRD template with YAML task blocks
+- **templates/INTERVIEW_PROTOCOL.md**: PRD interview protocol
+- **docs/**: Initial documentation structure
+
+### [0.1.0] - 2026-02-17
+
+#### Added
+- **Commands**: `/karimo:plan`, `/karimo:execute`, `/karimo:status`, `/karimo:feedback`
+- **Workflows**: karimo-integration GitHub Action
+- **Skills**: git-worktree-ops skill
+- **Agents**: karimo-investigator agent
+- **CLI Features**: Input sanitizer, response formatter, keypress manager
+- **Agent Teams (Phase 9)**: Parallel task execution with PMAgent coordination
+- **Interview Subagents (Phase 8)**: Focused subagent spawning
+- **Doctor Command**: Health checks for runtime, config, git, GitHub
+- **First-Run Flow**: Welcome screen with ASCII wordmark
+
+</details>
+
 ---
 
-## [1.0.0] - 2026-02-17
+## Migration from v1
 
-### Added
-- **Commands**: Add `/karimo:feedback` command for capturing execution learnings
-- **Workflows**: Add karimo-integration GitHub Action for automated PR checks
-- **GitHub**: Add issue template for KARIMO automated task creation
-- **Skills**: Add git-worktree-ops skill documenting worktree management patterns
-- **Commands**: Add `/karimo:execute` slash command for autonomous PRD execution
-- **Templates**: Add v2 templates for PRD, interview protocol, and task schema
-- **Agents**: Add karimo-investigator agent for codebase scanning and file analysis
-- **Commands**: Add `/karimo:plan` slash command for PRD interview orchestration
-- **CLI**: Export input-sanitizer, boundaries-display, and response-formatter modules from UI barrel
-- **Interview**: Integrate input sanitization and response formatting in conversation loops
-- **CLI**: Add response formatter for highlighting questions and bold text in agent output
-- **CLI**: Update collapsible response to accept ProcessedInput for sanitized display
-- **CLI**: Add input sanitizer for safe terminal display of numbered and bulleted text
-- **CLI**: Export collapsible response renderer and keypress manager from UI module
-- **CLI**: Add keypress manager for Ctrl+O toggle handling with safe raw mode lifecycle
-- **CLI**: Add reconfigure action to returning welcome for config updates
-- **CLI**: Add info command and integrate returning welcome flow for non-first-time users
-- **CLI**: Add returning user welcome orchestrator with session info and action selection
-- **CLI**: Add compact 3-line ASCII wordmark banner for returning users
-- **templates/config.example.yaml**: Configuration reference for `.karimo/config.yaml`
-  - Project metadata (name, language, framework)
-  - Command definitions (build, lint, test, typecheck)
-  - Agent engine configuration
-  - Cost control parameters
-  - Safeguard boundaries (never_touch, require_review)
-  - Sandbox environment variables
-  - GitHub integration settings
-- **templates/PRD_TEMPLATE.md**: PRD template with YAML task blocks
-  - Task definition structure with YAML front matter
-  - Complexity scoring guidelines
-  - Dependency declaration format
-  - File scope specification
-- **templates/INTERVIEW_PROTOCOL.md**: PRD interview protocol
-  - Structured interview rounds
-  - Question templates for requirements gathering
-  - Task decomposition guidance
-- **docs/**: Initial documentation structure
-  - ARCHITECTURE.md — System architecture and design
-  - LEVELS.md — Level-based build plan (0-5)
-  - COMPONENTS.md — Module specifications
-  - CODE-INTEGRITY.md — Code quality standards
-  - SECURITY.md — Security model and sandboxing
-  - COMPOUND-LEARNING.md — Learning system design
-  - CONTRIBUTING.md — Contribution guidelines
+If upgrading from v1 TypeScript CLI:
+
+1. **Stop using the CLI** — `karimo` command is no longer used
+2. **Run install.sh** — Installs v2 configuration into your project
+3. **Use slash commands** — `/karimo:plan`, `/karimo:execute`, etc.
+4. **Review PHASES.md** — Understand the new adoption system
+
+The v1 codebase is archived at `/archive/v1/` for reference.
