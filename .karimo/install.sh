@@ -91,6 +91,8 @@ cp "$KARIMO_ROOT/.karimo/templates/INTERVIEW_PROTOCOL.md" "$TARGET_DIR/.karimo/t
 cp "$KARIMO_ROOT/.karimo/templates/TASK_SCHEMA.md" "$TARGET_DIR/.karimo/templates/"
 cp "$KARIMO_ROOT/.karimo/templates/STATUS_SCHEMA.md" "$TARGET_DIR/.karimo/templates/"
 cp "$KARIMO_ROOT/.karimo/templates/LEARN_INTERVIEW_PROTOCOL.md" "$TARGET_DIR/.karimo/templates/"
+cp "$KARIMO_ROOT/.karimo/templates/FINDINGS_TEMPLATE.md" "$TARGET_DIR/.karimo/templates/"
+cp "$KARIMO_ROOT/.karimo/templates/TASK_BRIEF_TEMPLATE.md" "$TARGET_DIR/.karimo/templates/"
 
 # Copy GitHub workflows
 echo "Copying GitHub workflows..."
@@ -186,7 +188,7 @@ echo "  .claude/agents/           5 agent definitions"
 echo "  .claude/commands/         5 slash commands"
 echo "  .claude/skills/           2 skill definitions"
 echo "  .claude/KARIMO_RULES.md   Agent behavior rules"
-echo "  .karimo/templates/        5 templates"
+echo "  .karimo/templates/        7 templates"
 echo "  .github/workflows/        3 GitHub Actions"
 echo "  .github/ISSUE_TEMPLATE/   1 issue template"
 echo "  CLAUDE.md                 Updated with reference block"
