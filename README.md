@@ -9,11 +9,11 @@
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Status](https://img.shields.io/badge/Status-v2-green.svg)]()
-[![Claude Code](https://img.shields.io/badge/Claude%20Code-Compatible-blueviolet.svg)]()
+[![Claude Code](https://img.shields.io/badge/Claude%20Code-Framework-blueviolet.svg)]()
 
 **Autonomous Development Framework for Claude Code**
 
-Turn product requirements into shipped code using AI agents, automated code review, and structured human oversight — all through Claude Code slash commands.
+KARIMO is a Claude Code configuration framework that transforms product requirements into shipped code using AI agents, GitHub automation, and structured human oversight — all through slash commands.
 
 ---
 
@@ -26,6 +26,38 @@ KARIMO provides a structured methodology for autonomous development:
 - **Agents** execute tasks in isolated worktrees
 - **Greptile** reviews code before human approval
 - **GitHub Actions** automate the review-merge pipeline
+
+---
+
+## Adoption Phases
+
+KARIMO uses three optional adoption phases. Start in Phase 1 and build up as needed.
+
+### Phase 1: Execute PRD
+Your first planning process with KARIMO:
+- Run `/karimo:plan` to create PRD through agent interviews
+- Agent teams coordinate task execution
+- GitHub Projects integration for tracking
+- Git worktrees and feature branches by default
+- PRs created for each completed task
+
+**This is where everyone starts.** Phase 1 is fully functional out of the box.
+
+### Phase 2: Automate Review
+Add automated code review to your workflow:
+- Integrate Greptile for code integrity checks
+- Ranking system enables agentic revision loops
+- Score < 4 triggers automated revision attempts
+
+**Optional upgrade.** Requires Greptile API key.
+
+### Phase 3: Monitor & Review
+Connect to a dashboard for oversight:
+- Review all features, issues, and status
+- Visualize dependencies and progress
+- Team-wide visibility into execution
+
+**Future phase.** Dashboard to be built.
 
 ---
 
@@ -45,8 +77,10 @@ This copies:
 - Agent definitions to `.claude/agents/`
 - Slash commands to `.claude/commands/`
 - Skills to `.claude/skills/`
+- KARIMO rules to `.claude/KARIMO_RULES.md`
 - Templates to `.karimo/templates/`
 - GitHub Actions to `.github/workflows/`
+- Reference block appended to `CLAUDE.md`
 
 ### 2. Create Your First PRD
 
@@ -99,7 +133,7 @@ Runs the PM Agent to coordinate task execution:
 - Creates feature branch and worktrees
 - Spawns agents for ready tasks (respects dependencies)
 - Monitors progress and propagates findings
-- Creates PRs with Greptile review
+- Creates PRs when tasks complete
 
 ### /karimo:status
 
@@ -160,7 +194,7 @@ The PM Agent coordinates parallel execution:
 4. Monitors completion, propagates findings
 5. Creates PRs when tasks complete
 
-### Review Phase
+### Review Phase (Phase 2)
 
 GitHub Actions handle automated review:
 
@@ -217,6 +251,7 @@ After installation, your project contains:
   skills/
     git-worktree-ops.md
     github-project-ops.md
+  KARIMO_RULES.md
 
 .karimo/
   templates/
@@ -239,7 +274,7 @@ After installation, your project contains:
   ISSUE_TEMPLATE/
     karimo-task.yml
 
-CLAUDE.md  # Updated with KARIMO rules
+CLAUDE.md  # Updated with KARIMO reference block
 
 .worktrees/  # Git worktrees (gitignored)
 ```
@@ -303,16 +338,14 @@ Triggered when KARIMO PR is merged:
 
 ## Compound Learning
 
-KARIMO learns from execution:
+KARIMO learns from execution through two layers:
 
-### Automatic Learning
-
+### Layer 1: Automatic
 - Task outcomes update cost multipliers
 - Build failures add to `never_touch` lists
 - Pattern violations become rules
 
-### Manual Learning
-
+### Layer 2: Manual
 Use `/karimo:feedback` to capture learnings:
 
 ```
@@ -321,23 +354,7 @@ Use `/karimo:feedback` to capture learnings:
 > "Always use the existing Button component, don't create new ones"
 ```
 
-Learnings are stored in `CLAUDE.md` under `## KARIMO Learnings`:
-
-```markdown
-## KARIMO Learnings
-
-### Patterns to Follow
-
-- Always use existing component patterns from `src/components/`
-
-### Anti-Patterns to Avoid
-
-- Never create new button variants — use the Button component
-
-### Rules
-
-- Error handling must use structured error types from `src/utils/errors.ts`
-```
+Learnings are stored in `CLAUDE.md` under `## KARIMO Learnings`.
 
 ---
 
@@ -361,95 +378,7 @@ Optional:
 | **Cost ceilings** | Per-task spending limits |
 | **Worktree isolation** | Each task works in isolated branch |
 | **Pre-PR checks** | Build/typecheck must pass before PR |
-| **Greptile review** | Automated code quality checks |
-
----
-
-## Task Schema
-
-Tasks in `tasks.yaml` follow this structure:
-
-```yaml
-tasks:
-  - id: "1a"
-    title: "Create UserProfile component"
-    complexity: 5
-    depends_on: []
-    files_affected:
-      - "src/components/UserProfile.tsx"
-      - "src/components/UserProfile.test.tsx"
-    success_criteria:
-      - "Component renders user data"
-      - "Tests pass with 80% coverage"
-    agent_context: |
-      Reference the existing Card component pattern.
-      Use React Query for data fetching.
-```
-
-See `.karimo/templates/TASK_SCHEMA.md` for complete documentation.
-
----
-
-## Status Tracking
-
-Execution state is tracked in `status.json`:
-
-```json
-{
-  "prd_slug": "user-profiles",
-  "status": "active",
-  "started_at": "2026-02-19T10:30:00Z",
-  "tasks": {
-    "1a": {
-      "status": "done",
-      "pr_number": 42,
-      "cost": 8.50,
-      "iterations": 3,
-      "merged_at": "2026-02-19T11:45:00Z"
-    },
-    "1b": {
-      "status": "running",
-      "started_at": "2026-02-19T11:30:00Z"
-    }
-  }
-}
-```
-
----
-
-## Migration from v1
-
-If you used the TypeScript orchestrator (v1):
-
-1. Keep your existing PRDs in `.karimo/prds/`
-2. Run the install script to add v2 components
-3. The new slash commands work with existing PRD format
-4. TypeScript orchestrator is no longer required
-
----
-
-## Troubleshooting
-
-### "GitHub CLI not authenticated"
-
-```bash
-gh auth login
-gh auth status
-```
-
-### "Worktree already exists"
-
-```bash
-git worktree list
-git worktree remove .worktrees/{prd-slug}/{task-id}
-```
-
-### "Greptile review not triggering"
-
-Check that:
-- `GREPTILE_API_KEY` is set in GitHub secrets
-- PR has the `karimo` label
-- Workflow has correct permissions
+| **Greptile review** | Automated code quality checks (Phase 2) |
 
 ---
 
@@ -457,22 +386,17 @@ Check that:
 
 | Document | Description |
 |----------|-------------|
+| [Configuration Guide](CLAUDE.md) | Project configuration reference |
 | [KARIMO Rules](.claude/KARIMO_RULES.md) | Agent behavior rules |
 | [PRD Template](.karimo/templates/PRD_TEMPLATE.md) | PRD output format |
-| [Interview Protocol](.karimo/templates/INTERVIEW_PROTOCOL.md) | How interviews work |
-| [Task Schema](.karimo/templates/TASK_SCHEMA.md) | Task definition format |
-| [Status Schema](.karimo/templates/STATUS_SCHEMA.md) | Status tracking format |
+| [Architecture](.karimo/docs/ARCHITECTURE.md) | System design |
+| [Phases](.karimo/docs/PHASES.md) | Adoption phases explained |
 
 ---
 
 ## Contributing
 
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Submit a pull request
-
-See the agents and commands as examples for extending KARIMO.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for how to add agents, commands, skills, and templates.
 
 ---
 
