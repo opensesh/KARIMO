@@ -185,7 +185,7 @@ checkpoint_refs: []        # IDs of checkpoints consulted during Round 5
 
 **Estimate calibration notes:**
 
-- Note on cost/iteration accuracy from prior phases
+- Note on model selection and loop count accuracy from prior phases
 
 ---
 

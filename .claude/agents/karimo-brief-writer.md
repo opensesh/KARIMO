@@ -37,7 +37,7 @@ Generate a markdown file with this structure:
 **PRD:** {prd_slug}
 **Priority:** {must|should|could}
 **Complexity:** {n}/10
-**Max Iterations:** {calculated from config}
+**Model:** {sonnet|opus}
 
 ---
 
@@ -173,7 +173,7 @@ From `config.yaml`:
 - `boundaries.never_touch` → Files MUST NOT Touch
 - `boundaries.require_review` → Files Requiring Review
 - `commands.*` → Validation Checklist
-- `iteration_limits.*` → Calculate Max Iterations
+- `models.*` → Determine Model Assignment
 
 ### 4. Include Investigator Findings
 
@@ -183,14 +183,17 @@ If available:
 - `context_additions` → Implementation Guidance
 - `warnings` → Boundaries or special notes
 
-## Calculating Max Iterations
+## Determining Model Assignment
 
 Use config values:
 ```
-max_iterations = base + (complexity × per_complexity)
+model = complexity < threshold ? models.simple : models.complex
 
-Example (complexity 5, base 3, per_complexity 2):
-max_iterations = 3 + (5 × 2) = 13
+Example (complexity 5, threshold 5):
+model = "opus" (complexity meets threshold)
+
+Example (complexity 4, threshold 5):
+model = "sonnet" (complexity below threshold)
 ```
 
 ## Writing Guidelines
@@ -230,7 +233,7 @@ Brief created: .karimo/prds/{slug}/briefs/{task_id}.md
   - Objective: {first sentence of objective}
   - Files: {count} files to modify
   - Criteria: {count} success criteria
-  - Max iterations: {n}
+  - Model: {sonnet|opus}
 ```
 
 ## Error Handling
@@ -252,8 +255,9 @@ Cannot generate brief without:
 If `config.yaml` doesn't exist:
 ```
 Warning: No config found. Using defaults:
-  - iteration_limits.base: 3
-  - iteration_limits.per_complexity: 2
+  - models.simple: sonnet
+  - models.complex: opus
+  - models.threshold: 5
   - boundaries: none
 ```
 

@@ -71,7 +71,7 @@ tasks:
 | `title` | string | Short, descriptive title (becomes GitHub Issue title) |
 | `description` | string | 2-3 sentence description of what the agent should build |
 | `depends_on` | string[] | Task IDs that must complete before this task starts |
-| `complexity` | number | 1-10 scale, drives max_iterations calculation |
+| `complexity` | number | 1-10 scale, determines model assignment (sonnet 1-4, opus 5-10) |
 | `priority` | string | One of: "must" \| "should" \| "could" |
 | `success_criteria` | string[] | 3-5 concrete, testable criteria for task completion |
 | `files_affected` | string[] | File paths this task will likely modify |
@@ -88,10 +88,9 @@ tasks:
 
 These fields are calculated by the reviewer agent using config values:
 
-| Field | Formula | Description |
-|-------|---------|-------------|
-| `max_iterations` | `base + (complexity × per_complexity)` | Maximum iterations for this task |
-| `revision_iterations` | `max_iterations × revision_multiplier` | Additional iterations for revisions |
+| Field | Source | Description |
+|-------|--------|-------------|
+| `model` | `complexity < threshold ? "sonnet" : "opus"` | Model assigned for execution |
 
 ---
 
@@ -122,13 +121,13 @@ Examples:
 
 ## Complexity Scale
 
-| Complexity | Description | Typical Files | Expected Duration |
-|------------|-------------|---------------|-------------------|
-| 1-2 | Trivial change | 1-2 files | Single iteration |
-| 3-4 | Simple feature | 2-4 files | Few iterations |
-| 5-6 | Moderate feature | 4-6 files | Multiple iterations |
-| 7-8 | Complex feature | 6-10 files | Many iterations, may need split |
-| 9-10 | Very complex | 10+ files | Should almost always be split |
+| Complexity | Description | Typical Files | Model | Notes |
+|------------|-------------|---------------|-------|-------|
+| 1-2 | Trivial change | 1-2 files | sonnet | Single loop expected |
+| 3-4 | Simple feature | 2-4 files | sonnet | Few loops expected |
+| 5-6 | Moderate feature | 4-6 files | opus | Multiple loops likely |
+| 7-8 | Complex feature | 6-10 files | opus | May need split |
+| 9-10 | Very complex | 10+ files | opus | Should almost always be split |
 
 ---
 

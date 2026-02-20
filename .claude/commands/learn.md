@@ -180,7 +180,7 @@ Changes Applied: 3
   ✓ KARIMO_RULES.md: Clarified task boundary enforcement
 
 Changes Rejected: 1
-  ✗ config.yaml: Reduce iteration_limits.base (user prefers current)
+  ✗ config.yaml: Change models.threshold (user prefers current)
 
 Next Steps:
 - Changes take effect on next agent invocation

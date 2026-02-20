@@ -133,17 +133,19 @@ Validate the PRD is complete, consistent, and executable. Flag issues for human 
 - Data task with no validation rules → **WARNING**
 - Migration task with no rollback plan → **STRONG WARNING**
 
-### 8. Computed Fields Validation
+### 8. Model Assignment Validation
 
-**Verify calculations (if config exists):**
+**Verify model assignments (if config exists):**
 ```
-max_iterations = base + (complexity × per_complexity)
-revision_iterations = max_iterations × revision_multiplier
-total_allowed = max_iterations + revision_iterations
+model = complexity < threshold ? models.simple : models.complex
+
+Default (threshold=5):
+  Complexity 1-4 → sonnet
+  Complexity 5-10 → opus
 ```
 
 **Flag if:**
-- Computed values don't match formula → **ERROR**
+- Model assignment doesn't match complexity → **ERROR**
 - Missing config values prevent calculation → **INFO** (will use defaults)
 
 ## Issue Severity Levels
@@ -176,7 +178,7 @@ review:
       suggestion: "Run investigator or manually specify affected files"
 
   info:
-    - "Total max iterations: 78 across 6 tasks"
+    - "Model distribution: 4 sonnet, 2 opus across 6 tasks"
     - "Critical path length: 4 tasks"
     - "3 tasks can run in parallel in first batch"
 
@@ -234,7 +236,7 @@ After saving, confirm to the interviewer:
 > **Summary:**
 > - Tasks: {count} ({must_count} must, {should_count} should, {could_count} could)
 > - Total complexity: {sum} points
-> - Max iterations: {total}
+> - Models: {sonnet_count} sonnet, {opus_count} opus
 > - Critical path: {length} tasks
 > - Ready for parallel: {parallel_count} tasks
 >
