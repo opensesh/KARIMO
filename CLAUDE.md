@@ -94,7 +94,7 @@ When you run `install.sh`, these files are added:
 | [PHASES.md](.karimo/docs/PHASES.md) | Adoption phases explained |
 | [COMMANDS.md](.karimo/docs/COMMANDS.md) | Slash command reference |
 | [GETTING-STARTED.md](.karimo/docs/GETTING-STARTED.md) | Installation walkthrough |
-| [CODE-INTEGRITY.md](.karimo/docs/CODE-INTEGRITY.md) | Worktrees, branches, Greptile |
+| [SAFEGUARDS.md](.karimo/docs/SAFEGUARDS.md) | Code integrity, security, Greptile |
 | [COMPOUND-LEARNING.md](.karimo/docs/COMPOUND-LEARNING.md) | Two-layer learning system |
 
 ---

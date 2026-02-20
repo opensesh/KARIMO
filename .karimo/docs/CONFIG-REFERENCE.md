@@ -270,5 +270,4 @@ Error: Invalid config at boundaries.never_touch[0]
 | Document | Purpose |
 |----------|---------|
 | [GETTING-STARTED.md](GETTING-STARTED.md) | Installation walkthrough |
-| [CODE-INTEGRITY.md](CODE-INTEGRITY.md) | How boundaries are enforced |
-| [SECURITY.md](SECURITY.md) | Environment sandboxing |
+| [SAFEGUARDS.md](SAFEGUARDS.md) | Boundaries, sandboxing, validation |

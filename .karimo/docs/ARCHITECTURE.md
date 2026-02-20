@@ -337,7 +337,6 @@ See [COMPOUND-LEARNING.md](COMPOUND-LEARNING.md) for full documentation.
 |----------|---------|
 | [PHASES.md](PHASES.md) | Adoption phases explained |
 | [COMMANDS.md](COMMANDS.md) | Slash command reference |
-| [CODE-INTEGRITY.md](CODE-INTEGRITY.md) | Worktrees, branches, Greptile |
+| [SAFEGUARDS.md](SAFEGUARDS.md) | Worktrees, validation, Greptile |
 | [COMPOUND-LEARNING.md](COMPOUND-LEARNING.md) | Two-layer learning system |
-| [SECURITY.md](SECURITY.md) | Agent boundaries |
 | [CONFIG-REFERENCE.md](CONFIG-REFERENCE.md) | Full configuration guide |
