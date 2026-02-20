@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Agents**: Add karimo-investigator agent for codebase scanning and file analysis
 - **Commands**: Add `/karimo:plan` slash command for PRD interview orchestration
 - **CLI**: Export input-sanitizer, boundaries-display, and response-formatter modules from UI barrel
 - **Interview**: Integrate input sanitization and response formatting in conversation loops
@@ -46,6 +47,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.1.0] - 2026-02-17
 
 ### Added
+- **Agents**: Add karimo-investigator agent for codebase scanning and file analysis
 - **Commands**: Add `/karimo:plan` slash command for PRD interview orchestration
 - **CLI**: Export input-sanitizer, boundaries-display, and response-formatter modules from UI barrel
 - **Interview**: Integrate input sanitization and response formatting in conversation loops
@@ -88,6 +90,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.4.0] - 2026-02-17
 
 ### Added
+- **Agents**: Add karimo-investigator agent for codebase scanning and file analysis
 - **Commands**: Add `/karimo:plan` slash command for PRD interview orchestration
 - **CLI**: Export input-sanitizer, boundaries-display, and response-formatter modules from UI barrel
 - **Interview**: Integrate input sanitization and response formatting in conversation loops
@@ -122,6 +125,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.1.0] - 2026-02-17
 
 ### Added
+- **Agents**: Add karimo-investigator agent for codebase scanning and file analysis
 - **Commands**: Add `/karimo:plan` slash command for PRD interview orchestration
 - **CLI**: Export input-sanitizer, boundaries-display, and response-formatter modules from UI barrel
 - **Interview**: Integrate input sanitization and response formatting in conversation loops
@@ -145,6 +149,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.0.0] - 2026-02-17
 
 ### Added
+- **Agents**: Add karimo-investigator agent for codebase scanning and file analysis
 - **Commands**: Add `/karimo:plan` slash command for PRD interview orchestration
 - **CLI**: Export input-sanitizer, boundaries-display, and response-formatter modules from UI barrel
 - **Interview**: Integrate input sanitization and response formatting in conversation loops
