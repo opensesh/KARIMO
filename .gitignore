@@ -1,14 +1,13 @@
-# Dependencies
-node_modules/
-
-# Build output
-dist/
-out/
-*.tgz
+# KARIMO v2 .gitignore
 
 # Runtime data
 .karimo/local-state.json
 .karimo/checkpoints/*.json
+.karimo/team/*/queue.json
+.karimo/team/*/*.lock
+
+# Worktrees (managed by KARIMO)
+.worktrees/
 
 # Logs
 logs/
@@ -18,15 +17,6 @@ logs/
 .env
 .env.local
 .env.*.local
-
-# Test coverage
-coverage/
-*.lcov
-
-# Cache
-.eslintcache
-.cache/
-*.tsbuildinfo
 
 # IDE
 .idea/
@@ -38,7 +28,6 @@ coverage/
 .DS_Store
 Thumbs.db
 
-# Debug
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
+# Archive (v1 TypeScript implementation)
+# These files are kept in archive/v1/ for reference
+# but don't need special ignoring
