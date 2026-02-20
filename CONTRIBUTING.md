@@ -1,204 +1,163 @@
 # Contributing to KARIMO
 
-Thank you for your interest in contributing to KARIMO. This document provides guidelines and instructions for contributing.
+Thank you for your interest in contributing to KARIMO! This guide explains how to contribute to the Claude Code configuration framework.
+
+## What You're Contributing
+
+KARIMO is a configuration framework, not a compiled application. Contributions are markdown files and YAML configurations:
+
+| Component | Location | Purpose |
+|-----------|----------|---------|
+| **Agents** | `.claude/agents/` | Agent definitions for specialized tasks |
+| **Commands** | `.claude/commands/` | Slash commands for user workflows |
+| **Skills** | `.claude/skills/` | Reusable skill modules |
+| **Templates** | `.karimo/templates/` | PRD and task schemas |
+| **Workflows** | `.github/workflows/` | GitHub Actions automation |
+| **Documentation** | `.karimo/docs/` | Architecture and guides |
 
 ---
 
-## Development Setup
+## How to Add an Agent
 
-### Prerequisites
+1. Create `.claude/agents/{name}.md`
+2. Follow the existing agent structure:
 
-- [Bun](https://bun.sh/) >= 1.0.0
-- [Git](https://git-scm.com/)
-- TypeScript knowledge
+```markdown
+# Agent Name
 
-### Getting Started
+## Role
 
-```bash
-# Clone the repository
-git clone https://github.com/opensesh/KARIMO.git
-cd KARIMO
+Brief description of the agent's purpose.
 
-# Install dependencies
-bun install
+## Responsibilities
 
-# Verify your setup (for new contributors)
-bun run onboard
+- Primary task 1
+- Primary task 2
 
-# Run type checking
-bun run typecheck
+## Inputs
 
-# Run linting
-bun run lint
+What context this agent receives.
+
+## Outputs
+
+What this agent produces.
+
+## Constraints
+
+Boundaries and limitations.
 ```
 
-> **Note:** If you're setting up KARIMO for a new target project, use `karimo init` to generate `.karimo/config.yaml`. The init command auto-detects project settings (language, framework, commands, rules) and lets you confirm before saving. For existing projects with config already committed, `bun run onboard` verifies your local setup is correct.
+3. Test manually by referencing the agent in Claude Code
+4. Update documentation if adding new capabilities
 
 ---
 
-## Code Standards
+## How to Add a Command
 
-### TypeScript
+1. Create `.claude/commands/{name}.md`
+2. Follow the existing command structure:
 
-- **Strict mode** — No `any` types. Use `unknown` if the type is truly unknown.
-- **Zod validation** — All external inputs must be validated with Zod schemas.
-- **Explicit types** — Prefer explicit type annotations over inference for public APIs.
-- **No `as` casts** — Use type guards or proper type narrowing.
+```markdown
+# /karimo:{command-name}
 
-### File Organization
+## Purpose
 
-- One primary export per file where possible
-- Use barrel exports via `index.ts`
-- Tests as `*.test.ts` next to source files
-- Path aliases: `@/` maps to `src/`
+What this command does.
 
-### Code Style
+## Usage
 
-We use [Biome](https://biomejs.dev/) for linting and formatting:
+/karimo:{command-name} [--option value]
 
-```bash
-# Check for issues
-bun run lint
+## Workflow
 
-# Fix issues automatically
-bun run lint:fix
+1. Step one
+2. Step two
 
-# Format code
-bun run format
+## Output
+
+What the user sees after execution.
 ```
+
+3. Test the workflow end-to-end with Claude Code
+4. Add to README.md command table
 
 ---
 
-## Architecture Rules
+## How to Add a Skill
 
-### Level-Based Development
-
-KARIMO follows a level-based build plan. Each level adds capabilities:
-
-- **Level 0:** Basic agent execution
-- **Level 1:** GitHub Projects integration
-- **Level 2:** Automated review (Greptile)
-- **Level 3:** Full orchestration
-- **Level 4:** Parallel execution + fallback engines
-- **Level 5:** Dashboard
-
-Contributions should target the current level. See [LEVELS.md](./LEVELS.md) for details.
-
-### Module Boundaries
-
-Each module in `src/` has a clear boundary:
-
-| Module | Responsibility |
-| ------ | -------------- |
-| `orchestrator` | Execution loop, task coordination |
-| `config` | Configuration loading and validation |
-| `prd` | PRD parsing and task extraction |
-| `git` | Git operations (worktrees, branches, rebases) |
-| `github` | GitHub API interactions |
-| `agents` | Agent process management |
-| `learning` | Checkpoint collection and config updates |
-| `cost` | Cost tracking and budget enforcement |
-| `cli` | Command-line interface |
-| `types` | Shared type definitions |
-
-### No Circular Dependencies
-
-Modules should not import from each other in cycles. The dependency flow is:
-
-```
-cli → orchestrator → {agents, git, github, cost, learning}
-                   ↓
-              config, prd, types
-```
+1. Create `.claude/skills/{name}.md`
+2. Define the skill's purpose and instructions
+3. Reference from agents or commands as needed
+4. Test in isolation before integration
 
 ---
 
-## Git Workflow
+## How to Update Templates
 
-### Branch Naming
+Templates live in `.karimo/templates/`:
 
-```
-karimo/<scope>/<description>
-```
+- `PRD_TEMPLATE.md` — PRD output format
+- `INTERVIEW_PROTOCOL.md` — Interview flow
+- `TASK_SCHEMA.md` — Task definition format
+- `STATUS_SCHEMA.md` — Status tracking format
 
-Examples:
-- `karimo/orchestrator/add-cost-tracking`
-- `karimo/cli/implement-status-command`
-- `karimo/docs/update-architecture`
-
-### Commit Messages
-
-We use [Conventional Commits](https://www.conventionalcommits.org/):
-
-```
-<type>[optional scope]: <description>
-
-[optional body]
-
-Co-Authored-By: Your Name <your@email.com>
-```
-
-**Types:**
-- `feat:` — New feature
-- `fix:` — Bug fix
-- `refactor:` — Code restructuring
-- `docs:` — Documentation changes
-- `test:` — Test additions/updates
-- `chore:` — Maintenance tasks
-
-**Examples:**
-```
-feat(orchestrator): add cost ceiling enforcement
-
-Implements per-task cost ceilings based on complexity × cost_multiplier.
-Aborts tasks that exceed their ceiling.
-
-Co-Authored-By: Your Name <your@email.com>
-```
-
-### Pull Requests
-
-1. Create a branch from `main`
-2. Make your changes with clear commits
-3. Run `bun run typecheck` and `bun run lint`
-4. Push and open a PR
-5. Fill out the PR template
-6. Wait for review
-
----
-
-## Testing
-
-```bash
-# Run all tests
-bun test
-
-# Run specific test file
-bun test src/cost/index.test.ts
-
-# Run with coverage
-bun test --coverage
-```
-
-Tests should be placed next to the source file:
-- `src/cost/index.ts` → `src/cost/index.test.ts`
+When updating templates, ensure backward compatibility with existing PRDs.
 
 ---
 
 ## Documentation
 
-- Update relevant docs when changing behavior
-- Keep `ARCHITECTURE.md` in sync with major changes
-- Add changelog entries for user-facing changes
+Documentation lives in `.karimo/docs/`:
+
+| File | Purpose |
+|------|---------|
+| `ARCHITECTURE.md` | System design and integration |
+| `PHASES.md` | Adoption phases |
+| `COMMANDS.md` | Slash command reference |
+| `CODE-INTEGRITY.md` | Code quality practices |
+| `COMPOUND-LEARNING.md` | Learning system |
+| `SECURITY.md` | Agent boundaries |
+
+Keep documentation concise and focused on the "what" and "how" — avoid lengthy explanations of "why" unless critical.
 
 ---
 
-## Questions?
+## Pull Request Process
 
-Open an issue on GitHub or reach out to the maintainers.
+1. Fork the repository
+2. Create a feature branch: `feat/{component}/{description}`
+3. Make your changes
+4. Test with Claude Code manually
+5. Update relevant documentation
+6. Submit PR with clear description
+
+### PR Title Format
+
+```
+<type>(<scope>): <description>
+```
+
+Examples:
+- `feat(agents): add task-decomposer agent`
+- `fix(commands): correct execute workflow`
+- `docs(architecture): update integration diagram`
+
+---
+
+## Code of Conduct
+
+- Be respectful and constructive
+- Focus on the contribution, not the contributor
+- Assume good intent
 
 ---
 
 ## License
 
 By contributing, you agree that your contributions will be licensed under the Apache 2.0 License.
+
+---
+
+## Questions?
+
+Open an issue with the `question` label or start a discussion.
