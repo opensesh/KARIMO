@@ -11,7 +11,8 @@ Reference for all KARIMO slash commands available in Claude Code.
 | `/karimo:plan` | Start PRD interview |
 | `/karimo:execute` | Execute tasks from PRD |
 | `/karimo:status` | View execution progress |
-| `/karimo:feedback` | Capture learnings |
+| `/karimo:feedback` | Quick capture of single learnings |
+| `/karimo:learn` | Deep learning cycle (3 modes) |
 
 ---
 
@@ -211,6 +212,76 @@ Generates:
 
 ---
 
+## /karimo:learn
+
+Conduct a comprehensive three-mode learning cycle.
+
+### Usage
+
+```
+/karimo:learn
+```
+
+### What It Does
+
+Unlike `/karimo:feedback` (quick, single-rule capture), `/karimo:learn` is a deep investigation:
+
+1. **Mode 1: Interview** (~25 min) — Opus-guided conversation
+2. **Mode 2: Audit** (~10 min) — Agent investigates with evidence
+3. **Mode 3: Review & Act** (~10 min) — Apply approved changes
+
+### Learn Cycle Flow
+
+```
+INIT: Create .karimo/learn/{timestamp}/
+    ↓
+MODE 1: Interview (5 rounds)
+  Pain points → Configuration → Workflow → Deep dive → Audit directives
+    ↓
+MODE 2: Audit (karimo-learn-auditor)
+  Evidence from status.json, PR history, codebase
+    ↓
+MODE 3: Review & Act
+  Present changes → Human approval → Apply to config/docs
+    ↓
+COMPLETE: Summary + commit
+```
+
+### Output
+
+Creates `.karimo/learn/{timestamp}/`:
+- `interview.md` — Pain points, audit directives
+- `findings.md` — Evidence, root causes
+- `action-plan.md` — Proposed changes
+- `changes-applied.md` — What was applied
+
+### When to Use
+
+| Use `/karimo:feedback` | Use `/karimo:learn` |
+|------------------------|---------------------|
+| Single observation | Multiple issues |
+| Immediate capture | Periodic review |
+| ~2 minutes | ~45 minutes |
+| No investigation | Evidence-based audit |
+
+### Example
+
+```
+/karimo:learn
+
+# Mode 1 Interview begins...
+# 5 rounds of structured questions
+# Produces audit directives
+
+# Mode 2 Audit runs...
+# Investigates with real evidence
+
+# Mode 3 Review...
+# Each change presented for approval
+```
+
+---
+
 ## Command Locations
 
 Commands are defined in `.claude/commands/`:
@@ -221,6 +292,7 @@ Commands are defined in `.claude/commands/`:
 | `execute.md` | `/karimo:execute` |
 | `status.md` | `/karimo:status` |
 | `feedback.md` | `/karimo:feedback` |
+| `learn.md` | `/karimo:learn` |
 
 ---
 
