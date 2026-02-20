@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Skills**: Add git-worktree-ops skill documenting worktree management patterns
 - **Commands**: Add `/karimo:execute` slash command for autonomous PRD execution
 - **Templates**: Add v2 templates for PRD, interview protocol, and task schema
 - **Agents**: Add karimo-investigator agent for codebase scanning and file analysis
@@ -49,6 +50,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.1.0] - 2026-02-17
 
 ### Added
+- **Skills**: Add git-worktree-ops skill documenting worktree management patterns
 - **Commands**: Add `/karimo:execute` slash command for autonomous PRD execution
 - **Templates**: Add v2 templates for PRD, interview protocol, and task schema
 - **Agents**: Add karimo-investigator agent for codebase scanning and file analysis
@@ -94,6 +96,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.4.0] - 2026-02-17
 
 ### Added
+- **Skills**: Add git-worktree-ops skill documenting worktree management patterns
 - **Commands**: Add `/karimo:execute` slash command for autonomous PRD execution
 - **Templates**: Add v2 templates for PRD, interview protocol, and task schema
 - **Agents**: Add karimo-investigator agent for codebase scanning and file analysis
@@ -131,6 +134,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.1.0] - 2026-02-17
 
 ### Added
+- **Skills**: Add git-worktree-ops skill documenting worktree management patterns
 - **Commands**: Add `/karimo:execute` slash command for autonomous PRD execution
 - **Templates**: Add v2 templates for PRD, interview protocol, and task schema
 - **Agents**: Add karimo-investigator agent for codebase scanning and file analysis
@@ -157,6 +161,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.0.0] - 2026-02-17
 
 ### Added
+- **Skills**: Add git-worktree-ops skill documenting worktree management patterns
 - **Commands**: Add `/karimo:execute` slash command for autonomous PRD execution
 - **Templates**: Add v2 templates for PRD, interview protocol, and task schema
 - **Agents**: Add karimo-investigator agent for codebase scanning and file analysis
