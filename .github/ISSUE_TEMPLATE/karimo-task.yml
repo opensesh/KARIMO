@@ -1,0 +1,117 @@
+name: "🤖 KARIMO Task"
+description: "Automated task from KARIMO PRD execution"
+title: "[TASK] "
+labels: ["karimo"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## 🤖 KARIMO Automated Task
+
+        This issue was created by KARIMO automated execution.
+        **Do not modify** — the PM agent will update this issue as execution progresses.
+
+  - type: input
+    id: task_id
+    attributes:
+      label: Task ID
+      description: Unique task identifier from the PRD
+      placeholder: "1a"
+    validations:
+      required: true
+
+  - type: input
+    id: prd_slug
+    attributes:
+      label: PRD Slug
+      description: The PRD this task belongs to
+      placeholder: "user-profiles"
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Task Description
+      description: What the agent should build
+      placeholder: "Build the UserProfile component..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: success_criteria
+    attributes:
+      label: Success Criteria
+      description: What must be true for this task to pass
+      placeholder: |
+        - [ ] Component renders user data correctly
+        - [ ] Handles loading and error states
+        - [ ] Has unit tests with >80% coverage
+    validations:
+      required: true
+
+  - type: textarea
+    id: files_affected
+    attributes:
+      label: Files Affected
+      description: Files this task will modify
+      placeholder: |
+        - src/components/user/UserProfile.tsx
+        - src/types/user.ts
+    validations:
+      required: false
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      description: Task priority from PRD requirements
+      options:
+        - must
+        - should
+        - could
+    validations:
+      required: true
+
+  - type: input
+    id: complexity
+    attributes:
+      label: Complexity
+      description: Task complexity (1-10)
+      placeholder: "5"
+    validations:
+      required: true
+
+  - type: input
+    id: depends_on
+    attributes:
+      label: Depends On
+      description: Task IDs that must complete before this task
+      placeholder: "1a, 1b"
+    validations:
+      required: false
+
+  - type: textarea
+    id: agent_context
+    attributes:
+      label: Agent Context
+      description: Additional guidance for the agent
+      placeholder: "Follow the pattern in src/components/user/UserCard.tsx..."
+    validations:
+      required: false
+
+  - type: markdown
+    attributes:
+      value: |
+        ---
+
+        ### Execution Status
+
+        | Field | Value |
+        |-------|-------|
+        | **Status** | `queued` |
+        | **PR** | Not created |
+        | **Revision Count** | 0 |
+
+        ---
+        *Created by [KARIMO](https://github.com/opensesh/KARIMO) automated execution*
