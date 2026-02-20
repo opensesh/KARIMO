@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Commands**: Add `/karimo:feedback` command for capturing execution learnings
 - **Workflows**: Add karimo-integration GitHub Action for automated PR checks
 - **GitHub**: Add issue template for KARIMO automated task creation
 - **Skills**: Add git-worktree-ops skill documenting worktree management patterns
@@ -52,6 +53,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.1.0] - 2026-02-17
 
 ### Added
+- **Commands**: Add `/karimo:feedback` command for capturing execution learnings
 - **Workflows**: Add karimo-integration GitHub Action for automated PR checks
 - **GitHub**: Add issue template for KARIMO automated task creation
 - **Skills**: Add git-worktree-ops skill documenting worktree management patterns
@@ -100,6 +102,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.4.0] - 2026-02-17
 
 ### Added
+- **Commands**: Add `/karimo:feedback` command for capturing execution learnings
 - **Workflows**: Add karimo-integration GitHub Action for automated PR checks
 - **GitHub**: Add issue template for KARIMO automated task creation
 - **Skills**: Add git-worktree-ops skill documenting worktree management patterns
@@ -140,6 +143,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.1.0] - 2026-02-17
 
 ### Added
+- **Commands**: Add `/karimo:feedback` command for capturing execution learnings
 - **Workflows**: Add karimo-integration GitHub Action for automated PR checks
 - **GitHub**: Add issue template for KARIMO automated task creation
 - **Skills**: Add git-worktree-ops skill documenting worktree management patterns
@@ -169,6 +173,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.0.0] - 2026-02-17
 
 ### Added
+- **Commands**: Add `/karimo:feedback` command for capturing execution learnings
 - **Workflows**: Add karimo-integration GitHub Action for automated PR checks
 - **GitHub**: Add issue template for KARIMO automated task creation
 - **Skills**: Add git-worktree-ops skill documenting worktree management patterns
