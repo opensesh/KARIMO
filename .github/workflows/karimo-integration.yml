@@ -1,0 +1,251 @@
+name: KARIMO Integration
+
+on:
+  pull_request:
+    types: [labeled, synchronize]
+
+# Run integration checks when review-passed label is added
+jobs:
+  check-ready:
+    runs-on: ubuntu-latest
+    outputs:
+      should-run: ${{ steps.check.outputs.should-run }}
+    steps:
+      - name: Check conditions
+        id: check
+        run: |
+          # Must have karimo label
+          HAS_KARIMO="${{ contains(github.event.pull_request.labels.*.name, 'karimo') }}"
+          # Must have review-passed label
+          HAS_REVIEW="${{ contains(github.event.pull_request.labels.*.name, 'review-passed') }}"
+
+          if [[ "$HAS_KARIMO" == "true" && "$HAS_REVIEW" == "true" ]]; then
+            echo "should-run=true" >> $GITHUB_OUTPUT
+          else
+            echo "should-run=false" >> $GITHUB_OUTPUT
+          fi
+
+  integration-checks:
+    needs: check-ready
+    if: needs.check-ready.outputs.should-run == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Load KARIMO Config
+        id: config
+        run: |
+          # Check for config file
+          if [ -f ".karimo/config.yaml" ]; then
+            # Extract commands using yq or simple grep
+            BUILD_CMD=$(grep -A1 "^commands:" .karimo/config.yaml | grep "build:" | sed 's/.*build: *//' | tr -d '"')
+            LINT_CMD=$(grep -A2 "^commands:" .karimo/config.yaml | grep "lint:" | sed 's/.*lint: *//' | tr -d '"')
+            TEST_CMD=$(grep -A3 "^commands:" .karimo/config.yaml | grep "test:" | sed 's/.*test: *//' | tr -d '"')
+            TYPECHECK_CMD=$(grep -A4 "^commands:" .karimo/config.yaml | grep "typecheck:" | sed 's/.*typecheck: *//' | tr -d '"')
+
+            echo "build-cmd=${BUILD_CMD:-npm run build}" >> $GITHUB_OUTPUT
+            echo "lint-cmd=${LINT_CMD:-npm run lint}" >> $GITHUB_OUTPUT
+            echo "test-cmd=${TEST_CMD:-}" >> $GITHUB_OUTPUT
+            echo "typecheck-cmd=${TYPECHECK_CMD:-}" >> $GITHUB_OUTPUT
+            echo "has-config=true" >> $GITHUB_OUTPUT
+          else
+            # Defaults
+            echo "build-cmd=npm run build" >> $GITHUB_OUTPUT
+            echo "lint-cmd=npm run lint" >> $GITHUB_OUTPUT
+            echo "test-cmd=npm test" >> $GITHUB_OUTPUT
+            echo "typecheck-cmd=" >> $GITHUB_OUTPUT
+            echo "has-config=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Detect Package Manager
+        id: pm
+        run: |
+          if [ -f "bun.lockb" ] || [ -f "bun.lock" ]; then
+            echo "manager=bun" >> $GITHUB_OUTPUT
+            echo "install=bun install" >> $GITHUB_OUTPUT
+          elif [ -f "pnpm-lock.yaml" ]; then
+            echo "manager=pnpm" >> $GITHUB_OUTPUT
+            echo "install=pnpm install" >> $GITHUB_OUTPUT
+          elif [ -f "yarn.lock" ]; then
+            echo "manager=yarn" >> $GITHUB_OUTPUT
+            echo "install=yarn install" >> $GITHUB_OUTPUT
+          else
+            echo "manager=npm" >> $GITHUB_OUTPUT
+            echo "install=npm ci" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Setup Bun
+        if: steps.pm.outputs.manager == 'bun'
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+
+      - name: Setup Node
+        if: steps.pm.outputs.manager != 'bun'
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Setup pnpm
+        if: steps.pm.outputs.manager == 'pnpm'
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+
+      - name: Install Dependencies
+        run: ${{ steps.pm.outputs.install }}
+
+      - name: Run Build
+        id: build
+        run: |
+          if ${{ steps.config.outputs.build-cmd }}; then
+            echo "status=success" >> $GITHUB_OUTPUT
+          else
+            echo "status=failure" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+
+      - name: Run Lint
+        id: lint
+        if: always() && steps.build.outcome == 'success'
+        run: |
+          if ${{ steps.config.outputs.lint-cmd }}; then
+            echo "status=success" >> $GITHUB_OUTPUT
+          else
+            echo "status=failure" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+
+      - name: Run TypeCheck
+        id: typecheck
+        if: always() && steps.build.outcome == 'success' && steps.config.outputs.typecheck-cmd != '' && steps.config.outputs.typecheck-cmd != 'null'
+        run: |
+          if ${{ steps.config.outputs.typecheck-cmd }}; then
+            echo "status=success" >> $GITHUB_OUTPUT
+          else
+            echo "status=failure" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+
+      - name: Run Tests
+        id: test
+        if: always() && steps.build.outcome == 'success' && steps.config.outputs.test-cmd != '' && steps.config.outputs.test-cmd != 'null'
+        run: |
+          if ${{ steps.config.outputs.test-cmd }}; then
+            echo "status=success" >> $GITHUB_OUTPUT
+          else
+            echo "status=failure" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+
+      - name: Determine Overall Status
+        id: overall
+        if: always()
+        run: |
+          BUILD="${{ steps.build.outcome }}"
+          LINT="${{ steps.lint.outcome }}"
+          TYPECHECK="${{ steps.typecheck.outcome }}"
+          TEST="${{ steps.test.outcome }}"
+
+          # Build and lint are required
+          if [[ "$BUILD" != "success" || "$LINT" != "success" ]]; then
+            echo "status=failure" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          # Typecheck and test are optional but must pass if configured
+          if [[ "$TYPECHECK" == "failure" || "$TEST" == "failure" ]]; then
+            echo "status=failure" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          echo "status=success" >> $GITHUB_OUTPUT
+
+      - name: Apply Labels
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const status = '${{ steps.overall.outputs.status }}';
+            const prNumber = context.payload.pull_request.number;
+
+            const labelsToAdd = [];
+            const labelsToRemove = [];
+
+            if (status === 'success') {
+              labelsToAdd.push('ready-to-merge');
+              labelsToRemove.push('integration-failed');
+            } else {
+              labelsToAdd.push('integration-failed');
+              labelsToRemove.push('ready-to-merge');
+            }
+
+            // Add labels
+            if (labelsToAdd.length > 0) {
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: prNumber,
+                labels: labelsToAdd
+              });
+            }
+
+            // Remove labels
+            for (const label of labelsToRemove) {
+              try {
+                await github.rest.issues.removeLabel({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: prNumber,
+                  name: label
+                });
+              } catch (e) {
+                // Label might not exist
+              }
+            }
+
+      - name: Post Status Comment
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const build = '${{ steps.build.outcome }}';
+            const lint = '${{ steps.lint.outcome }}';
+            const typecheck = '${{ steps.typecheck.outcome }}';
+            const test = '${{ steps.test.outcome }}';
+            const overall = '${{ steps.overall.outputs.status }}';
+
+            const icon = (status) => {
+              if (status === 'success') return '✅';
+              if (status === 'failure') return '❌';
+              if (status === 'skipped') return '⏭️';
+              return '⚪';
+            };
+
+            let body = `## 🔧 KARIMO Integration Checks\n\n`;
+            body += `| Check | Status |\n`;
+            body += `|-------|--------|\n`;
+            body += `| Build | ${icon(build)} ${build} |\n`;
+            body += `| Lint | ${icon(lint)} ${lint} |\n`;
+
+            if (typecheck !== 'skipped' && typecheck !== '') {
+              body += `| TypeCheck | ${icon(typecheck)} ${typecheck} |\n`;
+            }
+            if (test !== 'skipped' && test !== '') {
+              body += `| Tests | ${icon(test)} ${test} |\n`;
+            }
+
+            body += `\n**Overall:** ${overall === 'success' ? '✅ Ready to merge' : '❌ Needs fixes'}\n`;
+            body += `\n---\n*Checked by KARIMO Integration*`;
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.payload.pull_request.number,
+              body: body
+            });
