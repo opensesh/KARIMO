@@ -40,14 +40,15 @@ Target Project/
 │   │   ├── karimo-interviewer.md    # PRD interview conductor
 │   │   ├── karimo-investigator.md   # Codebase pattern scanner
 │   │   ├── karimo-reviewer.md       # PRD validation and DAG generation
-│   │   ├── karimo-brief-writer.md   # Task brief generation
-│   │   └── karimo-pm.md             # Task coordination (never writes code)
+│   │   ├── karimo-pm.md             # Task coordination (never writes code)
+│   │   └── karimo-learn-auditor.md  # Learning investigation agent
 │   ├── commands/
 │   │   ├── plan.md                  # /karimo:plan
 │   │   ├── review.md                # /karimo:review
 │   │   ├── execute.md               # /karimo:execute
 │   │   ├── status.md                # /karimo:status
-│   │   └── feedback.md              # /karimo:feedback
+│   │   ├── feedback.md              # /karimo:feedback
+│   │   └── learn.md                 # /karimo:learn
 │   ├── skills/
 │   │   ├── git-worktree-ops.md      # Worktree management
 │   │   └── github-project-ops.md    # GitHub Projects via gh CLI
@@ -58,7 +59,10 @@ Target Project/
 │   │   ├── PRD_TEMPLATE.md
 │   │   ├── INTERVIEW_PROTOCOL.md
 │   │   ├── TASK_SCHEMA.md
-│   │   └── STATUS_SCHEMA.md
+│   │   ├── STATUS_SCHEMA.md
+│   │   ├── LEARN_INTERVIEW_PROTOCOL.md
+│   │   ├── FINDINGS_TEMPLATE.md
+│   │   └── TASK_BRIEF_TEMPLATE.md
 │   └── prds/                        # Created PRDs stored here
 │
 ├── .github/
@@ -137,6 +141,8 @@ If the user already has a `## KARIMO Framework` section in their `CLAUDE.md`, `i
 - `tasks.yaml` — Task definitions
 - `dag.json` — Dependency graph
 - `status.json` — Execution tracking
+- `findings.md` — Cross-task discoveries (populated during execution)
+- `task-briefs/` — Generated briefs per task (created during execution)
 
 ### Approve Phase (`/karimo:review`)
 
@@ -274,9 +280,10 @@ commands:
 execution:
   max_parallel: 3
 
-iteration_limits:
-  base: 3
-  per_complexity: 2
+models:
+  simple: "sonnet"
+  complex: "opus"
+  threshold: 5
 
 boundaries:
   never_touch:
