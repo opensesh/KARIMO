@@ -41,15 +41,11 @@ Add automated code review to your workflow:
 - Ranking system enables agentic revision loops
 - Score < 4 triggers automated revision attempts
 
-**Optional upgrade.** Requires Greptile API key.
+**Optional but highly recommended.** Greptile acts as a force multiplier. Requires Greptile API key.
 
 ### Phase 3: Monitor & Review
-Connect to a dashboard for oversight:
-- Review all features, issues, and status
-- Visualize dependencies and progress
-- Team-wide visibility into execution
 
-**Future phase.** Dashboard to be built.
+**Coming soon.** Dashboard for team-wide visibility and oversight.
 
 ---
 

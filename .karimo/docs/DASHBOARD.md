@@ -1,8 +1,8 @@
 # KARIMO Dashboard (Phase 3)
 
-A standalone Next.js application focused on visualization, review, and merge decisions. It does not control execution — that's Claude Code's job. The dashboard is a read-heavy command center that pulls state from GitHub Projects and cost data from SQLite.
+> **Implementation planned.** This document is a specification for future development. The dashboard is not yet built. Until then, GitHub Projects Kanban + `/karimo:status` serve the same purpose.
 
-> **Note:** The dashboard is a Phase 3 feature and not yet built. Until then, GitHub Projects Kanban + `/karimo:status` serve the same purpose.
+A standalone Next.js application focused on visualization, review, and merge decisions. It does not control execution — that's Claude Code's job. The dashboard is a read-heavy command center that pulls state from GitHub Projects and cost data from SQLite.
 
 ---
 
@@ -90,7 +90,7 @@ The primary action surface — where you make merge decisions every morning:
 
 ## Dashboard Authentication
 
-All endpoints require API key authentication. The merge endpoint has additional confirmation token protection (see [SECURITY.md](./SECURITY.md) for details on the confirmation token flow).
+All endpoints require API key authentication. The merge endpoint has additional confirmation token protection (see [SAFEGUARDS.md](./SAFEGUARDS.md) for security details).
 
 ---
 
@@ -127,5 +127,5 @@ The dashboard is a convenience layer, not a requirement for KARIMO to function.
 ## Related Documentation
 
 - [PHASES.md](./PHASES.md) — Dashboard is a Phase 3 feature
-- [SECURITY.md](./SECURITY.md) — Dashboard authentication and confirmation tokens
+- [SAFEGUARDS.md](./SAFEGUARDS.md) — Security and authentication details
 - [ARCHITECTURE.md](./ARCHITECTURE.md) — System overview showing dashboard integration

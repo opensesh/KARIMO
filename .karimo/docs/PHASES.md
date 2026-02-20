@@ -104,6 +104,10 @@ Phase 2 adds Greptile integration for automated code review. This enables:
   - `karimo-integration.yml` runs on pass
   - Labels track review state
 
+### Why Greptile is Highly Recommended
+
+Greptile acts as a force multiplier — catching issues before human review and enabling automated revision loops. While optional, most teams find it significantly improves code quality outcomes.
+
 ### Prerequisites
 
 - Phase 1 complete
@@ -139,35 +143,11 @@ Task Complete → PR Created → Greptile Review
 
 ## Phase 3: Monitor & Review
 
-**Connect to a dashboard for oversight.**
+**Coming soon.** Dashboard for team-wide visibility and oversight.
 
-Phase 3 provides a web-based dashboard for team visibility. This is a future phase — the dashboard is being developed.
+Phase 3 will provide a web-based dashboard for reviewing PRDs, visualizing dependencies, and tracking team metrics. Until then, GitHub Projects Kanban + `/karimo:status` serve the same purpose.
 
-### Planned Features
-
-- **PRD Overview**
-  - All active PRDs with status
-  - Task completion progress
-  - Cost tracking
-
-- **Dependency Visualization**
-  - Interactive DAG view
-  - Blocked task identification
-  - Critical path highlighting
-
-- **Team Insights**
-  - Agent performance metrics
-  - Cost per complexity
-  - Learning trend analysis
-
-- **Notifications**
-  - Slack/Discord integration
-  - Email summaries
-  - Real-time status updates
-
-### When Available
-
-Phase 3 is planned for future development. Watch the repository for updates.
+See [DASHBOARD.md](DASHBOARD.md) for the planned specification.
 
 ---
 
@@ -209,5 +189,5 @@ Instructions will be provided when the dashboard is available.
 |----------|---------|
 | [GETTING-STARTED.md](GETTING-STARTED.md) | Installation walkthrough |
 | [COMMANDS.md](COMMANDS.md) | Slash command reference |
-| [CODE-INTEGRITY.md](CODE-INTEGRITY.md) | Worktrees, branches, Greptile |
+| [SAFEGUARDS.md](SAFEGUARDS.md) | Worktrees, validation, Greptile |
 | [ARCHITECTURE.md](ARCHITECTURE.md) | System design |

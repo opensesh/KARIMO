@@ -88,15 +88,11 @@ Add automated code review to your workflow:
 - Ranking system enables agentic revision loops
 - Score < 4 triggers automated revision attempts
 
-**Optional upgrade.** Requires Greptile API key.
+**Optional but highly recommended.** Greptile acts as a force multiplier. Requires Greptile API key.
 
 ### Phase 3: Monitor & Review
-Connect to a dashboard for oversight:
-- Review all features, issues, and status
-- Visualize dependencies and progress
-- Team-wide visibility into execution
 
-**Future phase.** Dashboard to be built.
+**Coming soon.** Dashboard for team-wide visibility and oversight.
 
 ---
 
@@ -396,8 +392,8 @@ Learnings are stored in `CLAUDE.md` under `## KARIMO Learnings`.
 - **GitHub CLI** — `brew install gh && gh auth login`
 - **Git** — With worktree support (Git 2.5+)
 
-Optional:
-- **Greptile** — For automated code review (set `GREPTILE_API_KEY`)
+Optional but highly recommended:
+- **Greptile** — Automated code review, a force multiplier (set `GREPTILE_API_KEY`)
 
 ---
 
@@ -410,7 +406,7 @@ Optional:
 | **Loop awareness** | Stall detection with model upgrade capability |
 | **Worktree isolation** | Each task works in isolated branch |
 | **Pre-PR checks** | Build/typecheck must pass before PR |
-| **Greptile review** | Automated code quality checks (Phase 2) |
+| **Greptile review** | Automated code quality checks (optional but highly recommended) |
 
 ---
 
