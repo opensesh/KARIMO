@@ -239,7 +239,7 @@ gh pr create \
 **Task:** {task_id} — {task_title}
 **PRD:** {prd_slug}
 **Complexity:** {complexity}/10
-**Max Iterations:** {max_iterations}
+**Model:** {model}
 
 ### Description
 
@@ -417,7 +417,8 @@ This PR merges all completed KARIMO tasks for {prd_slug}.
 ### Summary
 
 - Total Tasks: {count}
-- Iterations: {used}/{budget}
+- Models: {sonnet_count} sonnet, {opus_count} opus
+- Total Loops: {loop_count}
 - Duration: {duration}
 ```
 

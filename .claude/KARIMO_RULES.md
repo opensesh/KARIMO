@@ -134,39 +134,44 @@ If a dependency isn't ready:
 
 ---
 
-## Iteration Awareness
+## Loop Awareness
 
-### 1. Respect Iteration Limits
+### 1. Loop Count Tracking
 
-Each task has a `max_iterations` limit calculated from complexity:
-```
-max_iterations = base + (complexity × per_complexity)
-```
+Each task has a `loop_count` tracked in `status.json`. A "loop" is one complete attempt at a task (code → validate → commit or retry).
 
-Stay within limits by:
-- Working efficiently toward success criteria
+**Guardrails:**
+- After 3 loops without progress → stall detection triggers
+- Maximum 5 loops per task before human intervention required
+- Model upgrades (Sonnet → Opus) reset loop count
+
+### 2. Stall Detection
+
+The PM agent monitors for stalls:
+- Same error appearing across consecutive attempts
+- Validation failing repeatedly with same pattern
+- No meaningful progress between loops
+
+**When stalled:**
+- Task is paused
+- PM assesses if model upgrade is appropriate
+- Human is notified with options
+
+### 3. Model-Based Execution
+
+Tasks are assigned models based on complexity:
+- **Complexity 1–4**: Sonnet (efficient for straightforward tasks)
+- **Complexity 5–10**: Opus (complex reasoning, multi-file coordination)
+
+If a Sonnet task stalls with borderline complexity (4-5), PM may upgrade to Opus.
+
+### 4. Efficient Execution
+
+Work efficiently by:
+- Completing success criteria directly
 - Not over-engineering solutions
+- Using provided `agent_context` and patterns from `findings.md`
 - Asking for clarification rather than guessing
-
-### 2. Approaching Limits
-
-If you're approaching your iteration limit:
-- Assess if you're on the right track
-- Consider if the task was under-scoped
-- Flag if more iterations are truly needed
-- The human can approve additional iterations if justified
-
-### 3. Revision Budget
-
-If your PR needs revision, you have additional `revision_iterations`:
-```
-revision_iterations = max_iterations × revision_multiplier
-```
-
-Use revision budget to:
-- Address review feedback
-- Fix issues found in CI
-- Handle edge cases missed initially
 
 ---
 
@@ -184,7 +189,7 @@ Use comments to:
 Keep `status.json` current:
 - Mark task `running` when starting
 - Update to `in-review` when PR created
-- Record `cost` and `iterations` on completion
+- Record `model` and `loop_count` on completion
 
 ### 3. Handoffs
 

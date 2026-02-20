@@ -105,7 +105,7 @@ Opus-guided conversation following `LEARN_INTERVIEW_PROTOCOL.md`:
 
 `karimo-learn-auditor` agent investigates each directive:
 
-- **Status files:** Task completion, iterations, failures
+- **Status files:** Task completion, loop counts, model usage, failures
 - **PR history:** Reviews, revisions, patterns via `gh` CLI
 - **Codebase:** Pattern verification, boundary compliance
 - **Config:** Rule accuracy, boundary effectiveness

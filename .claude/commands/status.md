@@ -17,7 +17,7 @@ Display the current status of KARIMO PRDs and task execution.
 Read from:
 - `.karimo/prds/*/status.json` — All PRD execution states
 - GitHub Projects (if configured) — Live PR status
-- `.karimo/config.yaml` — Iteration limits for comparison
+- `.karimo/config.yaml` — Model configuration and project settings
 
 ### 2. Overview Display (No Arguments)
 
@@ -33,7 +33,7 @@ PRDs:
   001_user-profiles          active     ████████░░ 80%
     Tasks: 4/5 done, 1 in-review
     PRs: #42 merged, #43 merged, #44 merged, #45 merged, #46 in-review
-    Iterations: 12/20 used
+    Models: 4 sonnet, 1 opus • Loops: 10
     Started: 2h 15m ago
 
   002_token-studio           approved   ░░░░░░░░░░ 0%
@@ -43,7 +43,7 @@ PRDs:
 
   003_auth-refactor          complete   ██████████ 100%
     Tasks: 6/6 done
-    Iterations: 18/22 used
+    Models: 5 sonnet, 1 opus • Loops: 14
     Completed: 3 days ago
 
 Run /karimo:status --prd {slug} for details.
@@ -66,28 +66,28 @@ Started: 2026-02-19 10:30 (2h 15m ago)
 Tasks:
 
   ✓ [1a] Create UserProfile component          done
-    PR #42 merged • 3 iterations
+    PR #42 merged • sonnet • 2 loops
     Completed 1h 45m ago
 
   ✓ [1b] Add user type definitions             done
-    PR #43 merged • 2 iterations
+    PR #43 merged • sonnet • 1 loop
     Completed 1h 30m ago
 
   ✓ [2a] Implement profile edit form           done
-    PR #44 merged • 5 iterations
+    PR #44 merged • opus • 3 loops
     Completed 45m ago
 
   ✓ [2b] Add avatar upload                     done
-    PR #45 merged • 3 iterations
+    PR #45 merged • sonnet • 2 loops
     Completed 30m ago
 
   ⋯ [3a] Integration tests                     in-review
-    PR #46 awaiting review
+    PR #46 awaiting review • sonnet
     Greptile score: 8/10
     Started 20m ago
 
 Progress: ████████░░ 80% (4/5 tasks)
-Iterations: 13/20 used (65%)
+Models: 4 sonnet, 1 opus • Total Loops: 8
 
 Dependency Graph:
   [1a] ──┬──► [2a] ──┬──► [3a]
@@ -107,7 +107,7 @@ Filter to show only PRDs with `status: "active"`:
 
   001_user-profiles          ████████░░ 80%
     1 task in-review (PR #46)
-    Iterations: 13/20 used
+    Loops: 8 • No stalled tasks
 
 No blocked tasks.
 ```
@@ -136,23 +136,23 @@ Display:
 - CI status (passing, failing, pending)
 - Greptile score (if available)
 
-### 7. Iteration Summary
+### 7. Loop & Model Summary
 
-Show iteration tracking:
+Show execution tracking:
 
 ```
-Iteration Summary:
+Execution Summary:
 
-  Used:     13
-  Limit:    20
-  Progress: ████████░░░░░░░░░░░░ 65%
+  Total Loops: 8
+  Model Usage: 4 sonnet, 1 opus
+  Upgrades:    0 (no stalls)
 
   Per Task:
-    [1a] 3/7 iterations
-    [1b] 2/7 iterations
-    [2a] 5/13 iterations
-    [2b] 3/11 iterations
-    [3a] -/9 iterations
+    [1a] sonnet • 2 loops ✓
+    [1b] sonnet • 1 loop ✓
+    [2a] opus   • 3 loops ✓
+    [2b] sonnet • 2 loops ✓
+    [3a] sonnet • running (loop 1)
 ```
 
 ### 8. Warnings and Blockers
@@ -162,7 +162,7 @@ Surface issues that need attention:
 ```
 ⚠ Warnings:
 
-  [2a] Approaching iteration limit (85%)
+  [2a] Stall detected (3 loops, same error) — considering Opus upgrade
   [3a] PR #46 has been in-review for 2 hours
 
 ✗ Blockers:
@@ -178,7 +178,7 @@ Or if there are blockers:
   [2c] needs-human-rebase — Conflicts in src/types/index.ts
        Run: cd .worktrees/user-profiles/2c && git rebase feature/user-profiles
 
-  [3b] failed — Build error: Type mismatch in ProfileForm.tsx
+  [3b] failed — Build error after 5 loops (Type mismatch in ProfileForm.tsx)
        Retry: /karimo:execute --prd user-profiles --task 3b
 ```
 
@@ -216,9 +216,10 @@ Returns:
         "in_progress": 1,
         "failed": 0
       },
-      "iterations": {
-        "used": 13,
-        "limit": 20
+      "execution": {
+        "total_loops": 8,
+        "model_usage": { "sonnet": 4, "opus": 1 },
+        "model_upgrades": 0
       },
       "started_at": "2026-02-19T10:30:00Z",
       "github_project_url": "..."
@@ -242,7 +243,7 @@ Create one with: /karimo:plan
 ```
 ⚠ No .karimo/config.yaml found.
 
-Iteration tracking using defaults. Run: karimo init
+Using default model routing. Run: karimo init
 ```
 
 ### GitHub Not Authenticated

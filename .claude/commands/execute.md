@@ -80,19 +80,19 @@ GitHub Project: Will be created
 Tasks (5 approved):
 
   Batch 1 (parallel):
-    [1a] Create UserProfile component      complexity: 4  max: 11 iterations
-    [1b] Add user type definitions         complexity: 2  max: 7 iterations
+    [1a] Create UserProfile component      complexity: 4  model: sonnet
+    [1b] Add user type definitions         complexity: 2  model: sonnet
 
   Batch 2 (parallel, after 1a, 1b):
-    [2a] Implement profile edit form       complexity: 5  max: 13 iterations
+    [2a] Implement profile edit form       complexity: 5  model: opus
 
   Batch 3 (sequential):
-    [3a] Integration tests                 complexity: 3  max: 9 iterations
+    [3a] Integration tests                 complexity: 3  model: sonnet
 
 Excluded tasks:
   [2b] Add avatar upload (user excluded)
 
-Total iteration budget: 40 iterations
+Model distribution: 4 sonnet, 1 opus
 Parallel opportunities: 3 tasks across 2 batches
 
 Ready to execute? Run without --dry-run to start.
@@ -181,15 +181,16 @@ Execution Complete: user-profiles
 
 Tasks: 5/5 approved tasks complete
 PRs Created: 5
-  - #42 [1a] Create UserProfile component ✓ merged
-  - #43 [1b] Add user type definitions ✓ merged
-  - #44 [2a] Implement profile edit form ✓ merged
-  - #46 [3a] Integration tests ✓ merged
+  - #42 [1a] Create UserProfile component ✓ merged (sonnet, 2 loops)
+  - #43 [1b] Add user type definitions ✓ merged (sonnet, 1 loop)
+  - #44 [2a] Implement profile edit form ✓ merged (opus, 3 loops)
+  - #46 [3a] Integration tests ✓ merged (sonnet, 2 loops)
 
 Excluded (not executed):
   - [2b] Add avatar upload
 
-Iterations: 28/40 used
+Model Usage: 3 sonnet, 1 opus
+Total Loops: 8
 Duration: 2h 15m
 
 Feature branch `feature/user-profiles` ready for final review.
@@ -244,7 +245,8 @@ Execution updates these files:
 | Briefs missing | "Run /karimo:review to generate briefs" |
 | Task failed | Mark as failed, continue with independent tasks |
 | All tasks blocked | Report blockers, suggest intervention |
-| Iteration limit reached | Pause, request human approval |
+| Task stalled | Attempt model upgrade (Sonnet→Opus), pause if still failing |
+| Loop limit reached | Pause task, request human intervention |
 
 ## PRD Status Flow
 

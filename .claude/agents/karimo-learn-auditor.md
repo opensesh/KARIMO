@@ -59,7 +59,8 @@ cat .karimo/prds/{slug}/status.json
 
 Look for:
 - Task completion rates
-- Iteration counts vs limits
+- Loop counts and model usage
+- Stall patterns and model upgrades
 - Failure patterns
 - Time to completion
 

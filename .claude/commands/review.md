@@ -30,12 +30,12 @@ PRDs Ready for Review:
   001_user-profiles     ready     6 tasks (4 must, 2 should)
     Created: 2 hours ago
     Total complexity: 24 points
-    Iteration budget: 58 iterations
+    Models: 4 sonnet, 2 opus
 
   002_token-studio      ready     8 tasks (5 must, 3 should)
     Created: yesterday
     Total complexity: 32 points
-    Iteration budget: 76 iterations
+    Models: 5 sonnet, 3 opus
 
 Run: /karimo:review --prd user-profiles
 ```
@@ -90,7 +90,7 @@ Execution Plan:
   Batch 2 (parallel): [2a], [2b]
   Batch 3 (sequential): [3a]
 
-Total: 6 tasks, 24 complexity points, 58 iteration budget
+Total: 6 tasks, 24 complexity points (4 sonnet, 2 opus)
 ```
 
 ### 3. Request Approval

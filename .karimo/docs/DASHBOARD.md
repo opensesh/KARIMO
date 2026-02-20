@@ -71,7 +71,7 @@ The primary action surface — where you make merge decisions every morning:
 
 ### 4. Cost Tracker
 
-- Per-task breakdown: task name, iterations used, duration, estimated cost
+- Per-task breakdown: task name, model used, loop count, duration, estimated cost
 - Per-phase cumulative cost
 - Running total across all phases
 - Trend chart: cost per run over time

@@ -262,17 +262,20 @@ When Greptile scores a PR below 4, KARIMO enters a revision loop:
 4. Updates PR with new commit
 5. Greptile re-reviews
 
-### Iteration Limits
+### Loop Awareness
 
-- Maximum 3 revision attempts per task
-- Revision iterations: `max_iterations × revision_multiplier`
-- After iterations exhausted → mark for human review
+- Maximum 5 loops per task before human intervention required
+- Stall detection triggers after 3 loops without progress
+- Model upgrade (Sonnet → Opus) may be attempted on stall
+- After loop limit exhausted → mark for human review
 
 ### Configuration
 
 ```yaml
-iteration_limits:
-  revision_multiplier: 0.5  # 50% of task iterations for revisions
+models:
+  simple: "sonnet"      # Complexity 1-4
+  complex: "opus"       # Complexity 5-10
+  threshold: 5          # Complexity boundary
 ```
 
 ---

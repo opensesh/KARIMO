@@ -200,7 +200,7 @@ PRDs:
 
   001_user-profiles          active     ████████░░ 80%
     Tasks: 4/5 done, 1 in-review
-    Iterations: 13/20 used
+    Models: 4 sonnet, 1 opus • Loops: 8
 ```
 
 ### /karimo:feedback
@@ -319,10 +319,10 @@ commands:
   test: "npm test"
   typecheck: "npm run typecheck"
 
-iteration_limits:
-  base: 3
-  per_complexity: 2
-  revision_multiplier: 0.5
+models:
+  simple: "sonnet"
+  complex: "opus"
+  threshold: 5
 
 boundaries:
   never_touch:
@@ -407,7 +407,7 @@ Optional:
 |-----------|-------------|
 | **Never-touch files** | Agents cannot modify protected files |
 | **Require-review files** | Changes flagged for human attention |
-| **Iteration limits** | Per-task iteration guardrails |
+| **Loop awareness** | Stall detection with model upgrade capability |
 | **Worktree isolation** | Each task works in isolated branch |
 | **Pre-PR checks** | Build/typecheck must pass before PR |
 | **Greptile review** | Automated code quality checks (Phase 2) |

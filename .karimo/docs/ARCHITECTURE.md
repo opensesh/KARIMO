@@ -256,7 +256,7 @@ Tasks sync to GitHub Projects for visibility:
 ### Pull Requests
 
 PRs are created with KARIMO metadata:
-- Task ID, complexity, iteration limits
+- Task ID, complexity, model assignment
 - Files affected, caution files flagged
 - Validation checklist (build, typecheck)
 - Link back to PRD and task definition

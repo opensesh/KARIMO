@@ -51,8 +51,8 @@ Each PRD folder contains a `status.json` file that tracks execution state. This 
       "worktree": ".worktrees/user-profiles/1a",
       "started_at": "2026-02-19T10:31:00Z",
       "completed_at": "2026-02-19T10:45:00Z",
-      "iterations_used": 3,
-      "max_iterations": 11
+      "model": "sonnet",
+      "loop_count": 2
     },
     "1b": {
       "status": "in-review",
@@ -61,23 +61,29 @@ Each PRD folder contains a `status.json` file that tracks execution state. This 
       "branch": "feature/user-profiles/1b",
       "worktree": ".worktrees/user-profiles/1b",
       "started_at": "2026-02-19T10:32:00Z",
-      "completed_at": "2026-02-19T10:50:00Z"
+      "completed_at": "2026-02-19T10:50:00Z",
+      "model": "sonnet",
+      "loop_count": 1
     },
     "2a": {
       "status": "running",
       "issue_number": 102,
       "branch": "feature/user-profiles/2a",
       "worktree": ".worktrees/user-profiles/2a",
-      "started_at": "2026-02-19T10:46:00Z"
+      "started_at": "2026-02-19T10:46:00Z",
+      "model": "opus",
+      "loop_count": 1
     },
     "2b": {
       "status": "queued",
-      "issue_number": 103
+      "issue_number": 103,
+      "model": "sonnet"
     },
     "3a": {
       "status": "blocked",
       "issue_number": 104,
-      "blocked_by": ["2a", "2b"]
+      "blocked_by": ["2a", "2b"],
+      "model": "opus"
     }
   }
 }
@@ -103,7 +109,8 @@ Each PRD folder contains a `status.json` file that tracks execution state. This 
     "total_tasks": 6,
     "successful": 6,
     "failed": 0,
-    "total_iterations_used": 18,
+    "total_loops": 12,
+    "model_upgrades": 1,
     "duration_minutes": 135
   },
 
@@ -113,8 +120,8 @@ Each PRD folder contains a `status.json` file that tracks execution state. This 
       "issue_number": 100,
       "pr_number": 42,
       "merged_at": "2026-02-19T11:00:00Z",
-      "iterations_used": 3,
-      "max_iterations": 11
+      "model": "sonnet",
+      "loop_count": 2
     }
     // ... all tasks with done status
   }
@@ -164,12 +171,14 @@ Each PRD folder contains a `status.json` file that tracks execution state. This 
 | `started_at` | ISO datetime | When task execution started |
 | `completed_at` | ISO datetime | When task finished |
 | `merged_at` | ISO datetime | When PR was merged |
-| `iterations_used` | number | Actual iterations used |
-| `iterations` | number | Number of agent iterations |
+| `model` | string | Model assigned ("sonnet" or "opus") |
+| `loop_count` | number | Number of execution loops |
 | `error` | string | Error message (if failed) |
 | `conflict_files` | string[] | Conflicting files (if needs-human-rebase) |
 | `blocked_by` | string[] | Task IDs blocking this task |
-| `revision_count` | number | Number of revision attempts |
+| `revision_count` | number | Number of revision attempts (Phase 2) |
+| `paused_at` | ISO datetime | When task was paused (if paused) |
+| `paused_reason` | string | Reason for pause ("usage_limit", "stall", "manual") |
 
 ### Task Status Values
 
@@ -180,8 +189,9 @@ Each PRD folder contains a `status.json` file that tracks execution state. This 
 | `queued` | Waiting to start (dependencies not met or at capacity) |
 | `blocked` | Dependencies not yet complete |
 | `running` | Worker agent actively executing |
+| `paused` | Execution paused (usage limit, stall, or manual) |
 | `in-review` | PR created, awaiting review/merge |
-| `needs-revision` | Review requested changes |
+| `needs-revision` | Review requested changes (Phase 2) |
 | `done` | PR merged successfully |
 | `failed` | Execution failed (see error field) |
 | `needs-human-rebase` | Merge conflicts require manual resolution |
@@ -195,8 +205,8 @@ Each PRD folder contains a `status.json` file that tracks execution state. This 
 | `successful` | number | Tasks completed successfully |
 | `failed` | number | Tasks that failed |
 | `skipped` | number | Tasks skipped |
-| `total_iterations_used` | number | Sum of all iterations used |
-| `total_iterations` | number | Sum of all iterations |
+| `total_loops` | number | Sum of all loop counts |
+| `model_upgrades` | number | Number of Sonnet→Opus upgrades |
 | `duration_minutes` | number | Total execution time |
 
 ---
@@ -220,6 +230,8 @@ approved ──► queued ──► blocked ──► running ──► in-revie
     │                       │          │            │
     │                       │          │            └──► needs-revision ──► running
     │                       │          │
+    │                       │          └──► paused ──► running (resume)
+    │                       │          │
     │                       │          └──► failed
     │                       │          └──► needs-human-rebase
     │                       │
@@ -242,8 +254,8 @@ approved ──► queued ──► blocked ──► running ──► in-revie
     "started_at": "2026-02-19T10:46:00Z",
     "failed_at": "2026-02-19T11:02:00Z",
     "error": "Build failed: Type error in src/components/ProfileForm.tsx:42",
-    "iterations_used": 5,
-    "max_iterations": 13
+    "model": "opus",
+    "loop_count": 5
   }
 }
 ```
@@ -265,8 +277,8 @@ approved ──► queued ──► blocked ──► running ──► in-revie
       "src/types/index.ts",
       "src/components/UserProfile.tsx"
     ],
-    "iterations_used": 4,
-    "max_iterations": 11
+    "model": "sonnet",
+    "loop_count": 3
   }
 }
 ```
