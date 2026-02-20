@@ -114,9 +114,11 @@ Documentation lives in `.karimo/docs/`:
 | `ARCHITECTURE.md` | System design and integration |
 | `PHASES.md` | Adoption phases |
 | `COMMANDS.md` | Slash command reference |
-| `CODE-INTEGRITY.md` | Code quality practices |
+| `GETTING-STARTED.md` | Installation and first PRD |
+| `SAFEGUARDS.md` | Code integrity, security, Greptile |
 | `COMPOUND-LEARNING.md` | Learning system |
-| `SECURITY.md` | Agent boundaries |
+| `CONFIG-REFERENCE.md` | Configuration options |
+| `DASHBOARD.md` | Dashboard spec (Phase 3) |
 
 Keep documentation concise and focused on the "what" and "how" — avoid lengthy explanations of "why" unless critical.
 
