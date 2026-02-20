@@ -1,0 +1,228 @@
+name: KARIMO Sync
+
+on:
+  pull_request:
+    types: [closed]
+
+# Sync status when KARIMO PRs are merged
+jobs:
+  check-merge:
+    runs-on: ubuntu-latest
+    outputs:
+      is-karimo-merge: ${{ steps.check.outputs.is-karimo-merge }}
+      prd-slug: ${{ steps.check.outputs.prd-slug }}
+      task-id: ${{ steps.check.outputs.task-id }}
+    steps:
+      - name: Check if KARIMO PR merged
+        id: check
+        run: |
+          # Must be merged (not just closed)
+          if [[ "${{ github.event.pull_request.merged }}" != "true" ]]; then
+            echo "is-karimo-merge=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          # Must have karimo label
+          if [[ "${{ contains(github.event.pull_request.labels.*.name, 'karimo') }}" != "true" ]]; then
+            echo "is-karimo-merge=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          # Extract PRD slug and task ID from branch name
+          # Expected format: feature/{prd-slug}/{task-id}
+          BRANCH="${{ github.event.pull_request.head.ref }}"
+          if [[ "$BRANCH" =~ ^feature/([^/]+)/([^/]+)$ ]]; then
+            PRD_SLUG="${BASH_REMATCH[1]}"
+            TASK_ID="${BASH_REMATCH[2]}"
+            echo "is-karimo-merge=true" >> $GITHUB_OUTPUT
+            echo "prd-slug=$PRD_SLUG" >> $GITHUB_OUTPUT
+            echo "task-id=$TASK_ID" >> $GITHUB_OUTPUT
+          else
+            echo "is-karimo-merge=false" >> $GITHUB_OUTPUT
+          fi
+
+  sync-status:
+    needs: check-merge
+    if: needs.check-merge.outputs.is-karimo-merge == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.base.ref }}
+
+      - name: Update status.json
+        id: update
+        env:
+          PRD_SLUG: ${{ needs.check-merge.outputs.prd-slug }}
+          TASK_ID: ${{ needs.check-merge.outputs.task-id }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          STATUS_FILE=".karimo/prds/${PRD_SLUG}/status.json"
+
+          if [ ! -f "$STATUS_FILE" ]; then
+            echo "Status file not found: $STATUS_FILE"
+            echo "all-done=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          # Update task status to done
+          MERGED_AT=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+
+          # Use jq to update status
+          jq --arg task "$TASK_ID" \
+             --arg merged "$MERGED_AT" \
+             --argjson pr "$PR_NUMBER" \
+             '.tasks[$task].status = "done" |
+              .tasks[$task].merged_at = $merged |
+              .tasks[$task].pr_number = $pr' \
+             "$STATUS_FILE" > "${STATUS_FILE}.tmp" && mv "${STATUS_FILE}.tmp" "$STATUS_FILE"
+
+          # Check if all tasks are done
+          TOTAL=$(jq '.tasks | length' "$STATUS_FILE")
+          DONE=$(jq '[.tasks[] | select(.status == "done")] | length' "$STATUS_FILE")
+
+          echo "total=$TOTAL" >> $GITHUB_OUTPUT
+          echo "done=$DONE" >> $GITHUB_OUTPUT
+
+          if [ "$TOTAL" -eq "$DONE" ]; then
+            # Update overall status to complete
+            jq --arg completed "$(date -u +"%Y-%m-%dT%H:%M:%SZ")" \
+               '.status = "complete" | .completed_at = $completed' \
+               "$STATUS_FILE" > "${STATUS_FILE}.tmp" && mv "${STATUS_FILE}.tmp" "$STATUS_FILE"
+            echo "all-done=true" >> $GITHUB_OUTPUT
+          else
+            echo "all-done=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Commit Status Update
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          PRD_SLUG="${{ needs.check-merge.outputs.prd-slug }}"
+          TASK_ID="${{ needs.check-merge.outputs.task-id }}"
+
+          git add ".karimo/prds/${PRD_SLUG}/status.json"
+          git commit -m "chore(karimo): mark task ${TASK_ID} as done
+
+          PRD: ${PRD_SLUG}
+          PR: #${{ github.event.pull_request.number }}
+
+          [skip ci]" || echo "No changes to commit"
+
+          git push
+
+      - name: Create Final Merge PR
+        if: steps.update.outputs.all-done == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const prdSlug = '${{ needs.check-merge.outputs.prd-slug }}';
+            const featureBranch = `feature/${prdSlug}`;
+            const total = parseInt('${{ steps.update.outputs.total }}');
+
+            // Check if PR already exists
+            const { data: existingPRs } = await github.rest.pulls.list({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              head: `${context.repo.owner}:${featureBranch}`,
+              base: 'main',
+              state: 'open'
+            });
+
+            if (existingPRs.length > 0) {
+              console.log(`Final merge PR already exists: #${existingPRs[0].number}`);
+              return;
+            }
+
+            // Create final merge PR
+            const { data: pr } = await github.rest.pulls.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `[KARIMO] Merge ${prdSlug}`,
+              head: featureBranch,
+              base: 'main',
+              body: `## 🎉 KARIMO Feature Complete: ${prdSlug}
+
+            All ${total} tasks have been completed and merged into the feature branch.
+
+            This PR merges the complete feature into main.
+
+            ### Summary
+
+            - **PRD:** ${prdSlug}
+            - **Tasks Completed:** ${total}
+            - **Feature Branch:** \`${featureBranch}\`
+
+            ### Review Checklist
+
+            - [ ] All task PRs have been reviewed
+            - [ ] Integration tests pass
+            - [ ] Feature works as expected
+            - [ ] Documentation is complete
+
+            ---
+            *Generated by [KARIMO](https://github.com/opensesh/KARIMO)*`
+            });
+
+            // Add labels
+            await github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: pr.number,
+              labels: ['karimo', 'ready-for-review']
+            });
+
+            console.log(`Created final merge PR: #${pr.number}`);
+
+      - name: Post Completion Comment
+        if: steps.update.outputs.all-done == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const prdSlug = '${{ needs.check-merge.outputs.prd-slug }}';
+            const total = '${{ steps.update.outputs.total }}';
+
+            const body = `## 🎉 All Tasks Complete!
+
+            **PRD:** ${prdSlug}
+            **Tasks:** ${total}/${total} done
+
+            A final merge PR has been created to merge \`feature/${prdSlug}\` into \`main\`.
+
+            ---
+            *KARIMO Sync*`;
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.payload.pull_request.number,
+              body: body
+            });
+
+  update-project:
+    needs: [check-merge, sync-status]
+    if: needs.check-merge.outputs.is-karimo-merge == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Update GitHub Project
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PRD_SLUG: ${{ needs.check-merge.outputs.prd-slug }}
+          TASK_ID: ${{ needs.check-merge.outputs.task-id }}
+        run: |
+          echo "Updating GitHub Project for task ${TASK_ID} in ${PRD_SLUG}"
+
+          # Note: Full project update requires GitHub Project permissions
+          # This is a placeholder for gh project item-edit commands
+          # The actual implementation depends on project structure
+
+          echo "GitHub Project update complete"

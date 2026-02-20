@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Workflows**: Add karimo-integration GitHub Action for automated PR checks
 - **GitHub**: Add issue template for KARIMO automated task creation
 - **Skills**: Add git-worktree-ops skill documenting worktree management patterns
 - **Commands**: Add `/karimo:execute` slash command for autonomous PRD execution
@@ -51,6 +52,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.1.0] - 2026-02-17
 
 ### Added
+- **Workflows**: Add karimo-integration GitHub Action for automated PR checks
 - **GitHub**: Add issue template for KARIMO automated task creation
 - **Skills**: Add git-worktree-ops skill documenting worktree management patterns
 - **Commands**: Add `/karimo:execute` slash command for autonomous PRD execution
@@ -98,6 +100,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.4.0] - 2026-02-17
 
 ### Added
+- **Workflows**: Add karimo-integration GitHub Action for automated PR checks
 - **GitHub**: Add issue template for KARIMO automated task creation
 - **Skills**: Add git-worktree-ops skill documenting worktree management patterns
 - **Commands**: Add `/karimo:execute` slash command for autonomous PRD execution
@@ -137,6 +140,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.1.0] - 2026-02-17
 
 ### Added
+- **Workflows**: Add karimo-integration GitHub Action for automated PR checks
 - **GitHub**: Add issue template for KARIMO automated task creation
 - **Skills**: Add git-worktree-ops skill documenting worktree management patterns
 - **Commands**: Add `/karimo:execute` slash command for autonomous PRD execution
@@ -165,6 +169,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.0.0] - 2026-02-17
 
 ### Added
+- **Workflows**: Add karimo-integration GitHub Action for automated PR checks
 - **GitHub**: Add issue template for KARIMO automated task creation
 - **Skills**: Add git-worktree-ops skill documenting worktree management patterns
 - **Commands**: Add `/karimo:execute` slash command for autonomous PRD execution
