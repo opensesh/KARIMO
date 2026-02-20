@@ -1,8 +1,8 @@
-# KARIMO Dashboard (Level 5)
+# KARIMO Dashboard (Phase 3)
 
-A standalone Next.js application focused on visualization, review, and merge decisions. It does not control execution — that's the CLI's job. The dashboard is a read-heavy command center that pulls state from GitHub Projects and cost data from SQLite.
+A standalone Next.js application focused on visualization, review, and merge decisions. It does not control execution — that's Claude Code's job. The dashboard is a read-heavy command center that pulls state from GitHub Projects and cost data from SQLite.
 
-> **Note:** The dashboard is not built until Level 5. Until then, GitHub Projects Kanban + terminal output serve the same purpose.
+> **Note:** The dashboard is a Phase 3 feature and not yet built. Until then, GitHub Projects Kanban + `/karimo:status` serve the same purpose.
 
 ---
 
@@ -112,12 +112,12 @@ The dashboard refreshes from GitHub API on page load or manual refresh. No WebSo
 
 ---
 
-## Before Level 5
+## Before Phase 3
 
 Until the dashboard is built, you can use:
 
 1. **GitHub Projects Kanban** — Native board view shows all task statuses
-2. **Terminal output** — `karimo status` prints current state
+2. **Status command** — `/karimo:status` shows current state
 3. **GitHub PR list** — Direct access to PRs for review
 
 The dashboard is a convenience layer, not a requirement for KARIMO to function.
@@ -126,6 +126,6 @@ The dashboard is a convenience layer, not a requirement for KARIMO to function.
 
 ## Related Documentation
 
-- [LEVELS.md](./LEVELS.md) — Dashboard is a Level 5 feature
+- [PHASES.md](./PHASES.md) — Dashboard is a Phase 3 feature
 - [SECURITY.md](./SECURITY.md) — Dashboard authentication and confirmation tokens
 - [ARCHITECTURE.md](./ARCHITECTURE.md) — System overview showing dashboard integration

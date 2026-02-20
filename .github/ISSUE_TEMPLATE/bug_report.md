@@ -27,7 +27,7 @@ What actually happened.
 ## Environment
 
 - KARIMO version:
-- Bun version:
+- Claude Code version:
 - OS:
 - Target project language/framework:
 

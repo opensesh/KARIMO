@@ -172,13 +172,11 @@ Before creating a PR, run validation in the worktree:
 ```bash
 cd .worktrees/{prd-slug}/{task-id}
 
-# Run build
-{config.commands.build}
-# Example: bun run build
+# Run build (from config.commands.build)
+# Example: npm run build
 
-# Run typecheck (if configured)
-{config.commands.typecheck}
-# Example: bun run typecheck
+# Run typecheck (from config.commands.typecheck, if configured)
+# Example: npm run typecheck
 
 # Check for boundary violations
 git diff --name-only feature/{prd-slug}..HEAD
