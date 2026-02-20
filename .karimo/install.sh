@@ -102,53 +102,58 @@ cp "$KARIMO_ROOT/.github/ISSUE_TEMPLATE/karimo-task.yml" "$TARGET_DIR/.github/IS
 # Create .gitkeep for prds directory
 touch "$TARGET_DIR/.karimo/prds/.gitkeep"
 
-# Append KARIMO_RULES to CLAUDE.md
+# Copy KARIMO_RULES.md to .claude/ (modular approach)
+echo "Copying KARIMO rules..."
+cp "$KARIMO_ROOT/.claude/KARIMO_RULES.md" "$TARGET_DIR/.claude/KARIMO_RULES.md"
+
+# Add reference block to CLAUDE.md (concise ~20 lines instead of full rules)
 echo "Updating CLAUDE.md..."
 CLAUDE_MD="$TARGET_DIR/CLAUDE.md"
-RULES_FILE="$KARIMO_ROOT/.claude/KARIMO_RULES.md"
 
-if [ -f "$CLAUDE_MD" ]; then
-    # Check if KARIMO rules already exist
-    if grep -q "## KARIMO Methodology Rules" "$CLAUDE_MD"; then
-        echo -e "${YELLOW}KARIMO rules already in CLAUDE.md, skipping...${NC}"
-    else
+# Check if KARIMO section already exists
+if [ -f "$CLAUDE_MD" ] && grep -q "## KARIMO Framework" "$CLAUDE_MD"; then
+    echo -e "${YELLOW}KARIMO section already in CLAUDE.md, skipping...${NC}"
+else
+    # Append KARIMO reference block
+    if [ -f "$CLAUDE_MD" ]; then
         echo "" >> "$CLAUDE_MD"
         echo "---" >> "$CLAUDE_MD"
         echo "" >> "$CLAUDE_MD"
-        cat "$RULES_FILE" >> "$CLAUDE_MD"
-        echo "  Added KARIMO rules to existing CLAUDE.md"
     fi
-else
-    # Create new CLAUDE.md with rules
-    cat "$RULES_FILE" > "$CLAUDE_MD"
-    echo "  Created CLAUDE.md with KARIMO rules"
-fi
 
-# Add empty KARIMO Learnings section if not present
-if ! grep -q "## KARIMO Learnings" "$CLAUDE_MD"; then
-    echo "" >> "$CLAUDE_MD"
-    echo "---" >> "$CLAUDE_MD"
-    echo "" >> "$CLAUDE_MD"
-    echo "## KARIMO Learnings" >> "$CLAUDE_MD"
-    echo "" >> "$CLAUDE_MD"
-    echo "Rules learned from execution feedback. These are applied to all agent tasks." >> "$CLAUDE_MD"
-    echo "" >> "$CLAUDE_MD"
-    echo "### Patterns to Follow" >> "$CLAUDE_MD"
-    echo "" >> "$CLAUDE_MD"
-    echo "_No patterns captured yet._" >> "$CLAUDE_MD"
-    echo "" >> "$CLAUDE_MD"
-    echo "### Anti-Patterns to Avoid" >> "$CLAUDE_MD"
-    echo "" >> "$CLAUDE_MD"
-    echo "_No anti-patterns captured yet._" >> "$CLAUDE_MD"
-    echo "" >> "$CLAUDE_MD"
-    echo "### Rules" >> "$CLAUDE_MD"
-    echo "" >> "$CLAUDE_MD"
-    echo "_No rules captured yet._" >> "$CLAUDE_MD"
-    echo "" >> "$CLAUDE_MD"
-    echo "### Gotchas" >> "$CLAUDE_MD"
-    echo "" >> "$CLAUDE_MD"
-    echo "_No gotchas captured yet._" >> "$CLAUDE_MD"
-    echo "" >> "$CLAUDE_MD"
+    cat >> "$CLAUDE_MD" << 'EOF'
+## KARIMO Framework
+
+This project uses KARIMO for autonomous development.
+
+**Commands:**
+- `/karimo:plan` — Start PRD interview
+- `/karimo:execute` — Run tasks from PRD
+- `/karimo:status` — View execution state
+- `/karimo:feedback` — Capture learnings
+
+**Rules:** See `.claude/KARIMO_RULES.md` for agent behavior rules
+
+**Learnings:** Captured below via `/karimo:feedback`
+
+## KARIMO Learnings
+
+_Rules learned from execution feedback._
+
+### Patterns to Follow
+
+_No patterns captured yet._
+
+### Anti-Patterns to Avoid
+
+_No anti-patterns captured yet._
+EOF
+
+    if [ -f "$CLAUDE_MD" ] && [ $(wc -c < "$CLAUDE_MD") -gt 100 ]; then
+        echo "  Added KARIMO reference block to existing CLAUDE.md"
+    else
+        echo "  Created CLAUDE.md with KARIMO reference block"
+    fi
 fi
 
 # Update .gitignore
@@ -173,18 +178,19 @@ echo -e "${GREEN}│  Installation Complete!                                    
 echo -e "${GREEN}╰──────────────────────────────────────────────────────────────╯${NC}"
 echo
 echo "Installed files:"
-echo "  .claude/agents/         4 agent definitions"
-echo "  .claude/commands/       4 slash commands"
-echo "  .claude/skills/         2 skill definitions"
-echo "  .karimo/templates/      4 templates"
-echo "  .github/workflows/      3 GitHub Actions"
-echo "  .github/ISSUE_TEMPLATE/ 1 issue template"
-echo "  CLAUDE.md               Updated with KARIMO rules"
-echo "  .gitignore              Updated with .worktrees/"
+echo "  .claude/agents/           4 agent definitions"
+echo "  .claude/commands/         4 slash commands"
+echo "  .claude/skills/           2 skill definitions"
+echo "  .claude/KARIMO_RULES.md   Agent behavior rules"
+echo "  .karimo/templates/        4 templates"
+echo "  .github/workflows/        3 GitHub Actions"
+echo "  .github/ISSUE_TEMPLATE/   1 issue template"
+echo "  CLAUDE.md                 Updated with reference block"
+echo "  .gitignore                Updated with .worktrees/"
 echo
 echo "Next steps:"
-echo "  1. Run 'karimo init' to configure your project"
-echo "  2. Run '/karimo:plan' to create your first PRD"
-echo "  3. Run '/karimo:execute --prd {slug}' to start execution"
+echo "  1. Run '/karimo:plan' to create your first PRD"
+echo "  2. Run '/karimo:execute --prd {slug}' to start execution"
+echo "  3. Run '/karimo:feedback' after tasks to capture learnings"
 echo
 echo "For more information, see: https://github.com/opensesh/KARIMO"
