@@ -176,6 +176,7 @@ GitHub Actions automate review when Greptile is configured:
 | **Reviewer** | Validates PRD, generates DAG | Opus | No |
 | **Brief Writer** | Generates task briefs | Sonnet | No |
 | **PM Agent** | Coordinates task execution | Sonnet | No |
+| **Learn Auditor** | Investigates learning directives | Sonnet | No |
 | **Task Agent** | Executes individual tasks | — | Yes |
 
 The PM Agent coordinates but never writes code. Task agents are spawned by PM to execute work in isolated worktrees.
@@ -291,23 +292,35 @@ See [CONFIG-REFERENCE.md](CONFIG-REFERENCE.md) for full documentation.
 
 ## Learning Architecture
 
-KARIMO uses a two-layer learning system:
+KARIMO uses a two-scope compound learning system:
 
-### Layer 1: Automatic
+### Scope 1: Quick Capture (`/karimo:feedback`)
 
-GitHub Actions track outcomes and update status:
-- Task completion times
-- Build failure patterns
-- Iterations per complexity
+Immediate capture of single observations:
+- Developer describes pattern or mistake
+- Agent generates actionable rule
+- Rule appended to `CLAUDE.md`
+- Time: ~2 minutes
 
-### Layer 2: Manual
+### Scope 2: Deep Learning (`/karimo:learn`)
 
-`/karimo:feedback` captures developer insights:
-- Patterns to follow
-- Anti-patterns to avoid
-- Rules and gotchas
+Comprehensive three-mode investigation cycle:
 
-Learnings are appended to `CLAUDE.md` under `## KARIMO Learnings`, making them available to all future agent invocations.
+| Mode | Agent | Output |
+|------|-------|--------|
+| 1. Interview | Opus | `interview.md` with audit directives |
+| 2. Audit | karimo-learn-auditor | `findings.md` with evidence |
+| 3. Review & Act | Human + Agent | Applied changes to config/docs |
+
+Key features:
+- Evidence-based investigation (status.json, PR history, codebase)
+- Per-change approval gate
+- Continuity across cycles ("Last time you flagged X...")
+- Time: ~45 minutes
+
+Learnings are stored in `CLAUDE.md` under `## KARIMO Learnings`, making them available to all future agent invocations.
+
+See [COMPOUND-LEARNING.md](COMPOUND-LEARNING.md) for full documentation.
 
 ---
 
