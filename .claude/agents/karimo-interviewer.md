@@ -189,10 +189,9 @@ When detected, confirm round completion and transition to the next.
 
 After Round 5 completes:
 1. Generate the PRD following `.karimo/templates/PRD_TEMPLATE.md`
-2. Calculate derived fields:
-   - `max_iterations = base + (complexity × per_complexity)`
-   - `revision_iterations = max_iterations × revision_multiplier`
-   - `total_allowed = max_iterations + revision_iterations`
+2. Assign models based on complexity:
+   - Complexity 1–4 → Sonnet (efficient for straightforward tasks)
+   - Complexity 5–10 → Opus (complex reasoning, multi-file coordination)
 3. Spawn `@karimo-reviewer.md` to validate the PRD
 4. Address any issues the reviewer flags
 5. On approval, save all artifacts to the PRD folder

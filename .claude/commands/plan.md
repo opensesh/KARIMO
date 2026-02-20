@@ -91,10 +91,10 @@ boundaries:
   require_review:
     - "{{sensitive_files_mentioned}}"
 
-iteration_limits:
-  base: 3
-  per_complexity: 2
-  revision_multiplier: 0.5
+models:
+  simple: "sonnet"
+  complex: "opus"
+  threshold: 5
 ```
 
 ### 7. PRD Generation

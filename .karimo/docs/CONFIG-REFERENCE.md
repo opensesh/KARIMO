@@ -25,10 +25,10 @@ commands:
 execution:
   max_parallel: 3
 
-iteration_limits:
-  base: 3
-  per_complexity: 2
-  revision_multiplier: 0.5
+models:
+  simple: "sonnet"
+  complex: "opus"
+  threshold: 5
 
 boundaries:
   never_touch:
@@ -116,46 +116,46 @@ execution:
 
 ---
 
-## Section: iteration_limits
+## Section: models
 
-Iteration limits for task execution. These are complexity-based guardrails that prevent runaway agent loops.
+Model assignment for task execution. The PM agent assigns models based on task complexity.
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `base` | integer | 3 | Minimum iterations per task |
-| `per_complexity` | integer | 2 | Additional iterations per complexity point |
-| `revision_multiplier` | float | 0.5 | Extra iterations for revision loops (as fraction of limit) |
+| `simple` | string | "sonnet" | Model for lower-complexity tasks |
+| `complex` | string | "opus" | Model for higher-complexity tasks |
+| `threshold` | integer | 5 | Complexity threshold for model switch |
 
 ### Example
 
 ```yaml
-iteration_limits:
-  base: 3
-  per_complexity: 2
-  revision_multiplier: 0.5
+models:
+  simple: "sonnet"
+  complex: "opus"
+  threshold: 5
 ```
 
-### Formulas
+### Model Assignment Rules
 
-```
-max_iterations = base + (complexity × per_complexity)
-revision_iterations = max_iterations × revision_multiplier
-total_allowed = max_iterations + revision_iterations
-```
+| Complexity | Model | Rationale |
+|------------|-------|-----------|
+| 1–4 | Sonnet | Efficient for straightforward tasks |
+| 5–10 | Opus | Complex reasoning, multi-file coordination |
 
-### Example Calculations
+### Loop Awareness
 
-| Complexity | Base | Per-Complexity | Max Iterations | Revision Budget | Total |
-|------------|------|----------------|----------------|-----------------|-------|
-| 2 | 3 | 2 × 2 = 4 | 7 | 3.5 → 4 | 11 |
-| 5 | 3 | 2 × 5 = 10 | 13 | 6.5 → 7 | 20 |
-| 8 | 3 | 2 × 8 = 16 | 19 | 9.5 → 10 | 29 |
+Instead of pre-calculated iteration limits, KARIMO uses **loop awareness**:
+
+- **Loop count:** Tracked per task in `status.json`
+- **Stall detection:** After 3 loops without progress, PM agent pauses
+- **Model upgrade:** Sonnet tasks can upgrade to Opus on stall
+- **Hard cap:** Maximum 5 loops per task before human intervention
 
 ### Notes
 
-- Iteration limits are advisory guardrails, not hard blocks
-- When approaching limits, agents should assess if they're on track
-- Exceeding limits triggers a warning and human checkpoint
+- Model assignment is recorded in `status.json` and GitHub Issue
+- The PM agent can upgrade a task's model mid-execution if it stalls
+- Stalled tasks with complexity 4-5 are candidates for Sonnet → Opus upgrade
 
 ---
 
