@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **GitHub**: Add issue template for KARIMO automated task creation
 - **Skills**: Add git-worktree-ops skill documenting worktree management patterns
 - **Commands**: Add `/karimo:execute` slash command for autonomous PRD execution
 - **Templates**: Add v2 templates for PRD, interview protocol, and task schema
@@ -50,6 +51,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.1.0] - 2026-02-17
 
 ### Added
+- **GitHub**: Add issue template for KARIMO automated task creation
 - **Skills**: Add git-worktree-ops skill documenting worktree management patterns
 - **Commands**: Add `/karimo:execute` slash command for autonomous PRD execution
 - **Templates**: Add v2 templates for PRD, interview protocol, and task schema
@@ -96,6 +98,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.4.0] - 2026-02-17
 
 ### Added
+- **GitHub**: Add issue template for KARIMO automated task creation
 - **Skills**: Add git-worktree-ops skill documenting worktree management patterns
 - **Commands**: Add `/karimo:execute` slash command for autonomous PRD execution
 - **Templates**: Add v2 templates for PRD, interview protocol, and task schema
@@ -134,6 +137,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.1.0] - 2026-02-17
 
 ### Added
+- **GitHub**: Add issue template for KARIMO automated task creation
 - **Skills**: Add git-worktree-ops skill documenting worktree management patterns
 - **Commands**: Add `/karimo:execute` slash command for autonomous PRD execution
 - **Templates**: Add v2 templates for PRD, interview protocol, and task schema
@@ -161,6 +165,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.0.0] - 2026-02-17
 
 ### Added
+- **GitHub**: Add issue template for KARIMO automated task creation
 - **Skills**: Add git-worktree-ops skill documenting worktree management patterns
 - **Commands**: Add `/karimo:execute` slash command for autonomous PRD execution
 - **Templates**: Add v2 templates for PRD, interview protocol, and task schema
