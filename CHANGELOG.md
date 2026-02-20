@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Commands**: Add `/karimo:plan` slash command for PRD interview orchestration
 - **CLI**: Export input-sanitizer, boundaries-display, and response-formatter modules from UI barrel
 - **Interview**: Integrate input sanitization and response formatting in conversation loops
 - **CLI**: Add response formatter for highlighting questions and bold text in agent output
@@ -45,6 +46,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.1.0] - 2026-02-17
 
 ### Added
+- **Commands**: Add `/karimo:plan` slash command for PRD interview orchestration
 - **CLI**: Export input-sanitizer, boundaries-display, and response-formatter modules from UI barrel
 - **Interview**: Integrate input sanitization and response formatting in conversation loops
 - **CLI**: Add response formatter for highlighting questions and bold text in agent output
@@ -86,6 +88,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.4.0] - 2026-02-17
 
 ### Added
+- **Commands**: Add `/karimo:plan` slash command for PRD interview orchestration
 - **CLI**: Export input-sanitizer, boundaries-display, and response-formatter modules from UI barrel
 - **Interview**: Integrate input sanitization and response formatting in conversation loops
 - **CLI**: Add response formatter for highlighting questions and bold text in agent output
@@ -119,6 +122,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.1.0] - 2026-02-17
 
 ### Added
+- **Commands**: Add `/karimo:plan` slash command for PRD interview orchestration
 - **CLI**: Export input-sanitizer, boundaries-display, and response-formatter modules from UI barrel
 - **Interview**: Integrate input sanitization and response formatting in conversation loops
 - **CLI**: Add response formatter for highlighting questions and bold text in agent output
@@ -141,6 +145,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.0.0] - 2026-02-17
 
 ### Added
+- **Commands**: Add `/karimo:plan` slash command for PRD interview orchestration
 - **CLI**: Export input-sanitizer, boundaries-display, and response-formatter modules from UI barrel
 - **Interview**: Integrate input sanitization and response formatting in conversation loops
 - **CLI**: Add response formatter for highlighting questions and bold text in agent output
