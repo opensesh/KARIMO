@@ -13,7 +13,8 @@ KARIMO is an autonomous development **methodology** delivered via Claude Code co
 | Command | Purpose |
 |---------|---------|
 | `/karimo:plan` | Start PRD interview to capture requirements |
-| `/karimo:execute --prd {slug}` | Execute tasks from a PRD |
+| `/karimo:review --prd {slug}` | Approve PRD and generate task briefs |
+| `/karimo:execute --prd {slug}` | Execute approved tasks from a PRD |
 | `/karimo:status` | View execution state and progress |
 | `/karimo:feedback` | Capture learnings from completed work |
 
@@ -79,8 +80,8 @@ When you run `install.sh`, these files are added:
 
 | Location | Contents |
 |----------|----------|
-| `.claude/agents/` | 4 agent definitions (interviewer, investigator, pm, reviewer) |
-| `.claude/commands/` | 4 slash commands (plan, execute, status, feedback) |
+| `.claude/agents/` | 5 agent definitions (interviewer, investigator, reviewer, brief-writer, pm) |
+| `.claude/commands/` | 5 slash commands (plan, review, execute, status, feedback) |
 | `.claude/skills/` | 2 skills (git-worktree-ops, github-project-ops) |
 | `.claude/KARIMO_RULES.md` | Agent behavior rules |
 | `.karimo/templates/` | PRD, task, and status schemas |

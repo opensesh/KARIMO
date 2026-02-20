@@ -149,7 +149,8 @@ Agents work through tasks in parallel, creating PRs for each.
 | Command | Purpose |
 |---------|---------|
 | `/karimo:plan` | Start PRD interview — 5 rounds with codebase analysis |
-| `/karimo:execute --prd {slug}` | Execute tasks from a PRD |
+| `/karimo:review --prd {slug}` | Approve PRD and generate task briefs |
+| `/karimo:execute --prd {slug}` | Execute approved tasks from a PRD |
 | `/karimo:status` | View execution progress across all PRDs |
 | `/karimo:feedback` | Capture learnings to improve future execution |
 
@@ -163,7 +164,18 @@ Orchestrates a structured interview to create a PRD:
 4. **Tasks** — Break down into executable units
 5. **Review** — Validate and generate dependency graph
 
-Output: `.karimo/prds/{slug}/prd.md` with `tasks.yaml` and `dag.json`
+Output: `.karimo/prds/{slug}/PRD.md` with `tasks.yaml` and `dag.json`
+
+### /karimo:review
+
+Human checkpoint before execution:
+
+- Review the PRD and task breakdown
+- Approve or exclude specific tasks
+- Generates self-contained briefs for each task
+- Updates status from `ready` to `approved`
+
+Output: `.karimo/prds/{slug}/briefs/{task_id}.md` for each approved task
 
 ### /karimo:execute
 
@@ -187,7 +199,7 @@ PRDs:
 
   001_user-profiles          active     ████████░░ 80%
     Tasks: 4/5 done, 1 in-review
-    Cost: $32.50 / $60 ceiling
+    Iterations: 13/20 used
 ```
 
 ### /karimo:feedback
@@ -213,6 +225,7 @@ KARIMO includes specialized agents:
 | `karimo-interviewer` | Conducts 5-round PRD interview |
 | `karimo-investigator` | Scans codebase for patterns and context |
 | `karimo-reviewer` | Validates PRD, generates task DAG |
+| `karimo-brief-writer` | Generates self-contained task briefs |
 | `karimo-pm` | Coordinates execution, never writes code |
 
 Agents live in `.claude/agents/` and follow strict rules from `KARIMO_RULES.md`.
@@ -295,11 +308,10 @@ commands:
   test: "npm test"
   typecheck: "npm run typecheck"
 
-cost:
-  cost_multiplier: 2.0
-  base_iterations: 3
-  iteration_multiplier: 1.5
-  revision_budget_percent: 20
+iteration_limits:
+  base: 3
+  per_complexity: 2
+  revision_multiplier: 0.5
 
 boundaries:
   never_touch:
@@ -341,7 +353,7 @@ Triggered when KARIMO PR is merged:
 KARIMO learns from execution through two layers:
 
 ### Layer 1: Automatic
-- Task outcomes update cost multipliers
+- Task outcomes refine iteration estimates
 - Build failures add to `never_touch` lists
 - Pattern violations become rules
 
@@ -375,7 +387,7 @@ Optional:
 |-----------|-------------|
 | **Never-touch files** | Agents cannot modify protected files |
 | **Require-review files** | Changes flagged for human attention |
-| **Cost ceilings** | Per-task spending limits |
+| **Iteration limits** | Per-task iteration guardrails |
 | **Worktree isolation** | Each task works in isolated branch |
 | **Pre-PR checks** | Build/typecheck must pass before PR |
 | **Greptile review** | Automated code quality checks (Phase 2) |

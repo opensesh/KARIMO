@@ -40,9 +40,11 @@ Target Project/
 │   │   ├── karimo-interviewer.md    # PRD interview conductor
 │   │   ├── karimo-investigator.md   # Codebase pattern scanner
 │   │   ├── karimo-reviewer.md       # PRD validation and DAG generation
+│   │   ├── karimo-brief-writer.md   # Task brief generation
 │   │   └── karimo-pm.md             # Task coordination (never writes code)
 │   ├── commands/
 │   │   ├── plan.md                  # /karimo:plan
+│   │   ├── review.md                # /karimo:review
 │   │   ├── execute.md               # /karimo:execute
 │   │   ├── status.md                # /karimo:status
 │   │   └── feedback.md              # /karimo:feedback
@@ -117,10 +119,10 @@ If the user already has a `## KARIMO Framework` section in their `CLAUDE.md`, `i
 ## System Flow
 
 ```
-┌──────────────┐    ┌───────────────┐    ┌─────────────┐    ┌────────────┐    ┌───────────┐
-│   Interview  │ →  │   PRD + DAG   │ →  │   Execute   │ →  │   Review   │ →  │   Merge   │
-│  (/plan)     │    │  (generated)  │    │   (agents)  │    │ (Greptile) │    │   (PR)    │
-└──────────────┘    └───────────────┘    └─────────────┘    └────────────┘    └───────────┘
+┌──────────────┐    ┌───────────────┐    ┌────────────┐    ┌─────────────┐    ┌────────────┐    ┌───────────┐
+│   Interview  │ →  │   PRD + DAG   │ →  │   Approve  │ →  │   Execute   │ →  │   Review   │ →  │   Merge   │
+│  (/plan)     │    │  (generated)  │    │  (/review) │    │   (agents)  │    │ (Greptile) │    │   (PR)    │
+└──────────────┘    └───────────────┘    └────────────┘    └─────────────┘    └────────────┘    └───────────┘
 ```
 
 ### Interview Phase (`/karimo:plan`)
@@ -131,10 +133,19 @@ If the user already has a `## KARIMO Framework` section in their `CLAUDE.md`, `i
 4. **Reviewer**: Validates and generates task DAG
 
 **Output**: `.karimo/prds/{slug}/` containing:
-- `prd.md` — Full PRD document
+- `PRD.md` — Full PRD document
 - `tasks.yaml` — Task definitions
 - `dag.json` — Dependency graph
 - `status.json` — Execution tracking
+
+### Approve Phase (`/karimo:review`)
+
+1. User reviews PRD and task breakdown
+2. Approves or excludes specific tasks
+3. Brief Writer generates self-contained briefs per task
+4. Status updated to `approved`
+
+**Output**: `.karimo/prds/{slug}/briefs/{task_id}.md` for each approved task
 
 ### Execution Phase (`/karimo:execute`)
 
@@ -158,15 +169,36 @@ GitHub Actions automate review when Greptile is configured:
 
 ### Agent Roles
 
-| Agent | Purpose | Writes Code? |
-|-------|---------|--------------|
-| **Interviewer** | Conducts PRD interview | No |
-| **Investigator** | Scans codebase for patterns | No |
-| **Reviewer** | Validates PRD, generates DAG | No |
-| **PM Agent** | Coordinates task execution | No |
-| **Task Agent** | Executes individual tasks | Yes |
+| Agent | Purpose | Model | Writes Code? |
+|-------|---------|-------|--------------|
+| **Interviewer** | Conducts PRD interview | Sonnet | No |
+| **Investigator** | Scans codebase for patterns | Sonnet | No |
+| **Reviewer** | Validates PRD, generates DAG | Opus | No |
+| **Brief Writer** | Generates task briefs | Sonnet | No |
+| **PM Agent** | Coordinates task execution | Sonnet | No |
+| **Task Agent** | Executes individual tasks | — | Yes |
 
 The PM Agent coordinates but never writes code. Task agents are spawned by PM to execute work in isolated worktrees.
+
+### Model Routing
+
+KARIMO agents use YAML frontmatter to specify which Claude model to use:
+
+```yaml
+---
+name: karimo-reviewer
+description: Validates completed PRDs...
+model: opus
+tools: Read, Grep, Glob
+---
+```
+
+**Model assignments:**
+- **Opus**: Deep reasoning tasks (reviewer for PRD validation)
+- **Sonnet**: Coordination and generation (interviewer, investigator, brief-writer, pm)
+- **Worker agents**: Inherit from parent or use project default
+
+This enables efficient usage — expensive models only where reasoning quality matters.
 
 ### Agent Rules
 
@@ -217,7 +249,7 @@ Tasks sync to GitHub Projects for visibility:
 ### Pull Requests
 
 PRs are created with KARIMO metadata:
-- Task ID, complexity, cost ceiling
+- Task ID, complexity, iteration limits
 - Files affected, caution files flagged
 - Validation checklist (build, typecheck)
 - Link back to PRD and task definition
@@ -241,9 +273,9 @@ commands:
 execution:
   max_parallel: 3
 
-cost:
-  cost_multiplier: 2.0
-  base_iterations: 3
+iteration_limits:
+  base: 3
+  per_complexity: 2
 
 boundaries:
   never_touch:
@@ -266,7 +298,7 @@ KARIMO uses a two-layer learning system:
 GitHub Actions track outcomes and update status:
 - Task completion times
 - Build failure patterns
-- Cost per complexity
+- Iterations per complexity
 
 ### Layer 2: Manual
 
