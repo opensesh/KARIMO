@@ -209,9 +209,9 @@ After Round 5:
 
 1. **Generate PRD** following template
 2. **Calculate derived fields:**
-   - `cost_ceiling = complexity × cost_multiplier`
-   - `estimated_iterations = base_iterations + (complexity × iteration_multiplier)`
-   - `revision_budget = cost_ceiling × (revision_budget_percent / 100)`
+   - `max_iterations = base + (complexity × per_complexity)`
+   - `revision_iterations = max_iterations × revision_multiplier`
+   - `total_allowed = max_iterations + revision_iterations`
 3. **Spawn reviewer agent** for validation
 4. **Address issues** flagged by reviewer
 5. **Save artifacts** to PRD folder

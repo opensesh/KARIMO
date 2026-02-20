@@ -239,7 +239,7 @@ gh pr create \
 **Task:** {task_id} — {task_title}
 **PRD:** {prd_slug}
 **Complexity:** {complexity}/10
-**Cost Ceiling:** ${cost_ceiling}
+**Max Iterations:** {max_iterations}
 
 ### Description
 
@@ -417,7 +417,7 @@ This PR merges all completed KARIMO tasks for {prd_slug}.
 ### Summary
 
 - Total Tasks: {count}
-- Total Cost: ${total}
+- Iterations: {used}/{budget}
 - Duration: {duration}
 ```
 

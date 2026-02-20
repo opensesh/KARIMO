@@ -262,17 +262,17 @@ When Greptile scores a PR below 4, KARIMO enters a revision loop:
 4. Updates PR with new commit
 5. Greptile re-reviews
 
-### Budget Limits
+### Iteration Limits
 
 - Maximum 3 revision attempts per task
-- Revision budget: `cost_ceiling × (revision_budget_percent / 100)`
-- After budget exhausted → mark for human review
+- Revision iterations: `max_iterations × revision_multiplier`
+- After iterations exhausted → mark for human review
 
 ### Configuration
 
 ```yaml
-cost:
-  revision_budget_percent: 20  # 20% of task budget for revisions
+iteration_limits:
+  revision_multiplier: 0.5  # 50% of task iterations for revisions
 ```
 
 ---

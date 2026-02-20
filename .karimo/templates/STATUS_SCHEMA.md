@@ -51,8 +51,8 @@ Each PRD folder contains a `status.json` file that tracks execution state. This 
       "worktree": ".worktrees/user-profiles/1a",
       "started_at": "2026-02-19T10:31:00Z",
       "completed_at": "2026-02-19T10:45:00Z",
-      "cost": 8.50,
-      "iterations": 3
+      "iterations_used": 3,
+      "max_iterations": 11
     },
     "1b": {
       "status": "in-review",
@@ -103,8 +103,7 @@ Each PRD folder contains a `status.json` file that tracks execution state. This 
     "total_tasks": 6,
     "successful": 6,
     "failed": 0,
-    "total_cost": 38.50,
-    "total_iterations": 18,
+    "total_iterations_used": 18,
     "duration_minutes": 135
   },
 
@@ -114,8 +113,8 @@ Each PRD folder contains a `status.json` file that tracks execution state. This 
       "issue_number": 100,
       "pr_number": 42,
       "merged_at": "2026-02-19T11:00:00Z",
-      "cost": 8.50,
-      "iterations": 3
+      "iterations_used": 3,
+      "max_iterations": 11
     }
     // ... all tasks with done status
   }
@@ -145,9 +144,11 @@ Each PRD folder contains a `status.json` file that tracks execution state. This 
 
 | Status | Meaning |
 |--------|---------|
-| `ready` | PRD finalized, ready for execution |
+| `draft` | PRD in progress via /karimo:plan |
+| `ready` | PRD finalized, ready for review |
+| `approved` | PRD approved via /karimo:review, briefs generated |
 | `active` | Execution in progress |
-| `paused` | Execution paused (budget, manual stop) |
+| `paused` | Execution paused (manual stop) |
 | `complete` | All tasks finished successfully |
 | `partial` | Some tasks failed, others complete |
 
@@ -163,7 +164,7 @@ Each PRD folder contains a `status.json` file that tracks execution state. This 
 | `started_at` | ISO datetime | When task execution started |
 | `completed_at` | ISO datetime | When task finished |
 | `merged_at` | ISO datetime | When PR was merged |
-| `cost` | number | Actual cost incurred |
+| `iterations_used` | number | Actual iterations used |
 | `iterations` | number | Number of agent iterations |
 | `error` | string | Error message (if failed) |
 | `conflict_files` | string[] | Conflicting files (if needs-human-rebase) |
@@ -174,6 +175,8 @@ Each PRD folder contains a `status.json` file that tracks execution state. This 
 
 | Status | Meaning |
 |--------|---------|
+| `approved` | Task approved during /karimo:review, brief generated |
+| `excluded` | Task excluded by user during /karimo:review |
 | `queued` | Waiting to start (dependencies not met or at capacity) |
 | `blocked` | Dependencies not yet complete |
 | `running` | Worker agent actively executing |
@@ -182,7 +185,7 @@ Each PRD folder contains a `status.json` file that tracks execution state. This 
 | `done` | PR merged successfully |
 | `failed` | Execution failed (see error field) |
 | `needs-human-rebase` | Merge conflicts require manual resolution |
-| `skipped` | Task was skipped (budget, user request) |
+| `skipped` | Task was skipped (user request during execution) |
 
 ### Summary Fields (Completion Only)
 
@@ -192,7 +195,7 @@ Each PRD folder contains a `status.json` file that tracks execution state. This 
 | `successful` | number | Tasks completed successfully |
 | `failed` | number | Tasks that failed |
 | `skipped` | number | Tasks skipped |
-| `total_cost` | number | Sum of all task costs |
+| `total_iterations_used` | number | Sum of all iterations used |
 | `total_iterations` | number | Sum of all iterations |
 | `duration_minutes` | number | Total execution time |
 
@@ -201,29 +204,28 @@ Each PRD folder contains a `status.json` file that tracks execution state. This 
 ## State Transitions
 
 ```
-                    ┌──────────────────────────────────────┐
-                    │                                      │
-                    ▼                                      │
-ready ──► active ──► complete                              │
-             │                                             │
-             │                                             │
-             ├──► paused ──► active (resume)               │
-             │                                             │
-             └──► partial ─────────────────────────────────┘
-                     (retry failed tasks)
+draft ──► ready ──► approved ──► active ──► complete
+                        │           │
+                        │           ├──► paused ──► active
+                        │           │
+                        │           └──► partial
+                        │
+                        └─ (/karimo:review)
 ```
 
 ### Task State Transitions
 
 ```
-queued ──► blocked ──► running ──► in-review ──► done
-                │          │            │
-                │          │            └──► needs-revision ──► running
-                │          │
-                │          └──► failed
-                │          └──► needs-human-rebase
-                │
-                └──► skipped
+approved ──► queued ──► blocked ──► running ──► in-review ──► done
+    │                       │          │            │
+    │                       │          │            └──► needs-revision ──► running
+    │                       │          │
+    │                       │          └──► failed
+    │                       │          └──► needs-human-rebase
+    │                       │
+    │                       └──► skipped
+    │
+    └──► excluded (user chose to exclude)
 ```
 
 ---
@@ -240,8 +242,8 @@ queued ──► blocked ──► running ──► in-review ──► done
     "started_at": "2026-02-19T10:46:00Z",
     "failed_at": "2026-02-19T11:02:00Z",
     "error": "Build failed: Type error in src/components/ProfileForm.tsx:42",
-    "iterations": 5,
-    "cost": 12.30
+    "iterations_used": 5,
+    "max_iterations": 13
   }
 }
 ```
@@ -263,8 +265,8 @@ queued ──► blocked ──► running ──► in-review ──► done
       "src/types/index.ts",
       "src/components/UserProfile.tsx"
     ],
-    "iterations": 4,
-    "cost": 10.20
+    "iterations_used": 4,
+    "max_iterations": 11
   }
 }
 ```

@@ -25,13 +25,10 @@ commands:
 execution:
   max_parallel: 3
 
-cost:
-  cost_multiplier: 2.0
-  base_iterations: 3
-  iteration_multiplier: 1.5
-  revision_budget_percent: 20
-  phase_budget_cap: 500
-  session_budget_cap: 1000
+iteration_limits:
+  base: 3
+  per_complexity: 2
+  revision_multiplier: 0.5
 
 boundaries:
   never_touch:
@@ -119,43 +116,46 @@ execution:
 
 ---
 
-## Section: cost
+## Section: iteration_limits
 
-Cost control settings for task execution.
+Iteration limits for task execution. These are complexity-based guardrails that prevent runaway agent loops.
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `cost_multiplier` | float | 2.0 | Base cost ceiling = complexity × multiplier |
-| `base_iterations` | integer | 3 | Minimum iterations per task |
-| `iteration_multiplier` | float | 1.5 | Additional iterations = complexity × multiplier |
-| `revision_budget_percent` | integer | 20 | % of task budget for revisions |
-| `phase_budget_cap` | float | null | Max cost per phase (soft cap) |
-| `session_budget_cap` | float | null | Max cost per session (hard cap) |
+| `base` | integer | 3 | Minimum iterations per task |
+| `per_complexity` | integer | 2 | Additional iterations per complexity point |
+| `revision_multiplier` | float | 0.5 | Extra iterations for revision loops (as fraction of limit) |
 
 ### Example
 
 ```yaml
-cost:
-  cost_multiplier: 2.0
-  base_iterations: 3
-  iteration_multiplier: 1.5
-  revision_budget_percent: 20
-  phase_budget_cap: 500
-  session_budget_cap: 1000
+iteration_limits:
+  base: 3
+  per_complexity: 2
+  revision_multiplier: 0.5
 ```
 
 ### Formulas
 
 ```
-cost_ceiling = complexity × cost_multiplier
-estimated_iterations = base_iterations + (complexity × iteration_multiplier)
-revision_budget = cost_ceiling × (revision_budget_percent / 100)
+max_iterations = base + (complexity × per_complexity)
+revision_iterations = max_iterations × revision_multiplier
+total_allowed = max_iterations + revision_iterations
 ```
+
+### Example Calculations
+
+| Complexity | Base | Per-Complexity | Max Iterations | Revision Budget | Total |
+|------------|------|----------------|----------------|-----------------|-------|
+| 2 | 3 | 2 × 2 = 4 | 7 | 3.5 → 4 | 11 |
+| 5 | 3 | 2 × 5 = 10 | 13 | 6.5 → 7 | 20 |
+| 8 | 3 | 2 × 8 = 16 | 19 | 9.5 → 10 | 29 |
 
 ### Notes
 
-- `phase_budget_cap: null` = no limit
-- `session_budget_cap: null` = no limit
+- Iteration limits are advisory guardrails, not hard blocks
+- When approaching limits, agents should assess if they're on track
+- Exceeding limits triggers a warning and human checkpoint
 
 ---
 

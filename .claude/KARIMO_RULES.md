@@ -134,25 +134,36 @@ If a dependency isn't ready:
 
 ---
 
-## Cost Awareness
+## Iteration Awareness
 
-### 1. Respect Ceilings
+### 1. Respect Iteration Limits
 
-Each task has a `cost_ceiling` calculated from complexity. Stay within it by:
-- Working efficiently
-- Not over-engineering
+Each task has a `max_iterations` limit calculated from complexity:
+```
+max_iterations = base + (complexity × per_complexity)
+```
+
+Stay within limits by:
+- Working efficiently toward success criteria
+- Not over-engineering solutions
 - Asking for clarification rather than guessing
 
-### 2. Iteration Limits
+### 2. Approaching Limits
 
-Tasks have `estimated_iterations`. If you're approaching the limit:
+If you're approaching your iteration limit:
 - Assess if you're on the right track
 - Consider if the task was under-scoped
 - Flag if more iterations are truly needed
+- The human can approve additional iterations if justified
 
 ### 3. Revision Budget
 
-If your PR needs revision, you have `revision_budget` to work with. Use it to:
+If your PR needs revision, you have additional `revision_iterations`:
+```
+revision_iterations = max_iterations × revision_multiplier
+```
+
+Use revision budget to:
 - Address review feedback
 - Fix issues found in CI
 - Handle edge cases missed initially

@@ -71,7 +71,7 @@ tasks:
 | `title` | string | Short, descriptive title (becomes GitHub Issue title) |
 | `description` | string | 2-3 sentence description of what the agent should build |
 | `depends_on` | string[] | Task IDs that must complete before this task starts |
-| `complexity` | number | 1-10 scale, drives cost_ceiling and estimated_iterations |
+| `complexity` | number | 1-10 scale, drives max_iterations calculation |
 | `priority` | string | One of: "must" \| "should" \| "could" |
 | `success_criteria` | string[] | 3-5 concrete, testable criteria for task completion |
 | `files_affected` | string[] | File paths this task will likely modify |
@@ -90,9 +90,8 @@ These fields are calculated by the reviewer agent using config values:
 
 | Field | Formula | Description |
 |-------|---------|-------------|
-| `cost_ceiling` | `complexity × cost_multiplier` | Maximum cost for this task |
-| `estimated_iterations` | `base_iterations + (complexity × iteration_multiplier)` | Expected iteration count |
-| `revision_budget` | `cost_ceiling × (revision_budget_percent / 100)` | Budget for revision loops |
+| `max_iterations` | `base + (complexity × per_complexity)` | Maximum iterations for this task |
+| `revision_iterations` | `max_iterations × revision_multiplier` | Additional iterations for revisions |
 
 ---
 

@@ -17,7 +17,7 @@ Display the current status of KARIMO PRDs and task execution.
 Read from:
 - `.karimo/prds/*/status.json` — All PRD execution states
 - GitHub Projects (if configured) — Live PR status
-- `.karimo/config.yaml` — Cost limits for comparison
+- `.karimo/config.yaml` — Iteration limits for comparison
 
 ### 2. Overview Display (No Arguments)
 
@@ -33,16 +33,17 @@ PRDs:
   001_user-profiles          active     ████████░░ 80%
     Tasks: 4/5 done, 1 in-review
     PRs: #42 merged, #43 merged, #44 merged, #45 merged, #46 in-review
-    Cost: $32.50 / $60 ceiling
+    Iterations: 12/20 used
     Started: 2h 15m ago
 
-  002_token-studio           ready      ░░░░░░░░░░ 0%
+  002_token-studio           approved   ░░░░░░░░░░ 0%
     Tasks: 0/8 done
+    Briefs: 8/8 ready
     Status: Ready for execution
 
   003_auth-refactor          complete   ██████████ 100%
     Tasks: 6/6 done
-    Cost: $45.20 / $50 ceiling
+    Iterations: 18/22 used
     Completed: 3 days ago
 
 Run /karimo:status --prd {slug} for details.
@@ -65,19 +66,19 @@ Started: 2026-02-19 10:30 (2h 15m ago)
 Tasks:
 
   ✓ [1a] Create UserProfile component          done
-    PR #42 merged • $8.50 • 3 iterations
+    PR #42 merged • 3 iterations
     Completed 1h 45m ago
 
   ✓ [1b] Add user type definitions             done
-    PR #43 merged • $4.20 • 2 iterations
+    PR #43 merged • 2 iterations
     Completed 1h 30m ago
 
   ✓ [2a] Implement profile edit form           done
-    PR #44 merged • $12.30 • 5 iterations
+    PR #44 merged • 5 iterations
     Completed 45m ago
 
   ✓ [2b] Add avatar upload                     done
-    PR #45 merged • $7.50 • 3 iterations
+    PR #45 merged • 3 iterations
     Completed 30m ago
 
   ⋯ [3a] Integration tests                     in-review
@@ -86,7 +87,7 @@ Tasks:
     Started 20m ago
 
 Progress: ████████░░ 80% (4/5 tasks)
-Cost: $32.50 / $60.00 ceiling (54%)
+Iterations: 13/20 used (65%)
 
 Dependency Graph:
   [1a] ──┬──► [2a] ──┬──► [3a]
@@ -106,7 +107,7 @@ Filter to show only PRDs with `status: "active"`:
 
   001_user-profiles          ████████░░ 80%
     1 task in-review (PR #46)
-    Cost: $32.50 / $60 ceiling
+    Iterations: 13/20 used
 
 No blocked tasks.
 ```
@@ -135,23 +136,23 @@ Display:
 - CI status (passing, failing, pending)
 - Greptile score (if available)
 
-### 7. Cost Summary
+### 7. Iteration Summary
 
-Show cost tracking:
+Show iteration tracking:
 
 ```
-Cost Summary:
+Iteration Summary:
 
-  Spent:    $32.50
-  Ceiling:  $60.00
-  Budget:   ████████░░░░░░░░░░░░ 54%
+  Used:     13
+  Limit:    20
+  Progress: ████████░░░░░░░░░░░░ 65%
 
   Per Task:
-    [1a] $8.50  / $12 ceiling
-    [1b] $4.20  / $6 ceiling
-    [2a] $12.30 / $15 ceiling ⚠ (82% of ceiling)
-    [2b] $7.50  / $12 ceiling
-    [3a] -      / $9 ceiling
+    [1a] 3/7 iterations
+    [1b] 2/7 iterations
+    [2a] 5/13 iterations
+    [2b] 3/11 iterations
+    [3a] -/9 iterations
 ```
 
 ### 8. Warnings and Blockers
@@ -161,7 +162,7 @@ Surface issues that need attention:
 ```
 ⚠ Warnings:
 
-  [2a] Approaching cost ceiling (82%)
+  [2a] Approaching iteration limit (85%)
   [3a] PR #46 has been in-review for 2 hours
 
 ✗ Blockers:
@@ -215,9 +216,9 @@ Returns:
         "in_progress": 1,
         "failed": 0
       },
-      "cost": {
-        "spent": 32.50,
-        "ceiling": 60.00
+      "iterations": {
+        "used": 13,
+        "limit": 20
       },
       "started_at": "2026-02-19T10:30:00Z",
       "github_project_url": "..."
@@ -241,7 +242,7 @@ Create one with: /karimo:plan
 ```
 ⚠ No .karimo/config.yaml found.
 
-Cost tracking is disabled. Run: karimo init
+Iteration tracking using defaults. Run: karimo init
 ```
 
 ### GitHub Not Authenticated

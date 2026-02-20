@@ -91,11 +91,10 @@ boundaries:
   require_review:
     - "{{sensitive_files_mentioned}}"
 
-cost:
-  cost_multiplier: 3
-  base_iterations: 5
-  iteration_multiplier: 3
-  revision_budget_percent: 50
+iteration_limits:
+  base: 3
+  per_complexity: 2
+  revision_multiplier: 0.5
 ```
 
 ### 7. PRD Generation
