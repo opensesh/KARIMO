@@ -8,58 +8,126 @@
 ```
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
-[![Status](https://img.shields.io/badge/Status-In%20Development-yellow.svg)]()
-[![Level](https://img.shields.io/badge/Level-0--5-orange.svg)]()
+[![Status](https://img.shields.io/badge/Status-v2-green.svg)]()
+[![Claude Code](https://img.shields.io/badge/Claude%20Code-Compatible-blueviolet.svg)]()
 
-**Open-Source Autonomous Development Framework**
+**Autonomous Development Framework for Claude Code**
 
-Choose your model, select your codebase, and turn product requirements into shipped code using AI agents, automated code review, and structured human oversight.
+Turn product requirements into shipped code using AI agents, automated code review, and structured human oversight — all through Claude Code slash commands.
 
 ---
 
-## Getting Started
+## Philosophy
 
-KARIMO guides you through three steps:
+**"You are the architect, agents are the builders, Greptile is the inspector."**
 
-1. **Setup** — Run `karimo` and answer questions about your project
-2. **Interview** — Have a conversation to define what you want to build
-3. **Execute** — Let agents turn your requirements into pull requests
+KARIMO provides a structured methodology for autonomous development:
+- **You** define what to build through a guided interview
+- **Agents** execute tasks in isolated worktrees
+- **Greptile** reviews code before human approval
+- **GitHub Actions** automate the review-merge pipeline
 
-### First Run
+---
+
+## Quick Start
+
+### 1. Install KARIMO in Your Project
 
 ```bash
-bun link              # Install globally (one time)
-cd your-project
-karimo                # Start guided flow
+# Clone KARIMO
+git clone https://github.com/opensesh/KARIMO.git
+
+# Install into your project
+bash KARIMO/.karimo/install.sh /path/to/your/project
 ```
 
-That's it. KARIMO detects your project state and guides you to the next step.
+This copies:
+- Agent definitions to `.claude/agents/`
+- Slash commands to `.claude/commands/`
+- Skills to `.claude/skills/`
+- Templates to `.karimo/templates/`
+- GitHub Actions to `.github/workflows/`
+
+### 2. Create Your First PRD
+
+```bash
+cd your-project
+claude
+
+# In Claude Code:
+/karimo:plan
+```
+
+The interviewer agent guides you through a 5-round conversation to define your feature.
+
+### 3. Execute the PRD
+
+```bash
+# In Claude Code:
+/karimo:execute --prd user-profiles
+```
+
+Agents work through tasks in parallel, creating PRs for each.
 
 ---
 
-## Two Ways to Use KARIMO
-
-### Guided Flow (Recommended)
-
-Just run `karimo` with no arguments. KARIMO detects where you are and guides you:
-
-| If you have... | KARIMO will... |
-|----------------|----------------|
-| No `.karimo/` folder | Show welcome and start setup |
-| Config but no PRDs | Start the PRD interview |
-| PRD in progress | Offer to resume where you left off |
-| Finalized PRD | Show tasks ready for execution |
-
-### Direct Commands
-
-For experienced users who know what they need:
+## Slash Commands
 
 | Command | Purpose |
 |---------|---------|
-| `karimo init` | Initialize project config |
-| `karimo orchestrate --phase X --task Y` | Run a specific task |
-| `karimo status` | Show current project state |
-| `karimo help` | Show all commands |
+| `/karimo:plan` | Start PRD interview — 5 rounds with codebase analysis |
+| `/karimo:execute --prd {slug}` | Execute tasks from a PRD |
+| `/karimo:status` | View execution progress across all PRDs |
+| `/karimo:feedback` | Capture learnings to improve future execution |
+
+### /karimo:plan
+
+Orchestrates a structured interview to create a PRD:
+
+1. **Vision** — What are we building and why?
+2. **Scope** — Where are the boundaries?
+3. **Investigation** — Agent scans codebase for patterns
+4. **Tasks** — Break down into executable units
+5. **Review** — Validate and generate dependency graph
+
+Output: `.karimo/prds/{slug}/prd.md` with `tasks.yaml` and `dag.json`
+
+### /karimo:execute
+
+Runs the PM Agent to coordinate task execution:
+
+- Creates feature branch and worktrees
+- Spawns agents for ready tasks (respects dependencies)
+- Monitors progress and propagates findings
+- Creates PRs with Greptile review
+
+### /karimo:status
+
+Shows real-time execution state:
+
+```
+╭──────────────────────────────────────────────────────────────╮
+│  KARIMO Status                                               │
+╰──────────────────────────────────────────────────────────────╯
+
+PRDs:
+
+  001_user-profiles          active     ████████░░ 80%
+    Tasks: 4/5 done, 1 in-review
+    Cost: $32.50 / $60 ceiling
+```
+
+### /karimo:feedback
+
+Captures learnings that improve future execution:
+
+```
+/karimo:feedback
+
+> "The agent kept using inline styles instead of Tailwind"
+```
+
+Generates rules appended to `CLAUDE.md` under `## KARIMO Learnings`.
 
 ---
 
@@ -67,153 +135,351 @@ For experienced users who know what they need:
 
 ```
 ┌──────────────┐    ┌───────────────┐    ┌─────────────┐    ┌────────────┐    ┌───────────┐
-│   Interview  │ →  │   PRD File    │ →  │   Execute   │ →  │   Review   │ →  │   Merge   │
-│(conversation)│    │  (generated)  │    │   (agents)  │    │  (checks)  │    │   (PR)    │
+│   Interview  │ →  │   PRD + DAG   │ →  │   Execute   │ →  │   Review   │ →  │   Merge   │
+│  (/plan)     │    │  (generated)  │    │   (agents)  │    │ (Greptile) │    │   (PR)    │
 └──────────────┘    └───────────────┘    └─────────────┘    └────────────┘    └───────────┘
 ```
 
-1. **Interview** — Have a conversation about what you're building
-2. **PRD Generated** — Your conversation becomes a structured document
-3. **Execute** — Agents work on tasks from the PRD
-4. **Review** — Pre-PR checks (build, typecheck, boundaries)
-5. **Merge** — Pull request created for human review
+### Interview Phase
+
+The interviewer agent conducts a structured conversation:
+
+1. Understands your vision and goals
+2. Identifies scope and boundaries
+3. Spawns investigator to scan your codebase
+4. Breaks work into tasks with dependencies
+5. Reviewer validates and generates execution graph
+
+### Execution Phase
+
+The PM Agent coordinates parallel execution:
+
+1. Parses `dag.json` for task dependencies
+2. Creates worktrees for parallel work
+3. Spawns agents for ready tasks
+4. Monitors completion, propagates findings
+5. Creates PRs when tasks complete
+
+### Review Phase
+
+GitHub Actions handle automated review:
+
+1. **karimo-review.yml** — Triggers Greptile code review
+2. **karimo-integration.yml** — Runs build/test on review pass
+3. **karimo-sync.yml** — Updates status when PRs merge
 
 ---
 
-## The PRD Interview
+## Agents
 
-KARIMO has a conversation with you to understand what you're building:
+KARIMO includes specialized agents:
 
-1. **Start** — Describe your feature in your own words
-2. **Extract** — Agent identifies requirements, risks, scope
-3. **Refine** — Fill gaps through natural conversation
-4. **Finalize** — Review captured PRD, resolve any conflicts
+| Agent | Role |
+|-------|------|
+| `karimo-interviewer` | Conducts 5-round PRD interview |
+| `karimo-investigator` | Scans codebase for patterns and context |
+| `karimo-reviewer` | Validates PRD, generates task DAG |
+| `karimo-pm` | Coordinates execution, never writes code |
 
-No rigid rounds. Talk naturally — the agent captures structure as you speak.
-
-You can pause anytime. Run `karimo` again to resume where you left off.
-
----
-
-## Level-Based Adoption
-
-KARIMO uses a level-based build plan — each level is a loop, not just a milestone. You start small (one agent, one task, one manual review), prove it works, and then add the next layer.
-
-This matters because autonomous development is high-stakes. You need to see what agents produce, understand how cost controls behave, and verify that integrity checks catch real problems — all before letting the system run overnight. By Level 5, you've validated every component in isolation.
-
-| Level | Capability | What You Prove | Status |
-| ----- | ---------- | -------------- | ------ |
-| **0** | Basic agent execution | Agents can produce mergeable code | **Current** |
-| 1 | GitHub Projects integration | State management works end-to-end | Planned |
-| 2 | Automated review (Greptile) | Greptile + revision loops are reliable | Planned |
-| 3 | Full orchestration | Overnight runs complete safely | Planned |
-| 4 | Parallel execution + fallback engines | Scale without file conflicts | Planned |
-| 5 | Dashboard | Morning review from a single screen | Planned |
-
-Each level is designed to be completed as a self-contained loop that builds trust before moving on.
+Agents live in `.claude/agents/` and follow strict rules from `KARIMO_RULES.md`.
 
 ---
 
-## Key Differentiators
+## Skills
 
-| Feature | How KARIMO Does It |
-|---------|-------------------|
-| **Task Source** | PRD.md per phase, generated through structured interview |
-| **Task State** | GitHub Projects with custom fields (complexity, cost, greptile_score) |
-| **Agent Execution** | TypeScript orchestrator with dependency resolution, cost ceilings, sandbox |
-| **Code Review** | Greptile auto-reviews (Level 2+); score < 4 triggers cost-budgeted revision loop |
-| **Code Integrity** | Mandatory rebase, file-overlap detection, caution-file enforcement |
-| **Cost Control** | Per-task ceilings, complexity-scaled iteration limits, phase/session budgets |
-| **Learning** | Two-layer compound system (see below) |
+Reusable capabilities available to agents:
+
+| Skill | Purpose |
+|-------|---------|
+| `git-worktree-ops` | Worktree creation, management, cleanup |
+| `github-project-ops` | GitHub Projects and Issues via `gh` CLI |
+
+Skills live in `.claude/skills/`.
+
+---
+
+## Directory Structure
+
+After installation, your project contains:
+
+```
+.claude/
+  agents/
+    karimo-interviewer.md
+    karimo-investigator.md
+    karimo-reviewer.md
+    karimo-pm.md
+  commands/
+    plan.md
+    execute.md
+    status.md
+    feedback.md
+  skills/
+    git-worktree-ops.md
+    github-project-ops.md
+
+.karimo/
+  templates/
+    PRD_TEMPLATE.md
+    INTERVIEW_PROTOCOL.md
+    TASK_SCHEMA.md
+    STATUS_SCHEMA.md
+  prds/
+    {prd-slug}/
+      prd.md
+      tasks.yaml
+      dag.json
+      status.json
+
+.github/
+  workflows/
+    karimo-review.yml
+    karimo-integration.yml
+    karimo-sync.yml
+  ISSUE_TEMPLATE/
+    karimo-task.yml
+
+CLAUDE.md  # Updated with KARIMO rules
+
+.worktrees/  # Git worktrees (gitignored)
+```
+
+---
+
+## Configuration
+
+KARIMO reads optional configuration from `.karimo/config.yaml`:
+
+```yaml
+project:
+  name: "my-project"
+
+commands:
+  build: "npm run build"
+  lint: "npm run lint"
+  test: "npm test"
+  typecheck: "npm run typecheck"
+
+cost:
+  cost_multiplier: 2.0
+  base_iterations: 3
+  iteration_multiplier: 1.5
+  revision_budget_percent: 20
+
+boundaries:
+  never_touch:
+    - "*.lock"
+    - ".env*"
+    - "migrations/"
+  require_review:
+    - "src/auth/*"
+    - "api/middleware.ts"
+```
+
+---
+
+## GitHub Actions
+
+### karimo-review.yml
+
+Triggered on PR open/synchronize with `karimo` label:
+- Calls Greptile API for code review
+- Posts review as PR comment
+- Adds `review-passed` or `needs-revision` label
+
+### karimo-integration.yml
+
+Triggered when PR has `review-passed` label:
+- Runs build, lint, test, typecheck
+- Adds `ready-to-merge` label on success
+
+### karimo-sync.yml
+
+Triggered when KARIMO PR is merged:
+- Updates `status.json` with completion
+- Creates final merge PR when all tasks done
 
 ---
 
 ## Compound Learning
 
-A two-layer architecture that makes agents smarter over time.
+KARIMO learns from execution:
 
-### Layer 1: Orchestrator (Automatic)
+### Automatic Learning
 
-After every task, the orchestrator collects cost data, Greptile scores, and build failures. It automatically updates:
+- Task outcomes update cost multipliers
+- Build failures add to `never_touch` lists
+- Pattern violations become rules
 
-- **CLAUDE.md rules** — Anti-patterns from real mistakes
-- **config.yaml cost multipliers** — Calibrated from actual spend
-- **require_review lists** — Files that caused integration failures
+### Manual Learning
 
-### Layer 2: Developer (On-Demand)
+Use `/karimo:feedback` to capture learnings:
 
-Plugin commands for injecting your expertise:
+```
+/karimo:feedback
 
-- `/karimo:feedback` — Correct agent behavior; promoted to config
-- `/karimo:checkpoint` — Capture learnings at level/phase boundaries
-- `/karimo:plan` — Start a new PRD interview with checkpoint context
+> "Always use the existing Button component, don't create new ones"
+```
 
-### The Closed Loop
+Learnings are stored in `CLAUDE.md` under `## KARIMO Learnings`:
 
-Mistakes captured → Config updated → Future agents avoid them.
+```markdown
+## KARIMO Learnings
+
+### Patterns to Follow
+
+- Always use existing component patterns from `src/components/`
+
+### Anti-Patterns to Avoid
+
+- Never create new button variants — use the Button component
+
+### Rules
+
+- Error handling must use structured error types from `src/utils/errors.ts`
+```
+
+---
+
+## Prerequisites
+
+- **Claude Code** — [Install from Anthropic](https://claude.ai/code)
+- **GitHub CLI** — `brew install gh && gh auth login`
+- **Git** — With worktree support (Git 2.5+)
+
+Optional:
+- **Greptile** — For automated code review (set `GREPTILE_API_KEY`)
 
 ---
 
 ## Safeguards
 
-| Safeguard | When It Runs |
-|-----------|--------------|
-| Cost ceiling check | Every 5 iterations during execution |
-| File-overlap detection | Before launching parallel tasks |
-| Mandatory rebase | Before PR creation |
-| Caution file detection | After rebase, flags PR for human review |
-| Integration check | After each PR merge |
+| Safeguard | Description |
+|-----------|-------------|
+| **Never-touch files** | Agents cannot modify protected files |
+| **Require-review files** | Changes flagged for human attention |
+| **Cost ceilings** | Per-task spending limits |
+| **Worktree isolation** | Each task works in isolated branch |
+| **Pre-PR checks** | Build/typecheck must pass before PR |
+| **Greptile review** | Automated code quality checks |
 
 ---
 
-## Glossary
+## Task Schema
 
-| Term | What It Means |
-|------|---------------|
-| **PRD** | Product Requirements Document — describes what to build |
-| **Phase** | A set of related tasks from one PRD |
-| **Task** | A single unit of work for an agent |
-| **Complexity** | How hard a task is (1-10 scale) |
-| **Agent** | AI that writes code based on your requirements |
-| **Worktree** | Isolated git branch where agents work |
-| **Checkpoint** | Saved learnings from previous tasks |
+Tasks in `tasks.yaml` follow this structure:
+
+```yaml
+tasks:
+  - id: "1a"
+    title: "Create UserProfile component"
+    complexity: 5
+    depends_on: []
+    files_affected:
+      - "src/components/UserProfile.tsx"
+      - "src/components/UserProfile.test.tsx"
+    success_criteria:
+      - "Component renders user data"
+      - "Tests pass with 80% coverage"
+    agent_context: |
+      Reference the existing Card component pattern.
+      Use React Query for data fetching.
+```
+
+See `.karimo/templates/TASK_SCHEMA.md` for complete documentation.
+
+---
+
+## Status Tracking
+
+Execution state is tracked in `status.json`:
+
+```json
+{
+  "prd_slug": "user-profiles",
+  "status": "active",
+  "started_at": "2026-02-19T10:30:00Z",
+  "tasks": {
+    "1a": {
+      "status": "done",
+      "pr_number": 42,
+      "cost": 8.50,
+      "iterations": 3,
+      "merged_at": "2026-02-19T11:45:00Z"
+    },
+    "1b": {
+      "status": "running",
+      "started_at": "2026-02-19T11:30:00Z"
+    }
+  }
+}
+```
+
+---
+
+## Migration from v1
+
+If you used the TypeScript orchestrator (v1):
+
+1. Keep your existing PRDs in `.karimo/prds/`
+2. Run the install script to add v2 components
+3. The new slash commands work with existing PRD format
+4. TypeScript orchestrator is no longer required
+
+---
+
+## Troubleshooting
+
+### "GitHub CLI not authenticated"
+
+```bash
+gh auth login
+gh auth status
+```
+
+### "Worktree already exists"
+
+```bash
+git worktree list
+git worktree remove .worktrees/{prd-slug}/{task-id}
+```
+
+### "Greptile review not triggering"
+
+Check that:
+- `GREPTILE_API_KEY` is set in GitHub secrets
+- PR has the `karimo` label
+- Workflow has correct permissions
 
 ---
 
 ## Documentation
 
 | Document | Description |
-| -------- | ----------- |
-| [Architecture](docs/ARCHITECTURE.md) | System architecture and component design |
-| [Components](docs/COMPONENTS.md) | Detailed component specifications |
-| [Levels](docs/LEVELS.md) | Level-based build plan (Level 0-5) |
-| [Contributing](docs/CONTRIBUTING.md) | How to contribute |
-| [Changelog](docs/CHANGELOG.md) | Version history |
-
-### Templates
-
-| Template | Purpose |
-| -------- | ------- |
-| [PRD Template](templates/PRD_TEMPLATE.md) | Output format for generated PRDs |
-| [Interview Protocol](templates/INTERVIEW_PROTOCOL.md) | How the PRD interview works |
-| [Config Example](templates/config.example.yaml) | Complete configuration reference |
-
----
-
-## Status
-
-**In Development — Level 0**
-
-This repository contains the scaffolding for KARIMO. The Level 0 implementation (basic agent execution) is the current focus.
+|----------|-------------|
+| [KARIMO Rules](.claude/KARIMO_RULES.md) | Agent behavior rules |
+| [PRD Template](.karimo/templates/PRD_TEMPLATE.md) | PRD output format |
+| [Interview Protocol](.karimo/templates/INTERVIEW_PROTOCOL.md) | How interviews work |
+| [Task Schema](.karimo/templates/TASK_SCHEMA.md) | Task definition format |
+| [Status Schema](.karimo/templates/STATUS_SCHEMA.md) | Status tracking format |
 
 ---
 
 ## Contributing
 
-See [CONTRIBUTING.md](docs/CONTRIBUTING.md) for guidelines.
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Submit a pull request
+
+See the agents and commands as examples for extending KARIMO.
 
 ---
 
 ## License
 
 [Apache 2.0](LICENSE)
+
+---
+
+*Built with Claude Code by [Open Session](https://opensesh.com)*
