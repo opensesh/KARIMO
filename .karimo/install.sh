@@ -85,6 +85,7 @@ cp "$KARIMO_ROOT/.claude/commands/execute.md" "$TARGET_DIR/.claude/commands/"
 cp "$KARIMO_ROOT/.claude/commands/feedback.md" "$TARGET_DIR/.claude/commands/"
 cp "$KARIMO_ROOT/.claude/commands/status.md" "$TARGET_DIR/.claude/commands/"
 cp "$KARIMO_ROOT/.claude/commands/learn.md" "$TARGET_DIR/.claude/commands/"
+cp "$KARIMO_ROOT/.claude/commands/doctor.md" "$TARGET_DIR/.claude/commands/"
 
 # Copy skills
 echo "Copying skills..."
@@ -222,6 +223,7 @@ This project uses KARIMO for autonomous development.
 - `/karimo:status` — View execution state
 - `/karimo:feedback` — Quick capture of single learnings
 - `/karimo:learn` — Deep learning cycle with investigation
+- `/karimo:doctor` — Check installation health and diagnose issues
 
 ### Workflows
 
@@ -302,7 +304,7 @@ echo -e "${GREEN}╰────────────────────
 echo
 echo "Installed files:"
 echo "  .claude/agents/           10 agent definitions"
-echo "  .claude/commands/         6 slash commands"
+echo "  .claude/commands/         7 slash commands"
 echo "  .claude/skills/           5 skill definitions"
 echo "  .claude/KARIMO_RULES.md   Agent behavior rules"
 echo "  .karimo/templates/        7 templates"
@@ -324,10 +326,11 @@ if [ "$INSTALLED_GREPTILE" = "true" ]; then
 fi
 echo
 echo "Next steps:"
-echo "  1. Run '/karimo:plan' to create your first PRD"
-echo "  2. Run '/karimo:execute --prd {slug}' to start execution"
-echo "  3. Run '/karimo:feedback' for quick single-rule capture"
-echo "  4. Run '/karimo:learn' for periodic deep learning cycles"
+echo "  1. Run '/karimo:doctor' to verify installation health"
+echo "  2. Run '/karimo:plan' to create your first PRD"
+echo "  3. Run '/karimo:execute --prd {slug}' to start execution"
+echo "  4. Run '/karimo:feedback' for quick single-rule capture"
+echo "  5. Run '/karimo:learn' for periodic deep learning cycles"
 if [ "$INSTALLED_GREPTILE" = "true" ]; then
     echo ""
     echo -e "${YELLOW}Note: Add GREPTILE_API_KEY to your repository secrets for Greptile review.${NC}"
