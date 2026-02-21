@@ -78,8 +78,7 @@ COMPLETE: Summary of applied vs rejected changes
 2. **Load context:**
    - Previous learn cycles from `.karimo/learn/`
    - PRD index from `.karimo/prds/`
-   - Current CLAUDE.md KARIMO Learnings section
-   - Current `.karimo/config.yaml`
+   - Current CLAUDE.md (Learnings, Boundaries, Commands sections)
 
 3. **Check for interrupted cycles:**
    - If a recent learn folder exists without `changes-applied.md`, offer to resume
@@ -146,7 +145,7 @@ Generate and execute an action plan:
 
 4. **Apply approved changes:**
    - Edit target files directly
-   - Changes target config/docs, not code (CLAUDE.md, config.yaml, templates, agent definitions)
+   - Changes target CLAUDE.md, templates, agent definitions — not application code
 
 5. **Commit changes:**
    ```bash
@@ -176,11 +175,11 @@ Duration: ~45 min
 
 Changes Applied: 3
   ✓ CLAUDE.md: Added anti-pattern rule (inline styles)
-  ✓ config.yaml: Added middleware.ts to require_review
+  ✓ CLAUDE.md: Added middleware.ts to Require Review
   ✓ KARIMO_RULES.md: Clarified task boundary enforcement
 
 Changes Rejected: 1
-  ✗ config.yaml: Change models.threshold (user prefers current)
+  ✗ CLAUDE.md: Change complexity threshold (user prefers current)
 
 Next Steps:
 - Changes take effect on next agent invocation
