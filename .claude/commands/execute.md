@@ -61,7 +61,7 @@ Briefs: 5/5 ready
 Pre-flight checks:
   ✓ Git repository clean
   ✓ GitHub CLI authenticated
-  ✓ Config loaded
+  ✓ CLAUDE.md loaded (commands, boundaries)
   ✓ All briefs present
 
 Ready to begin execution?
@@ -107,7 +107,7 @@ Hand off to the PM agent with brief-based context:
 ```
 
 Pass:
-- Project config
+- Project configuration from CLAUDE.md (commands, boundaries, learnings)
 - PRD status (approved tasks, excluded tasks)
 - Brief file paths for each task
 - Dependency graph from `dag.json`
