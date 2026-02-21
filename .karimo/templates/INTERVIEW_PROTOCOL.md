@@ -15,9 +15,9 @@ The KARIMO v2 interview system uses Claude Code agents to conduct structured int
 
 | Agent | Role | When Spawned |
 |-------|------|--------------|
-| `karimo-interviewer` | Conducts 5-round interview | `/karimo:plan` command |
-| `karimo-investigator` | Scans codebase for patterns/files | Round 3 (opt-in) |
-| `karimo-reviewer` | Validates PRD before saving | After Round 5 |
+| `karimo-interviewer` | Conducts 4-round interview | `/karimo:plan` command |
+| `karimo-investigator` | Scans codebase for patterns/files | Step 0 (auto) + Round 3 (opt-in) |
+| `karimo-reviewer` | Validates PRD before saving | After Round 4 |
 
 ---
 
@@ -25,11 +25,28 @@ The KARIMO v2 interview system uses Claude Code agents to conduct structured int
 
 | Round | Name | Duration | PRD Sections Filled |
 |-------|------|----------|---------------------|
+| 0 | Auto-Detection | ~1 min | Project context (first run only) |
 | 1 | Framing | ~5 min | §1 Executive Summary |
 | 2 | Requirements | ~10 min | §3 Goals, §4 Requirements, §5 UX Notes |
 | 3 | Dependencies | ~5 min | §6 Dependencies, §7 Rollout, §8 Milestones |
-| 4 | Agent Context | ~5 min | §11 Agent Boundaries |
-| 5 | Retrospective | ~3 min | §10 Checkpoint Learnings |
+| 4 | Retrospective | ~3 min | §10 Checkpoint Learnings |
+
+---
+
+## Step 0: Auto-Detection (First Run)
+
+Before the interview starts, `/karimo:plan` checks CLAUDE.md for `_pending_` markers:
+
+**If first run (markers found):**
+1. Spawns investigator in `--mode context-scan`
+2. Auto-detects runtime, framework, commands, boundaries
+3. Presents findings for user approval
+4. Populates CLAUDE.md with detected values
+
+**If subsequent run:**
+1. Spawns investigator in `--mode drift-check`
+2. Reports any configuration drift
+3. User acknowledges changes
 
 ---
 
@@ -37,14 +54,12 @@ The KARIMO v2 interview system uses Claude Code agents to conduct structured int
 
 Before the first question, the interviewer:
 
-1. Loads `.karimo/config.yaml` (if exists)
+1. Loads project configuration from `CLAUDE.md`
 2. Loads previous PRDs from `.karimo/prds/` for retrospective context
 3. Reads this protocol and the PRD template
 4. Confirms with the developer:
 
 > "I've loaded your project config and [N] previous PRDs. Ready to start?"
-
-If no config exists, defaults are used and config will be generated in Round 4.
 
 ---
 
@@ -147,39 +162,7 @@ Results populate `tasks[].files_affected` and `tasks[].agent_context`.
 
 ---
 
-## Round 4: Agent Context (~5 minutes)
-
-**Purpose:** Give agents guidance for first-attempt success.
-
-**PRD sections filled:** §11 Agent Boundaries
-
-### Question Flow
-
-1. "For each task, are there existing patterns to follow?"
-2. "Any undocumented gotchas?"
-3. "How handle edge cases — fail loudly or degrade gracefully?"
-4. "Design tokens or component libraries to use?"
-5. "What would make you reject a PR?"
-
-### Config Generation (First Run)
-
-If no `.karimo/config.yaml` exists, the interviewer collects:
-- Project metadata (name, language, framework, runtime)
-- Build commands (build, lint, test, typecheck)
-- Coding rules
-- Sensitive files for `require_review`
-
-Config is saved after PRD approval.
-
-### Data Captured
-
-- `tasks[].agent_context`
-- Updated `tasks[].success_criteria`
-- `require_review` additions
-
----
-
-## Round 5: Retrospective (~3 minutes)
+## Round 4: Retrospective (~3 minutes)
 
 **Purpose:** Feed learnings from previous work.
 
@@ -199,13 +182,13 @@ Config is saved after PRD approval.
 
 - Adjusted estimates
 - Updated `agent_context` with retrospective patterns
-- New rules for config
+- Learnings to add to CLAUDE.md
 
 ---
 
 ## Post-Interview: PRD Generation
 
-After Round 5:
+After Round 4:
 
 1. **Generate PRD** following template
 2. **Assign models** based on complexity:
