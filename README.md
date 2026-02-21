@@ -27,6 +27,14 @@ KARIMO provides a structured methodology for autonomous development:
 - **Greptile** reviews code before human approval
 - **GitHub Actions** automate the review-merge pipeline
 
+### Design Principles
+
+**Single-PRD scope.** KARIMO operates within one PRD at a time. Each PRD maps to one feature branch. Cross-feature dependencies are your responsibility — you sequence PRDs so that dependent features execute only after their prerequisites are merged to main.
+
+**Sequential feature execution.** If Feature 8 depends on Feature 3, you finish Feature 3's PRD cycle (plan → execute → review → merge to main) before starting Feature 8. You may run Features 1, 2, and 3 in parallel if they're independent, but Feature 8 waits.
+
+This is intentional: the goal isn't to produce a hundred features simultaneously, it's to let agents autonomously execute a few features at a time while building trust between you, the codebase, and the agents.
+
 ---
 
 ## How It Works
@@ -84,9 +92,10 @@ Your first planning process with KARIMO:
 
 ### Phase 2: Automate Review
 Add automated code review to your workflow:
-- Integrate Greptile for code integrity checks
-- Ranking system enables agentic revision loops
-- Score < 4 triggers automated revision attempts
+- Integrate Greptile for code integrity checks (0-5 scale)
+- Score ≥ 3 passes, < 3 triggers revision loop
+- Model escalation (Sonnet → Opus) after first failure
+- Hard gate after 3 failed attempts (needs human review)
 
 **Optional but highly recommended.** Greptile acts as a force multiplier. Requires Greptile API key.
 
@@ -145,6 +154,7 @@ Agents work through tasks in parallel, creating PRs for each.
 | Command | Purpose |
 |---------|---------|
 | `/karimo:plan` | Start PRD interview — 5 rounds with codebase analysis |
+| `/karimo:review` | Cross-PRD dashboard: blocked tasks, revision loops, completions |
 | `/karimo:review --prd {slug}` | Approve PRD and generate task briefs |
 | `/karimo:execute --prd {slug}` | Execute approved tasks from a PRD |
 | `/karimo:status` | View execution progress across all PRDs |
@@ -165,14 +175,21 @@ Output: `.karimo/prds/{slug}/PRD.md` with `tasks.yaml` and `dag.json`
 
 ### /karimo:review
 
-Human checkpoint before execution:
+**Primary human oversight touchpoint** for KARIMO:
 
+**Default mode (no args):** Cross-PRD dashboard showing:
+- 🚫 Blocked tasks (failed 3 Greptile attempts)
+- ⚠️ Tasks in revision loops
+- 🔀 Tasks needing human rebase
+- ✅ Recently completed work
+
+**PRD approval mode (`--prd {slug}`):**
 - Review the PRD and task breakdown
 - Approve or exclude specific tasks
 - Generates self-contained briefs for each task
 - Updates status from `ready` to `approved`
 
-Output: `.karimo/prds/{slug}/briefs/{task_id}.md` for each approved task
+Check this each morning or after a run completes.
 
 ### /karimo:execute
 
@@ -217,15 +234,15 @@ Generates rules appended to `CLAUDE.md` under `## KARIMO Learnings`.
 
 KARIMO includes specialized agents:
 
-| Agent | Role |
-|-------|------|
-| `karimo-interviewer` | Conducts 5-round PRD interview |
-| `karimo-investigator` | Scans codebase for patterns and context |
-| `karimo-reviewer` | Validates PRD, generates task DAG |
-| `karimo-brief-writer` | Generates self-contained task briefs |
-| `karimo-pm` | Coordinates execution, never writes code |
-| `karimo-review-architect` | Code-level integration, merge conflict resolution |
-| `karimo-learn-auditor` | Investigates learning directives |
+| Agent | Role | Writes Code? |
+|-------|------|--------------|
+| `karimo-interviewer` | Conducts 5-round PRD interview | No |
+| `karimo-investigator` | Scans codebase for patterns and context | No |
+| `karimo-reviewer` | Validates PRD, generates task DAG | No |
+| `karimo-brief-writer` | Generates self-contained task briefs | No |
+| `karimo-pm` | Coordinates execution, never writes code | No |
+| `karimo-review-architect` | Code-level integration, merge conflict resolution | Conflict resolution only |
+| `karimo-learn-auditor` | Investigates learning directives | No |
 
 Agents live in `.claude/agents/` and follow strict rules from `KARIMO_RULES.md`.
 
@@ -254,11 +271,13 @@ After installation, your project contains:
     karimo-interviewer.md
     karimo-investigator.md
     karimo-reviewer.md
+    karimo-brief-writer.md
     karimo-pm.md
     karimo-review-architect.md
     karimo-learn-auditor.md
   commands/
     plan.md
+    review.md
     execute.md
     status.md
     feedback.md
