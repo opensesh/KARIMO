@@ -295,7 +295,12 @@ WHILE tasks remain (status != done/failed for all tasks):
      - Report to user: "Usage limit reached. Tasks paused. Will resume when available."
      - When limit clears, resume paused tasks from where they left off
 
-  5. UPDATE status.json after each cycle
+  5. CHECK for runtime dependency discoveries:
+     - Read `.karimo/prds/{slug}/dependencies.md` for new entries
+     - Process entries with `PM Action: PENDING`
+     - See Dependency Cascade Protocol below
+
+  6. UPDATE status.json after each cycle
 ```
 
 #### 6b. Pre-PR Validation
@@ -347,7 +352,7 @@ After a task completes successfully, check if it produced knowledge that downstr
 
 **The PM agent writes findings.md, not the worker.** After reviewing the worker's commits and PR diff, the PM extracts findings and appends them. This keeps the worker focused on code and the PM focused on coordination.
 
-#### 6d. Create PR
+#### 6d. Create PR & Spawn Review/Architect
 
 ```bash
 gh pr create \
@@ -357,6 +362,26 @@ gh pr create \
   --body "{pr_body}" \
   --label "karimo"
 ```
+
+**After PR creation, spawn the Review/Architect Agent:**
+
+The Review/Architect validates that this task PR integrates cleanly with the feature branch:
+
+1. **Spawn Review/Architect** with context:
+   - PR number and URL
+   - Task brief
+   - Current feature branch state
+   - List of already-merged task PRs
+
+2. **Review/Architect checks:**
+   - Rebase onto latest feature branch
+   - Validate no conflicts with other merged tasks
+   - Run build/typecheck validation
+   - Check for interface consistency
+
+3. **On success:** PR is ready for Greptile review (Phase 2) or direct merge (Phase 1)
+
+4. **On conflict/failure:** Review/Architect attempts resolution or escalates to PM
 
 **PR Body Template:**
 
@@ -403,7 +428,7 @@ gh pr create \
 
 #### 6e. Update Status & Unblock Dependents
 
-After PR creation:
+After PR creation and Review/Architect validation:
 
 1. **Update status.json:**
    ```json
@@ -414,7 +439,8 @@ After PR creation:
          "pr_number": 42,
          "completed_at": "ISO timestamp",
          "model": "sonnet",
-         "loop_count": 1
+         "loop_count": 1,
+         "worktree_status": "active"
        }
      }
    }
@@ -422,11 +448,15 @@ After PR creation:
 
 2. **Update GitHub Issue:** `agent_status` → `in-review`, set `pr_number`
 
-3. **Check dependency graph:** Which tasks had this task in their `depends_on`?
+3. **Keep worktree active:** Do NOT cleanup the worktree yet. It persists through the review cycle for potential revisions.
+
+4. **Check dependency graph:** Which tasks had this task in their `depends_on`?
    - If ALL dependencies for a task are now `done` or `in-review` with passing validation → mark as ready
    - Add newly ready tasks to the spawn queue
 
-4. **Spawn workers** for newly ready tasks (back to Step 4/5)
+5. **Spawn workers** for newly ready tasks (back to Step 4/5)
+
+**Worktree cleanup happens AFTER merge, not after PR creation.** See Step 7.
 
 ---
 
@@ -468,21 +498,88 @@ After PR creation:
 
 ---
 
-### Step 7: Completion
+### Step 7: Per-Merge Cleanup & Completion
 
-**When all tasks reach terminal state (done, failed, or needs-human-rebase):**
+**Worktree cleanup happens per-merge, not at end-of-execution.**
 
-1. **Cleanup worktrees:**
+#### 7a. Per-Merge Cleanup
+
+When a task PR is merged (detected via webhook or polling):
+
+1. **Update task status:**
+   ```json
+   {
+     "1a": {
+       "status": "done",
+       "merged_at": "ISO timestamp",
+       "worktree_status": "pending-cleanup"
+     }
+   }
+   ```
+
+2. **Clean artifacts first:**
+   ```bash
+   # Remove build artifacts
+   rm -rf .worktrees/{prd-slug}/{task-id}/.next
+   rm -rf .worktrees/{prd-slug}/{task-id}/dist
+   rm -rf .worktrees/{prd-slug}/{task-id}/node_modules/.cache
+   ```
+
+3. **Remove worktree:**
    ```bash
    git worktree remove .worktrees/{prd-slug}/{task-id}
+   git worktree prune
    ```
-   Remove the `.worktrees/{prd-slug}/` directory if empty.
+
+4. **Update worktree_status:**
+   ```json
+   { "worktree_status": "cleaned" }
+   ```
+
+#### 7b. Feature Reconciliation
+
+When all tasks reach `done` status:
+
+1. **Spawn Review/Architect** for feature reconciliation:
+   - Full reconciliation checklist
+   - Prepare feature PR to `main`
+   - Include integration notes
+
+2. **Create feature PR:**
+   ```bash
+   gh pr create \
+     --base main \
+     --head feature/{prd-slug} \
+     --title "[KARIMO] {prd_title}" \
+     --body "{feature_pr_body}" \
+     --label "karimo,karimo-feature"
+   ```
+
+3. **Update status.json:**
+   ```json
+   {
+     "feature_pr_number": 100,
+     "reconciliation_status": "passed"
+   }
+   ```
+
+#### 7c. Final Completion
+
+**When feature PR is merged to main:**
+
+1. **Cleanup remaining artifacts:**
+   ```bash
+   # Remove PRD worktree directory if empty
+   rmdir .worktrees/{prd-slug} 2>/dev/null || true
+   rmdir .worktrees 2>/dev/null || true
+   ```
 
 2. **Update final status.json:**
    ```json
    {
      "status": "complete",
      "completed_at": "ISO timestamp",
+     "feature_merged_at": "ISO timestamp",
      "summary": {
        "total_tasks": 6,
        "successful": 5,
@@ -507,9 +604,9 @@ After PR creation:
      Opus:   {count} tasks ({upgrade_count} upgraded from Sonnet)
 
    Findings: {finding_count} cross-task discoveries logged
+   Runtime Dependencies: {dependency_count} discovered
 
-   Feature branch `feature/{prd-slug}` ready for final review.
-   Create a PR to merge into main when ready.
+   Feature PR #{feature_pr} merged to main.
    ```
 
 ---
@@ -557,6 +654,82 @@ When a stall is detected:
    - Wait for human input before continuing
 
 5. **Never exceed 5 total loops** for any single task (across all model levels). After 5 loops, the task requires human intervention regardless.
+
+---
+
+## Dependency Cascade Protocol
+
+Task agents may discover runtime dependencies not captured in the original `dag.json`. The PM Agent handles these through an exception-based engagement model.
+
+### Discovery Flow
+
+1. **Task agent discovers dependency** during execution
+2. **Task agent appends** to `.karimo/prds/{slug}/dependencies.md`
+3. **karimo-dependency-watch.yml** triggers if `PM Action: PENDING`
+4. **PM Agent evaluates** and updates `PM Action`
+
+### Dependency Types
+
+| Type | Meaning | Response |
+|------|---------|----------|
+| `NEW` | Depends on task that doesn't exist | Evaluate: create task, defer, or mark out of scope |
+| `CROSS-FEATURE` | Depends on work in another PRD | Evaluate: block, stub, or coordinate |
+| `⚡ URGENT` | Blocking dependency | Immediate notification, prioritize resolution |
+
+### PM Agent Decision Tree
+
+```
+New dependency discovered
+          │
+    ┌─────┴─────┐
+    │           │
+  URGENT?     Normal
+    │           │
+    ▼           ▼
+ Immediate   Evaluate in
+ response    next cycle
+    │           │
+    ▼           ▼
+ Can task   ┌───┴───┐
+ continue?  │       │
+    │      NEW   CROSS-FEATURE
+  ┌─┴─┐     │       │
+  │   │     ▼       ▼
+ Yes  No  Create   Block or
+  │   │   task?    coordinate
+  ▼   ▼
+Note  Pause
+and   task
+continue
+```
+
+### Urgent Dependency Response
+
+When a task agent marks a dependency as `⚡ URGENT`:
+
+1. **Workflow creates issue** with `karimo-dependency` label
+2. **PM Agent is notified** (if running) or discovers on next cycle
+3. **Evaluate impact:**
+   - Can other tasks continue? → Continue parallel work
+   - All blocked? → Pause execution, report to human
+4. **Resolution options:**
+   - Create missing task immediately
+   - Provide stub/interface to unblock
+   - Escalate to human for scope decision
+
+### Updating dependencies.md
+
+When resolving a dependency:
+
+```markdown
+### [2026-02-20T14:30:00Z] Task 2a → Authentication middleware (NEW) ⚡ URGENT
+- **Found by:** Task Agent working on 2a
+- **Description:** Profile API requires auth middleware
+- **Impact:** All API tasks blocked
+- **Urgent issue:** #142
+- **PM Action:** RESOLVED
+- **Resolution:** Created task 1c for auth middleware, added to DAG
+```
 
 ---
 
@@ -632,6 +805,37 @@ When rebase conflicts occur:
 2. Mark task as `needs-human-rebase`
 3. Comment on GitHub Issue with conflicting files
 4. Continue with other tasks — never block the entire execution on one conflict
+
+---
+
+## Worktree TTL Enforcement
+
+The PM Agent enforces time-to-live policies for worktrees to prevent disk bloat:
+
+| Scenario | TTL | Detection | Action |
+|----------|-----|-----------|--------|
+| PR merged | Immediate | `karimo-sync.yml` or polling | Cleanup per Step 7a |
+| PR closed (abandoned) | 24 hours | Check `gh pr view` state | Cleanup worktree |
+| Stale (no commits) | 7 days | Compare `worktree_created_at` | Cleanup worktree |
+| Execution paused | 30 days | Check `status.json` pause date | Cleanup worktree |
+
+### TTL Check Routine
+
+Run on each monitoring cycle:
+
+```bash
+# Check worktree age
+for task in status.json.tasks:
+  if task.worktree_status == "active":
+    if task.status == "done" and PR_merged(task.pr_number):
+      cleanup_worktree(task)
+    elif task.status == "in-review" and PR_closed(task.pr_number):
+      if time_since(task.completed_at) > 24h:
+        cleanup_worktree(task)
+    elif task.status == "paused":
+      if time_since(task.paused_at) > 30d:
+        cleanup_worktree(task)
+```
 
 ---
 
