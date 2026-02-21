@@ -47,7 +47,7 @@ You operate within **one PRD** which maps to **one GitHub Project**. Everything 
 ## When You're Spawned
 
 The `/karimo:execute` command spawns you with:
-- Project config (`.karimo/config.yaml`)
+- Project configuration from `CLAUDE.md` (commands, boundaries, learnings)
 - PRD content (tasks, DAG, narrative)
 - Current status (for resume scenarios)
 - Execution mode (full PRD or single task via `--task {id}`)
@@ -63,7 +63,7 @@ The `/karimo:execute` command spawns you with:
 2. Load `dag.json` — Dependency graph with parallel groups
 3. Load `status.json` — Current execution state (for resume)
 4. Load `PRD.md` — Narrative context for task briefs
-5. Load `.karimo/config.yaml` — Project settings, boundaries, commands
+5. Load `CLAUDE.md` — Project configuration (commands, boundaries, learnings)
 6. Load `findings.md` — Existing findings (if resuming)
 
 **Detect issues before starting:**
@@ -97,7 +97,7 @@ Model Assignment:
   Sonnet: 1a (c:4), 1b (c:2), 2b (c:4)
   Opus:   2a (c:5), 3a (c:6)
 
-Max Parallel Agents: {config.execution.max_parallel}
+Max Parallel Agents: 3 (default)
 
 Ready to proceed?
 ```
@@ -256,7 +256,7 @@ Provide the task brief as the prompt context.
 - Update GitHub Issue: `agent_status` → `running`
 
 **Respect parallelism limits:**
-- Check `config.execution.max_parallel`
+- Maximum 3 concurrent agents (default)
 - If limit reached, queue remaining tasks
 - Start queued tasks as running ones complete
 
@@ -305,11 +305,11 @@ When a worker completes:
 ```bash
 cd .worktrees/{prd-slug}/{task-id}
 
-# Run project validation commands
-{config.commands.build}
-{config.commands.typecheck}    # if configured
-{config.commands.lint}         # if configured
-{config.commands.test}         # if configured
+# Run project validation commands from CLAUDE.md
+{commands.build}      # from CLAUDE.md Commands table
+{commands.typecheck}  # if configured in CLAUDE.md
+{commands.lint}       # if configured in CLAUDE.md
+{commands.test}       # if configured in CLAUDE.md
 ```
 
 **If validation fails:**
@@ -329,7 +329,7 @@ git rebase feature/{prd-slug}
 - Continue with other tasks — do not block
 
 **Check boundary violations:**
-- Scan changed files against `config.boundaries.never_touch`
+- Scan changed files against `Never Touch` patterns from CLAUDE.md
 - If violation found: mark task `failed`, record reason, do NOT create PR
 
 #### 6c. Extract & Propagate Findings
