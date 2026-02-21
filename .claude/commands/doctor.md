@@ -417,8 +417,22 @@ ls .claude/commands/*.md | wc -l
 # etc.
 
 # Check 3: Configuration
-grep "_pending_" CLAUDE.md
+# 3a: Check config.yaml existence
+ls .karimo/config.yaml
+
+# 3b: Drift detection
+# Compare configured package manager vs actual lock files
+ls pnpm-lock.yaml yarn.lock package-lock.json bun.lockb 2>/dev/null
+# Read configured package manager from config.yaml
+cat .karimo/config.yaml | grep "package_manager"
+# Check if configured commands exist in package.json
+jq '.scripts' package.json 2>/dev/null
+
+# 3c: CLAUDE.md validation
 grep "## KARIMO Framework" CLAUDE.md
+
+# 3d: Placeholder check
+grep "_pending_" CLAUDE.md .karimo/config.yaml
 
 # Check 4: Sanity
 # Parse package.json for script names
@@ -440,6 +454,7 @@ ls .karimo/prds/*/status.json
 
 | Command | Purpose |
 |---------|---------|
-| `/karimo:plan` | Create PRD and auto-detect configuration |
+| `/karimo:configure` | Create or update project configuration |
+| `/karimo:plan` | Create PRD (configuration should be ready first) |
 | `/karimo:status` | View execution progress |
 | `/karimo:feedback` | Capture learnings |
