@@ -336,10 +336,10 @@ After installation, your project contains:
 
 .github/
   workflows/
-    karimo-review.yml
-    karimo-integration.yml
-    karimo-sync.yml
-    karimo-dependency-watch.yml
+    karimo-sync.yml              # Tier 1
+    karimo-dependency-watch.yml  # Tier 1
+    karimo-ci-integration.yml    # Tier 2 (opt-in)
+    karimo-greptile-review.yml   # Tier 3 (opt-in)
   ISSUE_TEMPLATE/
     karimo-task.yml
 
@@ -365,26 +365,36 @@ You can review and edit the detected values before they're saved to `CLAUDE.md`.
 
 ---
 
-## GitHub Actions
+## GitHub Actions (Three-Tier System)
 
-### karimo-review.yml
+KARIMO uses a portable three-tier workflow architecture. **Key principle:** KARIMO never runs your build commands — it observes your existing CI instead.
 
-Triggered on PR open/synchronize with `karimo` label:
-- Calls Greptile API for code review
-- Posts review as PR comment
-- Adds `review-passed` or `needs-revision` label
+### Tier 1 (Always Installed)
 
-### karimo-integration.yml
+| Workflow | Purpose |
+|----------|---------|
+| `karimo-sync.yml` | Status sync on PR merge, creates final merge PR |
+| `karimo-dependency-watch.yml` | Runtime dependency alerts |
 
-Triggered when PR has `review-passed` label:
-- Runs build, lint, test, typecheck
-- Adds `ready-to-merge` label on success
+### Tier 2: CI Integration (Opt-in, default Y)
 
-### karimo-sync.yml
+| Workflow | Purpose |
+|----------|---------|
+| `karimo-ci-integration.yml` | Observes external CI, labels PRs |
 
-Triggered when KARIMO PR is merged:
-- Updates `status.json` with completion
-- Creates final merge PR when all tasks done
+- Detects GitHub Actions, CircleCI, Jenkins, and other CI systems
+- Labels: `ci-passed`, `ci-failed`, `ci-skipped`
+- **Does NOT run build commands** — only observes
+
+### Tier 3: Greptile Review (Opt-in, default N)
+
+| Workflow | Purpose |
+|----------|---------|
+| `karimo-greptile-review.yml` | Automated code review via Greptile |
+
+- Requires `GREPTILE_API_KEY` secret
+- Labels: `greptile-passed`, `greptile-needs-revision`, `greptile-skipped`
+- Gracefully skips if no API key configured
 
 ---
 
