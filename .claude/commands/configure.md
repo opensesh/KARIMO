@@ -376,12 +376,19 @@ Only write changes if at least one value modified.
 
 | Aspect | /karimo:configure | /karimo:plan |
 |--------|-------------------|--------------|
-| Purpose | Setup config only | Create PRD + setup config |
-| Output | config.yaml | PRD + tasks.yaml + dag.json |
+| Purpose | Setup config only | Create PRD (config should exist) |
+| Output | config.yaml + CLAUDE.md sync | PRD + tasks.yaml + dag.json |
 | Duration | ~5 minutes | ~30 minutes |
 | When to use | Initial setup, config changes | New feature planning |
 
-**Note:** `/karimo:plan` will auto-detect and configure on first run if `_pending_` markers exist in CLAUDE.md. Use `/karimo:configure` when you want to configure without creating a PRD.
+**Recommended workflow:**
+
+1. **Fresh install:** `install.sh` auto-detects and creates config.yaml
+2. **Review config:** Run `/karimo:doctor` to check for drift or issues
+3. **Fix issues:** Run `/karimo:configure` if doctor reports problems
+4. **Create PRDs:** Run `/karimo:plan` with configuration already in place
+
+**Note:** `/karimo:plan` checks for existing config.yaml first. If missing, it offers to run auto-detection as a fallback. The preferred path is to have config.yaml ready before planning.
 
 ---
 
