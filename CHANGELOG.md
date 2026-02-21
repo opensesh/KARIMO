@@ -304,7 +304,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+**Version Tracking & Update System**
+- `.karimo/VERSION` file for tracking installed KARIMO version
+- `.karimo/update.sh` — Diff-based update script with preview before applying
+- Version display in install completion message
+- "Updating KARIMO" section in GETTING-STARTED.md
+- Update mention in README.md Quick Start section
+
 ### Changed
+
+**install.sh**
+- Copies VERSION file during installation
 
 **Dual Configuration Storage**
 - Configuration stored in both `CLAUDE.md` sections and `.karimo/config.yaml`
@@ -351,7 +363,7 @@ Complete architectural transformation from TypeScript CLI application to Claude 
 - **Phase 3: Monitor & Review** — Dashboard for oversight (future)
 
 **Install Script**
-- Modular CLAUDE.md integration (~20 lines appended instead of ~210)
+- Modular CLAUDE.md integration (~65 lines appended instead of ~210)
 - KARIMO_RULES.md installed as separate file
 - Reference block with commands, rules pointer, and learnings section
 

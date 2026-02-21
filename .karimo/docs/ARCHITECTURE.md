@@ -97,7 +97,7 @@ Target Project/
 Instead of appending the full `KARIMO_RULES.md` content (~210 lines), `install.sh` uses a **modular reference approach**:
 
 1. **Copies** `KARIMO_RULES.md` to `.claude/KARIMO_RULES.md` (separate file)
-2. **Appends** a concise reference block (~20 lines) to `CLAUDE.md`:
+2. **Appends** a concise reference block (~65 lines) to `CLAUDE.md`:
 
 ```markdown
 ---

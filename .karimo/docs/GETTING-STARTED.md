@@ -306,7 +306,7 @@ The CI Integration workflow only monitors external CI. If you don't have GitHub 
 
 ### "CLAUDE.md too long"
 
-If your CLAUDE.md is already large, the appended KARIMO block adds ~20 lines. Consider reorganizing existing content or using include files.
+If your CLAUDE.md is already large, the appended KARIMO block adds ~65 lines. Consider reorganizing existing content or using include files.
 
 ---
 
@@ -318,7 +318,7 @@ No. KARIMO uses prefixed names (`karimo-` for agents, `karimo:` for commands) to
 
 ### How does KARIMO modify CLAUDE.md?
 
-KARIMO appends a small reference block (~20 lines) after your existing content, separated by `---`. Your existing CLAUDE.md content remains untouched above this separator.
+KARIMO appends a small reference block (~65 lines) after your existing content, separated by `---`. Your existing CLAUDE.md content remains untouched above this separator.
 
 ### What if I have agents with the same names?
 
@@ -332,7 +332,7 @@ Yes. Remove these files:
 rm -rf .karimo/
 rm .claude/agents/karimo-*.md
 rm .claude/commands/{plan,review,execute,status,configure,feedback,learn,doctor}.md
-rm .claude/skills/{git-worktree-ops,github-project-ops}.md
+rm .claude/skills/{git-worktree-ops,github-project-ops,karimo-code-standards,karimo-testing-standards,karimo-doc-standards}.md
 rm .claude/KARIMO_RULES.md
 rm .github/workflows/karimo-*.yml
 ```
