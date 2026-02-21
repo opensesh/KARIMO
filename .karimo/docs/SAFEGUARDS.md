@@ -14,7 +14,6 @@ KARIMO enforces code quality and security through multiple layers: file boundari
 | **Pre-PR validation** | Build/typecheck before PR creation | 1+ |
 | **Mandatory rebase** | Keeps task branches current | 1+ |
 | **File overlap detection** | Prevents parallel conflicts | 1+ |
-| **Environment sandboxing** | Filtered environment variables | 1+ |
 | **Scoped GitHub tokens** | Minimum required permissions | 1+ |
 | **Greptile review** | Automated code quality checks | 2+ |
 | **Revision loops** | Agent self-correction on low scores | 2+ |
@@ -403,50 +402,9 @@ HARD GATE: needs-human-review
 
 ---
 
-## Environment Sandboxing
+## Environment Isolation
 
-Task agents receive a filtered environment to prevent accidental credential exposure.
-
-### Always Included
-
-Safe environment variables passed to agents:
-
-| Variable | Purpose |
-|----------|---------|
-| `PATH` | Command execution |
-| `HOME` | User directory |
-| `TERM` | Terminal type |
-| `SHELL` | Shell preference |
-| `USER` | Username |
-| `LANG`, `LC_ALL` | Locale settings |
-| `TZ` | Timezone |
-| `EDITOR`, `VISUAL` | Text editor |
-
-### Always Excluded
-
-Sensitive variables never passed to task agents:
-
-| Variable | Why Excluded |
-|----------|--------------|
-| `GITHUB_TOKEN` | Repository access |
-| `AWS_ACCESS_KEY_ID` | Cloud credentials |
-| `AWS_SECRET_ACCESS_KEY` | Cloud credentials |
-| `DATABASE_URL` | Database access |
-| `OPENAI_API_KEY` | API credentials |
-| `ANTHROPIC_API_KEY` | API credentials |
-| `*_SECRET*` | Pattern for secrets |
-
-### Custom Safe Variables
-
-Add project-specific safe variables in config:
-
-```yaml
-sandbox:
-  safe_env:
-    - "NODE_ENV"
-    - "DEBUG"
-    - "LOG_LEVEL"
-```
+Claude Code manages execution environment isolation. KARIMO agents inherit Claude Code's sandboxed environment automatically.
 
 ---
 
