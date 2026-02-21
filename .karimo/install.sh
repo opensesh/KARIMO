@@ -68,12 +68,19 @@ echo "Copying agents..."
 cp "$KARIMO_ROOT/.claude/agents/karimo-interviewer.md" "$TARGET_DIR/.claude/agents/"
 cp "$KARIMO_ROOT/.claude/agents/karimo-investigator.md" "$TARGET_DIR/.claude/agents/"
 cp "$KARIMO_ROOT/.claude/agents/karimo-reviewer.md" "$TARGET_DIR/.claude/agents/"
+cp "$KARIMO_ROOT/.claude/agents/karimo-brief-writer.md" "$TARGET_DIR/.claude/agents/"
 cp "$KARIMO_ROOT/.claude/agents/karimo-pm.md" "$TARGET_DIR/.claude/agents/"
+cp "$KARIMO_ROOT/.claude/agents/karimo-review-architect.md" "$TARGET_DIR/.claude/agents/"
 cp "$KARIMO_ROOT/.claude/agents/karimo-learn-auditor.md" "$TARGET_DIR/.claude/agents/"
+# Task agents
+cp "$KARIMO_ROOT/.claude/agents/karimo-implementer.md" "$TARGET_DIR/.claude/agents/"
+cp "$KARIMO_ROOT/.claude/agents/karimo-tester.md" "$TARGET_DIR/.claude/agents/"
+cp "$KARIMO_ROOT/.claude/agents/karimo-documenter.md" "$TARGET_DIR/.claude/agents/"
 
 # Copy commands
 echo "Copying commands..."
 cp "$KARIMO_ROOT/.claude/commands/plan.md" "$TARGET_DIR/.claude/commands/"
+cp "$KARIMO_ROOT/.claude/commands/review.md" "$TARGET_DIR/.claude/commands/"
 cp "$KARIMO_ROOT/.claude/commands/execute.md" "$TARGET_DIR/.claude/commands/"
 cp "$KARIMO_ROOT/.claude/commands/feedback.md" "$TARGET_DIR/.claude/commands/"
 cp "$KARIMO_ROOT/.claude/commands/status.md" "$TARGET_DIR/.claude/commands/"
@@ -83,6 +90,10 @@ cp "$KARIMO_ROOT/.claude/commands/learn.md" "$TARGET_DIR/.claude/commands/"
 echo "Copying skills..."
 cp "$KARIMO_ROOT/.claude/skills/git-worktree-ops.md" "$TARGET_DIR/.claude/skills/"
 cp "$KARIMO_ROOT/.claude/skills/github-project-ops.md" "$TARGET_DIR/.claude/skills/"
+# Task agent skills
+cp "$KARIMO_ROOT/.claude/skills/karimo-code-standards.md" "$TARGET_DIR/.claude/skills/"
+cp "$KARIMO_ROOT/.claude/skills/karimo-testing-standards.md" "$TARGET_DIR/.claude/skills/"
+cp "$KARIMO_ROOT/.claude/skills/karimo-doc-standards.md" "$TARGET_DIR/.claude/skills/"
 
 # Copy templates
 echo "Copying templates..."
@@ -208,9 +219,9 @@ echo -e "${GREEN}│  Installation Complete!                                    
 echo -e "${GREEN}╰──────────────────────────────────────────────────────────────╯${NC}"
 echo
 echo "Installed files:"
-echo "  .claude/agents/           5 agent definitions"
-echo "  .claude/commands/         5 slash commands"
-echo "  .claude/skills/           2 skill definitions"
+echo "  .claude/agents/           10 agent definitions"
+echo "  .claude/commands/         6 slash commands"
+echo "  .claude/skills/           5 skill definitions"
 echo "  .claude/KARIMO_RULES.md   Agent behavior rules"
 echo "  .karimo/templates/        7 templates"
 echo "  .github/workflows/        3 GitHub Actions"
