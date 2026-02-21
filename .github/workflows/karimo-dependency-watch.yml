@@ -1,0 +1,127 @@
+name: KARIMO Dependency Watch
+
+# Triggers when dependencies.md files are updated with runtime discoveries
+on:
+  push:
+    paths:
+      - '.karimo/prds/**/dependencies.md'
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Check for pending dependencies
+        id: check
+        run: |
+          # Find all dependencies.md files with PENDING actions
+          PENDING=$(grep -r "PM Action: PENDING" .karimo/prds/*/dependencies.md 2>/dev/null || true)
+
+          if [ -n "$PENDING" ]; then
+            echo "has_pending=true" >> $GITHUB_OUTPUT
+
+            # Extract PRD slug and dependency details
+            PRD_SLUG=$(echo "$PENDING" | head -1 | sed 's|.karimo/prds/\([^/]*\)/.*|\1|')
+            echo "prd_slug=$PRD_SLUG" >> $GITHUB_OUTPUT
+
+            # Count pending dependencies
+            PENDING_COUNT=$(echo "$PENDING" | wc -l | tr -d ' ')
+            echo "pending_count=$PENDING_COUNT" >> $GITHUB_OUTPUT
+
+            # Save full pending info for issue body
+            echo "$PENDING" > pending_deps.txt
+          else
+            echo "has_pending=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Check for urgent dependencies
+        id: urgent
+        if: steps.check.outputs.has_pending == 'true'
+        run: |
+          # Check if any pending dependencies are marked urgent
+          URGENT=$(grep -r "⚡ URGENT" .karimo/prds/*/dependencies.md 2>/dev/null | grep "PM Action: PENDING" || true)
+
+          if [ -n "$URGENT" ]; then
+            echo "has_urgent=true" >> $GITHUB_OUTPUT
+            echo "$URGENT" > urgent_deps.txt
+          else
+            echo "has_urgent=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Build issue body
+        id: body
+        if: steps.check.outputs.has_pending == 'true'
+        run: |
+          PRD_SLUG="${{ steps.check.outputs.prd_slug }}"
+          PENDING_COUNT="${{ steps.check.outputs.pending_count }}"
+          HAS_URGENT="${{ steps.urgent.outputs.has_urgent }}"
+
+          # Build issue body
+          cat << 'BODY_EOF' > issue_body.md
+          ## Runtime Dependency Discovery
+
+          **PRD:** `$PRD_SLUG`
+          **Pending Dependencies:** $PENDING_COUNT
+          BODY_EOF
+
+          if [ "$HAS_URGENT" = "true" ]; then
+            echo "" >> issue_body.md
+            echo "### ⚡ Urgent Dependencies" >> issue_body.md
+            echo "" >> issue_body.md
+            echo '```' >> issue_body.md
+            cat urgent_deps.txt >> issue_body.md
+            echo '```' >> issue_body.md
+          fi
+
+          echo "" >> issue_body.md
+          echo "### All Pending Dependencies" >> issue_body.md
+          echo "" >> issue_body.md
+          echo '```' >> issue_body.md
+          cat pending_deps.txt >> issue_body.md
+          echo '```' >> issue_body.md
+
+          echo "" >> issue_body.md
+          echo "---" >> issue_body.md
+          echo "" >> issue_body.md
+          echo "**Action Required:**" >> issue_body.md
+          echo "1. Review the discovered dependencies in \`.karimo/prds/${PRD_SLUG}/dependencies.md\`" >> issue_body.md
+          echo "2. Update \`PM Action\` from \`PENDING\` to \`RESOLVED\` or \`DEFERRED\`" >> issue_body.md
+          echo "3. If new tasks are needed, create them and update the DAG" >> issue_body.md
+          echo "" >> issue_body.md
+          echo "*This issue was created by KARIMO Dependency Watch*" >> issue_body.md
+
+      - name: Create notification issue
+        if: steps.check.outputs.has_pending == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          PRD_SLUG="${{ steps.check.outputs.prd_slug }}"
+          HAS_URGENT="${{ steps.urgent.outputs.has_urgent }}"
+
+          # Set title based on urgency
+          if [ "$HAS_URGENT" = "true" ]; then
+            TITLE="[KARIMO] ⚡ URGENT: Runtime dependency in ${PRD_SLUG}"
+          else
+            TITLE="[KARIMO] Runtime dependency discovered in ${PRD_SLUG}"
+          fi
+
+          # Check if a similar open issue already exists
+          EXISTING=$(gh issue list --label "karimo,karimo-dependency" --state open --search "in:title ${PRD_SLUG}" --json number --jq '.[0].number' 2>/dev/null || true)
+
+          if [ -n "$EXISTING" ] && [ "$EXISTING" != "null" ]; then
+            # Add comment to existing issue
+            gh issue comment "$EXISTING" --body-file issue_body.md
+            echo "Updated existing issue #$EXISTING"
+          else
+            # Create new issue
+            gh issue create \
+              --title "$TITLE" \
+              --body-file issue_body.md \
+              --label "karimo,karimo-dependency"
+          fi
