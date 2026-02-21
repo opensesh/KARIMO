@@ -7,6 +7,55 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.2.0] - 2026-02-21
+
+### Added
+
+**Task Agents**
+- `karimo-implementer` — Primary code-writing worker for feature implementation
+- `karimo-tester` — Test-focused worker for test-only tasks
+- `karimo-documenter` — Documentation-focused worker for docs tasks
+
+**Task Agent Skills**
+- `karimo-code-standards` — Coding patterns, boundaries, validation protocols
+- `karimo-testing-standards` — Framework detection, test patterns, coverage requirements
+- `karimo-doc-standards` — Documentation patterns, JSDoc templates, style guidelines
+
+**findings.json Contract**
+- Standard format for task-to-task discovery propagation
+- Severity levels: `info`, `warning`, `blocker`
+- Finding types: `discovery`, `pattern`, `api_change`, `blocker`
+- PM agent reads and propagates findings to downstream tasks
+
+### Changed
+
+**PM Agent Step 5**
+- Explicit worker type selection based on task indicators
+- Agent delegation using `@karimo-implementer`, `@karimo-tester`, `@karimo-documenter`
+- Complexity 3+ tasks get implementation planning prompt prepended
+- Track `agent_type` in status.json
+
+**PM Agent Step 6c**
+- Read `findings.json` from worker worktrees
+- Process findings by severity (blocker halts, warning propagates, info documents)
+- Track `findings_received` in downstream task status
+
+**install.sh**
+- Copies all 10 agents (was 5, missing brief-writer and review-architect)
+- Copies all 6 commands (was 5, missing review.md)
+- Copies all 5 skills (was 2)
+- Updated summary output with correct counts
+
+### Fixed
+
+**install.sh**
+- Missing `karimo-brief-writer.md` agent copy
+- Missing `karimo-review-architect.md` agent copy
+- Missing `review.md` command copy
+- Summary showed "5 agents" but 7 existed (now correctly shows 10)
+
+---
+
 ## [2.1.0] - 2026-02-20
 
 ### Added
