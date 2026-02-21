@@ -104,11 +104,12 @@ When you run `install.sh`, these files are added:
 | Document | Purpose |
 |----------|---------|
 | [ARCHITECTURE.md](.karimo/docs/ARCHITECTURE.md) | System design and integration |
-| [PHASES.md](.karimo/docs/PHASES.md) | Adoption phases explained |
 | [COMMANDS.md](.karimo/docs/COMMANDS.md) | Slash command reference |
-| [GETTING-STARTED.md](.karimo/docs/GETTING-STARTED.md) | Installation walkthrough |
-| [SAFEGUARDS.md](.karimo/docs/SAFEGUARDS.md) | Code integrity, security, Greptile |
 | [COMPOUND-LEARNING.md](.karimo/docs/COMPOUND-LEARNING.md) | Two-scope learning system |
+| [DASHBOARD.md](.karimo/docs/DASHBOARD.md) | Dashboard spec (Phase 3) |
+| [GETTING-STARTED.md](.karimo/docs/GETTING-STARTED.md) | Installation walkthrough |
+| [PHASES.md](.karimo/docs/PHASES.md) | Adoption phases explained |
+| [SAFEGUARDS.md](.karimo/docs/SAFEGUARDS.md) | Code integrity, security, Greptile |
 
 ---
 

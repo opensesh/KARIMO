@@ -459,11 +459,18 @@ Optional but highly recommended:
 
 | Document | Description |
 |----------|-------------|
-| [Configuration Guide](CLAUDE.md) | Project configuration reference |
-| [KARIMO Rules](.claude/KARIMO_RULES.md) | Agent behavior rules |
-| [PRD Template](.karimo/templates/PRD_TEMPLATE.md) | PRD output format |
-| [Architecture](.karimo/docs/ARCHITECTURE.md) | System design |
-| [Phases](.karimo/docs/PHASES.md) | Adoption phases explained |
+| [ARCHITECTURE.md](.karimo/docs/ARCHITECTURE.md) | System design and integration |
+| [COMMANDS.md](.karimo/docs/COMMANDS.md) | Slash command reference |
+| [COMPOUND-LEARNING.md](.karimo/docs/COMPOUND-LEARNING.md) | Two-scope learning system |
+| [DASHBOARD.md](.karimo/docs/DASHBOARD.md) | Dashboard spec (Phase 3) |
+| [GETTING-STARTED.md](.karimo/docs/GETTING-STARTED.md) | Installation and first PRD |
+| [PHASES.md](.karimo/docs/PHASES.md) | Adoption phases explained |
+| [SAFEGUARDS.md](.karimo/docs/SAFEGUARDS.md) | Code integrity, security, Greptile |
+
+**Also see:**
+- [CLAUDE.md](CLAUDE.md) — Project configuration reference
+- [KARIMO_RULES.md](.claude/KARIMO_RULES.md) — Agent behavior rules
+- [CONTRIBUTING.md](CONTRIBUTING.md) — How to contribute
 
 ---
 
