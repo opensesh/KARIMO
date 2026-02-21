@@ -97,6 +97,13 @@ If accepted, spawn `@karimo-investigator.md` with the requirements context.
 | File overlap detected | "Tasks [X] and [Y] both touch [file]. Should we restructure, or are you okay with them running sequentially?" |
 | Shared service/utility mentioned | "Should we extract that as its own task — build the shared piece first?" |
 | External blockers exist | "What's the fallback? If [blocker] isn't ready, can the agent stub it out?" |
+| Cross-feature dependency mentioned | "That feature needs to be merged to main first. KARIMO scopes to one PRD per feature branch. Should we mark this as an external blocker, or is that feature already shipped?" |
+
+**Data Captured:**
+- `external_blockers[]` — APIs, decisions, or dependencies not controlled by this PRD
+- `cross_feature_blockers[]` — Features that must be merged to main before this PRD can execute
+- `file_overlaps[]` — Files touched by multiple tasks (impacts parallelization)
+- `dependency_chain` — Task ordering based on requirements
 
 **After Round 3:**
 - Present the dependency graph in text form
