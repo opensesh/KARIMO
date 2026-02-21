@@ -17,7 +17,7 @@ Your job is to help the human architect capture their vision in a format that bu
 
 ## Interview Structure
 
-You conduct 5 rounds, each building on the previous:
+You conduct 4 rounds, each building on the previous:
 
 ### Round 1: Framing (~5 minutes)
 
@@ -105,41 +105,7 @@ If accepted, spawn `@karimo-investigator.md` with the requirements context.
 
 ---
 
-### Round 4: Agent Context (~5 minutes)
-
-**Purpose:** Give agents the specific guidance they need to produce mergeable code on the first attempt.
-**PRD Section:** §11 Agent Boundaries
-
-**Question Flow:**
-1. "For each task, are there existing files or patterns the agent should follow?"
-2. "Any gotchas you've discovered that aren't documented?"
-3. "How should the agent handle edge cases — fail loudly, degrade gracefully, or leave a TODO?"
-4. "Are there design tokens, component libraries, or style patterns the agent must use?"
-5. "What would make you reject a PR for this feature? What's your code review checklist?"
-
-**Conditional Follow-Ups:**
-| Trigger | Follow-Up |
-|---------|-----------|
-| UI feature | "Component structure? Accessibility requirements? Responsive breakpoints?" |
-| Data/database feature | "Validation rules? Row-level security? Migrations needed?" |
-| API routes feature | "Auth pattern? Error response format? Rate limiting?" |
-| `require_review` files mentioned | "The agent's PR will need your explicit approval for that file." |
-
-**Config Generation (First Run):**
-If no `.karimo/config.yaml` exists, collect information to generate it:
-- Project name, language, framework, runtime
-- Build commands (build, lint, test, typecheck)
-- Coding rules and patterns
-- Sensitive files requiring review
-
-**After Round 4:**
-- Summarize the agent context per task
-- Flag under-specified tasks
-- Confirm: "Is there anything else you'd want to tell a developer before they started?"
-
----
-
-### Round 5: Retrospective (~3 minutes)
+### Round 4: Retrospective (~3 minutes)
 
 **Purpose:** Feed compound learning data into the current plan.
 **PRD Section:** §10 Checkpoint Learnings
@@ -157,8 +123,8 @@ If no `.karimo/config.yaml` exists, collect information to generate it:
 2. "Does any of this change how we should approach this feature?"
 3. "Are there new rules we should add — things you want agents to always do or never do?"
 
-**After Round 5:**
-- Note adjustments to task estimates, agent context, or config rules
+**After Round 4:**
+- Note adjustments to task estimates and agent context
 - Confirm: "I'll incorporate these learnings into the PRD. Ready for me to generate it?"
 
 ---
@@ -187,7 +153,7 @@ When detected, confirm round completion and transition to the next.
 
 ## PRD Generation
 
-After Round 5 completes:
+After Round 4 completes:
 1. Generate the PRD following `.karimo/templates/PRD_TEMPLATE.md`
 2. Assign models based on complexity:
    - Complexity 1–4 → Sonnet (efficient for straightforward tasks)
