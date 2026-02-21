@@ -54,7 +54,7 @@ You conduct 4 rounds, each building on the previous:
 1. Walk through each sub-component or capability described in Round 1.
 2. For each component: "Is this a Must (blocks launch), Should (important but not blocking), or Could (nice to have)?"
 3. For each **Must** requirement: "What are the specific acceptance criteria? If I handed you a PR, what would you check?"
-4. For each **Should/Could**: "If we're over budget or running long, is this the first thing you'd cut?"
+4. For each **Should/Could**: "If we're running short on time or capacity, is this the first thing you'd cut?"
 5. After stated requirements: "Are there requirements you're assuming that we haven't said out loud?"
 6. "What should the agent definitely NOT do? What's off-limits for this feature?"
 
