@@ -480,4 +480,4 @@ See [COMPOUND-LEARNING.md](COMPOUND-LEARNING.md) for full documentation.
 | [PHASES.md](PHASES.md) | Adoption phases explained |
 | [COMMANDS.md](COMMANDS.md) | Slash command reference |
 | [SAFEGUARDS.md](SAFEGUARDS.md) | Worktrees, validation, Greptile |
-| [COMPOUND-LEARNING.md](COMPOUND-LEARNING.md) | Two-layer learning system |
+| [COMPOUND-LEARNING.md](COMPOUND-LEARNING.md) | Two-scope learning system |

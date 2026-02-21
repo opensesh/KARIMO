@@ -108,7 +108,7 @@ When you run `install.sh`, these files are added:
 | [COMMANDS.md](.karimo/docs/COMMANDS.md) | Slash command reference |
 | [GETTING-STARTED.md](.karimo/docs/GETTING-STARTED.md) | Installation walkthrough |
 | [SAFEGUARDS.md](.karimo/docs/SAFEGUARDS.md) | Code integrity, security, Greptile |
-| [COMPOUND-LEARNING.md](.karimo/docs/COMPOUND-LEARNING.md) | Two-layer learning system |
+| [COMPOUND-LEARNING.md](.karimo/docs/COMPOUND-LEARNING.md) | Two-scope learning system |
 
 ---
 

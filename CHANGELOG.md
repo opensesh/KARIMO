@@ -233,7 +233,7 @@ Complete architectural transformation from TypeScript CLI application to Claude 
 - `README.md` — Updated positioning as configuration framework
 - `ARCHITECTURE.md` — v2 system design with integration guide
 - `CODE-INTEGRITY.md` — Worktrees, branches, Greptile approach
-- `COMPOUND-LEARNING.md` — Two-layer learning system
+- `COMPOUND-LEARNING.md` — Two-scope learning system
 - `SECURITY.md` — Agent boundaries via KARIMO_RULES.md
 
 **Terminology**
