@@ -170,6 +170,7 @@ This project uses KARIMO for autonomous development.
 ### Slash Commands
 
 - `/karimo:plan` — Start PRD interview (auto-detects on first run)
+- `/karimo:review` — Cross-PRD dashboard and PRD approval
 - `/karimo:execute` — Run tasks from PRD
 - `/karimo:status` — View execution state
 - `/karimo:feedback` — Quick capture of single learnings
