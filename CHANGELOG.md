@@ -21,13 +21,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 **Dependency Cascade Protocol**
 - Runtime dependency discovery by task agents
 - `karimo-dependency-watch.yml` workflow for notifications
-- Support for NEW, CROSS-FEATURE, and URGENT dependency types
+- Dependency classification: WITHIN-PRD, SCOPE-GAP, CROSS-FEATURE
+- Resolution tracking: valid, false_positive, deferred, resequenced
 - `DEPENDENCIES_TEMPLATE.md` for per-PRD tracking
 
 **Two-Tier Merge Model**
 - Task PRs target feature branch (automated with Review/Architect validation)
 - Feature PR targets main (human gate)
 - Single human approval gate per feature
+
+**Cross-PRD Review Dashboard (`/karimo:review`)**
+- Default mode shows cross-PRD visibility dashboard
+- Blocked tasks (failed 3 Greptile attempts)
+- Tasks in active revision loops
+- Tasks needing human rebase
+- Recently completed work
+- Primary human oversight touchpoint
+
+**Greptile Revision Loop Protocol**
+- Corrected scale: 0-5 (was incorrectly documented as 0-10)
+- Threshold: score ≥ 3 passes, < 3 triggers revision
+- Model escalation: Sonnet → Opus after first failure (autonomous)
+- Hard gate: `needs-human-review` status after 3 failed attempts
+- New status tracking fields: `greptile_scores[]`, `model_escalated`, `escalation_reason`
+
+**Cross-Feature Dependency Philosophy**
+- Single-PRD scope: KARIMO operates one PRD per feature branch
+- Sequential feature execution: finish dependencies before starting dependent features
+- Cross-feature blockers tracked in PRD metadata and validated at execution start
+- Human architects sequence PRDs — KARIMO doesn't manage cross-feature dependencies
 
 ### Changed
 
@@ -42,6 +64,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Per-merge cleanup model
 - Runtime dependency handling in monitoring loop
 - Worktree TTL enforcement
+- Cross-feature prerequisite validation before execution
+- Greptile revision loop protocol with model escalation
 
 **git-worktree-ops Skill**
 - Extended lifecycle documentation
@@ -52,25 +76,42 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 **STATUS_SCHEMA**
 - New root fields: `feature_pr_number`, `feature_merged_at`, `reconciliation_status`
 - New task fields: `worktree_status`, `worktree_created_at`
+- New task status: `needs-human-review` (hard gate after 3 Greptile failures)
+- New task fields: `greptile_scores`, `model_escalated`, `original_model`, `current_model`, `escalation_reason`, `block_reason`, `blocked_at`
+
+**Interviewer Agent**
+- Cross-feature dependency detection in Round 3
+- `cross_feature_blockers[]` field in PRD metadata
+
+**PRD Template**
+- Added `cross_feature_blockers` metadata field
+- Added Cross-Feature Blockers section in Dependencies & Risks
+
+### Fixed
+
+**karimo-review.yml Workflow**
+- Corrected Greptile scale from 0-10 to 0-5
+- Fixed threshold from ≥ 4 to ≥ 3 for passing
+- Updated score display in PR comments
+- Updated label logic and commit status
 
 ### Documentation
 
-- Updated ARCHITECTURE.md with v2.1 changes
-- Updated SAFEGUARDS.md with two-tier merge model
-- Updated PHASES.md with Review/Architect availability
-- Updated README.md with new agent and features
-- Updated CLAUDE.md installed components
+- Updated ARCHITECTURE.md with design principles (single-PRD scope, sequential execution)
+- Updated SAFEGUARDS.md with correct Greptile scale and revision loop protocol
+- Updated PHASES.md with correct scale and model escalation
+- Updated COMMANDS.md with /karimo:review documentation
+- Updated README.md with philosophy and design principles
+- Updated CLAUDE.md with review dashboard command
+- Updated CONTRIBUTING.md with full templates list
 
-### Open Questions
+### Resolved Open Questions
 
-These questions remain open for discussion after Phase 1 validation:
+1. **Cross-feature dependency resolution** — KARIMO does NOT manage cross-feature dependencies. Single-PRD scope is intentional. Human architects sequence PRDs.
 
-1. **Cross-feature dependency resolution** — Should KARIMO support cross-feature dependency graphs?
-2. **Greptile as hard gate vs. advisory** — Exact threshold and retry budget definition
-3. **Urgent dependency false positives** — Criteria refinement after Phase 1 validation
-4. **Worktree disk monitoring** — For large teams with many concurrent PRDs
-5. **Review/Architect model selection** — Sonnet vs Opus for complex reconciliations
-6. **Dependency cascade notification preferences** — Issue vs PR comment
+2. **Greptile as hard gate** — Defined: score < 3 triggers revision, 3 attempts max, then hard gate. Model escalation after first failure.
+
+3. **Urgent dependency criteria** — Refined into WITHIN-PRD, SCOPE-GAP, CROSS-FEATURE classification with resolution tracking.
 
 ---
 
