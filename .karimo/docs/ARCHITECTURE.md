@@ -81,11 +81,12 @@ Target Project/
 │
 ├── .github/
 │   ├── workflows/
-│   │   ├── karimo-review.yml        # Greptile code review
-│   │   ├── karimo-integration.yml   # Build/test validation
-│   │   └── karimo-sync.yml          # Status sync on merge
+│   │   ├── karimo-sync.yml              # Tier 1: Status sync on merge
+│   │   ├── karimo-dependency-watch.yml  # Tier 1: Runtime dependency alerts
+│   │   ├── karimo-ci-integration.yml    # Tier 2: Observes external CI (opt-in)
+│   │   └── karimo-greptile-review.yml   # Tier 3: Greptile review (opt-in)
 │   └── ISSUE_TEMPLATE/
-│       └── karimo-task.yml          # Task issue template
+│       └── karimo-task.yml              # Task issue template
 │
 ├── CLAUDE.md                        # Modified with reference block
 └── .gitignore                       # Updated with .worktrees/
@@ -381,6 +382,44 @@ Estimates assume shared dependency store. Without sharing, multiply by 3-5x.
 ---
 
 ## GitHub Integration
+
+### Three-Tier Workflow System
+
+KARIMO uses a portable three-tier workflow architecture. The key principle: **KARIMO never runs your build commands** — workflows observe external CI instead of executing their own build/lint/test.
+
+| Tier | Workflow | Install | Purpose |
+|------|----------|---------|---------|
+| 1 | `karimo-sync.yml` | Always | Status sync on PR merge |
+| 1 | `karimo-dependency-watch.yml` | Always | Runtime dependency alerts |
+| 2 | `karimo-ci-integration.yml` | Opt-in (default Y) | Observes external CI, labels PRs |
+| 3 | `karimo-greptile-review.yml` | Opt-in (default N) | Greptile code review |
+
+### Label System
+
+| Label | Applied By | Meaning |
+|-------|-----------|---------|
+| `ci-passed` | CI Integration | All external CI checks passed |
+| `ci-failed` | CI Integration | One or more CI checks failed |
+| `ci-skipped` | CI Integration | No external CI detected |
+| `greptile-passed` | Greptile Review | Score >= 3 |
+| `greptile-needs-revision` | Greptile Review | Score < 3 |
+| `greptile-skipped` | Greptile Review | No API key configured |
+
+### CI Detection (Hybrid Approach)
+
+The CI Integration workflow uses two APIs to detect external CI:
+
+1. **Check Runs API** (`github.rest.checks.listForRef`) — GitHub Actions, modern CI, GitHub Apps
+2. **Combined Status API** (`github.rest.repos.getCombinedStatusForRef`) — Legacy external CI (Jenkins, Travis)
+
+This hybrid approach covers ~95% of CI setups without external dependencies.
+
+**Key details:**
+- Initial 5-second wait (checks register async)
+- 15-second polling interval
+- 30-minute timeout
+- Self-exclusion via regex: `/^KARIMO/i`, `/karimo-/i`
+- Never blocks pipeline — timeout applies `ci-failed` label
 
 ### GitHub Projects
 
