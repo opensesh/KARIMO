@@ -114,8 +114,8 @@ Examples:
 | Priority | Meaning | Execution Behavior |
 |----------|---------|-------------------|
 | `must` | Blocks launch; required for feature to work | Executed first, retried on failure |
-| `should` | Important but not blocking; improves quality | Executed if budget allows |
-| `could` | Nice to have; cut first if over budget | Skipped if approaching limits |
+| `should` | Important but not blocking; improves quality | Executed if capacity allows |
+| `could` | Nice to have; cut first if capacity limited | Skipped if approaching limits |
 
 ---
 
