@@ -7,6 +7,73 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.1.0] - 2026-02-20
+
+### Added
+
+**Review/Architect Agent**
+- New agent for code-level merge reconciliation and integration validation
+- Validates task PRs integrate cleanly with feature branch
+- Resolves merge conflicts between parallel task branches
+- Performs feature-level reconciliation before PR to main
+- Escalates architectural issues that require new tasks
+
+**Dependency Cascade Protocol**
+- Runtime dependency discovery by task agents
+- `karimo-dependency-watch.yml` workflow for notifications
+- Support for NEW, CROSS-FEATURE, and URGENT dependency types
+- `DEPENDENCIES_TEMPLATE.md` for per-PRD tracking
+
+**Two-Tier Merge Model**
+- Task PRs target feature branch (automated with Review/Architect validation)
+- Feature PR targets main (human gate)
+- Single human approval gate per feature
+
+### Changed
+
+**Worktree Lifecycle**
+- Worktrees now persist until PR **merged** (not just created)
+- Enables revision loops without worktree recreation
+- TTL policies: merged (immediate), closed (24h), stale (7d), paused (30d)
+- Artifact hygiene rules for cleanup
+
+**PM Agent**
+- Exception-based engagement with Review/Architect
+- Per-merge cleanup model
+- Runtime dependency handling in monitoring loop
+- Worktree TTL enforcement
+
+**git-worktree-ops Skill**
+- Extended lifecycle documentation
+- Artifact cleanup commands
+- Safe teardown sequence
+- TTL-based cleanup triggers
+
+**STATUS_SCHEMA**
+- New root fields: `feature_pr_number`, `feature_merged_at`, `reconciliation_status`
+- New task fields: `worktree_status`, `worktree_created_at`
+
+### Documentation
+
+- Updated ARCHITECTURE.md with v2.1 changes
+- Updated SAFEGUARDS.md with two-tier merge model
+- Updated PHASES.md with Review/Architect availability
+- Updated README.md with new agent and features
+- Updated CLAUDE.md installed components
+
+### Open Questions
+
+These questions remain open for discussion after Phase 1 validation:
+
+1. **Cross-feature dependency resolution** — Should KARIMO support cross-feature dependency graphs?
+2. **Greptile as hard gate vs. advisory** — Exact threshold and retry budget definition
+3. **Urgent dependency false positives** — Criteria refinement after Phase 1 validation
+4. **Worktree disk monitoring** — For large teams with many concurrent PRDs
+5. **Review/Architect model selection** — Sonnet vs Opus for complex reconciliations
+6. **Dependency cascade notification preferences** — Issue vs PR comment
+
+---
+
 ## [Unreleased]
 
 ### Changed
