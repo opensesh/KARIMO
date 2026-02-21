@@ -306,14 +306,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-**CLAUDE.md as Single Source of Truth**
-- Eliminated `config.yaml` — all configuration now lives in `CLAUDE.md`
-- Added investigator agent context-scan mode for auto-detection on first run
-- Added investigator agent drift-check mode for subsequent runs
-- Updated plan command with Step 0 auto-detection flow
-- Updated install.sh with `_pending_` placeholder template
-- Reduced interview from 5 rounds to 4 rounds (removed Agent Context round)
-- Updated all agents, commands, and templates to reference CLAUDE.md
+**Dual Configuration Storage**
+- Configuration stored in both `CLAUDE.md` sections and `.karimo/config.yaml`
+- `/karimo:configure` writes to config.yaml and updates CLAUDE.md
+- `/karimo:plan` auto-detects and populates CLAUDE.md sections
+- Investigator agent context-scan mode for auto-detection on first run
+- Investigator agent drift-check mode for subsequent runs
 
 **Documentation Compression**
 - Merged `SECURITY.md` + `CODE-INTEGRITY.md` → `SAFEGUARDS.md`
@@ -322,14 +320,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Simplified Phase 3 (Dashboard): "Coming soon" instead of feature lists
 - Added "Your CI/CD Responsibility" section to SAFEGUARDS.md
 - Added FAQ section to GETTING-STARTED.md
-- Updated cross-references across all documentation
 
 ### Removed
-- `.karimo/config.yaml` — replaced by CLAUDE.md sections
-- `CONFIG-REFERENCE.md` — no longer needed
+- `CONFIG-REFERENCE.md` — no longer needed (config format in COMMANDS.md)
 - `SECURITY.md` — merged into `SAFEGUARDS.md`
 - `CODE-INTEGRITY.md` — merged into `SAFEGUARDS.md`
 - `INTEGRATING.md` — merged into `GETTING-STARTED.md`
+- `sandbox.safe_env` config option — Claude Code manages environment isolation
 
 ---
 
