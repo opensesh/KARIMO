@@ -158,6 +158,7 @@ Agents work through tasks in parallel, creating PRs for each.
 | `/karimo:review --prd {slug}` | Approve PRD and generate task briefs |
 | `/karimo:execute --prd {slug}` | Execute approved tasks from a PRD |
 | `/karimo:status` | View execution progress across all PRDs |
+| `/karimo:configure` | Create or update .karimo/config.yaml (~5 min) |
 | `/karimo:feedback` | Quick capture of single learnings (~2 min) |
 | `/karimo:learn` | Deep learning cycle with investigation (~45 min) |
 | `/karimo:doctor` | Check installation health and diagnose issues |
@@ -304,6 +305,7 @@ After installation, your project contains:
     review.md
     execute.md
     status.md
+    configure.md
     feedback.md
     learn.md
     doctor.md
