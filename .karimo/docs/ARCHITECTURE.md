@@ -55,7 +55,8 @@ Target Project/
 │   │   └── karimo-documenter.md     # Task agent: documentation
 │   ├── commands/
 │   │   ├── plan.md                  # /karimo:plan
-│   │   ├── review.md                # /karimo:review
+│   │   ├── review.md                # /karimo:review (PRD approval)
+│   │   ├── overview.md              # /karimo:overview (cross-PRD oversight)
 │   │   ├── execute.md               # /karimo:execute
 │   │   ├── status.md                # /karimo:status
 │   │   ├── feedback.md              # /karimo:feedback
@@ -212,15 +213,17 @@ GitHub Actions automate review when Greptile is configured:
 2. **karimo-integration.yml**: Runs validation on review pass
 3. **karimo-sync.yml**: Updates status on merge
 
-### Human Oversight (`/karimo:review`)
+### Human Oversight (`/karimo:overview`)
 
-After execution completes (or during long runs), use `/karimo:review` to surface:
+After execution completes (or during long runs), use `/karimo:overview` to surface:
 - Tasks blocked by Greptile review failures (needs human intervention)
 - Tasks in active revision loops
 - Tasks with merge conflicts (needs human rebase)
 - Recently completed and merged tasks
 
 This is the primary human oversight touchpoint — check it each morning or after a run completes.
+
+For PRD approval before execution, use `/karimo:review --prd {slug}`.
 
 ---
 

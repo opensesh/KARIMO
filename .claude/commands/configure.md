@@ -9,7 +9,15 @@ Create or update `.karimo/config.yaml` without running a full PRD interview. Use
 /karimo:configure --reset      # Start fresh, ignore existing config
 ```
 
-**This command writes to `.karimo/config.yaml`.**
+**This command writes to `.karimo/config.yaml` (source of truth) and syncs values to CLAUDE.md.**
+
+## Source of Truth
+
+**`.karimo/config.yaml`** is the authoritative source for KARIMO configuration:
+- Agents read config.yaml for runtime, framework, commands, and boundaries
+- CLAUDE.md mirrors these values for human readability
+- When `/karimo:configure` runs, it writes to config.yaml and syncs to CLAUDE.md
+- If values drift, config.yaml wins
 
 ## Behavior
 
