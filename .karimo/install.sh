@@ -131,16 +131,40 @@ else
 
 This project uses KARIMO for autonomous development.
 
-**Commands:**
-- `/karimo:plan` — Start PRD interview
+### Project Context
+
+| Setting | Value |
+|---------|-------|
+| Runtime | _pending_ |
+| Framework | _pending_ |
+| Package Manager | _pending_ |
+
+### Commands
+
+| Type | Command |
+|------|---------|
+| Build | _pending_ |
+| Lint | _pending_ |
+| Test | _pending_ |
+| Typecheck | _pending_ |
+
+### Boundaries
+
+**Never Touch:**
+- _pending_
+
+**Require Review:**
+- _pending_
+
+### Slash Commands
+
+- `/karimo:plan` — Start PRD interview (auto-detects on first run)
 - `/karimo:execute` — Run tasks from PRD
 - `/karimo:status` — View execution state
 - `/karimo:feedback` — Quick capture of single learnings
 - `/karimo:learn` — Deep learning cycle with investigation
 
 **Rules:** See `.claude/KARIMO_RULES.md` for agent behavior rules
-
-**Learnings:** Captured below via `/karimo:feedback` or `/karimo:learn`
 
 ## KARIMO Learnings
 
