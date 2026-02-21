@@ -8,15 +8,64 @@ Start a structured interview to create a Product Requirements Document (PRD) tha
 
 ## Behavior
 
-### Step 0: Auto-Detection (First Run Only)
+### Step 0: Configuration Check
 
-Check `CLAUDE.md` for `_pending_` placeholders:
+Before starting the interview, verify configuration is in place.
 
+**Step 0a: Check for config.yaml**
+
+```bash
+ls .karimo/config.yaml
 ```
+
+**If config.yaml exists:**
+- Read configuration from config.yaml
+- Validate no `_pending_` values remain
+- If valid, proceed directly to Step 1 (interview)
+- If `_pending_` found, treat as missing config
+
+**If config.yaml missing:**
+
+Check CLAUDE.md for `_pending_` placeholders:
+
+```bash
 grep -q "_pending_" CLAUDE.md
 ```
 
-**If `_pending_` markers found:**
+**Step 0b: Handle missing configuration**
+
+Present options to user:
+
+```
+╭──────────────────────────────────────────────────────────────╮
+│  Configuration Required                                       │
+╰──────────────────────────────────────────────────────────────╯
+
+No .karimo/config.yaml found (or contains _pending_ values).
+
+Configuration defines your project's runtime, commands, and boundaries.
+Agents need this to execute tasks properly.
+
+Options:
+  1. Run /karimo:configure first (recommended)
+     - Interactive 5-minute configuration wizard
+     - Creates config.yaml and syncs CLAUDE.md
+     - Return here after to create PRD
+
+  2. Quick auto-detect now (fallback)
+     - Scan project for smart defaults
+     - Confirm detected values inline
+     - May be less thorough than /karimo:configure
+
+  3. Cancel
+
+Choose [1/2/3]:
+```
+
+**If user chooses 1 (recommended):**
+- Exit with message: "Run `/karimo:configure` then return to `/karimo:plan`"
+
+**If user chooses 2 (fallback auto-detect):**
 
 1. Spawn investigator in context-scan mode:
    ```
@@ -45,15 +94,18 @@ grep -q "_pending_" CLAUDE.md
    ```
 
 4. On acceptance:
-   - Replace `_pending_` placeholders in CLAUDE.md with detected values
+   - Write `.karimo/config.yaml` with detected values
+   - Update CLAUDE.md tables (replace `_pending_` markers)
    - Continue to Step 1
 
 5. On edit:
    - Allow user to modify values
-   - Apply modifications
+   - Apply modifications to both files
    - Continue to Step 1
 
-**If no `_pending_` markers found:**
+**Step 0c: Drift check (if config exists but PRD is new)**
+
+When config.yaml exists and is valid:
 
 1. Spawn investigator in drift-check mode:
    ```
@@ -67,10 +119,10 @@ grep -q "_pending_" CLAUDE.md
    - {{change_type}}: {{description}}
      Recommendation: {{recommendation}}
 
-   Update CLAUDE.md with these changes? [Y/n/skip]
+   Update configuration with these changes? [Y/n/skip]
    ```
 
-3. Apply acknowledged changes to CLAUDE.md
+3. Apply acknowledged changes to config.yaml and CLAUDE.md
 4. Continue to Step 1
 
 ---
