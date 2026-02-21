@@ -13,6 +13,7 @@ KARIMO is an autonomous development **methodology** delivered via Claude Code co
 | Command | Purpose |
 |---------|---------|
 | `/karimo:plan` | Start PRD interview to capture requirements |
+| `/karimo:review` | Cross-PRD dashboard: blocked tasks, revision loops, completions |
 | `/karimo:review --prd {slug}` | Approve PRD and generate task briefs |
 | `/karimo:execute --prd {slug}` | Execute approved tasks from a PRD |
 | `/karimo:status` | View execution state and progress |
@@ -37,9 +38,10 @@ Your first planning process with KARIMO:
 
 ### Phase 2: Automate Review
 Add automated code review to your workflow:
-- Integrate Greptile for code integrity checks
-- Ranking system enables agentic revision loops
-- Score < 4 triggers automated revision attempts
+- Integrate Greptile for code integrity checks (0-5 scale)
+- Score ≥ 3 passes, < 3 triggers revision loop
+- Model escalation (Sonnet → Opus) after first failure
+- Hard gate after 3 failed attempts (needs human review)
 
 **Optional but highly recommended.** Greptile acts as a force multiplier. Requires Greptile API key.
 
