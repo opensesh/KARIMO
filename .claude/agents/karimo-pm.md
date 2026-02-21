@@ -265,18 +265,40 @@ Record the model assignment in `status.json` and the GitHub Issue.
 
 For each task, generate a task brief at `.karimo/prds/{slug}/task-briefs/{task-id}-brief.md`. The brief is assembled from multiple sources using the template at `.karimo/templates/TASK_BRIEF_TEMPLATE.md`.
 
-#### 5c. Spawn Workers
+#### 5c. Select Worker Type & Spawn
 
-For each ready task, spawn a worker agent using Claude Code's subagent delegation:
+Based on task characteristics, select the appropriate worker agent:
+
+| Task Type | Agent | Indicators |
+|-----------|-------|------------|
+| Implementation | `@karimo-implementer` | feat, fix, refactor, new code |
+| Testing | `@karimo-tester` | test-only tasks, coverage increase |
+| Documentation | `@karimo-documenter` | docs, README, API docs |
+| Mixed | `@karimo-implementer` | Multiple types (implementer handles inline) |
+
+**Detection Logic:**
+1. Check task `title` and `description` for type indicators
+2. If task includes tests alongside code → use implementer (handles inline)
+3. If task is test-only (success criteria are all test-related) → use tester
+4. If task is docs-only (no code changes) → use documenter
+5. Default to implementer for ambiguous cases
+
+**Spawn using Claude Code's Task tool with agent reference:**
 
 ```
-Task: claude --model {assigned_model} --worktree .worktrees/{prd-slug}/{task-id}
+Task: @{agent-type}
+Model: {opus|sonnet based on complexity}
+Worktree: .worktrees/{prd-slug}/{task-id}
+Prompt: {full task brief content from 5b}
+```
 
-Provide the task brief as the prompt context.
+For **complexity 3+** tasks, prepend to prompt:
+```
+Before implementing, create an implementation plan. Review it, then execute.
 ```
 
 **After spawning:**
-- Update `status.json`: task status → `running`, record `started_at`, `model`, `loop_count: 1`
+- Update `status.json`: task status → `running`, record `started_at`, `model`, `agent_type`, `loop_count: 1`
 - Update GitHub Issue: `agent_status` → `running`
 
 **Respect parallelism limits:**
@@ -363,7 +385,33 @@ git rebase feature/{prd-slug}
 
 #### 6c. Extract & Propagate Findings
 
-After a task completes successfully, check if it produced knowledge that downstream tasks need:
+After a task completes successfully, extract and propagate findings to downstream tasks.
+
+**Step 1: Read Worker's findings.json**
+
+Check if the worker produced a findings file:
+
+```bash
+if [ -f ".worktrees/{prd-slug}/{task-id}/findings.json" ]; then
+  cat ".worktrees/{prd-slug}/{task-id}/findings.json"
+fi
+```
+
+**Step 2: Process Findings by Severity**
+
+| Severity | Action |
+|----------|--------|
+| `blocker` | Halt dependent tasks immediately, report to human |
+| `warning` | Append to downstream tasks' `agent_context` |
+| `info` | Include in PR description |
+
+**Step 3: Update findings.md**
+
+Append to `.karimo/prds/{slug}/findings.md` using the template at `.karimo/templates/FINDINGS_TEMPLATE.md`.
+
+**Step 4: PM-Level Extraction**
+
+In addition to worker-reported findings, the PM extracts knowledge from reviewing commits:
 
 **What counts as a finding:**
 - New types, interfaces, or APIs created that other tasks will consume
@@ -372,9 +420,24 @@ After a task completes successfully, check if it produced knowledge that downstr
 - Files created that weren't in the original `files_affected` list
 - Architecture decisions made under ambiguity
 
-**Append to `findings.md` using the template at `.karimo/templates/FINDINGS_TEMPLATE.md`.**
+**The PM combines worker findings with its own observations.** Workers report what they discover during implementation; the PM adds context from the broader execution view.
 
-**The PM agent writes findings.md, not the worker.** After reviewing the worker's commits and PR diff, the PM extracts findings and appends them. This keeps the worker focused on code and the PM focused on coordination.
+**Step 5: Propagate to Downstream Tasks**
+
+For each finding with `affected_tasks`:
+1. Identify tasks in `affected_tasks` that haven't started yet
+2. Append finding to their `agent_context` in task briefs
+3. Log propagation in `status.json`:
+
+```json
+{
+  "tasks": {
+    "2a": {
+      "findings_received": ["1a:discovery:useProfile hook created"]
+    }
+  }
+}
+```
 
 #### 6d. Create PR & Spawn Review/Architect
 
