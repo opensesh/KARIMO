@@ -160,6 +160,7 @@ Agents work through tasks in parallel, creating PRs for each.
 | `/karimo:status` | View execution progress across all PRDs |
 | `/karimo:feedback` | Quick capture of single learnings (~2 min) |
 | `/karimo:learn` | Deep learning cycle with investigation (~45 min) |
+| `/karimo:doctor` | Check installation health and diagnose issues |
 
 ### /karimo:plan
 
@@ -305,6 +306,7 @@ After installation, your project contains:
     status.md
     feedback.md
     learn.md
+    doctor.md
   skills/
     git-worktree-ops.md
     github-project-ops.md
