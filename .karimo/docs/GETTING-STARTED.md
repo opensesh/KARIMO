@@ -89,6 +89,20 @@ You should see the KARIMO components in both directories.
 
 ---
 
+## Updating KARIMO
+
+To update KARIMO in a project that already has it installed:
+
+```bash
+bash KARIMO/.karimo/update.sh /path/to/your/project
+```
+
+This shows a diff of what changed and asks for confirmation before applying updates.
+
+Your `CLAUDE.md`, `config.yaml`, and `.gitignore` are never overwritten.
+
+---
+
 ## Two Installation Paths
 
 KARIMO works whether you're starting fresh or adding to an existing Claude Code project.
