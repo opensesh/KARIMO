@@ -281,7 +281,7 @@ PRDs:
 
 ## /karimo:configure
 
-Create or update `.karimo/config.yaml` without running a full PRD interview.
+Create or update `.karimo/config.yaml` (source of truth) and sync values to `CLAUDE.md`.
 
 ### Usage
 
@@ -300,14 +300,19 @@ Walks through 5 configuration sections:
 4. **Execution Settings** — Default model, parallelism, pre-PR checks
 5. **Cost Controls** — Model escalation, max attempts, Greptile
 
+On completion:
+- Writes `.karimo/config.yaml` (source of truth)
+- Syncs values to `CLAUDE.md` tables
+- Replaces any `_pending_` markers
+
 ### When to Use
 
 | Use `/karimo:configure` | Use `/karimo:plan` |
 |-------------------------|-------------------|
-| Initial setup only | Creating a PRD |
-| Changing config later | First-time setup with PRD |
+| Doctor found config issues | Creating a PRD |
+| Changing config later | Config already in place |
 | ~5 minutes | ~30 minutes |
-| Produces config.yaml | Produces PRD + tasks + config |
+| Produces config.yaml + CLAUDE.md sync | Produces PRD + tasks |
 
 ### Output Example
 
@@ -504,7 +509,7 @@ Creates `.karimo/learn/{timestamp}/`:
 
 ## /karimo:doctor
 
-Check the health of a KARIMO installation.
+Check the health of a KARIMO installation and detect configuration drift.
 
 ### Usage
 
@@ -518,9 +523,14 @@ Runs 5 diagnostic checks (read-only, never modifies files):
 
 1. **Environment** — Claude Code, GitHub CLI, Git, Greptile
 2. **Installation** — All expected files present
-3. **Configuration** — Valid syntax and schema in CLAUDE.md
+3. **Configuration** — config.yaml exists, no `_pending_` markers, no drift
 4. **Sanity** — Commands exist, boundary patterns match files
 5. **Phase Assessment** — Current adoption phase and PRD status
+
+Check 3 now includes **drift detection**:
+- Compares configured package manager vs actual lock files
+- Compares configured commands vs package.json scripts
+- Reports any mismatches with recommendations
 
 ### Output
 
@@ -539,6 +549,13 @@ Check 1: Environment
   ✅ Git             v2.43.0 (worktree support)
   ℹ️  Greptile       Not configured (optional for Phase 2)
 
+Check 3: Configuration
+──────────────────────
+
+  ✅ config.yaml       Present and valid
+  ✅ CLAUDE.md         KARIMO Framework section present
+  ✅ No drift          Config matches project state
+
 ...
 
 Summary
@@ -548,6 +565,12 @@ Summary
 
   KARIMO installation is healthy.
 ```
+
+**Recommendations mapping:**
+- Missing config.yaml → `/karimo:configure`
+- Configuration drift → `/karimo:configure`
+- `_pending_` placeholders → `/karimo:configure`
+- Missing files → Re-run installer
 
 ### When to Use
 

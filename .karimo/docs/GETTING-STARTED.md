@@ -38,6 +38,17 @@ git clone https://github.com/opensesh/KARIMO.git
 bash KARIMO/.karimo/install.sh /path/to/your/project
 ```
 
+**Auto-Detection:** The installer automatically detects your project configuration:
+- Package manager (pnpm, yarn, npm, bun, poetry, etc.)
+- Runtime (Node.js, Bun, Deno, Python, Go, Rust)
+- Framework (Next.js, Nuxt, SvelteKit, Astro, etc.)
+- Build commands from package.json scripts
+
+If detection succeeds, `config.yaml` is created with actual values instead of placeholders.
+
+**Options:**
+- `--skip-config` — Skip auto-detection, install with `_pending_` placeholders
+
 The installer will prompt you for optional workflow tiers:
 
 ```
@@ -148,13 +159,25 @@ cd your-project
 claude
 ```
 
-### 2. Run the Plan Command
+### 2. Verify Configuration (Optional)
+
+If install.sh auto-detected your project, configuration is ready. To verify:
+
+```
+/karimo:doctor
+```
+
+This confirms config.yaml exists and values are valid. If issues are found, run `/karimo:configure` to fix them.
+
+### 3. Run the Plan Command
 
 ```
 /karimo:plan
 ```
 
-### 3. Follow the Interview
+Since configuration is already in place, the interview starts immediately.
+
+### 4. Follow the Interview
 
 The interviewer agent guides you through 5 rounds:
 
@@ -226,29 +249,54 @@ This appends rules to `CLAUDE.md` for future agents.
 
 ## Configuration
 
-Configuration is stored in `.karimo/config.yaml` and auto-detected on your first `/karimo:plan`.
+Configuration is stored in `.karimo/config.yaml` (source of truth) and mirrored in `CLAUDE.md` (human-readable).
 
-The investigator agent scans your project for:
-- **Runtime** — Node.js, Bun, Deno, Python, etc.
-- **Framework** — Next.js, React, Vue, FastAPI, etc.
-- **Package manager** — npm, yarn, pnpm, bun
-- **Commands** — build, lint, test, typecheck from package.json
-- **Boundaries** — Lock files, .env files, migrations, auth directories
+### Auto-Detection During Install
 
-You can review and edit the detected values before they're saved.
+When you run `install.sh`, it automatically detects:
+- **Runtime** — Node.js, Bun, Deno, Python, Go, Rust
+- **Framework** — Next.js, Nuxt, SvelteKit, Astro, Vue, etc.
+- **Package manager** — pnpm, yarn, npm, bun, poetry, pip
+- **Commands** — build, lint, test, typecheck from package.json (requires `jq`)
+- **Boundaries** — Default patterns for lock files, .env files, migrations, auth
 
-### Configure Without Planning
+If detection succeeds, `config.yaml` is created immediately. CLAUDE.md is populated with actual values instead of `_pending_` placeholders.
 
-If you want to set up configuration separately from creating a PRD:
+### Verify Configuration
+
+After installation, verify configuration is valid:
+
+```
+/karimo:doctor
+```
+
+This checks for:
+- `config.yaml` existence
+- No `_pending_` markers remaining
+- Configuration drift (config vs actual project state)
+
+### Configure or Update
+
+If doctor reports issues, or you need to change configuration:
 
 ```
 /karimo:configure
 ```
 
-This walks you through 5 configuration sections (~5 min) and creates `.karimo/config.yaml` without starting a PRD interview. Useful for:
-- Initial setup before your first `/karimo:plan`
-- Updating configuration later
-- Teams that want to review config before planning
+This walks you through 5 configuration sections (~5 min) and:
+- Creates or updates `.karimo/config.yaml`
+- Syncs values to `CLAUDE.md`
+- Replaces any remaining `_pending_` markers
+
+### Skip Auto-Detection
+
+If you prefer to configure manually after installation:
+
+```bash
+bash KARIMO/.karimo/install.sh /path/to/your/project --skip-config
+```
+
+This installs with `_pending_` placeholders. Run `/karimo:configure` afterward.
 
 ---
 
