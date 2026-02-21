@@ -94,6 +94,29 @@ Validate the PRD is complete, consistent, and executable. Flag issues for human 
 }
 ```
 
+**Algorithm for generating dag.json:**
+
+1. **Build nodes array:**
+   - For each task in `tasks.yaml`, create node with `{ id, depends_on }`
+   - Calculate depth via BFS from roots (depth 0 for tasks with empty `depends_on`)
+   - Each task's depth = max(depth of all dependencies) + 1
+
+2. **Build edges array:**
+   - For each `depends_on` reference, create `{ from: dependency, to: task }`
+
+3. **Calculate parallel_groups:**
+   - Group nodes by depth value
+   - Tasks at depth 0 form the first parallel group
+   - Tasks at depth 1 form the second, etc.
+
+4. **Calculate critical_path:**
+   - Find longest path (by task count) through the DAG
+   - Use DFS from each root, track visited path
+   - Return the path with most tasks
+   - Tie-break: prefer lower task IDs (lexicographic)
+
+**Reference:** See `.karimo/templates/DAG_SCHEMA.md` for full specification including pseudocode, validation rules, and worked examples.
+
 ### 5. Consistency Check
 
 **Verify narrative sections match task definitions:**
