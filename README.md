@@ -32,10 +32,10 @@ KARIMO provides a structured methodology for autonomous development:
 ## How It Works
 
 ```
-┌──────────────┐    ┌───────────────┐    ┌─────────────┐    ┌────────────┐    ┌───────────┐
-│   Interview  │ →  │   PRD + DAG   │ →  │   Execute   │ →  │   Review   │ →  │   Merge   │
-│  (/plan)     │    │  (generated)  │    │   (agents)  │    │ (Greptile) │    │   (PR)    │
-└──────────────┘    └───────────────┘    └─────────────┘    └────────────┘    └───────────┘
+┌──────────────┐    ┌───────────────┐    ┌─────────────┐    ┌────────────┐    ┌─────────────┐    ┌───────────┐
+│   Interview  │ →  │   PRD + DAG   │ →  │   Execute   │ →  │   Review   │ →  │ Reconcile   │ →  │   Merge   │
+│  (/plan)     │    │  (generated)  │    │   (agents)  │    │ (Greptile) │    │ (Architect) │    │   (PR)    │
+└──────────────┘    └───────────────┘    └─────────────┘    └────────────┘    └─────────────┘    └───────────┘
 ```
 
 ### Interview Phase
@@ -224,6 +224,7 @@ KARIMO includes specialized agents:
 | `karimo-reviewer` | Validates PRD, generates task DAG |
 | `karimo-brief-writer` | Generates self-contained task briefs |
 | `karimo-pm` | Coordinates execution, never writes code |
+| `karimo-review-architect` | Code-level integration, merge conflict resolution |
 | `karimo-learn-auditor` | Investigates learning directives |
 
 Agents live in `.claude/agents/` and follow strict rules from `KARIMO_RULES.md`.
@@ -254,6 +255,7 @@ After installation, your project contains:
     karimo-investigator.md
     karimo-reviewer.md
     karimo-pm.md
+    karimo-review-architect.md
     karimo-learn-auditor.md
   commands/
     plan.md
@@ -272,6 +274,7 @@ After installation, your project contains:
     INTERVIEW_PROTOCOL.md
     TASK_SCHEMA.md
     STATUS_SCHEMA.md
+    DEPENDENCIES_TEMPLATE.md
     LEARN_INTERVIEW_PROTOCOL.md
   prds/
     {prd-slug}/
@@ -291,6 +294,7 @@ After installation, your project contains:
     karimo-review.yml
     karimo-integration.yml
     karimo-sync.yml
+    karimo-dependency-watch.yml
   ISSUE_TEMPLATE/
     karimo-task.yml
 
@@ -390,6 +394,8 @@ Optional but highly recommended:
 | **Loop awareness** | Stall detection with model upgrade capability |
 | **Worktree isolation** | Each task works in isolated branch |
 | **Pre-PR checks** | Build/typecheck must pass before PR |
+| **Two-tier merge** | Task PRs to feature, feature PR to main (human gate) |
+| **Integration validation** | Review/Architect ensures tasks integrate cleanly |
 | **Greptile review** | Automated code quality checks (optional but highly recommended) |
 
 ---
