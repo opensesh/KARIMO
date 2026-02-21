@@ -1,6 +1,11 @@
-name: KARIMO Dependency Watch
+# KARIMO Dependency Watch (Tier 1)
+#
+# Runtime dependency alerting. Triggers when dependencies.md files are updated
+# with runtime discoveries during task execution.
+#
+# This workflow is always installed (required for KARIMO to function).
 
-# Triggers when dependencies.md files are updated with runtime discoveries
+name: KARIMO Dependency Watch
 on:
   push:
     paths:

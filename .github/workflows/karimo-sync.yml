@@ -1,3 +1,10 @@
+# KARIMO Sync (Tier 1)
+#
+# Status synchronization workflow. Triggers when KARIMO PRs are merged to update
+# status.json and create final merge PRs when all tasks are complete.
+#
+# This workflow is always installed (required for KARIMO to function).
+
 name: KARIMO Sync
 
 on:
