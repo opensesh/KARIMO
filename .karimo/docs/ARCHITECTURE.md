@@ -11,6 +11,12 @@ KARIMO is an autonomous development **methodology** delivered via Claude Code co
 
 **Core philosophy:** You are the architect, agents are the builders, Greptile is the inspector.
 
+### Design Principles
+
+**Single-PRD scope.** KARIMO operates within one PRD at a time. Each PRD maps to one feature branch. Cross-feature dependencies are the human architect's responsibility — you sequence PRDs so that dependent features execute only after their prerequisites are merged to main. This is intentional: the goal isn't to produce a hundred features simultaneously, it's to let agents autonomously execute a few features at a time while building trust between you, the codebase, and the agents.
+
+**Sequential feature execution.** If Feature 8 depends on Feature 3, you finish Feature 3's PRD cycle (plan → execute → review → merge to main) before starting Feature 8. You may run Features 1, 2, and 3 in parallel if they're independent, but Feature 8 waits. This matches how product teams actually ship.
+
 ---
 
 ## What KARIMO Is
@@ -196,6 +202,16 @@ GitHub Actions automate review when Greptile is configured:
 1. **karimo-review.yml**: Triggers Greptile on PR open
 2. **karimo-integration.yml**: Runs validation on review pass
 3. **karimo-sync.yml**: Updates status on merge
+
+### Human Oversight (`/karimo:review`)
+
+After execution completes (or during long runs), use `/karimo:review` to surface:
+- Tasks blocked by Greptile review failures (needs human intervention)
+- Tasks in active revision loops
+- Tasks with merge conflicts (needs human rebase)
+- Recently completed and merged tasks
+
+This is the primary human oversight touchpoint — check it each morning or after a run completes.
 
 ---
 
