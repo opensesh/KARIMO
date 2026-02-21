@@ -107,6 +107,10 @@ cp "$KARIMO_ROOT/.karimo/templates/LEARN_INTERVIEW_PROTOCOL.md" "$TARGET_DIR/.ka
 cp "$KARIMO_ROOT/.karimo/templates/FINDINGS_TEMPLATE.md" "$TARGET_DIR/.karimo/templates/"
 cp "$KARIMO_ROOT/.karimo/templates/TASK_BRIEF_TEMPLATE.md" "$TARGET_DIR/.karimo/templates/"
 
+# Copy version tracking
+echo "Setting version..."
+cp "$KARIMO_ROOT/.karimo/VERSION" "$TARGET_DIR/.karimo/VERSION"
+
 # Copy GitHub workflows (Three-Tier System)
 echo ""
 echo -e "${BLUE}GitHub Workflow Installation${NC}"
@@ -310,6 +314,7 @@ echo "  .claude/commands/         8 slash commands"
 echo "  .claude/skills/           5 skill definitions"
 echo "  .claude/KARIMO_RULES.md   Agent behavior rules"
 echo "  .karimo/templates/        7 templates"
+echo "  .karimo/VERSION           Version tracking"
 echo "  .github/ISSUE_TEMPLATE/   1 issue template"
 echo "  CLAUDE.md                 Updated with reference block"
 echo "  .gitignore                Updated with .worktrees/"
