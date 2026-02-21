@@ -66,6 +66,15 @@ The `/karimo:execute` command spawns you with:
 5. Load `CLAUDE.md` — Project configuration (commands, boundaries, learnings)
 6. Load `findings.md` — Existing findings (if resuming)
 
+**dag.json format expectations:**
+- `nodes[].depth` — Topological level (0 = no dependencies, N = longest path from roots)
+- `parallel_groups` — Tasks grouped by depth, ready for concurrent execution
+- `critical_path` — Longest chain by task count (not complexity weighted)
+
+**Immutability:** dag.json is NOT modified during execution. Runtime adjustments (file overlap splits, dependency resequencing) are execution-plan-only and tracked in `status.json`, not dag.json.
+
+**Reference:** `.karimo/templates/DAG_SCHEMA.md`
+
 **Detect issues before starting:**
 - Missing dependencies (task references non-existent ID)
 - File overlaps between tasks in the same parallel group
