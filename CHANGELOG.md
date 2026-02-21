@@ -7,6 +7,59 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.3.0] - 2026-02-21
+
+### Added
+
+**Three-Tier Workflow System**
+- Portable workflow architecture that observes CI instead of running commands
+- Tier 1 (Always installed): `karimo-sync.yml`, `karimo-dependency-watch.yml`
+- Tier 2 (Opt-in, default Y): `karimo-ci-integration.yml` — observes external CI
+- Tier 3 (Opt-in, default N): `karimo-greptile-review.yml` — Greptile code review
+
+**CI Integration Workflow**
+- Hybrid CI detection: Check Runs API + Combined Status API
+- Covers GitHub Actions, CircleCI, Jenkins, Travis, and other CI systems
+- Self-excludes KARIMO workflows from detection
+- Labels: `ci-passed`, `ci-failed`, `ci-skipped`
+- 30-minute timeout with informational comments
+
+**Greptile Review Workflow**
+- Graceful degradation when no API key configured
+- Informational comment explaining setup when skipped
+- Labels: `greptile-passed`, `greptile-needs-revision`, `greptile-skipped`
+
+**Install Script Prompts**
+- Interactive tier selection during installation
+- Tier 2 defaults to Y (CI integration recommended for most projects)
+- Tier 3 defaults to N (requires Greptile API key)
+- Workflow status tracked in CLAUDE.md Workflows section
+
+**CLAUDE.md Workflows Section**
+- New section showing installed workflow status
+- Table format with tier indicator and installation status
+
+### Changed
+
+**Workflow Architecture Philosophy**
+- KARIMO never runs build commands — observes external CI instead
+- Enables portability across any CI system
+- Removes coupling to specific build/lint/test commands
+
+**Documentation Updates**
+- ARCHITECTURE.md: Added three-tier system, label table, CI detection details
+- SAFEGUARDS.md: Replaced workflow section with three-tier documentation
+- GETTING-STARTED.md: Added installation prompt examples, troubleshooting
+- README.md: Updated workflow section with tier indicators
+
+### Removed
+
+**Legacy Workflows**
+- `karimo-integration.yml` — Replaced by CI observation model
+- `karimo-review.yml` — Renamed to `karimo-greptile-review.yml` with improvements
+
+---
+
 ## [2.2.1] - 2026-02-21
 
 ### Added
