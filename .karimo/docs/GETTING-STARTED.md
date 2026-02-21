@@ -352,3 +352,13 @@ KARIMO creates worktrees in `.worktrees/{prd-slug}/{task-id}/`. This is separate
 | Learn about adoption phases | [PHASES.md](PHASES.md) |
 | Explore slash commands | [COMMANDS.md](COMMANDS.md) |
 | Understand safeguards | [SAFEGUARDS.md](SAFEGUARDS.md) |
+
+---
+
+## Related Documentation
+
+| Document | Description |
+|----------|-------------|
+| [PHASES.md](PHASES.md) | Adoption phases explained |
+| [ARCHITECTURE.md](ARCHITECTURE.md) | System design and integration |
+| [COMMANDS.md](COMMANDS.md) | Slash command reference |
