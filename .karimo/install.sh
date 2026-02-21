@@ -87,6 +87,7 @@ cp "$KARIMO_ROOT/.claude/commands/status.md" "$TARGET_DIR/.claude/commands/"
 cp "$KARIMO_ROOT/.claude/commands/learn.md" "$TARGET_DIR/.claude/commands/"
 cp "$KARIMO_ROOT/.claude/commands/doctor.md" "$TARGET_DIR/.claude/commands/"
 cp "$KARIMO_ROOT/.claude/commands/configure.md" "$TARGET_DIR/.claude/commands/"
+cp "$KARIMO_ROOT/.claude/commands/overview.md" "$TARGET_DIR/.claude/commands/"
 
 # Copy skills
 echo "Copying skills..."
@@ -223,7 +224,8 @@ This project uses KARIMO for autonomous development.
 ### Slash Commands
 
 - `/karimo:plan` — Start PRD interview (auto-detects on first run)
-- `/karimo:review` — Cross-PRD dashboard and PRD approval
+- `/karimo:review` — Review and approve PRD before execution
+- `/karimo:overview` — Cross-PRD oversight: blocked tasks, revision loops
 - `/karimo:execute` — Run tasks from PRD
 - `/karimo:status` — View execution state
 - `/karimo:configure` — Create or update configuration
@@ -310,7 +312,7 @@ echo -e "${GREEN}╰────────────────────
 echo
 echo "Installed files:"
 echo "  .claude/agents/           10 agent definitions"
-echo "  .claude/commands/         8 slash commands"
+echo "  .claude/commands/         9 slash commands"
 echo "  .claude/skills/           5 skill definitions"
 echo "  .claude/KARIMO_RULES.md   Agent behavior rules"
 echo "  .karimo/templates/        7 templates"
