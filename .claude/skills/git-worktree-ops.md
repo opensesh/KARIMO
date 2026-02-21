@@ -204,28 +204,73 @@ If validation fails:
 
 3. **Update GitHub Issue with failure details**
 
+## Worktree Lifecycle (v2.1)
+
+KARIMO v2.1 uses an **extended worktree lifecycle**. Worktrees persist through the review cycle and are only cleaned up after PR merge.
+
+### Lifecycle Stages
+
+| Stage | Status | Worktree |
+|-------|--------|----------|
+| Task starts | `running` | Created |
+| PR created | `in-review` | **Retained** |
+| Greptile revision | `needs-revision` | **Retained** |
+| PR merged | `done` | Cleaned |
+| PR closed | `done` (abandoned) | Cleaned after 24h TTL |
+
+**Why retain until merge?** Tasks may need revision based on Greptile feedback or integration issues. Keeping the worktree avoids recreation overhead and preserves build caches.
+
 ## Removing Worktrees
 
 ### After Successful PR Merge
 
+**Safe teardown sequence:**
+
 ```bash
-# Remove worktree
+# Step 1: Clean build artifacts first
+rm -rf .worktrees/{prd-slug}/{task-id}/.next
+rm -rf .worktrees/{prd-slug}/{task-id}/dist
+rm -rf .worktrees/{prd-slug}/{task-id}/node_modules/.cache
+
+# Step 2: Remove worktree
 git worktree remove .worktrees/{prd-slug}/{task-id}
 
-# If worktree has uncommitted changes (shouldn't happen):
-git worktree remove --force .worktrees/{prd-slug}/{task-id}
+# Step 3: Prune stale references
+git worktree prune
 
-# Delete local branch (remote branch deleted via PR merge)
+# Step 4: Delete local branch (remote branch deleted via PR merge)
 git branch -d feature/{prd-slug}/{task-id}
 ```
+
+### Artifact Hygiene
+
+Build artifacts should be cleaned before worktree removal to avoid stale data:
+
+| Framework | Artifacts to Clean |
+|-----------|-------------------|
+| Next.js | `.next/`, `out/` |
+| React/Vite | `dist/`, `build/` |
+| Node.js | `node_modules/.cache/` |
+| TypeScript | `*.tsbuildinfo` |
+| General | `coverage/`, `.turbo/` |
+
+**DO NOT delete:**
+- `node_modules/` — may be shared via symlink or pnpm store
+- Source files — obviously
 
 ### Cleanup All Worktrees for PRD
 
 ```bash
 # Remove all task worktrees
 for dir in .worktrees/{prd-slug}/*/; do
+  # Clean artifacts first
+  rm -rf "$dir/.next" "$dir/dist" "$dir/node_modules/.cache"
+  # Remove worktree
   git worktree remove "$dir"
 done
+
+# Prune any stale references
+git worktree prune
 
 # Remove PRD worktree directory
 rmdir .worktrees/{prd-slug}
@@ -240,6 +285,22 @@ If worktrees were deleted manually without using `git worktree remove`:
 
 ```bash
 git worktree prune
+```
+
+### TTL-Based Cleanup
+
+The PM Agent enforces TTL policies. If you need to manually clean up stale worktrees:
+
+```bash
+# Find worktrees with no recent commits
+for dir in .worktrees/*/*/; do
+  LAST_COMMIT=$(git -C "$dir" log -1 --format=%ci 2>/dev/null)
+  if [ -z "$LAST_COMMIT" ]; then
+    echo "Stale worktree (no commits): $dir"
+  elif [ "$(date -d "$LAST_COMMIT" +%s)" -lt "$(date -d '7 days ago' +%s)" ]; then
+    echo "Stale worktree (>7 days old): $dir"
+  fi
+done
 ```
 
 ## Branch Naming Convention
@@ -265,9 +326,20 @@ git worktree prune
    git status  # in specific worktree
    ```
 
-4. **Clean up on completion**
-   - Remove worktrees after PR merge
-   - Don't leave stale worktrees
+4. **Persist worktrees through review cycles**
+   - Do NOT cleanup after PR creation
+   - Cleanup only after PR **merged**
+   - This allows for revision loops without recreation
+
+5. **Clean artifacts before worktree removal**
+   - Remove `.next/`, `dist/`, cache directories
+   - Do NOT remove `node_modules/` if using shared stores
+
+6. **Respect TTL policies**
+   - Merged PRs: immediate cleanup
+   - Closed PRs: 24-hour TTL
+   - Stale worktrees: 7-day TTL
+   - Paused execution: 30-day TTL
 
 ## Troubleshooting
 
