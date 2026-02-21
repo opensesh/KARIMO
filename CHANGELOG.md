@@ -11,6 +11,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+**CLAUDE.md as Single Source of Truth**
+- Eliminated `config.yaml` — all configuration now lives in `CLAUDE.md`
+- Added investigator agent context-scan mode for auto-detection on first run
+- Added investigator agent drift-check mode for subsequent runs
+- Updated plan command with Step 0 auto-detection flow
+- Updated install.sh with `_pending_` placeholder template
+- Reduced interview from 5 rounds to 4 rounds (removed Agent Context round)
+- Updated all agents, commands, and templates to reference CLAUDE.md
+
 **Documentation Compression**
 - Merged `SECURITY.md` + `CODE-INTEGRITY.md` → `SAFEGUARDS.md`
 - Merged `GETTING-STARTED.md` + `INTEGRATING.md` → `GETTING-STARTED.md`
@@ -21,6 +30,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated cross-references across all documentation
 
 ### Removed
+- `.karimo/config.yaml` — replaced by CLAUDE.md sections
+- `CONFIG-REFERENCE.md` — no longer needed
 - `SECURITY.md` — merged into `SAFEGUARDS.md`
 - `CODE-INTEGRITY.md` — merged into `SAFEGUARDS.md`
 - `INTEGRATING.md` — merged into `GETTING-STARTED.md`
