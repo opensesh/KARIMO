@@ -253,3 +253,13 @@ Run /karimo:plan to auto-detect project configuration.
 
 PR status unavailable. Run: gh auth login
 ```
+
+## Related Commands
+
+| Command | Purpose |
+|---------|---------|
+| `/karimo:overview` | Cross-PRD oversight: blocked tasks, revision loops, completions |
+| `/karimo:review` | Review and approve PRD before execution |
+| `/karimo:execute` | Execute approved PRD |
+
+For cross-PRD oversight (blocked tasks needing human review, revision loops, rebase conflicts), use `/karimo:overview`.

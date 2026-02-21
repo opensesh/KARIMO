@@ -262,10 +262,21 @@ Configuration Summary:
 Write this configuration? [Y/n]
 ```
 
-**On confirmation:**
+**On confirmation, sync both files:**
 
-1. Write `.karimo/config.yaml`
-2. Update `CLAUDE.md` Project Context section (if exists)
+1. **Write `.karimo/config.yaml`** (source of truth):
+   - Full YAML structure with all configuration values
+   - This is what agents read at runtime
+
+2. **Update `CLAUDE.md`** (human-readable mirror):
+   - Update `### Project Context` table with Runtime, Framework, Package Manager
+   - Update `### Commands` table with Build, Lint, Test, Typecheck
+   - Update `### Boundaries` section with Never Touch and Require Review patterns
+   - Replace any remaining `_pending_` markers with actual values
+
+3. **Verify sync:**
+   - Confirm both files written
+   - Report any errors
 
 ---
 
@@ -324,7 +335,12 @@ On completion:
 │  Configuration Complete                                       │
 ╰──────────────────────────────────────────────────────────────╯
 
-✅ Wrote .karimo/config.yaml
+✅ Wrote .karimo/config.yaml (source of truth)
+✅ Synced CLAUDE.md (human-readable mirror)
+   - Updated Project Context table
+   - Updated Commands table
+   - Updated Boundaries section
+   - Replaced _pending_ markers: 0 remaining
 
 Next steps:
   • Run /karimo:plan to create your first PRD
