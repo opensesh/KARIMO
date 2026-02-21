@@ -193,6 +193,138 @@ touch "$TARGET_DIR/.karimo/prds/.gitkeep"
 echo "Copying KARIMO rules..."
 cp "$KARIMO_ROOT/.claude/KARIMO_RULES.md" "$TARGET_DIR/.claude/KARIMO_RULES.md"
 
+# ==============================================================================
+# AUTO-DETECTION SECTION
+# ==============================================================================
+
+# Initialize detected values with _pending_ (fallback)
+DETECTED_RUNTIME="_pending_"
+DETECTED_FRAMEWORK="_pending_"
+DETECTED_PKG_MANAGER="_pending_"
+DETECTED_BUILD="_pending_"
+DETECTED_LINT="_pending_"
+DETECTED_TEST="_pending_"
+DETECTED_TYPECHECK="_pending_"
+DETECTED_NEVER_TOUCH="_pending_"
+DETECTED_REQUIRE_REVIEW="_pending_"
+CONFIG_AUTODETECTED=false
+
+if [ "$SKIP_CONFIG" = false ]; then
+    echo ""
+    echo "Auto-detecting project configuration..."
+
+    # Detect package manager from lock files
+    if [ -f "$TARGET_DIR/pnpm-lock.yaml" ]; then
+        DETECTED_PKG_MANAGER="pnpm"
+    elif [ -f "$TARGET_DIR/yarn.lock" ]; then
+        DETECTED_PKG_MANAGER="yarn"
+    elif [ -f "$TARGET_DIR/bun.lockb" ]; then
+        DETECTED_PKG_MANAGER="bun"
+    elif [ -f "$TARGET_DIR/package-lock.json" ]; then
+        DETECTED_PKG_MANAGER="npm"
+    elif [ -f "$TARGET_DIR/poetry.lock" ]; then
+        DETECTED_PKG_MANAGER="poetry"
+    elif [ -f "$TARGET_DIR/Pipfile.lock" ]; then
+        DETECTED_PKG_MANAGER="pipenv"
+    elif [ -f "$TARGET_DIR/requirements.txt" ]; then
+        DETECTED_PKG_MANAGER="pip"
+    elif [ -f "$TARGET_DIR/go.mod" ]; then
+        DETECTED_PKG_MANAGER="go"
+    elif [ -f "$TARGET_DIR/Cargo.lock" ]; then
+        DETECTED_PKG_MANAGER="cargo"
+    fi
+
+    # Detect runtime
+    if [ -f "$TARGET_DIR/package.json" ]; then
+        if [ -f "$TARGET_DIR/bun.lockb" ]; then
+            DETECTED_RUNTIME="Bun"
+        elif [ -f "$TARGET_DIR/deno.json" ] || [ -f "$TARGET_DIR/deno.jsonc" ]; then
+            DETECTED_RUNTIME="Deno"
+        else
+            DETECTED_RUNTIME="Node.js"
+        fi
+    elif [ -f "$TARGET_DIR/pyproject.toml" ] || [ -f "$TARGET_DIR/requirements.txt" ]; then
+        DETECTED_RUNTIME="Python"
+    elif [ -f "$TARGET_DIR/go.mod" ]; then
+        DETECTED_RUNTIME="Go"
+    elif [ -f "$TARGET_DIR/Cargo.toml" ]; then
+        DETECTED_RUNTIME="Rust"
+    fi
+
+    # Detect framework (check for common config files/dependencies)
+    if [ -f "$TARGET_DIR/next.config.js" ] || [ -f "$TARGET_DIR/next.config.mjs" ] || [ -f "$TARGET_DIR/next.config.ts" ]; then
+        DETECTED_FRAMEWORK="Next.js"
+    elif [ -f "$TARGET_DIR/nuxt.config.ts" ] || [ -f "$TARGET_DIR/nuxt.config.js" ]; then
+        DETECTED_FRAMEWORK="Nuxt"
+    elif [ -f "$TARGET_DIR/svelte.config.js" ]; then
+        DETECTED_FRAMEWORK="SvelteKit"
+    elif [ -f "$TARGET_DIR/astro.config.mjs" ] || [ -f "$TARGET_DIR/astro.config.ts" ]; then
+        DETECTED_FRAMEWORK="Astro"
+    elif [ -f "$TARGET_DIR/remix.config.js" ]; then
+        DETECTED_FRAMEWORK="Remix"
+    elif [ -f "$TARGET_DIR/vite.config.ts" ] || [ -f "$TARGET_DIR/vite.config.js" ]; then
+        # Check if it's a React Vite project
+        DETECTED_FRAMEWORK="Vite"
+    elif [ -f "$TARGET_DIR/angular.json" ]; then
+        DETECTED_FRAMEWORK="Angular"
+    elif [ -f "$TARGET_DIR/vue.config.js" ]; then
+        DETECTED_FRAMEWORK="Vue"
+    fi
+
+    # Extract commands from package.json (using jq if available)
+    if [ -f "$TARGET_DIR/package.json" ] && command -v jq &> /dev/null; then
+        # Extract script names
+        BUILD_SCRIPT=$(jq -r '.scripts.build // empty' "$TARGET_DIR/package.json" 2>/dev/null)
+        LINT_SCRIPT=$(jq -r '.scripts.lint // empty' "$TARGET_DIR/package.json" 2>/dev/null)
+        TEST_SCRIPT=$(jq -r '.scripts.test // empty' "$TARGET_DIR/package.json" 2>/dev/null)
+        TYPECHECK_SCRIPT=$(jq -r '.scripts.typecheck // .scripts["type-check"] // empty' "$TARGET_DIR/package.json" 2>/dev/null)
+
+        # Set detected commands with package manager prefix
+        if [ -n "$BUILD_SCRIPT" ] && [ "$DETECTED_PKG_MANAGER" != "_pending_" ]; then
+            DETECTED_BUILD="${DETECTED_PKG_MANAGER} run build"
+        fi
+        if [ -n "$LINT_SCRIPT" ] && [ "$DETECTED_PKG_MANAGER" != "_pending_" ]; then
+            DETECTED_LINT="${DETECTED_PKG_MANAGER} run lint"
+        fi
+        if [ -n "$TEST_SCRIPT" ] && [ "$DETECTED_PKG_MANAGER" != "_pending_" ]; then
+            DETECTED_TEST="${DETECTED_PKG_MANAGER} run test"
+        fi
+        if [ -n "$TYPECHECK_SCRIPT" ] && [ "$DETECTED_PKG_MANAGER" != "_pending_" ]; then
+            if [ -n "$(jq -r '.scripts.typecheck // empty' "$TARGET_DIR/package.json" 2>/dev/null)" ]; then
+                DETECTED_TYPECHECK="${DETECTED_PKG_MANAGER} run typecheck"
+            else
+                DETECTED_TYPECHECK="${DETECTED_PKG_MANAGER} run type-check"
+            fi
+        fi
+    elif [ -f "$TARGET_DIR/package.json" ]; then
+        echo -e "  ${YELLOW}Note: jq not installed, limited command detection${NC}"
+    fi
+
+    # Set default boundary patterns
+    DETECTED_NEVER_TOUCH=".env*, *.lock, pnpm-lock.yaml, yarn.lock, package-lock.json"
+    DETECTED_REQUIRE_REVIEW="migrations/**, auth/**, **/middleware.*"
+
+    # Check if we have meaningful detections
+    if [ "$DETECTED_RUNTIME" != "_pending_" ] || [ "$DETECTED_PKG_MANAGER" != "_pending_" ]; then
+        CONFIG_AUTODETECTED=true
+        echo -e "  ${GREEN}✓${NC} Package manager: ${DETECTED_PKG_MANAGER}"
+        echo -e "  ${GREEN}✓${NC} Runtime: ${DETECTED_RUNTIME}"
+        if [ "$DETECTED_FRAMEWORK" != "_pending_" ]; then
+            echo -e "  ${GREEN}✓${NC} Framework: ${DETECTED_FRAMEWORK}"
+        fi
+        if [ "$DETECTED_BUILD" != "_pending_" ]; then
+            echo -e "  ${GREEN}✓${NC} Commands detected from package.json"
+        fi
+    else
+        echo -e "  ${YELLOW}Could not auto-detect project configuration${NC}"
+        echo -e "  ${YELLOW}Run /karimo:configure after installation to set up${NC}"
+    fi
+fi
+
+# ==============================================================================
+# END AUTO-DETECTION
+# ==============================================================================
+
 # Add reference block to CLAUDE.md (concise ~20 lines instead of full rules)
 echo "Updating CLAUDE.md..."
 CLAUDE_MD="$TARGET_DIR/CLAUDE.md"
@@ -208,7 +340,7 @@ else
         echo "" >> "$CLAUDE_MD"
     fi
 
-    cat >> "$CLAUDE_MD" << 'EOF'
+    cat >> "$CLAUDE_MD" << EOF
 ## KARIMO Framework
 
 This project uses KARIMO for autonomous development.
@@ -217,26 +349,26 @@ This project uses KARIMO for autonomous development.
 
 | Setting | Value |
 |---------|-------|
-| Runtime | _pending_ |
-| Framework | _pending_ |
-| Package Manager | _pending_ |
+| Runtime | ${DETECTED_RUNTIME} |
+| Framework | ${DETECTED_FRAMEWORK} |
+| Package Manager | ${DETECTED_PKG_MANAGER} |
 
 ### Commands
 
 | Type | Command |
 |------|---------|
-| Build | _pending_ |
-| Lint | _pending_ |
-| Test | _pending_ |
-| Typecheck | _pending_ |
+| Build | ${DETECTED_BUILD} |
+| Lint | ${DETECTED_LINT} |
+| Test | ${DETECTED_TEST} |
+| Typecheck | ${DETECTED_TYPECHECK} |
 
 ### Boundaries
 
 **Never Touch:**
-- _pending_
+- ${DETECTED_NEVER_TOUCH}
 
 **Require Review:**
-- _pending_
+- ${DETECTED_REQUIRE_REVIEW}
 
 ### Slash Commands
 
@@ -311,6 +443,63 @@ if [ -f "$GITIGNORE" ]; then
 else
     echo "# KARIMO worktrees" > "$GITIGNORE"
     echo ".worktrees/" >> "$GITIGNORE"
+fi
+
+# ==============================================================================
+# CREATE CONFIG.YAML (if auto-detection succeeded)
+# ==============================================================================
+
+CONFIG_CREATED=false
+if [ "$SKIP_CONFIG" = false ] && [ "$CONFIG_AUTODETECTED" = true ]; then
+    echo "Creating configuration file..."
+
+    # Get project name from directory
+    PROJECT_NAME=$(basename "$(cd "$TARGET_DIR" && pwd)")
+
+    cat > "$TARGET_DIR/.karimo/config.yaml" << EOF
+# KARIMO Configuration
+# Generated by install.sh on $(date +%Y-%m-%d)
+# Edit with /karimo:configure or manually
+
+project:
+  name: ${PROJECT_NAME}
+  runtime: ${DETECTED_RUNTIME}
+  framework: ${DETECTED_FRAMEWORK}
+  package_manager: ${DETECTED_PKG_MANAGER}
+
+commands:
+  build: "${DETECTED_BUILD}"
+  lint: "${DETECTED_LINT}"
+  test: "${DETECTED_TEST}"
+  typecheck: "${DETECTED_TYPECHECK}"
+
+boundaries:
+  never_touch:
+    - ".env*"
+    - "*.lock"
+    - "pnpm-lock.yaml"
+    - "yarn.lock"
+    - "package-lock.json"
+  require_review:
+    - "migrations/**"
+    - "auth/**"
+    - "**/middleware.*"
+
+execution:
+  default_model: sonnet
+  max_parallel: 3
+  pre_pr_checks:
+    - build
+    - typecheck
+    - lint
+
+cost:
+  escalate_after_failures: 1
+  max_attempts: 3
+  greptile_enabled: false
+EOF
+    CONFIG_CREATED=true
+    echo -e "  ${GREEN}✓${NC} Created .karimo/config.yaml"
 fi
 
 # Count installed workflows
