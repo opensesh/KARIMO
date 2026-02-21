@@ -105,11 +105,58 @@ cp "$KARIMO_ROOT/.karimo/templates/LEARN_INTERVIEW_PROTOCOL.md" "$TARGET_DIR/.ka
 cp "$KARIMO_ROOT/.karimo/templates/FINDINGS_TEMPLATE.md" "$TARGET_DIR/.karimo/templates/"
 cp "$KARIMO_ROOT/.karimo/templates/TASK_BRIEF_TEMPLATE.md" "$TARGET_DIR/.karimo/templates/"
 
-# Copy GitHub workflows
-echo "Copying GitHub workflows..."
-cp "$KARIMO_ROOT/.github/workflows/karimo-review.yml" "$TARGET_DIR/.github/workflows/"
-cp "$KARIMO_ROOT/.github/workflows/karimo-integration.yml" "$TARGET_DIR/.github/workflows/"
+# Copy GitHub workflows (Three-Tier System)
+echo ""
+echo -e "${BLUE}GitHub Workflow Installation${NC}"
+echo "KARIMO uses a three-tier workflow system:"
+echo ""
+
+# Track installed workflows
+INSTALLED_SYNC="true"
+INSTALLED_DEPENDENCY="true"
+INSTALLED_CI="false"
+INSTALLED_GREPTILE="false"
+
+# Tier 1: Always installed (required)
+echo "Tier 1 (Required):"
+echo "  - karimo-sync.yml: Status sync on PR merge"
+echo "  - karimo-dependency-watch.yml: Runtime dependency alerts"
 cp "$KARIMO_ROOT/.github/workflows/karimo-sync.yml" "$TARGET_DIR/.github/workflows/"
+cp "$KARIMO_ROOT/.github/workflows/karimo-dependency-watch.yml" "$TARGET_DIR/.github/workflows/"
+echo -e "  ${GREEN}Installed${NC}"
+echo ""
+
+# Tier 2: CI Integration (default Y)
+echo "Tier 2 (CI Integration):"
+echo "  - karimo-ci-integration.yml: Observes your existing CI, labels PRs"
+echo "  - This workflow does NOT run build commands - it watches external CI"
+echo ""
+read -p "Install CI integration workflow? (Y/n) " -n 1 -r CI_RESPONSE
+echo ""
+if [[ ! $CI_RESPONSE =~ ^[Nn]$ ]]; then
+    cp "$KARIMO_ROOT/.github/workflows/karimo-ci-integration.yml" "$TARGET_DIR/.github/workflows/"
+    INSTALLED_CI="true"
+    echo -e "  ${GREEN}Installed${NC}"
+else
+    echo -e "  ${YELLOW}Skipped${NC}"
+fi
+echo ""
+
+# Tier 3: Greptile Review (default N)
+echo "Tier 3 (Greptile Review):"
+echo "  - karimo-greptile-review.yml: Automated code review via Greptile"
+echo "  - Requires GREPTILE_API_KEY secret in your repository"
+echo ""
+read -p "Install Greptile review workflow? (y/N) " -n 1 -r GREPTILE_RESPONSE
+echo ""
+if [[ $GREPTILE_RESPONSE =~ ^[Yy]$ ]]; then
+    cp "$KARIMO_ROOT/.github/workflows/karimo-greptile-review.yml" "$TARGET_DIR/.github/workflows/"
+    INSTALLED_GREPTILE="true"
+    echo -e "  ${GREEN}Installed${NC}"
+else
+    echo -e "  ${YELLOW}Skipped${NC}"
+fi
+echo ""
 
 # Copy issue template
 echo "Copying issue template..."
@@ -176,6 +223,15 @@ This project uses KARIMO for autonomous development.
 - `/karimo:feedback` — Quick capture of single learnings
 - `/karimo:learn` — Deep learning cycle with investigation
 
+### Workflows
+
+| Workflow | Tier | Status |
+|----------|------|--------|
+| karimo-sync.yml | 1 (Required) | Installed |
+| karimo-dependency-watch.yml | 1 (Required) | Installed |
+| karimo-ci-integration.yml | 2 (CI) | WORKFLOW_CI_STATUS |
+| karimo-greptile-review.yml | 3 (Greptile) | WORKFLOW_GREPTILE_STATUS |
+
 **Rules:** See `.claude/KARIMO_RULES.md` for agent behavior rules
 
 ## KARIMO Learnings
@@ -190,6 +246,22 @@ _No patterns captured yet._
 
 _No anti-patterns captured yet._
 EOF
+
+    # Replace workflow status placeholders
+    if [ "$INSTALLED_CI" = "true" ]; then
+        sed -i.bak 's/WORKFLOW_CI_STATUS/Installed/' "$CLAUDE_MD"
+    else
+        sed -i.bak 's/WORKFLOW_CI_STATUS/Not installed/' "$CLAUDE_MD"
+    fi
+
+    if [ "$INSTALLED_GREPTILE" = "true" ]; then
+        sed -i.bak 's/WORKFLOW_GREPTILE_STATUS/Installed/' "$CLAUDE_MD"
+    else
+        sed -i.bak 's/WORKFLOW_GREPTILE_STATUS/Not installed/' "$CLAUDE_MD"
+    fi
+
+    # Clean up backup file created by sed
+    rm -f "${CLAUDE_MD}.bak"
 
     if [ -f "$CLAUDE_MD" ] && [ $(wc -c < "$CLAUDE_MD") -gt 100 ]; then
         echo "  Added KARIMO reference block to existing CLAUDE.md"
@@ -214,6 +286,15 @@ else
     echo ".worktrees/" >> "$GITIGNORE"
 fi
 
+# Count installed workflows
+WORKFLOW_COUNT=2
+if [ "$INSTALLED_CI" = "true" ]; then
+    WORKFLOW_COUNT=$((WORKFLOW_COUNT + 1))
+fi
+if [ "$INSTALLED_GREPTILE" = "true" ]; then
+    WORKFLOW_COUNT=$((WORKFLOW_COUNT + 1))
+fi
+
 echo
 echo -e "${GREEN}╭──────────────────────────────────────────────────────────────╮${NC}"
 echo -e "${GREEN}│  Installation Complete!                                      │${NC}"
@@ -225,15 +306,31 @@ echo "  .claude/commands/         6 slash commands"
 echo "  .claude/skills/           5 skill definitions"
 echo "  .claude/KARIMO_RULES.md   Agent behavior rules"
 echo "  .karimo/templates/        7 templates"
-echo "  .github/workflows/        3 GitHub Actions"
 echo "  .github/ISSUE_TEMPLATE/   1 issue template"
 echo "  CLAUDE.md                 Updated with reference block"
 echo "  .gitignore                Updated with .worktrees/"
+echo
+echo "Workflows installed: ${WORKFLOW_COUNT}"
+echo "  Tier 1 (Required):"
+echo "    - karimo-sync.yml"
+echo "    - karimo-dependency-watch.yml"
+if [ "$INSTALLED_CI" = "true" ]; then
+    echo "  Tier 2 (CI Integration):"
+    echo "    - karimo-ci-integration.yml"
+fi
+if [ "$INSTALLED_GREPTILE" = "true" ]; then
+    echo "  Tier 3 (Greptile Review):"
+    echo "    - karimo-greptile-review.yml"
+fi
 echo
 echo "Next steps:"
 echo "  1. Run '/karimo:plan' to create your first PRD"
 echo "  2. Run '/karimo:execute --prd {slug}' to start execution"
 echo "  3. Run '/karimo:feedback' for quick single-rule capture"
 echo "  4. Run '/karimo:learn' for periodic deep learning cycles"
+if [ "$INSTALLED_GREPTILE" = "true" ]; then
+    echo ""
+    echo -e "${YELLOW}Note: Add GREPTILE_API_KEY to your repository secrets for Greptile review.${NC}"
+fi
 echo
 echo "For more information, see: https://github.com/opensesh/KARIMO"
