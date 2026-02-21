@@ -194,7 +194,14 @@ Each PRD folder contains a `status.json` file that tracks execution state. This 
 | `error` | string | Error message (if failed) |
 | `conflict_files` | string[] | Conflicting files (if needs-human-rebase) |
 | `blocked_by` | string[] | Task IDs blocking this task |
-| `revision_count` | number | Number of revision attempts (Phase 2) |
+| `revision_count` | number | Number of Greptile revision attempts |
+| `greptile_scores` | number[] | Score from each Greptile review (0–5 scale) |
+| `model_escalated` | boolean | Whether the model was upgraded during revision |
+| `original_model` | string | Model initially assigned ("sonnet" or "opus") |
+| `current_model` | string | Model currently assigned after any escalation |
+| `escalation_reason` | string | Why the model was escalated |
+| `block_reason` | string | Why the task was blocked |
+| `blocked_at` | ISO datetime | When task was blocked |
 | `paused_at` | ISO datetime | When task was paused (if paused) |
 | `paused_reason` | string | Reason for pause ("usage_limit", "stall", "manual") |
 
@@ -226,6 +233,7 @@ Each PRD folder contains a `status.json` file that tracks execution state. This 
 | `paused` | Execution paused (usage limit, stall, or manual) |
 | `in-review` | PR created, awaiting review/merge |
 | `needs-revision` | Review requested changes (Phase 2) |
+| `needs-human-review` | Failed 3 Greptile attempts, requires human intervention |
 | `done` | PR merged successfully |
 | `failed` | Execution failed (see error field) |
 | `needs-human-rebase` | Merge conflicts require manual resolution |
@@ -262,7 +270,9 @@ draft ──► ready ──► approved ──► active ──► complete
 ```
 approved ──► queued ──► blocked ──► running ──► in-review ──► done
     │                       │          │            │
-    │                       │          │            └──► needs-revision ──► running
+    │                       │          │            └──► needs-revision ──► running (retry)
+    │                       │          │                       │
+    │                       │          │                       └──► needs-human-review (after 3 failed attempts)
     │                       │          │
     │                       │          └──► paused ──► running (resume)
     │                       │          │
@@ -290,6 +300,34 @@ approved ──► queued ──► blocked ──► running ──► in-revie
     "error": "Build failed: Type error in src/components/ProfileForm.tsx:42",
     "model": "opus",
     "loop_count": 5
+  }
+}
+```
+
+---
+
+## Example: Needs Human Review (Greptile Hard Gate)
+
+```json
+{
+  "2a": {
+    "status": "needs-human-review",
+    "issue_number": 102,
+    "pr_number": 44,
+    "branch": "feature/user-profiles/2a",
+    "worktree": ".worktrees/user-profiles/2a",
+    "worktree_status": "active",
+    "started_at": "2026-02-19T10:46:00Z",
+    "blocked_at": "2026-02-19T11:30:00Z",
+    "revision_count": 3,
+    "greptile_scores": [2, 1, 2],
+    "model_escalated": true,
+    "original_model": "sonnet",
+    "current_model": "opus",
+    "escalation_reason": "Greptile flagged architectural integration issues",
+    "block_reason": "Failed 3 Greptile review attempts",
+    "model": "opus",
+    "loop_count": 4
   }
 }
 ```
