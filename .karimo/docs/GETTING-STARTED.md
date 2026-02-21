@@ -180,29 +180,18 @@ This appends rules to `CLAUDE.md` for future agents.
 
 ---
 
-## Configuration (Optional)
+## Configuration
 
-Create `.karimo/config.yaml` to customize behavior:
+Configuration is stored in `CLAUDE.md` and auto-detected on your first `/karimo:plan`.
 
-```yaml
-project:
-  name: "my-project"
+The investigator agent scans your project for:
+- **Runtime** — Node.js, Bun, Deno, Python, etc.
+- **Framework** — Next.js, React, Vue, FastAPI, etc.
+- **Package manager** — npm, yarn, pnpm, bun
+- **Commands** — build, lint, test, typecheck from package.json
+- **Boundaries** — Lock files, .env files, migrations, auth directories
 
-commands:
-  build: "npm run build"
-  lint: "npm run lint"
-  test: "npm test"
-  typecheck: "npm run typecheck"
-
-boundaries:
-  never_touch:
-    - "*.lock"
-    - ".env*"
-  require_review:
-    - "src/auth/*"
-```
-
-See [CONFIG-REFERENCE.md](CONFIG-REFERENCE.md) for all options.
+You can review and edit the detected values before they're saved.
 
 ---
 
@@ -310,5 +299,4 @@ KARIMO creates worktrees in `.worktrees/{prd-slug}/{task-id}/`. This is separate
 |------|---------------|
 | Learn about adoption phases | [PHASES.md](PHASES.md) |
 | Explore slash commands | [COMMANDS.md](COMMANDS.md) |
-| Configure your project | [CONFIG-REFERENCE.md](CONFIG-REFERENCE.md) |
 | Understand safeguards | [SAFEGUARDS.md](SAFEGUARDS.md) |

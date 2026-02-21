@@ -51,13 +51,12 @@ Add automated code review to your workflow:
 
 ## Configuration
 
-KARIMO configuration lives in `.karimo/config.yaml`. For full reference, see [docs/CONFIG-REFERENCE.md](.karimo/docs/CONFIG-REFERENCE.md).
+KARIMO configuration lives in this file (CLAUDE.md). On first `/karimo:plan`, the investigator agent auto-detects project context and populates the sections below.
 
-Key settings:
-- **boundaries.never_touch** — Files agents must not modify
-- **boundaries.require_review** — Files flagged for human review
-- **commands.build/lint/test** — Validation commands
-- **execution.max_parallel** — Concurrent agent limit
+Key settings (stored in sections above):
+- **Project Context** — Runtime, framework, package manager
+- **Commands** — Build, lint, test, typecheck commands
+- **Boundaries** — Files agents must not touch or must flag for review
 
 ---
 

@@ -293,7 +293,7 @@ boundaries:
     - "src/auth/*"
 ```
 
-See [CONFIG-REFERENCE.md](CONFIG-REFERENCE.md) for full documentation.
+Configuration is auto-detected by the investigator agent on first `/karimo:plan` and stored in `CLAUDE.md`.
 
 ---
 
@@ -339,4 +339,3 @@ See [COMPOUND-LEARNING.md](COMPOUND-LEARNING.md) for full documentation.
 | [COMMANDS.md](COMMANDS.md) | Slash command reference |
 | [SAFEGUARDS.md](SAFEGUARDS.md) | Worktrees, validation, Greptile |
 | [COMPOUND-LEARNING.md](COMPOUND-LEARNING.md) | Two-layer learning system |
-| [CONFIG-REFERENCE.md](CONFIG-REFERENCE.md) | Full configuration guide |

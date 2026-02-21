@@ -239,4 +239,3 @@ Each learn cycle builds on previous ones:
 |----------|---------|
 | [COMPOUND-LEARNING.md](.karimo/docs/COMPOUND-LEARNING.md) | Two-scope learning system |
 | [ARCHITECTURE.md](.karimo/docs/ARCHITECTURE.md) | System design |
-| [CONFIG-REFERENCE.md](.karimo/docs/CONFIG-REFERENCE.md) | Configuration guide |

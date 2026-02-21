@@ -117,7 +117,6 @@ Documentation lives in `.karimo/docs/`:
 | `GETTING-STARTED.md` | Installation and first PRD |
 | `SAFEGUARDS.md` | Code integrity, security, Greptile |
 | `COMPOUND-LEARNING.md` | Learning system |
-| `CONFIG-REFERENCE.md` | Configuration options |
 | `DASHBOARD.md` | Dashboard spec (Phase 3) |
 
 Keep documentation concise and focused on the "what" and "how" — avoid lengthy explanations of "why" unless critical.

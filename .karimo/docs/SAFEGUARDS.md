@@ -469,4 +469,3 @@ Triggered when KARIMO PR is merged:
 | [ARCHITECTURE.md](ARCHITECTURE.md) | System design |
 | [PHASES.md](PHASES.md) | Adoption phases |
 | [GETTING-STARTED.md](GETTING-STARTED.md) | Installation walkthrough |
-| [CONFIG-REFERENCE.md](CONFIG-REFERENCE.md) | Configuration guide |
