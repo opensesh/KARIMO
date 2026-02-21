@@ -1,7 +1,7 @@
 # Status Schema Reference
 
-**Version:** 2.0
-**Purpose:** Document the `status.json` format used by KARIMO v2
+**Version:** 2.1
+**Purpose:** Document the `status.json` format used by KARIMO v2.1
 **Location:** `.karimo/prds/{slug}/status.json`
 
 ---
@@ -41,6 +41,7 @@ Each PRD folder contains a `status.json` file that tracks execution state. This 
   "github_project_url": "https://github.com/orgs/opensesh/projects/42",
   "github_project_number": 42,
   "feature_branch": "feature/user-profiles",
+  "reconciliation_status": "pending",
 
   "tasks": {
     "1a": {
@@ -49,8 +50,11 @@ Each PRD folder contains a `status.json` file that tracks execution state. This 
       "pr_number": 42,
       "branch": "feature/user-profiles/1a",
       "worktree": ".worktrees/user-profiles/1a",
+      "worktree_status": "cleaned",
+      "worktree_created_at": "2026-02-19T10:31:00Z",
       "started_at": "2026-02-19T10:31:00Z",
       "completed_at": "2026-02-19T10:45:00Z",
+      "merged_at": "2026-02-19T10:55:00Z",
       "model": "sonnet",
       "loop_count": 2
     },
@@ -60,6 +64,8 @@ Each PRD folder contains a `status.json` file that tracks execution state. This 
       "pr_number": 43,
       "branch": "feature/user-profiles/1b",
       "worktree": ".worktrees/user-profiles/1b",
+      "worktree_status": "active",
+      "worktree_created_at": "2026-02-19T10:32:00Z",
       "started_at": "2026-02-19T10:32:00Z",
       "completed_at": "2026-02-19T10:50:00Z",
       "model": "sonnet",
@@ -70,6 +76,8 @@ Each PRD folder contains a `status.json` file that tracks execution state. This 
       "issue_number": 102,
       "branch": "feature/user-profiles/2a",
       "worktree": ".worktrees/user-profiles/2a",
+      "worktree_status": "active",
+      "worktree_created_at": "2026-02-19T10:46:00Z",
       "started_at": "2026-02-19T10:46:00Z",
       "model": "opus",
       "loop_count": 1
@@ -104,6 +112,9 @@ Each PRD folder contains a `status.json` file that tracks execution state. This 
   "github_project_url": "https://github.com/orgs/opensesh/projects/42",
   "github_project_number": 42,
   "feature_branch": "feature/user-profiles",
+  "feature_pr_number": 50,
+  "feature_merged_at": "2026-02-19T13:00:00Z",
+  "reconciliation_status": "passed",
 
   "summary": {
     "total_tasks": 6,
@@ -111,7 +122,8 @@ Each PRD folder contains a `status.json` file that tracks execution state. This 
     "failed": 0,
     "total_loops": 12,
     "model_upgrades": 1,
-    "duration_minutes": 135
+    "duration_minutes": 135,
+    "runtime_dependencies_discovered": 2
   },
 
   "tasks": {
@@ -120,6 +132,7 @@ Each PRD folder contains a `status.json` file that tracks execution state. This 
       "issue_number": 100,
       "pr_number": 42,
       "merged_at": "2026-02-19T11:00:00Z",
+      "worktree_status": "cleaned",
       "model": "sonnet",
       "loop_count": 2
     }
@@ -144,6 +157,9 @@ Each PRD folder contains a `status.json` file that tracks execution state. This 
 | `github_project_url` | string | URL to GitHub Project board |
 | `github_project_number` | number | GitHub Project number |
 | `feature_branch` | string | Main feature branch name |
+| `feature_pr_number` | number | Feature PR to main (v2.1) |
+| `feature_merged_at` | ISO datetime | When feature PR merged to main (v2.1) |
+| `reconciliation_status` | string | Feature reconciliation status (v2.1) |
 | `summary` | object | Completion summary (only when complete) |
 | `tasks` | object | Map of task ID → task state |
 
@@ -168,6 +184,8 @@ Each PRD folder contains a `status.json` file that tracks execution state. This 
 | `pr_number` | number | Pull request number (when created) |
 | `branch` | string | Git branch name |
 | `worktree` | string | Worktree path (while active) |
+| `worktree_status` | string | Worktree lifecycle status (v2.1) |
+| `worktree_created_at` | ISO datetime | When worktree was created (v2.1) |
 | `started_at` | ISO datetime | When task execution started |
 | `completed_at` | ISO datetime | When task finished |
 | `merged_at` | ISO datetime | When PR was merged |
@@ -179,6 +197,22 @@ Each PRD folder contains a `status.json` file that tracks execution state. This 
 | `revision_count` | number | Number of revision attempts (Phase 2) |
 | `paused_at` | ISO datetime | When task was paused (if paused) |
 | `paused_reason` | string | Reason for pause ("usage_limit", "stall", "manual") |
+
+### Worktree Status Values (v2.1)
+
+| Status | Meaning |
+|--------|---------|
+| `active` | Worktree exists and is in use |
+| `pending-cleanup` | PR merged, cleanup scheduled |
+| `cleaned` | Worktree has been removed |
+
+### Reconciliation Status Values (v2.1)
+
+| Status | Meaning |
+|--------|---------|
+| `pending` | Awaiting Review/Architect reconciliation |
+| `passed` | Reconciliation checklist passed |
+| `failed` | Reconciliation found issues |
 
 ### Task Status Values
 
