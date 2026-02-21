@@ -23,6 +23,7 @@ scope_type: ""             # new-feature | refactor | migration | integration
 github_project: ""         # Link to GitHub Project board (filled by /karimo:execute)
 links: []                  # Figma, Miro, docs, research URLs
 checkpoint_refs: []        # IDs of checkpoints consulted during Round 5
+cross_feature_blockers: [] # Features that must be merged to main before this PRD executes
 ---
 ```
 
@@ -120,6 +121,16 @@ checkpoint_refs: []        # IDs of checkpoints consulted during Round 5
 ---
 
 ## 6. Dependencies & Risks
+
+### Cross-Feature Blockers
+
+> **KARIMO operates one PRD per feature branch.** If this feature depends on another feature that isn't merged to main yet, list it here. The PM Agent validates these blockers before execution starts.
+
+| Feature | Status | Notes |
+| ------- | ------ | ----- |
+| Feature name/slug | Merged / In Progress / Not Started | When expected, workaround if delayed |
+
+_Leave empty if no cross-feature dependencies exist._
 
 ### External Blockers
 
