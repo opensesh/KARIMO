@@ -1,0 +1,251 @@
+# KARIMO CI Integration (Tier 2)
+#
+# This workflow OBSERVES your existing CI pipelines instead of running its own
+# build/lint/test commands. It waits for all external checks to complete, then
+# applies labels based on the overall status.
+#
+# Detection approach: Hybrid (Check Runs API + Combined Status API)
+# - Check Runs API: GitHub Actions, modern CI, GitHub Apps
+# - Combined Status API: Legacy external CI (Jenkins, Travis, CircleCI)
+#
+# Labels applied:
+# - ci-passed: All external CI checks passed
+# - ci-failed: One or more CI checks failed
+# - ci-skipped: No external CI detected
+
+name: KARIMO CI Integration
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, labeled]
+
+jobs:
+  check-karimo:
+    runs-on: ubuntu-latest
+    outputs:
+      should-run: ${{ steps.check.outputs.should-run }}
+    steps:
+      - name: Check for karimo label
+        id: check
+        run: |
+          if [[ "${{ contains(github.event.pull_request.labels.*.name, 'karimo') }}" == "true" ]]; then
+            echo "should-run=true" >> $GITHUB_OUTPUT
+          else
+            echo "should-run=false" >> $GITHUB_OUTPUT
+          fi
+
+  wait-for-ci:
+    needs: check-karimo
+    if: needs.check-karimo.outputs.should-run == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+      checks: read
+      statuses: read
+
+    steps:
+      - name: Initial Wait
+        run: |
+          echo "Waiting 5 seconds for CI checks to register..."
+          sleep 5
+
+      - name: Poll CI Status
+        id: poll
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const MAX_WAIT_MS = 30 * 60 * 1000; // 30 minutes
+            const POLL_INTERVAL_MS = 15 * 1000; // 15 seconds
+            const startTime = Date.now();
+
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const ref = context.payload.pull_request.head.sha;
+
+            // Patterns to identify KARIMO workflows (self-exclusion)
+            const KARIMO_PATTERNS = [/^KARIMO/i, /karimo-/i, /^karimo$/i];
+            const isKarimo = (name) => KARIMO_PATTERNS.some(p => p.test(name));
+
+            console.log(`Polling CI status for ref: ${ref}`);
+            console.log(`Max wait: ${MAX_WAIT_MS / 1000 / 60} minutes`);
+
+            while (Date.now() - startTime < MAX_WAIT_MS) {
+              const elapsed = Math.round((Date.now() - startTime) / 1000);
+              console.log(`\n[${elapsed}s] Checking CI status...`);
+
+              // Fetch check runs (GitHub Actions, modern CI)
+              const { data: checkRuns } = await github.rest.checks.listForRef({
+                owner, repo, ref, per_page: 100
+              });
+
+              // Fetch combined status (legacy CI: Jenkins, Travis, etc.)
+              const { data: combined } = await github.rest.repos.getCombinedStatusForRef({
+                owner, repo, ref
+              });
+
+              // Filter out KARIMO workflows
+              const extChecks = checkRuns.check_runs.filter(c => !isKarimo(c.name));
+              const extStatuses = combined.statuses.filter(s => !isKarimo(s.context));
+
+              console.log(`Found ${extChecks.length} external check runs, ${extStatuses.length} external statuses`);
+
+              // No external CI detected
+              if (extChecks.length === 0 && extStatuses.length === 0) {
+                console.log('No external CI checks detected');
+                core.setOutput('status', 'no-ci');
+                return;
+              }
+
+              // Log current status of each check
+              extChecks.forEach(c => {
+                console.log(`  Check: ${c.name} - ${c.status} / ${c.conclusion || 'pending'}`);
+              });
+              extStatuses.forEach(s => {
+                console.log(`  Status: ${s.context} - ${s.state}`);
+              });
+
+              // Count pending checks
+              const pendingChecks = extChecks.filter(c => c.status !== 'completed').length;
+              const pendingStatuses = extStatuses.filter(s => s.state === 'pending').length;
+              const totalPending = pendingChecks + pendingStatuses;
+
+              if (totalPending === 0) {
+                // All checks complete - determine overall status
+                const failedChecks = extChecks.filter(c =>
+                  !['success', 'skipped', 'neutral'].includes(c.conclusion)
+                ).length;
+                const failedStatuses = extStatuses.filter(s =>
+                  ['failure', 'error'].includes(s.state)
+                ).length;
+                const totalFailed = failedChecks + failedStatuses;
+
+                if (totalFailed > 0) {
+                  console.log(`CI failed: ${totalFailed} check(s) did not pass`);
+                  core.setOutput('status', 'failed');
+                } else {
+                  console.log('All CI checks passed');
+                  core.setOutput('status', 'passed');
+                }
+                return;
+              }
+
+              console.log(`${totalPending} check(s) still pending, waiting ${POLL_INTERVAL_MS / 1000}s...`);
+              await new Promise(r => setTimeout(r, POLL_INTERVAL_MS));
+            }
+
+            // Timeout reached
+            console.log('Timeout reached waiting for CI checks');
+            core.setOutput('status', 'timeout');
+
+      - name: Apply Labels
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const status = '${{ steps.poll.outputs.status }}';
+            const pr = context.payload.pull_request.number;
+
+            console.log(`Applying label for status: ${status}`);
+
+            // Determine which label to apply
+            let label;
+            if (status === 'passed') {
+              label = 'ci-passed';
+            } else if (status === 'no-ci') {
+              label = 'ci-skipped';
+            } else {
+              // failed or timeout
+              label = 'ci-failed';
+            }
+
+            // Remove any existing CI labels
+            const ciLabels = ['ci-passed', 'ci-failed', 'ci-skipped'];
+            for (const l of ciLabels) {
+              try {
+                await github.rest.issues.removeLabel({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: pr,
+                  name: l
+                });
+                console.log(`Removed label: ${l}`);
+              } catch (e) {
+                // Label might not exist, that's fine
+              }
+            }
+
+            // Add the new label
+            await github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: pr,
+              labels: [label]
+            });
+            console.log(`Added label: ${label}`);
+
+      - name: Post No-CI Comment
+        if: steps.poll.outputs.status == 'no-ci'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const prNumber = context.payload.pull_request.number;
+
+            // Check if we've already posted this comment
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber
+            });
+
+            const marker = 'No external CI checks detected';
+            if (comments.find(c => c.body.includes(marker))) {
+              console.log('No-CI comment already posted, skipping');
+              return;
+            }
+
+            const body = `## KARIMO CI Integration
+
+**No external CI checks detected.**
+
+KARIMO observes your existing CI workflows (GitHub Actions, CircleCI, Jenkins, etc.) and labels PRs based on their status. Since no external CI was found, this PR has been labeled \`ci-skipped\`.
+
+Once you add CI workflows to your repository, KARIMO will automatically:
+- Wait for all checks to complete
+- Apply \`ci-passed\` or \`ci-failed\` labels
+
+*This workflow never runs build commands — it only observes.*`;
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+              body: body
+            });
+            console.log('Posted no-CI information comment');
+
+      - name: Post Timeout Comment
+        if: steps.poll.outputs.status == 'timeout'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const prNumber = context.payload.pull_request.number;
+
+            const body = `## KARIMO CI Integration
+
+**CI check timeout.**
+
+KARIMO waited 30 minutes for external CI checks to complete, but some checks are still pending. This PR has been labeled \`ci-failed\` due to timeout.
+
+Please check:
+- Are all CI workflows running correctly?
+- Are there any stuck or queued jobs?
+
+Once CI completes, push a new commit to re-trigger this check.`;
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+              body: body
+            });
+            console.log('Posted timeout comment');
