@@ -331,48 +331,68 @@ PR Created → karimo-review.yml triggers
                     │
             ┌───────┴───────┐
             │               │
-        Score ≥ 4      Score < 4
+        Score ≥ 3      Score < 3
             │               │
             ▼               ▼
     Add label:        Add label:
     review-passed     needs-revision
             │               │
             ▼               ▼
-    Integration      Agent reads
-    checks run       feedback
-                          │
-                          ▼
-                     Revises code
-                          │
-                          ▼
-                     Updates PR
-                          │
-                     (max 3 attempts)
+    Integration      Revision loop
+    checks run       (see below)
 ```
 
 ### Score Interpretation
 
+Greptile uses a **0-5 scale**:
+
 | Score | Meaning | Action |
 |-------|---------|--------|
-| 4-5 | Good | Proceed to integration |
-| 3 | Acceptable | Review flagged issues |
-| 1-2 | Needs work | Automatic revision loop |
+| 3-5 | Passes | Proceed to integration |
+| 0-2 | Needs work | Enters revision loop |
 
-### Revision Loop Mechanics
+### Revision Loop Protocol
 
-When Greptile scores a PR below 4, KARIMO enters a revision loop:
+When Greptile scores a PR below 3, KARIMO enters a revision loop:
 
-1. Agent reads Greptile feedback
+**Attempt 1:**
+1. Task agent reads Greptile feedback
 2. Analyzes specific issues flagged
 3. Makes targeted fixes
 4. Updates PR with new commit
 5. Greptile re-reviews
 
-**Loop awareness:**
-- Maximum 5 loops per task before human intervention required
-- Stall detection triggers after 3 loops without progress
-- Model upgrade (Sonnet → Opus) may be attempted on stall
-- After loop limit exhausted → mark for human review
+**After First Failure:**
+- PM Agent autonomously escalates model (Sonnet → Opus)
+- No human intervention required
+- Continues revision loop with upgraded model
+
+**After 3 Failed Attempts (Hard Gate):**
+- Task status changes to `needs-human-review`
+- PR receives `blocked-needs-human` label
+- Task removed from active execution queue
+- Human must review and unblock
+
+**Model Escalation Rules:**
+- Model upgrade happens after first failure
+- If task was already Opus (complexity ≥ 5), no escalation possible
+- Escalation reason logged in status.json for learning
+
+```
+Attempt 1 → Fail (score < 3)
+    │
+    ▼
+Escalate model (Sonnet → Opus)
+    │
+    ▼
+Attempt 2 → Fail (score < 3)
+    │
+    ▼
+Attempt 3 → Fail (score < 3)
+    │
+    ▼
+HARD GATE: needs-human-review
+```
 
 ### Setup
 
