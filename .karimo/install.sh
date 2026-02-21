@@ -222,6 +222,7 @@ This project uses KARIMO for autonomous development.
 - `/karimo:review` — Cross-PRD dashboard and PRD approval
 - `/karimo:execute` — Run tasks from PRD
 - `/karimo:status` — View execution state
+- `/karimo:configure` — Create or update configuration
 - `/karimo:feedback` — Quick capture of single learnings
 - `/karimo:learn` — Deep learning cycle with investigation
 - `/karimo:doctor` — Check installation health and diagnose issues
