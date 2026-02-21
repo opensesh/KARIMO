@@ -53,6 +53,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Missing `karimo-review-architect.md` agent copy
 - Missing `review.md` command copy
 - Summary showed "5 agents" but 7 existed (now correctly shows 10)
+- Missing `/karimo:review` in CLAUDE.md template slash commands section
 
 ---
 
