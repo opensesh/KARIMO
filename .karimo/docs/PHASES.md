@@ -46,6 +46,17 @@ This is where everyone starts. Phase 1 provides everything needed to go from ide
   - Feature branches per task
   - PRs created automatically
 
+- **Code Integration** (v2.1)
+  - Review/Architect Agent validates task PRs
+  - Two-tier merge model (task→feature→main)
+  - Merge conflict resolution
+  - Feature reconciliation before merge to main
+
+- **Runtime Dependencies** (v2.1)
+  - Task agents can discover new dependencies
+  - Dependency Watch workflow notifies PM Agent
+  - Urgent dependencies get immediate attention
+
 - **GitHub Integration**
   - Issues created for tasks
   - GitHub Projects tracking
@@ -93,6 +104,12 @@ Phase 2 adds Greptile integration for automated code review. This enables:
   - Automated review on PR open
   - Score-based assessment
   - Detailed feedback comments
+
+- **Review/Architect + Greptile Coordination** (v2.1)
+  - Review/Architect validates integration first
+  - Then Greptile reviews code quality
+  - Architectural issues escalated to PM Agent
+  - Code quality issues trigger revision loops
 
 - **Agentic Revision Loops**
   - Score < 4 triggers revision
@@ -161,6 +178,9 @@ See [DASHBOARD.md](DASHBOARD.md) for the planned specification.
 | Automatic PRs | Yes | Yes | Yes |
 | GitHub Issues | Yes | Yes | Yes |
 | Manual Review | Yes | Yes | Yes |
+| Review/Architect Agent | Yes | Yes | Yes |
+| Two-Tier Merge Model | Yes | Yes | Yes |
+| Runtime Dependencies | Yes | Yes | Yes |
 | Greptile Review | — | Yes | Yes |
 | Revision Loops | — | Yes | Yes |
 | Dashboard | — | — | Yes |
