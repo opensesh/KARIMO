@@ -126,6 +126,8 @@ This copies:
 - GitHub Actions to `.github/workflows/`
 - Reference block appended to `CLAUDE.md`
 
+To update an existing installation, run `bash KARIMO/.karimo/update.sh /path/to/your/project`.
+
 ### 2. Create Your First PRD
 
 ```bash
