@@ -112,9 +112,10 @@ Phase 2 adds Greptile integration for automated code review. This enables:
   - Code quality issues trigger revision loops
 
 - **Agentic Revision Loops**
-  - Score < 4 triggers revision
+  - Score < 3 triggers revision (0-5 scale)
   - Agent reads feedback, fixes issues
-  - Retry until passing or budget exhausted
+  - Model escalation (Sonnet → Opus) after first failure
+  - Hard gate after 3 failed attempts (needs-human-review)
 
 - **Review Workflow**
   - `karimo-review.yml` triggers Greptile
@@ -139,21 +140,35 @@ Greptile acts as a force multiplier — catching issues before human review and 
 
 ### How Revision Loops Work
 
+Greptile uses a **0-5 scale**. Score ≥ 3 passes, < 3 enters revision loop.
+
 ```
 Task Complete → PR Created → Greptile Review
                                    │
                     ┌──────────────┴──────────────┐
                     │                             │
-                Score ≥ 4                    Score < 4
+                Score ≥ 3                    Score < 3
                     │                             │
                     ▼                             ▼
-             Integration             Agent reads feedback
-                Checks               Revises code
-                    │                Updates PR
-                    ▼                     │
-               Ready to              ────►│
-                Merge                     │
-                                    (max 3 attempts)
+             Integration             Attempt 1: Revise code
+                Checks                    │
+                    │              ┌──────┴──────┐
+                    ▼              │             │
+               Ready to         Pass          Fail
+                Merge             │             │
+                                  ▼             ▼
+                             Integration   Escalate model
+                                Checks     (Sonnet → Opus)
+                                                │
+                                           Attempts 2-3
+                                                │
+                                         ┌──────┴──────┐
+                                         │             │
+                                       Pass          Fail
+                                         │             │
+                                         ▼             ▼
+                                    Integration   HARD GATE
+                                       Checks    needs-human-review
 ```
 
 ---
