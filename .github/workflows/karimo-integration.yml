@@ -40,13 +40,14 @@ jobs:
       - name: Load KARIMO Config
         id: config
         run: |
-          # Check for config file
-          if [ -f ".karimo/config.yaml" ]; then
-            # Extract commands using yq or simple grep
-            BUILD_CMD=$(grep -A1 "^commands:" .karimo/config.yaml | grep "build:" | sed 's/.*build: *//' | tr -d '"')
-            LINT_CMD=$(grep -A2 "^commands:" .karimo/config.yaml | grep "lint:" | sed 's/.*lint: *//' | tr -d '"')
-            TEST_CMD=$(grep -A3 "^commands:" .karimo/config.yaml | grep "test:" | sed 's/.*test: *//' | tr -d '"')
-            TYPECHECK_CMD=$(grep -A4 "^commands:" .karimo/config.yaml | grep "typecheck:" | sed 's/.*typecheck: *//' | tr -d '"')
+          # Check for CLAUDE.md with Commands table
+          if [ -f "CLAUDE.md" ] && grep -q "### Commands" CLAUDE.md; then
+            # Extract commands from CLAUDE.md markdown table
+            # Table format: | Type | Command |
+            BUILD_CMD=$(grep -A10 "### Commands" CLAUDE.md | grep "| Build |" | sed 's/.*| Build | *//' | sed 's/ *|.*//' | tr -d '`')
+            LINT_CMD=$(grep -A10 "### Commands" CLAUDE.md | grep "| Lint |" | sed 's/.*| Lint | *//' | sed 's/ *|.*//' | tr -d '`')
+            TEST_CMD=$(grep -A10 "### Commands" CLAUDE.md | grep "| Test |" | sed 's/.*| Test | *//' | sed 's/ *|.*//' | tr -d '`')
+            TYPECHECK_CMD=$(grep -A10 "### Commands" CLAUDE.md | grep "| Typecheck |" | sed 's/.*| Typecheck | *//' | sed 's/ *|.*//' | tr -d '`')
 
             echo "build-cmd=${BUILD_CMD:-npm run build}" >> $GITHUB_OUTPUT
             echo "lint-cmd=${LINT_CMD:-npm run lint}" >> $GITHUB_OUTPUT
