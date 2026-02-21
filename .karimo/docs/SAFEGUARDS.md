@@ -120,13 +120,25 @@ KARIMO uses Git worktrees to isolate task execution. Each task runs in its own w
 | Feature branch | `feature/{prd-slug}` | `feature/user-profiles` |
 | Task branch | `feature/{prd-slug}/{task-id}` | `feature/user-profiles/1a` |
 
-### Worktree Lifecycle
+### Worktree Lifecycle (v2.1)
 
 1. **Create**: PM Agent creates worktree when task starts
 2. **Work**: Task agent executes in isolated directory
 3. **Validate**: Pre-PR checks run in worktree
 4. **PR**: Created from task branch
-5. **Cleanup**: Worktree removed after PR creation
+5. **Persist**: Worktree retained through review cycles
+6. **Cleanup**: Worktree removed after PR **merged** (not just created)
+
+**Why persist until merge?** Tasks may need revision based on Greptile feedback or integration issues. Keeping the worktree avoids recreation overhead and preserves build caches.
+
+### TTL Policies
+
+| Scenario | TTL | Action |
+|----------|-----|--------|
+| PR merged | Immediate | Remove worktree |
+| PR closed | 24 hours | Remove worktree |
+| Stale worktree | 7 days | Remove worktree |
+| Execution paused | 30 days | Remove worktree |
 
 ### Benefits
 
@@ -134,6 +146,7 @@ KARIMO uses Git worktrees to isolate task execution. Each task runs in its own w
 - **No contamination**: Task changes don't affect each other
 - **Clean state**: Each task starts from clean branch
 - **Easy recovery**: Failed tasks don't affect main branch
+- **Revision support**: Worktrees persist for Greptile revision loops
 
 ---
 
@@ -150,6 +163,34 @@ Before creating a PR, KARIMO runs validation checks using your configured comman
 | Lint | `commands.lint` | If configured |
 | Test | `commands.test` | If configured |
 
+### Two-Tier Merge Model (v2.1)
+
+KARIMO uses a two-tier merge strategy with the Review/Architect Agent:
+
+```
+Task PRs (automated)              Feature PR (human gate)
+─────────────────────             ──────────────────────
+
+task-branch-1a ─┐
+                ├──► feature/{prd-slug} ──► main
+task-branch-1b ─┘         ▲                  ▲
+                          │                  │
+              Review/Architect          Human Review
+              validates integration     final approval
+```
+
+**Tier 1: Task → Feature Branch (Automated)**
+- Task agents create PRs targeting `feature/{prd-slug}`
+- Review/Architect validates each task integrates cleanly
+- Greptile reviews code quality (Phase 2)
+- PRs merge after validation passes
+
+**Tier 2: Feature → Main (Human Gate)**
+- Review/Architect prepares feature PR to `main`
+- Full reconciliation checklist completed
+- Human reviews and approves final merge
+- This is the single human approval gate per feature
+
 ### Validation Flow
 
 ```
@@ -160,8 +201,8 @@ Task Complete → Rebase onto feature branch
            No Conflicts    Conflicts
                 │               │
                 ▼               ▼
-           Run build      Mark task as
-           + typecheck    needs-human-rebase
+           Run build      Review/Architect
+           + typecheck    resolves or escalates
                 │
         ┌───────┴───────┐
         │               │
@@ -169,8 +210,24 @@ Task Complete → Rebase onto feature branch
         │               │
         ▼               ▼
    Create PR      Mark task as
-                  pre-pr-failed
+        │         pre-pr-failed
+        ▼
+   Review/Architect
+   validates integration
 ```
+
+### Feature Reconciliation
+
+When all task PRs are merged, the Review/Architect performs:
+
+- [ ] Full build passes
+- [ ] Typecheck passes
+- [ ] Lint passes
+- [ ] Tests pass
+- [ ] No orphaned imports or dead code
+- [ ] Shared interfaces consistent across tasks
+- [ ] No boundary violations (`never_touch`)
+- [ ] `require_review` files flagged in PR
 
 ### Mandatory Rebase
 
