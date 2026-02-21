@@ -17,7 +17,7 @@ Display the current status of KARIMO PRDs and task execution.
 Read from:
 - `.karimo/prds/*/status.json` — All PRD execution states
 - GitHub Projects (if configured) — Live PR status
-- `.karimo/config.yaml` — Model configuration and project settings
+- `CLAUDE.md` — Project configuration and boundaries
 
 ### 2. Overview Display (No Arguments)
 
@@ -241,9 +241,9 @@ Create one with: /karimo:plan
 ### Config Missing
 
 ```
-⚠ No .karimo/config.yaml found.
+⚠ CLAUDE.md missing configuration sections.
 
-Using default model routing. Run: karimo init
+Run /karimo:plan to auto-detect project configuration.
 ```
 
 ### GitHub Not Authenticated
