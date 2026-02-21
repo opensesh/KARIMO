@@ -7,6 +7,39 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.6.0] - 2026-02-21
+
+### Added
+
+**`/karimo:overview` Command**
+- New cross-PRD oversight dashboard command
+- Shows blocked tasks, revision loops, rebase needs, and recent completions
+- Primary daily oversight touchpoint — check each morning or after execution runs
+- Supports `--blocked` flag to show only blocked tasks
+- Supports `--active` flag to show only active PRDs with progress
+
+### Changed
+
+**`/karimo:review` Refocused**
+- Now focuses solely on PRD approval workflow
+- Removed cross-PRD dashboard (moved to `/karimo:overview`)
+- Default behavior changed from dashboard to `--pending` mode (lists PRDs awaiting approval)
+- Updated command description and documentation throughout
+
+**Install Script Updates**
+- Added `overview.md` to commands copy section
+- Updated command count from 8 to 9
+- Updated CLAUDE.md template with `/karimo:overview` reference
+
+**Documentation Updates**
+- README.md: Updated slash commands table with overview/review split
+- CLAUDE.md: Updated slash commands table and installed components count
+- COMMANDS.md: Added /karimo:overview section, updated /karimo:review section
+- ARCHITECTURE.md: Updated directory structure and Human Oversight section
+- status.md: Added cross-reference to /karimo:overview for oversight visibility
+
+---
+
 ## [2.5.0] - 2026-02-21
 
 ### Added
