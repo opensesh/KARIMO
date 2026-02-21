@@ -1,6 +1,6 @@
 # KARIMO Architecture
 
-**Version:** 2.0
+**Version:** 2.1
 **Status:** Active
 
 ---
@@ -123,11 +123,39 @@ If the user already has a `## KARIMO Framework` section in their `CLAUDE.md`, `i
 ## System Flow
 
 ```
-┌──────────────┐    ┌───────────────┐    ┌────────────┐    ┌─────────────┐    ┌────────────┐    ┌───────────┐
-│   Interview  │ →  │   PRD + DAG   │ →  │   Approve  │ →  │   Execute   │ →  │   Review   │ →  │   Merge   │
-│  (/plan)     │    │  (generated)  │    │  (/review) │    │   (agents)  │    │ (Greptile) │    │   (PR)    │
-└──────────────┘    └───────────────┘    └────────────┘    └─────────────┘    └────────────┘    └───────────┘
+┌──────────────┐    ┌───────────────┐    ┌────────────┐    ┌─────────────┐    ┌────────────┐    ┌─────────────┐    ┌───────────┐
+│   Interview  │ →  │   PRD + DAG   │ →  │   Approve  │ →  │   Execute   │ →  │   Review   │ →  │ Reconcile   │ →  │   Merge   │
+│  (/plan)     │    │  (generated)  │    │  (/review) │    │   (agents)  │    │ (Greptile) │    │ (Architect) │    │   (PR)    │
+└──────────────┘    └───────────────┘    └────────────┘    └─────────────┘    └────────────┘    └─────────────┘    └───────────┘
 ```
+
+### Two-Tier Merge Model
+
+KARIMO uses a two-tier merge strategy:
+
+```
+Task PRs (automated)              Feature PR (human gate)
+─────────────────────             ──────────────────────
+
+task-branch-1a ─┐
+                ├──► feature/{prd-slug} ──► main
+task-branch-1b ─┘         ▲                  ▲
+                          │                  │
+              Review/Architect          Human Review
+              validates integration     final approval
+```
+
+**Tier 1: Task → Feature Branch (Automated)**
+- Task agents create PRs targeting `feature/{prd-slug}`
+- Greptile reviews each task PR
+- Review/Architect validates integration
+- PRs merge automatically after validation passes
+
+**Tier 2: Feature → Main (Human Gate)**
+- Review/Architect prepares feature PR to `main`
+- Full reconciliation checklist completed
+- Human reviews and approves final merge
+- This is the single human approval gate per feature
 
 ### Interview Phase (`/karimo:plan`)
 
@@ -182,10 +210,17 @@ GitHub Actions automate review when Greptile is configured:
 | **Reviewer** | Validates PRD, generates DAG | Opus | No |
 | **Brief Writer** | Generates task briefs | Sonnet | No |
 | **PM Agent** | Coordinates task execution | Sonnet | No |
+| **Review/Architect** | Code-level integration and merge quality | Sonnet | Conflict resolution only |
 | **Learn Auditor** | Investigates learning directives | Sonnet | No |
 | **Task Agent** | Executes individual tasks | — | Yes |
 
 The PM Agent coordinates but never writes code. Task agents are spawned by PM to execute work in isolated worktrees.
+
+The Review/Architect Agent handles code-level integration:
+- Validates task PRs integrate cleanly with feature branch
+- Resolves merge conflicts between parallel task branches
+- Performs feature-level reconciliation before PR to main
+- Only writes code for conflict resolution (not feature code)
 
 ### Model Routing
 
@@ -220,7 +255,7 @@ All agents follow rules defined in `.claude/KARIMO_RULES.md`:
 
 ## Worktree Architecture
 
-KARIMO uses Git worktrees for task isolation:
+KARIMO uses Git worktrees for task isolation. Each task gets complete disk isolation, enabling true parallel execution.
 
 ```
 .worktrees/
@@ -235,12 +270,73 @@ KARIMO uses Git worktrees for task isolation:
 - **Feature branch**: `feature/{prd-slug}` (base for all tasks)
 - **Task branch**: `feature/{prd-slug}/{task-id}` (per-task work)
 
-### Worktree Lifecycle
+### Worktree Lifecycle (v2.1)
 
 1. **Create**: When task starts
 2. **Work**: Agent executes in isolated directory
 3. **PR**: Created from task branch
-4. **Cleanup**: Worktree removed after PR creation
+4. **Persist**: Worktree retained through review cycles
+5. **Cleanup**: Worktree removed after PR **merged** (not just created)
+
+**Why persist until merge?** Tasks may need revision based on Greptile feedback or integration issues. Keeping the worktree avoids recreation overhead and preserves build caches.
+
+### TTL & Garbage Collection
+
+Worktrees should not persist indefinitely. The PM Agent enforces:
+
+| Scenario | TTL | Action |
+|----------|-----|--------|
+| PR merged | Immediate | Remove worktree |
+| PR closed (abandoned) | 24 hours | Remove worktree |
+| Stale worktree (no commits) | 7 days | Remove worktree |
+| Execution paused | 30 days | Remove worktree |
+
+**Safe teardown sequence:**
+```bash
+# Remove worktree
+git worktree remove .worktrees/{prd-slug}/{task-id}
+
+# Prune stale references
+git worktree prune
+
+# Remove artifacts (if worktree was force-removed)
+rm -rf .worktrees/{prd-slug}/{task-id}
+```
+
+### Artifact Hygiene
+
+Build artifacts should be cleaned before PR creation to avoid bloating diffs:
+
+```bash
+# Common artifacts to clean (project-specific)
+rm -rf .worktrees/{prd-slug}/{task-id}/.next
+rm -rf .worktrees/{prd-slug}/{task-id}/dist
+rm -rf .worktrees/{prd-slug}/{task-id}/node_modules/.cache
+```
+
+**Note:** The main `node_modules` should NOT be deleted if using shared dependency stores (see below).
+
+### Shared Dependency Store (Recommended)
+
+For large projects, use a shared dependency store to avoid reinstalling per worktree:
+
+| Package Manager | Configuration |
+|-----------------|---------------|
+| **pnpm** | `pnpm-workspace.yaml` with shared store |
+| **yarn** | Yarn PnP or `node_modules/.cache` sharing |
+| **npm** | Symlinked `node_modules` (manual) |
+
+This is a **project-level decision** — KARIMO doesn't mandate a specific package manager.
+
+### Resource Estimation
+
+| Concurrent Tasks | Est. Disk (typical) | Est. Disk (large monorepo) |
+|------------------|---------------------|---------------------------|
+| 3 | ~500MB | ~2GB |
+| 5 | ~800MB | ~3.5GB |
+| 10 | ~1.5GB | ~7GB |
+
+Estimates assume shared dependency store. Without sharing, multiply by 3-5x.
 
 ---
 
