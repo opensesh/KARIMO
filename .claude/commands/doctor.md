@@ -120,57 +120,121 @@ Check 2: Installation Integrity
 
 ### Check 3: Configuration Validation
 
-Parse `CLAUDE.md` and validate the KARIMO configuration section.
+Validate configuration files and detect drift between `config.yaml` and actual project state.
 
-**If no config section:**
+**Step 3a: Check for config.yaml existence**
+
+```bash
+ls .karimo/config.yaml
+```
+
+**If no config.yaml found:**
 
 ```
 Check 3: Configuration Validation
 ──────────────────────────────────
 
+  ❌ No config.yaml found
+
+  .karimo/config.yaml is the source of truth for KARIMO configuration.
+  Without it, agents cannot execute tasks properly.
+
+  Recommendation:
+    Run /karimo:configure to create configuration
+```
+
+**Step 3b: Drift detection (if config.yaml exists)**
+
+Compare configured values against actual project state:
+
+1. **Package manager drift** — Compare `config.yaml` package_manager vs actual lock files:
+   ```bash
+   # Check for lock file that matches configured package manager
+   ls pnpm-lock.yaml yarn.lock package-lock.json bun.lockb 2>/dev/null
+   ```
+
+2. **Command drift** — Compare configured commands vs `package.json` scripts:
+   ```bash
+   # Check if configured commands exist in package.json
+   jq '.scripts' package.json 2>/dev/null
+   ```
+
+**If drift detected:**
+
+```
+Check 3: Configuration Validation
+──────────────────────────────────
+
+  ⚠️  Configuration drift detected
+
+    - Package manager: config says "npm", found pnpm-lock.yaml
+    - Test command: "npm test" but package.json has no test script
+    - New lock file: bun.lockb appeared (not in config)
+
+  Recommendation:
+    Run /karimo:configure to update configuration
+```
+
+**Step 3c: Validate CLAUDE.md section**
+
+Parse `CLAUDE.md` for the KARIMO Framework section:
+
+```bash
+grep -q "## KARIMO Framework" CLAUDE.md
+```
+
+**If no KARIMO section:**
+
+```
   ⚠️  No KARIMO Framework section in CLAUDE.md
 
   Recommendation:
-    Run /karimo:plan to auto-detect project configuration
+    Run /karimo:configure to create configuration
 ```
 
-**If config exists, validate:**
+**Step 3d: Placeholder check**
 
-1. **Placeholder check** — Look for `_pending_` values:
-   ```
-   ⚠️  Unresolved placeholders:
-       - Runtime: _pending_
-       - Build command: _pending_
+Look for `_pending_` values in CLAUDE.md or config.yaml:
 
-   Recommendation:
-     Run /karimo:plan to auto-detect, or edit CLAUDE.md manually
-   ```
+```bash
+grep "_pending_" CLAUDE.md .karimo/config.yaml
+```
 
-2. **Schema validation** — Check for expected keys in tables:
-   - Project Context: Runtime, Framework, Package Manager
-   - Commands: Build, Lint, Test, Typecheck
-   - Boundaries: Never Touch, Require Review
+**If placeholders found:**
 
-**Example output:**
+```
+  ⚠️  Unresolved placeholders:
+      - Runtime: _pending_
+      - Build command: _pending_
+
+  Recommendation:
+    Run /karimo:configure to complete configuration
+```
+
+**Example output (healthy):**
 
 ```
 Check 3: Configuration Validation
 ──────────────────────────────────
 
-  ✅ Project Context
+  ✅ config.yaml       Present and valid
+  ✅ CLAUDE.md         KARIMO Framework section present
+  ✅ No drift          Config matches project state
+
+  Project Context:
       Runtime: Node.js 20
       Framework: Next.js 14
       Package Manager: pnpm
 
-  ✅ Commands
+  Commands:
       Build: pnpm build
       Lint: pnpm lint
       Test: pnpm test
       Typecheck: pnpm typecheck
 
-  ✅ Boundaries
-      Never Touch: 3 patterns defined
-      Require Review: 2 patterns defined
+  Boundaries:
+      Never Touch: 5 patterns defined
+      Require Review: 3 patterns defined
 ```
 
 ### Check 4: Configuration Sanity
@@ -276,8 +340,18 @@ Summary
   ❌ 0 errors
 
   Recommendations:
-    1. Run /karimo:plan to resolve _pending_ placeholders
+    1. Run /karimo:configure to resolve _pending_ placeholders
 ```
+
+**Recommendation mapping:**
+
+| Issue Type | Recommendation |
+|------------|----------------|
+| Missing config.yaml | `/karimo:configure` |
+| Configuration drift | `/karimo:configure` |
+| Placeholder values | `/karimo:configure` |
+| Missing files | Re-run installer |
+| PRD creation | `/karimo:plan` |
 
 Or if all checks pass:
 

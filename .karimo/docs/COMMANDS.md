@@ -9,7 +9,8 @@ Reference for all KARIMO slash commands available in Claude Code.
 | Command | Purpose |
 |---------|---------|
 | `/karimo:plan` | Start PRD interview |
-| `/karimo:review` | Cross-PRD dashboard and PRD approval |
+| `/karimo:review` | Review and approve PRD before execution |
+| `/karimo:overview` | Cross-PRD oversight dashboard |
 | `/karimo:execute` | Execute tasks from PRD |
 | `/karimo:status` | View execution progress |
 | `/karimo:configure` | Create or update config.yaml |
@@ -67,23 +68,73 @@ Creates `.karimo/prds/{slug}/`:
 
 ## /karimo:review
 
-Surface tasks needing human attention and approve PRDs for execution.
+Review and approve PRDs before execution begins. This is the **human checkpoint** between planning and execution.
 
 ### Usage
 
 ```
-/karimo:review                  # Cross-PRD dashboard (default)
 /karimo:review --prd {slug}     # Review and approve a specific PRD
 /karimo:review --pending        # List PRDs ready for approval
+/karimo:review                  # Same as --pending (no default dashboard)
 ```
 
-### Mode 1: Cross-PRD Dashboard (Default)
+### Mode 1: PRD Approval (`--prd {slug}`)
 
-Shows all tasks needing attention and recent completions across active PRDs.
+Review and approve a specific PRD before execution begins.
+
+```
+/karimo:review --prd user-profiles
+```
+
+What It Does:
+1. **Display** PRD summary with task breakdown
+2. **Request approval** — approve all, exclude tasks, or return to planning
+3. **Generate briefs** — self-contained task briefs for each approved task
+4. **Update status** — marks PRD as `approved`
+
+### Mode 2: List Pending (`--pending`)
+
+Show PRDs waiting for initial approval. This is the default mode when no arguments are provided.
+
+```
+/karimo:review --pending
+
+PRDs Ready for Review:
+
+  001_user-profiles     ready     6 tasks (4 must, 2 should)
+  002_token-studio      ready     8 tasks (5 must, 3 should)
+
+Run: /karimo:review --prd user-profiles
+```
+
+### Why This Command Exists
+
+Creates a deliberate checkpoint between planning and execution:
+- Ensures human sign-off before agents start working
+- Allows excluding tasks from execution
+- Generates portable task briefs for agent handoff
+
+For cross-PRD oversight (blocked tasks, revision loops, completions), see `/karimo:overview`.
+
+---
+
+## /karimo:overview
+
+Surface all tasks needing human attention and recently completed work across all active PRDs.
+
+### Usage
+
+```
+/karimo:overview              # Full dashboard view
+/karimo:overview --blocked    # Show only blocked tasks
+/karimo:overview --active     # Show only active PRDs with progress
+```
+
+### What It Shows
 
 ```
 ╭──────────────────────────────────────────────────────────────╮
-│  KARIMO Review                                               │
+│  KARIMO Overview                                             │
 ╰──────────────────────────────────────────────────────────────╯
 
 🚫 Blocked — Needs Human Review
@@ -116,38 +167,9 @@ Shows all tasks needing attention and recent completions across active PRDs.
     [1b] Add user type definitions           ✓ merged 2h ago
 ```
 
-### Mode 2: PRD Approval (`--prd {slug}`)
-
-Review and approve a specific PRD before execution begins.
-
-```
-/karimo:review --prd user-profiles
-```
-
-What It Does:
-1. **Display** PRD summary with task breakdown
-2. **Request approval** — approve all, exclude tasks, or return to planning
-3. **Generate briefs** — self-contained task briefs for each approved task
-4. **Update status** — marks PRD as `approved`
-
-### Mode 3: List Pending (`--pending`)
-
-Show PRDs waiting for initial approval.
-
-```
-/karimo:review --pending
-
-PRDs Ready for Review:
-
-  001_user-profiles     ready     6 tasks (4 must, 2 should)
-  002_token-studio      ready     8 tasks (5 must, 3 should)
-
-Run: /karimo:review --prd user-profiles
-```
-
 ### Why This Command Exists
 
-This is the **primary human oversight touchpoint** for KARIMO:
+This is the **primary daily oversight touchpoint** for KARIMO:
 - **Blocked tasks** — Failed 3 Greptile attempts, need human intervention
 - **Revision loops** — Tasks actively being revised
 - **Rebase conflicts** — Merge conflicts requiring manual resolution
@@ -544,6 +566,7 @@ Commands are defined in `.claude/commands/`:
 |------|---------|
 | `plan.md` | `/karimo:plan` |
 | `review.md` | `/karimo:review` |
+| `overview.md` | `/karimo:overview` |
 | `execute.md` | `/karimo:execute` |
 | `status.md` | `/karimo:status` |
 | `configure.md` | `/karimo:configure` |
