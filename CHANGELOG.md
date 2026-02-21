@@ -7,6 +7,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.2.1] - 2026-02-21
+
+### Added
+
+**DAG Schema Definition**
+- `.karimo/templates/DAG_SCHEMA.md` — Canonical schema for `dag.json`
+- Field definitions: nodes, edges, critical_path, parallel_groups
+- Algorithm pseudocode for depth calculation (topological level via BFS)
+- Algorithm pseudocode for parallel grouping (by depth value)
+- Algorithm pseudocode for critical path (longest chain by task count)
+- Immutability contract: dag.json is planning-only, runtime changes in status.json
+- Validation rules and worked example walkthrough
+
+### Changed
+
+**Reviewer Agent (Section 4)**
+- Added algorithm pseudocode after dag.json example
+- References DAG_SCHEMA.md for full specification
+
+**PM Agent (Step 1)**
+- Added explicit dag.json format expectations
+- Documented field semantics (depth, parallel_groups, critical_path)
+- Documented immutability contract
+- References DAG_SCHEMA.md for full specification
+
+---
+
 ## [2.2.0] - 2026-02-21
 
 ### Added
