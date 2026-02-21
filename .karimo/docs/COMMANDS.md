@@ -9,6 +9,7 @@ Reference for all KARIMO slash commands available in Claude Code.
 | Command | Purpose |
 |---------|---------|
 | `/karimo:plan` | Start PRD interview |
+| `/karimo:review` | Cross-PRD dashboard and PRD approval |
 | `/karimo:execute` | Execute tasks from PRD |
 | `/karimo:status` | View execution progress |
 | `/karimo:feedback` | Quick capture of single learnings |
@@ -59,6 +60,98 @@ Creates `.karimo/prds/{slug}/`:
 > I want to add user profile pages where users can edit their
 > name, avatar, and notification preferences.
 ```
+
+---
+
+## /karimo:review
+
+Surface tasks needing human attention and approve PRDs for execution.
+
+### Usage
+
+```
+/karimo:review                  # Cross-PRD dashboard (default)
+/karimo:review --prd {slug}     # Review and approve a specific PRD
+/karimo:review --pending        # List PRDs ready for approval
+```
+
+### Mode 1: Cross-PRD Dashboard (Default)
+
+Shows all tasks needing attention and recent completions across active PRDs.
+
+```
+╭──────────────────────────────────────────────────────────────╮
+│  KARIMO Review                                               │
+╰──────────────────────────────────────────────────────────────╯
+
+🚫 Blocked — Needs Human Review
+───────────────────────────────
+
+  PRD: user-profiles
+    [2a] Implement profile edit form
+         PR #44 · Greptile: 2/5, 2/5, 2/5 (3 attempts)
+         → Review PR: https://github.com/owner/repo/pull/44
+
+⚠️  In Revision — Active Loops
+────────────────────────────────
+
+  PRD: token-studio
+    [1c] Token validation logic
+         PR #51 · Greptile: 2/5 (attempt 1 of 3)
+
+🔀 Needs Human Rebase
+──────────────────────
+
+  PRD: user-profiles
+    [2b] Add avatar upload
+         Conflict files: src/types/index.ts
+
+✅ Recently Completed
+─────────────────────
+
+  PRD: user-profiles (4/6 tasks done — 67%)
+    [1a] Create UserProfile component        ✓ merged 3h ago
+    [1b] Add user type definitions           ✓ merged 2h ago
+```
+
+### Mode 2: PRD Approval (`--prd {slug}`)
+
+Review and approve a specific PRD before execution begins.
+
+```
+/karimo:review --prd user-profiles
+```
+
+What It Does:
+1. **Display** PRD summary with task breakdown
+2. **Request approval** — approve all, exclude tasks, or return to planning
+3. **Generate briefs** — self-contained task briefs for each approved task
+4. **Update status** — marks PRD as `approved`
+
+### Mode 3: List Pending (`--pending`)
+
+Show PRDs waiting for initial approval.
+
+```
+/karimo:review --pending
+
+PRDs Ready for Review:
+
+  001_user-profiles     ready     6 tasks (4 must, 2 should)
+  002_token-studio      ready     8 tasks (5 must, 3 should)
+
+Run: /karimo:review --prd user-profiles
+```
+
+### Why This Command Exists
+
+This is the **primary human oversight touchpoint** for KARIMO:
+- **Blocked tasks** — Failed 3 Greptile attempts, need human intervention
+- **Revision loops** — Tasks actively being revised
+- **Rebase conflicts** — Merge conflicts requiring manual resolution
+- **Completions** — Recently merged work
+
+Check this each morning or after a run completes.
 
 ---
 
@@ -152,6 +245,9 @@ PRDs:
 | `pending` | Not yet started |
 | `ready` | Dependencies met, can run |
 | `running` | Agent executing |
+| `in-review` | PR created, awaiting review |
+| `needs-revision` | Review requested changes |
+| `needs-human-review` | Failed 3 Greptile attempts |
 | `done` | Completed successfully |
 | `failed` | Execution failed |
 | `blocked` | Dependencies not met |
@@ -289,6 +385,7 @@ Commands are defined in `.claude/commands/`:
 | File | Command |
 |------|---------|
 | `plan.md` | `/karimo:plan` |
+| `review.md` | `/karimo:review` |
 | `execute.md` | `/karimo:execute` |
 | `status.md` | `/karimo:status` |
 | `feedback.md` | `/karimo:feedback` |
