@@ -69,7 +69,7 @@ jobs:
           EOF
           )
 
-          # Extract score (0-10)
+          # Extract score (0-5)
           SCORE=$(echo "$RESPONSE" | jq -r '.score // 0')
           echo "score=$SCORE" >> $GITHUB_OUTPUT
           echo "skipped=false" >> $GITHUB_OUTPUT
@@ -96,7 +96,7 @@ jobs:
             const findings = response.findings || [];
 
             let body = `## 🔍 KARIMO Code Review\n\n`;
-            body += `**Score:** ${score}/10\n\n`;
+            body += `**Score:** ${score}/5\n\n`;
 
             if (findings.length > 0) {
               body += `### Findings\n\n`;
@@ -134,13 +134,9 @@ jobs:
             if (skipped) {
               // No Greptile configured, pass through
               labels.push('review-passed');
-            } else if (score >= 7) {
+            } else if (score >= 3) {
               labels.push('review-passed');
               removeLabels.push('needs-revision');
-            } else if (score >= 4) {
-              // Borderline - add warning but allow to proceed
-              labels.push('review-passed');
-              console.log(`Score ${score} is borderline but passing`);
             } else {
               labels.push('needs-revision');
               removeLabels.push('review-passed');
@@ -176,10 +172,10 @@ jobs:
         with:
           script: |
             const score = parseInt('${{ steps.greptile.outputs.score }}') || 0;
-            const state = score >= 4 ? 'success' : 'failure';
-            const description = score >= 4
-              ? `Greptile score: ${score}/10`
-              : `Greptile score: ${score}/10 - needs revision`;
+            const state = score >= 3 ? 'success' : 'failure';
+            const description = score >= 3
+              ? `Greptile score: ${score}/5`
+              : `Greptile score: ${score}/5 - needs revision`;
 
             await github.rest.repos.createCommitStatus({
               owner: context.repo.owner,
