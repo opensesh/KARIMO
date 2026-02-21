@@ -1,124 +1,26 @@
-# /karimo:review — Cross-PRD Review Dashboard
+# /karimo:review — PRD Approval
 
-Surface all tasks needing human attention and recently completed work across all active PRDs.
+Review and approve PRDs before execution begins. This creates a **human checkpoint** between planning and execution.
 
 ## Usage
 
 ```
-/karimo:review                  # Cross-PRD dashboard: blocked, in-revision, completions
-/karimo:review --prd {slug}     # Review and approve a specific PRD (pre-execution)
+/karimo:review --prd {slug}     # Review and approve a specific PRD
 /karimo:review --pending        # List PRDs ready for approval
+/karimo:review                  # Same as --pending (no default dashboard)
 ```
 
 ## Purpose
 
-This command provides **human oversight touchpoints**:
-1. **Default mode:** Cross-PRD dashboard showing blocked tasks, revision loops, and recent completions
-2. **PRD mode:** Approve a finalized PRD and generate task briefs before execution
-3. **Pending mode:** List PRDs waiting for initial approval
+Human checkpoint between planning and execution:
+1. **PRD mode (`--prd {slug}`):** Approve a finalized PRD and generate task briefs
+2. **Pending mode (`--pending` or no args):** List PRDs waiting for initial approval
 
 ---
 
-## Mode 1: Cross-PRD Dashboard (Default)
+## Mode 1: PRD Approval (`--prd {slug}`)
 
-**If no arguments provided:**
-
-Shows all tasks needing attention and recent completions across active PRDs.
-
-### Dashboard Output
-
-```
-╭──────────────────────────────────────────────────────────────╮
-│  KARIMO Review                                               │
-╰──────────────────────────────────────────────────────────────╯
-
-🚫 Blocked — Needs Human Review
-───────────────────────────────
-
-  PRD: user-profiles
-  Board: https://github.com/orgs/{org}/projects/{number}
-
-    [2a] Implement profile edit form
-         PR #44 · Greptile: 2/5, 2/5, 2/5 (3 attempts)
-         Model: escalated sonnet → opus
-         Blocked since: 2h ago
-         → Review PR: https://github.com/{owner}/{repo}/pull/44
-
-    [3b] Add notification preferences
-         PR #47 · Greptile: 1/5, 2/5, 1/5 (3 attempts)
-         Model: opus (no escalation — complexity 8)
-         Blocked since: 45m ago
-         → Review PR: https://github.com/{owner}/{repo}/pull/47
-
-
-⚠️  In Revision — Active Loops
-────────────────────────────────
-
-  PRD: token-studio
-  Board: https://github.com/orgs/{org}/projects/{number}
-
-    [1c] Token validation logic
-         PR #51 · Greptile: 2/5 (attempt 1 of 3)
-         Model: escalated sonnet → opus
-         → PR: https://github.com/{owner}/{repo}/pull/51
-
-
-🔀 Needs Human Rebase
-──────────────────────
-
-  PRD: user-profiles
-  Board: https://github.com/orgs/{org}/projects/{number}
-
-    [2b] Add avatar upload
-         Conflict files: src/types/index.ts, src/components/UserProfile.tsx
-         → Branch: feature/user-profiles/2b
-
-
-✅ Recently Completed
-─────────────────────
-
-  PRD: user-profiles (4/6 tasks done — 67%)
-  Board: https://github.com/orgs/{org}/projects/{number}
-
-    [1a] Create UserProfile component        ✓ merged 3h ago   PR #42
-    [1b] Add user type definitions           ✓ merged 2h ago   PR #43
-    [2c] Profile API endpoints               ✓ merged 1h ago   PR #45
-    [2d] Profile page layout                 ✓ merged 30m ago  PR #46
-
-  PRD: token-studio (2/8 tasks done — 25%)
-  Board: https://github.com/orgs/{org}/projects/{number}
-
-    [1a] Token schema types                  ✓ merged 4h ago   PR #49
-    [1b] Token CRUD operations               ✓ merged 3h ago   PR #50
-
-
-Summary: 2 blocked · 1 in revision · 1 needs rebase · 6 recently completed
-```
-
-### Data Sources
-
-For each active PRD:
-1. Read `.karimo/prds/{slug}/status.json` for task statuses
-2. Read `github_project_url` from status.json for board links
-3. Use `gh pr view {pr_number} --json url` to get PR URLs
-4. Calculate time-ago from timestamps
-
-### Empty States
-
-If no items in a category, omit that section entirely.
-
-If no active PRDs exist:
-```
-No active PRDs found. Run /karimo:plan to create one, or /karimo:execute to start one.
-```
-
----
-
-## Mode 2: PRD Approval (`--prd {slug}`)
-
-**If `--prd` argument provided:**
-
-Review and approve a specific PRD before execution begins. This creates a **human checkpoint** between planning and execution.
+Review and approve a specific PRD before execution begins.
 
 ### Display PRD Summary
 
@@ -171,9 +73,7 @@ Total: 6 tasks, 24 complexity points (4 sonnet, 2 opus)
 
 ---
 
-## Mode 3: List Pending PRDs (`--pending`)
-
-**If `--pending` argument provided:**
+## Mode 2: List Pending PRDs (`--pending`)
 
 Show PRDs with `status: "ready"` (awaiting initial approval):
 
@@ -195,7 +95,7 @@ Run: /karimo:review --prd user-profiles
 
 ---
 
-## PRD Approval Flow (Mode 2 continued)
+## PRD Approval Flow (Mode 1 continued)
 
 ### Request Approval
 
@@ -354,6 +254,7 @@ Or proceed to execution:
 
 | Command | Purpose |
 |---------|---------|
+| `/karimo:overview` | Cross-PRD execution oversight |
 | `/karimo:plan` | Create or edit PRD |
 | `/karimo:execute` | Execute approved PRD |
 | `/karimo:status` | View execution status |
