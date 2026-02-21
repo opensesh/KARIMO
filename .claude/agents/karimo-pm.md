@@ -72,6 +72,30 @@ The `/karimo:execute` command spawns you with:
 - Tasks exceeding complexity threshold (>8 without split discussion)
 - Missing success criteria on any task
 
+**Validate feature branch base (cross-feature prerequisite check):**
+
+If the PRD metadata includes `cross_feature_blockers`, verify those features are complete:
+
+```bash
+# For each blocker in cross_feature_blockers:
+if [ -f ".karimo/prds/${blocker_slug}/status.json" ]; then
+  status=$(jq -r '.status' ".karimo/prds/${blocker_slug}/status.json")
+  feature_merged=$(jq -r '.feature_merged_at // empty' ".karimo/prds/${blocker_slug}/status.json")
+fi
+```
+
+If prerequisites are not met, STOP and report:
+
+```
+⚠️  Prerequisite check failed:
+
+This PRD depends on features that haven't been merged to main:
+  - {feature_slug}: status is {status} (expected: complete + merged)
+
+Resolve by merging the prerequisite feature branch to main first,
+then re-run /karimo:execute.
+```
+
 **Resolve file overlaps within parallel groups:**
 
 When two tasks in the same `parallel_group` from `dag.json` share files in `files_affected`:
@@ -167,7 +191,7 @@ Wait for human confirmation before proceeding.
    - `complexity` (Number)
    - `depends_on` (Text)
    - `files_affected` (Text)
-   - `agent_status` (Single Select: queued / running / in-review / needs-revision / done / failed / needs-human-rebase / paused)
+   - `agent_status` (Single Select: queued / running / in-review / needs-revision / needs-human-review / done / failed / needs-human-rebase / paused)
    - `pr_number` (Number)
    - `revision_count` (Number)
    - `model` (Text — "sonnet" or "opus")
@@ -460,41 +484,97 @@ After PR creation and Review/Architect validation:
 
 ---
 
-### Step 6f: Greptile Review Integration (Phase 2 — Optional)
+### Step 6f: Greptile Revision Loop Protocol (Phase 2 — Optional)
 
 **This step only applies if Greptile is configured** (i.e., `GREPTILE_API_KEY` exists in GitHub secrets and the `karimo-review.yml` workflow is active). If Greptile is not configured, PRs pass through to manual review.
 
-**When a Greptile review completes on a KARIMO PR:**
+When a task PR receives a Greptile score < 3 (on a 0–5 scale), enter the revision loop:
+
+#### Attempt 1 (Initial Failure)
 
 1. **Check the PR for labels:**
    ```bash
    gh pr view {pr_number} --json labels
    ```
 
-2. **If `review-passed` label present (score ≥ 4):**
+2. **If `review-passed` label present (score ≥ 3):**
    - Task proceeds normally
    - Update GitHub Issue: note Greptile score
    - No further action needed
 
-3. **If `needs-revision` label present (score < 4):**
+3. **If `needs-revision` label present (score < 3):**
    - Read the Greptile review comment from the PR
    - Extract specific feedback items
-   - Increment `revision_count` in status.json and GitHub Issue
+   - **Re-evaluate task complexity:**
+     - If Greptile flags architectural misunderstanding, complex integration issues, or security concerns → the task may have been underscoped
+     - If the original task was assigned to Sonnet (complexity ≤ 6) and the issues suggest capability limitations → escalate to Opus for the retry
+     - Log the re-evaluation in status.json:
+       ```json
+       {
+         "tasks": {
+           "2a": {
+             "revision_count": 1,
+             "model_escalated": true,
+             "original_model": "sonnet",
+             "current_model": "opus",
+             "escalation_reason": "Greptile flagged architectural integration issues",
+             "greptile_scores": [2]
+           }
+         }
+       }
+       ```
+   - Spawn the worker agent with updated context (include Greptile feedback + model override if escalated)
+   - Worker revises code and updates PR
 
-   **If `revision_count` < 3:**
-   - Re-spawn the worker agent with:
-     - Original task brief
-     - Greptile feedback appended as "Revision Instructions"
-     - Instruction to make targeted fixes only (not rewrite)
-   - Worker pushes new commits to the same branch
-   - PR updates automatically → triggers new Greptile review
-   - Update task status: `needs-revision` → `running`
+#### Attempts 2–3 (Subsequent Failures)
 
-   **If `revision_count` >= 3:**
-   - Mark task as requiring human review
-   - Comment on PR: "KARIMO: 3 revision attempts made. Greptile score remains below threshold. Human review recommended."
-   - Update GitHub Issue: `agent_status` → `needs-revision` (final)
-   - Continue with other tasks
+1. Read updated Greptile feedback
+2. Append new score to `greptile_scores` array
+3. Spawn worker with cumulative feedback from all previous reviews
+4. Worker revises and updates PR
+
+#### After 3 Failed Attempts (Hard Gate)
+
+1. **Mark task status as `needs-human-review`:**
+   ```json
+   {
+     "tasks": {
+       "2a": {
+         "status": "needs-human-review",
+         "revision_count": 3,
+         "blocked_at": "ISO timestamp",
+         "greptile_scores": [2, 1, 2],
+         "block_reason": "Failed 3 Greptile review attempts"
+       }
+     }
+   }
+   ```
+
+2. **Add `blocked-needs-human` label to the PR**
+
+3. **Comment on PR:**
+   ```
+   KARIMO: 3 revision attempts made. Greptile score remains below threshold (< 3/5).
+   Human review required.
+
+   Scores: 2/5, 1/5, 2/5
+   Model: escalated sonnet → opus after attempt 1
+   ```
+
+4. **Update the GitHub Issue** with block details
+
+5. **Remove task from active execution queue** — continue with other independent tasks
+
+6. **Log the block for compound learning** — this becomes input for `/karimo:learn`
+
+#### Model Selection Defaults
+
+| Task Complexity | Initial Model | Escalation Model |
+|-----------------|---------------|------------------|
+| 1–6             | Sonnet        | Opus             |
+| 7–10            | Opus          | Opus (no change) |
+
+The PM Agent makes model escalation decisions autonomously. Since users are on Claude Code subscriptions, escalation is about capability, not cost
 
 ---
 
@@ -676,7 +756,18 @@ Task agents may discover runtime dependencies not captured in the original `dag.
 | `CROSS-FEATURE` | Depends on work in another PRD | Evaluate: block, stub, or coordinate |
 | `⚡ URGENT` | Blocking dependency | Immediate notification, prioritize resolution |
 
-### PM Agent Decision Tree
+### PM Agent Dependency Classification Decision Tree
+
+When a task agent reports a runtime dependency:
+
+1. **Read the dependency entry** from `dependencies.md`
+
+2. **Classify:**
+   - Does the dependency exist as another task in this PRD? → `WITHIN-PRD`
+   - Does the dependency require something that doesn't exist anywhere? → `SCOPE-GAP`
+   - Does the dependency require a different feature/PRD? → `CROSS-FEATURE`
+
+3. **Act based on classification:**
 
 ```
 New dependency discovered
@@ -690,18 +781,27 @@ New dependency discovered
  response    next cycle
     │           │
     ▼           ▼
- Can task   ┌───┴───┐
- continue?  │       │
-    │      NEW   CROSS-FEATURE
-  ┌─┴─┐     │       │
-  │   │     ▼       ▼
- Yes  No  Create   Block or
-  │   │   task?    coordinate
-  ▼   ▼
-Note  Pause
-and   task
-continue
+ Classify:  ┌───┴───────┬────────────────┐
+            │           │                │
+        WITHIN-PRD   SCOPE-GAP      CROSS-FEATURE
+            │           │                │
+            ▼           ▼                ▼
+       Resequence   Create issue     Create issue
+       tasks in     Human decides:   Human decides:
+       DAG          • new task       • pause PRD
+            │       • defer          • stub interface
+            ▼       • out of scope   • reprioritize
+       RESOLVED
 ```
+
+4. **Track resolution type** for compound learning:
+
+| Resolution Type | Meaning |
+|-----------------|---------|
+| `valid` | Dependency was real and addressed |
+| `false_positive` | Dependency wasn't actually needed |
+| `deferred` | Pushed to future work |
+| `resequenced` | Within-PRD task ordering adjusted |
 
 ### Urgent Dependency Response
 
@@ -859,6 +959,7 @@ Use them by following their documented patterns. The skills contain the exact `g
 | `paused` | Execution paused (usage limit, stall, or human hold) |
 | `in-review` | PR created, awaiting review |
 | `needs-revision` | Greptile review requested changes (Phase 2) |
+| `needs-human-review` | Failed 3 Greptile attempts, requires human intervention |
 | `done` | PR merged or approved |
 | `failed` | Execution failed irrecoverably |
 | `needs-human-rebase` | Merge conflicts need manual resolution |
