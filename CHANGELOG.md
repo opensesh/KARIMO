@@ -7,6 +7,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.5.0] - 2026-02-21
+
+### Added
+
+**`/karimo:configure` Command**
+- New standalone configuration command for creating or updating `.karimo/config.yaml`
+- 5 configuration sections:
+  - Project Identity: runtime, framework, package manager
+  - Build Commands: build, lint, test, typecheck
+  - File Boundaries: never-touch and require-review patterns
+  - Execution Settings: default model, parallelism, pre-PR checks
+  - Cost Controls: model escalation, max attempts, Greptile enabled
+- Auto-detection from package.json and project structure (suggestions only, user confirms)
+- Update mode when config already exists (shows current vs new values)
+- `--reset` flag to start fresh and ignore existing config
+
+**Install Script Updates**
+- Copies `configure.md` command during installation
+- Updated command count from 7 to 8
+
+**Documentation**
+- CLAUDE.md: Added configure to slash commands table and installed components
+- README.md: Added configure to slash commands table and directory structure
+- COMMANDS.md: Full documentation section with usage, config format, and examples
+- GETTING-STARTED.md: Added "Configure Without Planning" section
+
+---
+
 ## [2.4.0] - 2026-02-21
 
 ### Added
