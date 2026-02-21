@@ -297,9 +297,9 @@ Learn Cycle 2 (Feb 15):
 
 ### Boundaries
 
-Learnings can inform `config.yaml` boundaries:
-- Repeated caution file triggers → add to `require_review`
-- Critical failure patterns → add to `never_touch`
+Learnings can inform CLAUDE.md Boundaries section:
+- Repeated caution file triggers → add to Require Review
+- Critical failure patterns → add to Never Touch
 
 ### Task Context
 
