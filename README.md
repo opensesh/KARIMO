@@ -303,32 +303,16 @@ CLAUDE.md  # Updated with KARIMO reference block
 
 ## Configuration
 
-KARIMO reads optional configuration from `.karimo/config.yaml`:
+Configuration is stored in `CLAUDE.md` and auto-detected on your first `/karimo:plan`.
 
-```yaml
-project:
-  name: "my-project"
+The investigator agent scans your project for:
+- **Runtime** — Node.js, Bun, Deno, Python, etc.
+- **Framework** — Next.js, React, Vue, FastAPI, etc.
+- **Package manager** — npm, yarn, pnpm, bun
+- **Commands** — build, lint, test, typecheck from package.json
+- **Boundaries** — Lock files, .env files, migrations, auth directories
 
-commands:
-  build: "npm run build"
-  lint: "npm run lint"
-  test: "npm test"
-  typecheck: "npm run typecheck"
-
-models:
-  simple: "sonnet"
-  complex: "opus"
-  threshold: 5
-
-boundaries:
-  never_touch:
-    - "*.lock"
-    - ".env*"
-    - "migrations/"
-  require_review:
-    - "src/auth/*"
-    - "api/middleware.ts"
-```
+You can review and edit the detected values before they're saved to `CLAUDE.md`.
 
 ---
 

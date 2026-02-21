@@ -34,9 +34,8 @@ Before the first question, the interviewer:
    - Reads the most recent `interview.md` and `changes-applied.md`
    - Notes which issues were flagged before and whether applied changes resolved them
 2. **Scans PRD index** — counts completed PRDs in `.karimo/prds/`, reads their slugs and status (complete/active/failed), but does NOT deep-read status.json files yet (that's the audit's job)
-3. **Reads current CLAUDE.md** KARIMO Learnings section — notes how many rules exist and their categories
-4. **Reads current config.yaml** — notes boundaries, cost settings, and any custom configuration
-5. **Confirms with the developer:**
+3. **Reads current CLAUDE.md** — notes learnings, boundaries, commands, and project context
+4. **Confirms with the developer:**
 
 > "I've loaded [N] previous learn cycles, [N] completed PRDs, and your current KARIMO configuration. Ready to start the learning interview?"
 
@@ -92,7 +91,7 @@ pain_points:
 
 ## Round 2: Configuration Health (~5 minutes)
 
-**Purpose:** Assess whether the current KARIMO configuration files (`CLAUDE.md`, `config.yaml`, `KARIMO_RULES.md`, agent definitions, templates) are accurate and serving the project well.
+**Purpose:** Assess whether the current KARIMO configuration files (`CLAUDE.md`, `KARIMO_RULES.md`, agent definitions, templates) are accurate and serving the project well.
 
 **Output section:** `§2 Configuration Assessment`
 
@@ -198,7 +197,7 @@ This round is **not scripted.** Based on what emerged in Rounds 1-3, the intervi
 | Issue Type | Deep Dive Approach |
 |------------|-------------------|
 | Agent behavior patterns | "Show me a specific example. What did the agent do? What should it have done? Is this documented anywhere?" |
-| Configuration gaps | "Let's walk through the ideal config for this. What would you change if you were editing config.yaml right now?" |
+| Configuration gaps | "Let's walk through the ideal config for this. What would you change in CLAUDE.md right now?" |
 | Workflow friction | "Walk me through the last time this happened step by step. Where exactly did it break down?" |
 | Quality issues | "What does 'good' look like for this? Can you point me to a task or PR that got it right?" |
 | Template issues | "Which template? What's missing or wrong? What would you add to it?" |

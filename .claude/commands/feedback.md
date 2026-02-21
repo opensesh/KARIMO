@@ -101,17 +101,16 @@ Rules learned from execution feedback. These are applied to all agent tasks.
 - The auth middleware has a race condition on first load. Always check auth state before rendering protected routes.
 ```
 
-### 6. Update Config (Optional)
+### 6. Update Boundaries (Optional)
 
-If the feedback suggests a config change:
+If the feedback suggests a boundary change:
 
 **Input:** "Don't let agents touch the middleware file"
 
-**Action:** Add to `.karimo/config.yaml`:
-```yaml
-boundaries:
-  require_review:
-    - "middleware.ts"  # Added from feedback
+**Action:** Add to CLAUDE.md Boundaries section:
+```markdown
+**Require Review:**
+- middleware.ts  # Added from feedback
 ```
 
 ### 7. Confirm
@@ -120,7 +119,7 @@ boundaries:
 >
 > Updated:
 > - CLAUDE.md (added anti-pattern rule)
-> - .karimo/config.yaml (added middleware.ts to require_review)"
+> - CLAUDE.md Boundaries (added middleware.ts to require_review)"
 
 ## Output Format
 

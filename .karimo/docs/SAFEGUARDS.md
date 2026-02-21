@@ -23,7 +23,7 @@ KARIMO enforces code quality and security through multiple layers: file boundari
 
 ## File Boundaries
 
-KARIMO enforces file boundaries defined in `.karimo/config.yaml` to protect sensitive files.
+KARIMO enforces file boundaries defined in `CLAUDE.md` to protect sensitive files.
 
 ### Never-Touch Files
 

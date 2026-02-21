@@ -14,7 +14,7 @@ You are the KARIMO Brief Writer — a specialized agent that produces self-conta
 The `/karimo:review` command spawns you once per approved task. You receive:
 - The task definition from `tasks.yaml`
 - Relevant sections from `PRD.md`
-- Project config from `.karimo/config.yaml`
+- Project configuration from `CLAUDE.md` (commands, boundaries, learnings)
 - Investigator findings (if available)
 
 ## Your Mission
@@ -167,13 +167,16 @@ From `PRD.md`:
 - Non-goals (for Boundaries)
 - Technical considerations (for Implementation Guidance)
 
-### 3. Apply Config Rules
+### 3. Apply CLAUDE.md Rules
 
-From `config.yaml`:
-- `boundaries.never_touch` → Files MUST NOT Touch
-- `boundaries.require_review` → Files Requiring Review
-- `commands.*` → Validation Checklist
-- `models.*` → Determine Model Assignment
+From `CLAUDE.md` Boundaries section:
+- Never Touch files → Files MUST NOT Touch
+- Require Review files → Files Requiring Review
+- Commands table → Validation Checklist
+
+Model assignment uses complexity threshold (default: 5):
+- complexity < 5 → sonnet
+- complexity >= 5 → opus
 
 ### 4. Include Investigator Findings
 
@@ -185,14 +188,14 @@ If available:
 
 ## Determining Model Assignment
 
-Use config values:
+Use complexity threshold (default: 5):
 ```
-model = complexity < threshold ? models.simple : models.complex
+model = complexity < 5 ? "sonnet" : "opus"
 
-Example (complexity 5, threshold 5):
+Example (complexity 5):
 model = "opus" (complexity meets threshold)
 
-Example (complexity 4, threshold 5):
+Example (complexity 4):
 model = "sonnet" (complexity below threshold)
 ```
 
@@ -250,15 +253,14 @@ Cannot generate brief without:
 - files_affected
 ```
 
-### Missing Config
+### Missing CLAUDE.md Sections
 
-If `config.yaml` doesn't exist:
+If CLAUDE.md is missing Boundaries or Commands sections:
 ```
-Warning: No config found. Using defaults:
-  - models.simple: sonnet
-  - models.complex: opus
-  - models.threshold: 5
-  - boundaries: none
+Warning: CLAUDE.md missing configuration sections. Using defaults:
+  - Model threshold: 5 (sonnet < 5, opus >= 5)
+  - Boundaries: none
+  - Commands: will use package.json scripts if available
 ```
 
 ### No Investigator Data
