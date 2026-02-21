@@ -39,8 +39,8 @@ Paste relevant logs here
 
 ## Configuration
 
-```yaml
-# Relevant parts of .karimo/config.yaml
+```markdown
+# Relevant sections from CLAUDE.md (Project Context, Commands, Boundaries)
 ```
 
 ## Additional Context
