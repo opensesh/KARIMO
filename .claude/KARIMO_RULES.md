@@ -17,8 +17,8 @@ KARIMO agents execute tasks defined in PRDs. The human architect designs the fea
 ### 1. Task Boundaries
 
 - **Complete your assigned task only.** Do not modify code outside your task's `files_affected` list unless absolutely necessary.
-- **Never touch `never_touch` files.** These are defined in `.karimo/config.yaml` and include migrations, lock files, and environment files.
-- **Flag `require_review` files.** If your task requires modifying a file on this list, complete the task but note it prominently in the PR.
+- **Never touch `Never Touch` files.** These are defined in the CLAUDE.md Boundaries section and include migrations, lock files, and environment files.
+- **Flag `Require Review` files.** If your task requires modifying a file on this list, complete the task but note it prominently in the PR.
 
 ### 2. Commit Standards
 
@@ -73,10 +73,10 @@ KARIMO agents execute tasks defined in PRDs. The human architect designs the fea
 ### 3. Pre-PR Validation
 
 Before creating a PR, verify:
-- [ ] Build passes (`config.commands.build`)
-- [ ] Type check passes (`config.commands.typecheck`)
-- [ ] Lint passes (`config.commands.lint`)
-- [ ] No `never_touch` files modified
+- [ ] Build passes (from CLAUDE.md Commands table)
+- [ ] Type check passes (from CLAUDE.md Commands table)
+- [ ] Lint passes (from CLAUDE.md Commands table)
+- [ ] No `Never Touch` files modified (from CLAUDE.md Boundaries)
 - [ ] Branch rebased on feature branch
 
 ### 4. PR Standards
