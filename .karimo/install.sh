@@ -16,8 +16,25 @@ NC='\033[0m' # No Color
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 KARIMO_ROOT="$(dirname "$SCRIPT_DIR")"
 
-# Target directory (default: current directory)
-TARGET_DIR="${1:-.}"
+# Parse arguments
+SKIP_CONFIG=false
+TARGET_DIR=""
+
+for arg in "$@"; do
+    case $arg in
+        --skip-config)
+            SKIP_CONFIG=true
+            ;;
+        *)
+            if [ -z "$TARGET_DIR" ]; then
+                TARGET_DIR="$arg"
+            fi
+            ;;
+    esac
+done
+
+# Default target directory
+TARGET_DIR="${TARGET_DIR:-.}"
 
 echo -e "${BLUE}╭──────────────────────────────────────────────────────────────╮${NC}"
 echo -e "${BLUE}│  KARIMO v2 Installation                                      │${NC}"

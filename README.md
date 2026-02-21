@@ -156,8 +156,9 @@ Agents work through tasks in parallel, creating PRs for each.
 | Command | Purpose |
 |---------|---------|
 | `/karimo:plan` | Start PRD interview — 5 rounds with codebase analysis |
-| `/karimo:review` | Cross-PRD dashboard: blocked tasks, revision loops, completions |
-| `/karimo:review --prd {slug}` | Approve PRD and generate task briefs |
+| `/karimo:review` | Review and approve PRD before execution |
+| `/karimo:review --prd {slug}` | Approve specific PRD and generate task briefs |
+| `/karimo:overview` | Cross-PRD oversight: blocked tasks, revision loops, completions |
 | `/karimo:execute --prd {slug}` | Execute approved tasks from a PRD |
 | `/karimo:status` | View execution progress across all PRDs |
 | `/karimo:configure` | Create or update .karimo/config.yaml (~5 min) |
@@ -179,19 +180,23 @@ Output: `.karimo/prds/{slug}/PRD.md` with `tasks.yaml` and `dag.json`
 
 ### /karimo:review
 
-**Primary human oversight touchpoint** for KARIMO:
+**Human checkpoint** between planning and execution:
 
-**Default mode (no args):** Cross-PRD dashboard showing:
-- 🚫 Blocked tasks (failed 3 Greptile attempts)
-- ⚠️ Tasks in revision loops
-- 🔀 Tasks needing human rebase
-- ✅ Recently completed work
-
-**PRD approval mode (`--prd {slug}`):**
 - Review the PRD and task breakdown
 - Approve or exclude specific tasks
 - Generates self-contained briefs for each task
 - Updates status from `ready` to `approved`
+
+**Default (no args):** Lists PRDs waiting for approval (`--pending`)
+
+### /karimo:overview
+
+**Primary daily oversight touchpoint** for KARIMO:
+
+- 🚫 Blocked tasks (failed 3 Greptile attempts)
+- ⚠️ Tasks in revision loops
+- 🔀 Tasks needing human rebase
+- ✅ Recently completed work
 
 Check this each morning or after a run completes.
 
