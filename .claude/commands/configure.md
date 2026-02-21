@@ -168,7 +168,7 @@ Section 4 of 5: Execution Settings
 These settings control how agents execute tasks:
 
   Default model: [sonnet]
-    Options: sonnet, opus, haiku
+    Options: sonnet, opus
 
   Max parallel tasks: [3]
     How many tasks can run simultaneously

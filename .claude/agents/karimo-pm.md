@@ -579,7 +579,7 @@ When a task PR receives a Greptile score < 3 (on a 0–5 scale), enter the revis
    - Extract specific feedback items
    - **Re-evaluate task complexity:**
      - If Greptile flags architectural misunderstanding, complex integration issues, or security concerns → the task may have been underscoped
-     - If the original task was assigned to Sonnet (complexity ≤ 6) and the issues suggest capability limitations → escalate to Opus for the retry
+     - If the original task was assigned to Sonnet (complexity ≤ 4) and the issues suggest capability limitations → escalate to Opus for the retry
      - Log the re-evaluation in status.json:
        ```json
        {
@@ -643,8 +643,8 @@ When a task PR receives a Greptile score < 3 (on a 0–5 scale), enter the revis
 
 | Task Complexity | Initial Model | Escalation Model |
 |-----------------|---------------|------------------|
-| 1–6             | Sonnet        | Opus             |
-| 7–10            | Opus          | Opus (no change) |
+| 1–4             | Sonnet        | Opus             |
+| 5–10            | Opus          | Opus (no change) |
 
 The PM Agent makes model escalation decisions autonomously. Since users are on Claude Code subscriptions, escalation is about capability, not cost
 
