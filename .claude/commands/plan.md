@@ -8,17 +8,86 @@ Start a structured interview to create a Product Requirements Document (PRD) tha
 
 ## Behavior
 
-### 1. Load Project Context
+### Step 0: Auto-Detection (First Run Only)
 
-Read the following files if they exist:
-- `.karimo/config.yaml` — Project rules, boundaries, build commands
+Check `CLAUDE.md` for `_pending_` placeholders:
+
+```
+grep -q "_pending_" CLAUDE.md
+```
+
+**If `_pending_` markers found:**
+
+1. Spawn investigator in context-scan mode:
+   ```
+   @karimo-investigator.md --mode context-scan
+   ```
+
+2. Receive `project_context` YAML from investigator
+
+3. Present findings to user:
+   ```
+   Detected project configuration:
+
+   - Runtime: {{runtime}}
+   - Framework: {{framework}}
+   - Package manager: {{package_manager}}
+   - Build: {{build_command}}
+   - Lint: {{lint_command}}
+   - Test: {{test_command}}
+   - Typecheck: {{typecheck_command}}
+
+   Suggested boundaries:
+   - Never touch: {{never_touch_list}}
+   - Require review: {{require_review_list}}
+
+   Accept this configuration? [Y/n/edit]
+   ```
+
+4. On acceptance:
+   - Replace `_pending_` placeholders in CLAUDE.md with detected values
+   - Continue to Step 1
+
+5. On edit:
+   - Allow user to modify values
+   - Apply modifications
+   - Continue to Step 1
+
+**If no `_pending_` markers found:**
+
+1. Spawn investigator in drift-check mode:
+   ```
+   @karimo-investigator.md --mode drift-check
+   ```
+
+2. If drift detected, present changes:
+   ```
+   Configuration drift detected:
+
+   - {{change_type}}: {{description}}
+     Recommendation: {{recommendation}}
+
+   Update CLAUDE.md with these changes? [Y/n/skip]
+   ```
+
+3. Apply acknowledged changes to CLAUDE.md
+4. Continue to Step 1
+
+---
+
+### Step 1: Load Project Context
+
+Read the following files:
+- `CLAUDE.md` — Project configuration, commands, boundaries, learnings
 - `.karimo/prds/*.md` — Previous PRDs for retrospective context
 - `.karimo/templates/PRD_TEMPLATE.md` — Output format
 - `.karimo/templates/INTERVIEW_PROTOCOL.md` — Interview flow
 
-If `.karimo/config.yaml` does not exist, note that we will generate it during Round 4.
+Extract from CLAUDE.md:
+- `## KARIMO Configuration` section for boundaries, commands
+- `## KARIMO Learnings` section for patterns and anti-patterns
 
-### 2. Spawn Interviewer Agent
+### Step 2: Spawn Interviewer Agent
 
 Use the karimo-interviewer agent to conduct the interview:
 
@@ -27,23 +96,22 @@ Use the karimo-interviewer agent to conduct the interview:
 ```
 
 Pass the following context to the interviewer:
-- Project config (if exists)
+- Project configuration from CLAUDE.md
 - Previous PRD summaries (if any exist)
 - The PRD name argument (if provided)
 
-### 3. Interview Flow
+### Step 3: Interview Flow
 
-The interviewer conducts 5 rounds:
+The interviewer conducts 4 rounds:
 
 | Round | Name | Duration | Purpose |
 |-------|------|----------|---------|
 | 1 | Framing | ~5 min | Establish scope, success criteria, risk |
 | 2 | Requirements | ~10 min | Break feature into prioritized requirements |
 | 3 | Dependencies | ~5 min | Task ordering, file overlaps, external blockers |
-| 4 | Agent Context | ~5 min | Patterns, gotchas, design tokens |
-| 5 | Retrospective | ~3 min | Learnings from previous PRDs |
+| 4 | Retrospective | ~3 min | Learnings from previous PRDs |
 
-### 4. Round Completion Signals
+### Step 4: Round Completion Signals
 
 Users signal readiness to proceed with phrases like:
 - "Ready to move on"
@@ -52,7 +120,7 @@ Users signal readiness to proceed with phrases like:
 - "Proceed"
 - "That covers it"
 
-### 5. Investigator Agent (Optional)
+### Step 5: Investigator Agent (Optional)
 
 During Round 3, offer to spawn the investigator agent for codebase scanning:
 
@@ -60,46 +128,12 @@ During Round 3, offer to spawn the investigator agent for codebase scanning:
 
 If accepted:
 ```
-@karimo-investigator.md
+@karimo-investigator.md --mode task-scan
 ```
 
-### 6. Config Generation (First Run)
+### Step 6: PRD Generation
 
-If no `.karimo/config.yaml` exists, generate it from Round 4 answers:
-
-```yaml
-project:
-  name: "{{project_name}}"
-  language: "{{detected_or_stated}}"
-  framework: "{{detected_or_stated}}"
-  runtime: "{{detected_or_stated}}"
-
-commands:
-  build: "{{build_command}}"
-  lint: "{{lint_command}}"
-  test: "{{test_command_or_null}}"
-  typecheck: "{{typecheck_command_or_null}}"
-
-rules:
-  - "{{rule_from_interview}}"
-
-boundaries:
-  never_touch:
-    - "migrations/*.sql"
-    - "*.lock"
-    - ".env*"
-  require_review:
-    - "{{sensitive_files_mentioned}}"
-
-models:
-  simple: "sonnet"
-  complex: "opus"
-  threshold: 5
-```
-
-### 7. PRD Generation
-
-After Round 5:
+After Round 4:
 1. Generate the PRD following `.karimo/templates/PRD_TEMPLATE.md`
 2. Spawn the reviewer agent:
    ```
@@ -108,7 +142,7 @@ After Round 5:
 3. Address any issues flagged by the reviewer
 4. Save artifacts to `.karimo/prds/{NNN}_{slug}/`
 
-### 8. PRD Folder Structure
+### Step 7: PRD Folder Structure
 
 ```
 .karimo/prds/001_feature-slug/
