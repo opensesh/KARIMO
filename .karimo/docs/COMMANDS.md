@@ -12,6 +12,7 @@ Reference for all KARIMO slash commands available in Claude Code.
 | `/karimo:review` | Cross-PRD dashboard and PRD approval |
 | `/karimo:execute` | Execute tasks from PRD |
 | `/karimo:status` | View execution progress |
+| `/karimo:configure` | Create or update config.yaml |
 | `/karimo:feedback` | Quick capture of single learnings |
 | `/karimo:learn` | Deep learning cycle (3 modes) |
 | `/karimo:doctor` | Check installation health |
@@ -256,6 +257,106 @@ PRDs:
 
 ---
 
+## /karimo:configure
+
+Create or update `.karimo/config.yaml` without running a full PRD interview.
+
+### Usage
+
+```
+/karimo:configure              # Create new config or update existing
+/karimo:configure --reset      # Start fresh, ignore existing config
+```
+
+### What It Does
+
+Walks through 5 configuration sections:
+
+1. **Project Identity** — Runtime, framework, package manager
+2. **Build Commands** — build, lint, test, typecheck commands
+3. **File Boundaries** — Never-touch and require-review patterns
+4. **Execution Settings** — Default model, parallelism, pre-PR checks
+5. **Cost Controls** — Model escalation, max attempts, Greptile
+
+### When to Use
+
+| Use `/karimo:configure` | Use `/karimo:plan` |
+|-------------------------|-------------------|
+| Initial setup only | Creating a PRD |
+| Changing config later | First-time setup with PRD |
+| ~5 minutes | ~30 minutes |
+| Produces config.yaml | Produces PRD + tasks + config |
+
+### Output Example
+
+```
+╭──────────────────────────────────────────────────────────────╮
+│  KARIMO Configure                                            │
+╰──────────────────────────────────────────────────────────────╯
+
+Section 1 of 5: Project Identity
+─────────────────────────────────
+
+Detected: Node.js project with Next.js
+
+  Project name: [my-project]
+  Runtime: [Node.js 20]
+  Framework: [Next.js 14]
+  Package manager: [pnpm]
+
+Accept these values? [Y/n/edit]
+```
+
+### Config File
+
+Creates `.karimo/config.yaml`:
+
+```yaml
+project:
+  name: my-project
+  runtime: Node.js 20
+  framework: Next.js 14
+  package_manager: pnpm
+
+commands:
+  build: pnpm build
+  lint: pnpm lint
+  test: pnpm test
+  typecheck: pnpm typecheck
+
+boundaries:
+  never_touch:
+    - ".env*"
+    - "*.lock"
+  require_review:
+    - "migrations/**"
+    - "auth/**"
+
+execution:
+  default_model: sonnet
+  max_parallel: 3
+  pre_pr_checks:
+    - build
+    - typecheck
+
+cost:
+  escalate_after_failures: 1
+  max_attempts: 3
+  greptile_enabled: false
+```
+
+### Update Mode
+
+When config already exists, shows current vs new values:
+
+```
+  Build command:
+    Current: pnpm build
+    New: [pnpm build] (press Enter to keep)
+```
+
+---
+
 ## /karimo:feedback
 
 Capture learnings to improve future agent execution.
@@ -445,6 +546,7 @@ Commands are defined in `.claude/commands/`:
 | `review.md` | `/karimo:review` |
 | `execute.md` | `/karimo:execute` |
 | `status.md` | `/karimo:status` |
+| `configure.md` | `/karimo:configure` |
 | `feedback.md` | `/karimo:feedback` |
 | `learn.md` | `/karimo:learn` |
 | `doctor.md` | `/karimo:doctor` |
