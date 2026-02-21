@@ -46,8 +46,13 @@ Target Project/
 │   │   ├── karimo-interviewer.md    # PRD interview conductor
 │   │   ├── karimo-investigator.md   # Codebase pattern scanner
 │   │   ├── karimo-reviewer.md       # PRD validation and DAG generation
+│   │   ├── karimo-brief-writer.md   # Task brief generator
 │   │   ├── karimo-pm.md             # Task coordination (never writes code)
-│   │   └── karimo-learn-auditor.md  # Learning investigation agent
+│   │   ├── karimo-review-architect.md # Code-level integration
+│   │   ├── karimo-learn-auditor.md  # Learning investigation agent
+│   │   ├── karimo-implementer.md    # Task agent: coding tasks
+│   │   ├── karimo-tester.md         # Task agent: test writing
+│   │   └── karimo-documenter.md     # Task agent: documentation
 │   ├── commands/
 │   │   ├── plan.md                  # /karimo:plan
 │   │   ├── review.md                # /karimo:review
@@ -57,7 +62,10 @@ Target Project/
 │   │   └── learn.md                 # /karimo:learn
 │   ├── skills/
 │   │   ├── git-worktree-ops.md      # Worktree management
-│   │   └── github-project-ops.md    # GitHub Projects via gh CLI
+│   │   ├── github-project-ops.md    # GitHub Projects via gh CLI
+│   │   ├── karimo-code-standards.md     # Task agent skill
+│   │   ├── karimo-testing-standards.md  # Task agent skill
+│   │   └── karimo-doc-standards.md      # Task agent skill
 │   └── KARIMO_RULES.md              # Agent behavior rules
 │
 ├── .karimo/
@@ -219,6 +227,8 @@ This is the primary human oversight touchpoint — check it each morning or afte
 
 ### Agent Roles
 
+#### Coordination Agents
+
 | Agent | Purpose | Model | Writes Code? |
 |-------|---------|-------|--------------|
 | **Interviewer** | Conducts PRD interview | Sonnet | No |
@@ -228,9 +238,23 @@ This is the primary human oversight touchpoint — check it each morning or afte
 | **PM Agent** | Coordinates task execution | Sonnet | No |
 | **Review/Architect** | Code-level integration and merge quality | Sonnet | Conflict resolution only |
 | **Learn Auditor** | Investigates learning directives | Sonnet | No |
-| **Task Agent** | Executes individual tasks | — | Yes |
+
+#### Task Agents
+
+| Agent | Purpose | Model | Writes Code? |
+|-------|---------|-------|--------------|
+| **Implementer** | Executes coding tasks | Sonnet/Opus | Yes |
+| **Tester** | Writes and maintains tests | Sonnet | Yes |
+| **Documenter** | Creates and updates documentation | Sonnet | Yes (docs) |
 
 The PM Agent coordinates but never writes code. Task agents are spawned by PM to execute work in isolated worktrees.
+
+**Task Agent Selection:**
+- PM analyzes task type from title/description
+- Implementation tasks → `@karimo-implementer`
+- Test-only tasks → `@karimo-tester`
+- Documentation-only tasks → `@karimo-documenter`
+- Mixed tasks → `@karimo-implementer` (handles inline)
 
 The Review/Architect Agent handles code-level integration:
 - Validates task PRs integrate cleanly with feature branch

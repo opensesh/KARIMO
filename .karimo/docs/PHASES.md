@@ -9,7 +9,7 @@ KARIMO uses three optional adoption phases. Start in Phase 1 and build up as nee
 Autonomous development is high-stakes. Before letting agents run overnight, you need to:
 
 - See what agents actually produce
-- Understand how cost controls behave
+- Understand how loop limits and model assignment work
 - Verify that code integrity checks catch real problems
 
 Phases are **optional progression**, not requirements. Phase 1 is fully functional — many teams will never need Phase 2 or 3.
