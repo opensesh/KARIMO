@@ -1,50 +1,126 @@
-# /karimo:review — Human Review Checkpoint
+# /karimo:review — Cross-PRD Review Dashboard
 
-Approve a finalized PRD and generate task briefs for execution.
+Surface all tasks needing human attention and recently completed work across all active PRDs.
 
 ## Usage
 
 ```
-/karimo:review                  # List PRDs ready for review
-/karimo:review --prd {slug}     # Review and approve a specific PRD
+/karimo:review                  # Cross-PRD dashboard: blocked, in-revision, completions
+/karimo:review --prd {slug}     # Review and approve a specific PRD (pre-execution)
+/karimo:review --pending        # List PRDs ready for approval
 ```
 
 ## Purpose
 
-This command creates a **human checkpoint** between planning and execution. It ensures:
-1. You've reviewed the PRD and task breakdown
-2. You approve the execution plan before agents start working
-3. Self-contained task briefs are generated for each task
+This command provides **human oversight touchpoints**:
+1. **Default mode:** Cross-PRD dashboard showing blocked tasks, revision loops, and recent completions
+2. **PRD mode:** Approve a finalized PRD and generate task briefs before execution
+3. **Pending mode:** List PRDs waiting for initial approval
 
-## Behavior
+---
 
-### 1. List Available PRDs
+## Mode 1: Cross-PRD Dashboard (Default)
 
-**If no `--prd` argument:**
+**If no arguments provided:**
 
-Show PRDs with `status: "ready"`:
+Shows all tasks needing attention and recent completions across active PRDs.
+
+### Dashboard Output
 
 ```
-PRDs Ready for Review:
+╭──────────────────────────────────────────────────────────────╮
+│  KARIMO Review                                               │
+╰──────────────────────────────────────────────────────────────╯
 
-  001_user-profiles     ready     6 tasks (4 must, 2 should)
-    Created: 2 hours ago
-    Total complexity: 24 points
-    Models: 4 sonnet, 2 opus
+🚫 Blocked — Needs Human Review
+───────────────────────────────
 
-  002_token-studio      ready     8 tasks (5 must, 3 should)
-    Created: yesterday
-    Total complexity: 32 points
-    Models: 5 sonnet, 3 opus
+  PRD: user-profiles
+  Board: https://github.com/orgs/{org}/projects/{number}
 
-Run: /karimo:review --prd user-profiles
+    [2a] Implement profile edit form
+         PR #44 · Greptile: 2/5, 2/5, 2/5 (3 attempts)
+         Model: escalated sonnet → opus
+         Blocked since: 2h ago
+         → Review PR: https://github.com/{owner}/{repo}/pull/44
+
+    [3b] Add notification preferences
+         PR #47 · Greptile: 1/5, 2/5, 1/5 (3 attempts)
+         Model: opus (no escalation — complexity 8)
+         Blocked since: 45m ago
+         → Review PR: https://github.com/{owner}/{repo}/pull/47
+
+
+⚠️  In Revision — Active Loops
+────────────────────────────────
+
+  PRD: token-studio
+  Board: https://github.com/orgs/{org}/projects/{number}
+
+    [1c] Token validation logic
+         PR #51 · Greptile: 2/5 (attempt 1 of 3)
+         Model: escalated sonnet → opus
+         → PR: https://github.com/{owner}/{repo}/pull/51
+
+
+🔀 Needs Human Rebase
+──────────────────────
+
+  PRD: user-profiles
+  Board: https://github.com/orgs/{org}/projects/{number}
+
+    [2b] Add avatar upload
+         Conflict files: src/types/index.ts, src/components/UserProfile.tsx
+         → Branch: feature/user-profiles/2b
+
+
+✅ Recently Completed
+─────────────────────
+
+  PRD: user-profiles (4/6 tasks done — 67%)
+  Board: https://github.com/orgs/{org}/projects/{number}
+
+    [1a] Create UserProfile component        ✓ merged 3h ago   PR #42
+    [1b] Add user type definitions           ✓ merged 2h ago   PR #43
+    [2c] Profile API endpoints               ✓ merged 1h ago   PR #45
+    [2d] Profile page layout                 ✓ merged 30m ago  PR #46
+
+  PRD: token-studio (2/8 tasks done — 25%)
+  Board: https://github.com/orgs/{org}/projects/{number}
+
+    [1a] Token schema types                  ✓ merged 4h ago   PR #49
+    [1b] Token CRUD operations               ✓ merged 3h ago   PR #50
+
+
+Summary: 2 blocked · 1 in revision · 1 needs rebase · 6 recently completed
 ```
 
-### 2. Load and Display PRD Summary
+### Data Sources
 
-**If `--prd` provided:**
+For each active PRD:
+1. Read `.karimo/prds/{slug}/status.json` for task statuses
+2. Read `github_project_url` from status.json for board links
+3. Use `gh pr view {pr_number} --json url` to get PR URLs
+4. Calculate time-ago from timestamps
 
-Load PRD files and display summary:
+### Empty States
+
+If no items in a category, omit that section entirely.
+
+If no active PRDs exist:
+```
+No active PRDs found. Run /karimo:plan to create one, or /karimo:execute to start one.
+```
+
+---
+
+## Mode 2: PRD Approval (`--prd {slug}`)
+
+**If `--prd` argument provided:**
+
+Review and approve a specific PRD before execution begins. This creates a **human checkpoint** between planning and execution.
+
+### Display PRD Summary
 
 ```
 ╭──────────────────────────────────────────────────────────────╮
@@ -93,7 +169,35 @@ Execution Plan:
 Total: 6 tasks, 24 complexity points (4 sonnet, 2 opus)
 ```
 
-### 3. Request Approval
+---
+
+## Mode 3: List Pending PRDs (`--pending`)
+
+**If `--pending` argument provided:**
+
+Show PRDs with `status: "ready"` (awaiting initial approval):
+
+```
+PRDs Ready for Review:
+
+  001_user-profiles     ready     6 tasks (4 must, 2 should)
+    Created: 2 hours ago
+    Total complexity: 24 points
+    Models: 4 sonnet, 2 opus
+
+  002_token-studio      ready     8 tasks (5 must, 3 should)
+    Created: yesterday
+    Total complexity: 32 points
+    Models: 5 sonnet, 3 opus
+
+Run: /karimo:review --prd user-profiles
+```
+
+---
+
+## PRD Approval Flow (Mode 2 continued)
+
+### Request Approval
 
 Ask for explicit approval:
 
@@ -109,7 +213,7 @@ Options:
 Your choice:
 ```
 
-### 4. Handle Approval Options
+### Handle Approval Options
 
 **Option 1 — Approve all:**
 - Proceed to brief generation for all tasks
@@ -134,7 +238,7 @@ Proceed with 5 tasks?
 **Option 4 — Cancel:**
 - Exit without changes
 
-### 5. Generate Task Briefs
+### Generate Task Briefs
 
 For each approved task, spawn the `karimo-brief-writer` agent:
 
@@ -155,7 +259,7 @@ Each brief is saved to:
 .karimo/prds/{slug}/briefs/{task_id}.md
 ```
 
-### 6. Update Status
+### Update Status
 
 Update `status.json`:
 
@@ -176,7 +280,7 @@ Update `status.json`:
 }
 ```
 
-### 7. Completion Message
+### Completion Message
 
 ```
 ╭──────────────────────────────────────────────────────────────╮
