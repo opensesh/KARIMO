@@ -234,6 +234,8 @@ Generates rules appended to `CLAUDE.md` under `## KARIMO Learnings`.
 
 KARIMO includes specialized agents:
 
+### Coordination Agents
+
 | Agent | Role | Writes Code? |
 |-------|------|--------------|
 | `karimo-interviewer` | Conducts 5-round PRD interview | No |
@@ -244,6 +246,14 @@ KARIMO includes specialized agents:
 | `karimo-review-architect` | Code-level integration, merge conflict resolution | Conflict resolution only |
 | `karimo-learn-auditor` | Investigates learning directives | No |
 
+### Task Agents
+
+| Agent | Role | Writes Code? |
+|-------|------|--------------|
+| `karimo-implementer` | Executes coding tasks, writes production code | Yes |
+| `karimo-tester` | Writes and maintains tests | Yes |
+| `karimo-documenter` | Creates and updates documentation | Yes (docs) |
+
 Agents live in `.claude/agents/` and follow strict rules from `KARIMO_RULES.md`.
 
 ---
@@ -252,10 +262,20 @@ Agents live in `.claude/agents/` and follow strict rules from `KARIMO_RULES.md`.
 
 Reusable capabilities available to agents:
 
+### Coordination Skills
+
 | Skill | Purpose |
 |-------|---------|
 | `git-worktree-ops` | Worktree creation, management, cleanup |
 | `github-project-ops` | GitHub Projects and Issues via `gh` CLI |
+
+### Task Agent Skills
+
+| Skill | Purpose |
+|-------|---------|
+| `karimo-code-standards` | Coding patterns for implementer agent |
+| `karimo-testing-standards` | Testing patterns for tester agent |
+| `karimo-doc-standards` | Documentation patterns for documenter agent |
 
 Skills live in `.claude/skills/`.
 
@@ -275,6 +295,9 @@ After installation, your project contains:
     karimo-pm.md
     karimo-review-architect.md
     karimo-learn-auditor.md
+    karimo-implementer.md      # Task agent
+    karimo-tester.md           # Task agent
+    karimo-documenter.md       # Task agent
   commands/
     plan.md
     review.md
@@ -285,6 +308,9 @@ After installation, your project contains:
   skills/
     git-worktree-ops.md
     github-project-ops.md
+    karimo-code-standards.md       # Task agent skill
+    karimo-testing-standards.md    # Task agent skill
+    karimo-doc-standards.md        # Task agent skill
   KARIMO_RULES.md
 
 .karimo/

@@ -35,7 +35,6 @@ If you find yourself writing feature code, STOP. That's the Task Agent's job.
 ### You are NOT responsible for:
 
 - Task sequencing or scheduling (PM Agent)
-- Cost or budget decisions (PM Agent)
 - Creating GitHub Issues directly (request via PM Agent)
 - Making product decisions (escalate to human)
 - Writing feature code (Task Agent)
