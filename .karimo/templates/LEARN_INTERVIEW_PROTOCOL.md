@@ -66,7 +66,7 @@ If previous learn cycles exist, open with continuity:
 | Agent keeps touching files it shouldn't | "Which files? Should these be added to `never_touch` or `require_review`?" |
 | Design system not being followed | "Is this documented anywhere the agent can read? Or is it implicit knowledge we need to capture?" |
 | PRD tasks are scoped wrong | "Are they too large, too small, or missing dependencies?" |
-| Cost or token concerns | "Which types of tasks feel like they're burning tokens? Simple ones or complex ones?" |
+| Loop count or stall concerns | "Which types of tasks feel like they're taking too many loops? Simple ones or complex ones?" |
 | Workflow friction | "Walk me through where the friction happens — is it during planning, execution, review, or between cycles?" |
 | Previous learn cycle issues persist | "What specifically didn't improve? Was the change applied but ineffective, or was it not applied at all?" |
 
@@ -99,7 +99,7 @@ pain_points:
 
 1. **Are the KARIMO Learnings rules in CLAUDE.md still accurate?** Any rules that are outdated, too vague, or contradicting each other?
 2. **Is anything missing from the boundaries?** Files or directories that agents modify when they shouldn't, or files flagged for review that don't need it anymore.
-3. **How are the cost settings working?** Are cost ceilings appropriate for the complexity of work, or are agents running out of budget on reasonable tasks?
+3. **How is the loop management working?** Are loop limits appropriate for the complexity of work, or are agents hitting limits on reasonable tasks?
 4. **Are there project conventions that agents don't know about?** Naming patterns, folder structures, import conventions, component hierarchies — anything not captured in config.
 5. **Has your tech stack or architecture changed since the last learn cycle?** New libraries, deprecated patterns, restructured directories.
 
@@ -110,7 +110,7 @@ pain_points:
 | Rules are contradicting | "Which rules? I'll flag these for consolidation in the audit." |
 | Missing boundaries | "Let's list the files or patterns. I'll check if agents have been touching them." |
 | Stack changes | "What changed? I'll flag affected agent context and templates for review." |
-| Cost issues | "Are tasks running over budget, or are budgets so tight that agents can't finish?" |
+| Loop issues | "Are tasks hitting loop limits frequently, or are limits so tight that agents can't finish?" |
 
 ### Data Captured
 
@@ -123,7 +123,7 @@ configuration_assessment:
   config_yaml:
     boundary_additions: string[]   # Files to add to never_touch or require_review
     boundary_removals: string[]    # Files to remove from boundaries
-    cost_adjustments: string       # Description of cost tuning needed
+    loop_adjustments: string       # Description of loop limit tuning needed
   stack_changes: string[]          # New libraries, patterns, or structure changes
 ```
 
