@@ -527,6 +527,20 @@ echo "  .github/ISSUE_TEMPLATE/   1 issue template"
 echo "  CLAUDE.md                 Updated with reference block"
 echo "  .gitignore                Updated with .worktrees/"
 echo
+echo "Configuration:"
+if [ "$CONFIG_CREATED" = true ]; then
+    echo -e "  ${GREEN}✓${NC} .karimo/config.yaml    Auto-detected and created"
+    echo "    Runtime: ${DETECTED_RUNTIME}"
+    echo "    Framework: ${DETECTED_FRAMEWORK}"
+    echo "    Package manager: ${DETECTED_PKG_MANAGER}"
+elif [ "$SKIP_CONFIG" = true ]; then
+    echo -e "  ${YELLOW}○${NC} Configuration skipped (--skip-config)"
+    echo "    Run /karimo:configure to set up project configuration"
+else
+    echo -e "  ${YELLOW}○${NC} Configuration pending"
+    echo "    Run /karimo:configure to set up project configuration"
+fi
+echo
 echo "Workflows installed: ${WORKFLOW_COUNT}"
 echo "  Tier 1 (Required):"
 echo "    - karimo-sync.yml"
@@ -542,8 +556,13 @@ fi
 echo
 echo "Next steps:"
 echo "  1. Run '/karimo:doctor' to verify installation health"
-echo "  2. Run '/karimo:plan' to create your first PRD"
-echo "  3. Run '/karimo:execute --prd {slug}' to start execution"
+if [ "$CONFIG_CREATED" = true ]; then
+    echo "  2. Run '/karimo:plan' to create your first PRD"
+    echo "  3. Run '/karimo:execute --prd {slug}' to start execution"
+else
+    echo "  2. Run '/karimo:configure' to set up project configuration"
+    echo "  3. Run '/karimo:plan' to create your first PRD"
+fi
 echo "  4. Run '/karimo:feedback' for quick single-rule capture"
 echo "  5. Run '/karimo:learn' for periodic deep learning cycles"
 if [ "$INSTALLED_GREPTILE" = "true" ]; then
