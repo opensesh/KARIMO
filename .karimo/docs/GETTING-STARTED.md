@@ -212,7 +212,7 @@ This appends rules to `CLAUDE.md` for future agents.
 
 ## Configuration
 
-Configuration is stored in `CLAUDE.md` and auto-detected on your first `/karimo:plan`.
+Configuration is stored in `.karimo/config.yaml` and auto-detected on your first `/karimo:plan`.
 
 The investigator agent scans your project for:
 - **Runtime** — Node.js, Bun, Deno, Python, etc.
@@ -222,6 +222,19 @@ The investigator agent scans your project for:
 - **Boundaries** — Lock files, .env files, migrations, auth directories
 
 You can review and edit the detected values before they're saved.
+
+### Configure Without Planning
+
+If you want to set up configuration separately from creating a PRD:
+
+```
+/karimo:configure
+```
+
+This walks you through 5 configuration sections (~5 min) and creates `.karimo/config.yaml` without starting a PRD interview. Useful for:
+- Initial setup before your first `/karimo:plan`
+- Updating configuration later
+- Teams that want to review config before planning
 
 ---
 
@@ -304,7 +317,7 @@ Yes. Remove these files:
 ```bash
 rm -rf .karimo/
 rm .claude/agents/karimo-*.md
-rm .claude/commands/{plan,review,execute,status,feedback,learn}.md
+rm .claude/commands/{plan,review,execute,status,configure,feedback,learn,doctor}.md
 rm .claude/skills/{git-worktree-ops,github-project-ops}.md
 rm .claude/KARIMO_RULES.md
 rm .github/workflows/karimo-*.yml
