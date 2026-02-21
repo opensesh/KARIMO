@@ -313,6 +313,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - "Updating KARIMO" section in GETTING-STARTED.md
 - Update mention in README.md Quick Start section
 
+**Uninstall Script**
+- `.karimo/uninstall.sh` — Clean removal of all KARIMO components
+- Removes: .karimo/, agents, commands, skills, rules, workflows, issue templates
+- Strips KARIMO Framework section from CLAUDE.md
+- Removes .worktrees/ entry from .gitignore
+- Cleans up empty directories after removal
+- Requires explicit "yes" confirmation before destructive operations
+
 ### Changed
 
 **install.sh**
