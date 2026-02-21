@@ -348,6 +348,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `INTEGRATING.md` — merged into `GETTING-STARTED.md`
 - `sandbox.safe_env` config option — Claude Code manages environment isolation
 
+### Fixed
+
+**Documentation Accuracy**
+- CLAUDE.md block size: Updated "~20 lines" → "~65 lines" (actual count from install.sh)
+- Uninstall instructions: Added missing task agent skills (karimo-code-standards, karimo-testing-standards, karimo-doc-standards)
+- Files updated: ARCHITECTURE.md, GETTING-STARTED.md (3 locations), CHANGELOG.md
+
 ---
 
 ## [2.0.0] - 2026-02-19
