@@ -7,6 +7,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.4.0] - 2026-02-21
+
+### Added
+
+**`/karimo:doctor` Command**
+- New diagnostic command to check KARIMO installation health
+- 5 diagnostic checks (read-only, never modifies files):
+  - Environment: Claude Code, GitHub CLI, Git version, Greptile API key
+  - Installation integrity: 10 agents, 7 commands, 5 skills, 7 templates
+  - Configuration validation: CLAUDE.md structure and schema
+  - Configuration sanity: Commands exist, boundary patterns match files
+  - Phase assessment: Current adoption phase and PRD status
+- Clear status indicators: ✅ passed, ⚠️ warning, ❌ error, ℹ️ informational
+- Actionable recommendations for each issue found
+- Graceful handling for partial installations
+
+**Install Script Updates**
+- Copies `doctor.md` command during installation
+- Updated command count from 6 to 7
+- Added `/karimo:doctor` to CLAUDE.md template slash commands
+- Updated next steps to recommend running doctor first after install
+
+**Documentation**
+- CLAUDE.md: Added doctor to slash commands table and installed components
+- README.md: Added doctor to slash commands table and directory structure
+- COMMANDS.md: Full documentation section with usage, checks, and output examples
+
+---
+
 ## [2.3.0] - 2026-02-21
 
 ### Added
