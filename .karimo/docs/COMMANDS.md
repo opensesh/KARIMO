@@ -14,6 +14,7 @@ Reference for all KARIMO slash commands available in Claude Code.
 | `/karimo:status` | View execution progress |
 | `/karimo:feedback` | Quick capture of single learnings |
 | `/karimo:learn` | Deep learning cycle (3 modes) |
+| `/karimo:doctor` | Check installation health |
 
 ---
 
@@ -378,6 +379,62 @@ Creates `.karimo/learn/{timestamp}/`:
 
 ---
 
+## /karimo:doctor
+
+Check the health of a KARIMO installation.
+
+### Usage
+
+```
+/karimo:doctor
+```
+
+### What It Does
+
+Runs 5 diagnostic checks (read-only, never modifies files):
+
+1. **Environment** — Claude Code, GitHub CLI, Git, Greptile
+2. **Installation** — All expected files present
+3. **Configuration** — Valid syntax and schema in CLAUDE.md
+4. **Sanity** — Commands exist, boundary patterns match files
+5. **Phase Assessment** — Current adoption phase and PRD status
+
+### Output
+
+Shows pass/fail status for each check with actionable recommendations:
+
+```
+╭──────────────────────────────────────────────────────────────╮
+│  KARIMO Doctor                                               │
+╰──────────────────────────────────────────────────────────────╯
+
+Check 1: Environment
+────────────────────
+
+  ✅ Claude Code     Installed
+  ✅ GitHub CLI      Authenticated as @username
+  ✅ Git             v2.43.0 (worktree support)
+  ℹ️  Greptile       Not configured (optional for Phase 2)
+
+...
+
+Summary
+───────
+
+  ✅ All 5 checks passed
+
+  KARIMO installation is healthy.
+```
+
+### When to Use
+
+- After installing KARIMO
+- Before running your first PRD
+- When commands aren't working as expected
+- Anytime something seems wrong
+
+---
+
 ## Command Locations
 
 Commands are defined in `.claude/commands/`:
@@ -390,6 +447,7 @@ Commands are defined in `.claude/commands/`:
 | `status.md` | `/karimo:status` |
 | `feedback.md` | `/karimo:feedback` |
 | `learn.md` | `/karimo:learn` |
+| `doctor.md` | `/karimo:doctor` |
 
 ---
 
