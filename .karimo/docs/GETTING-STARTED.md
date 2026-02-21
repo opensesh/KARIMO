@@ -38,13 +38,43 @@ git clone https://github.com/opensesh/KARIMO.git
 bash KARIMO/.karimo/install.sh /path/to/your/project
 ```
 
+The installer will prompt you for optional workflow tiers:
+
+```
+GitHub Workflow Installation
+KARIMO uses a three-tier workflow system:
+
+Tier 1 (Required):
+  - karimo-sync.yml: Status sync on PR merge
+  - karimo-dependency-watch.yml: Runtime dependency alerts
+  Installed
+
+Tier 2 (CI Integration):
+  - karimo-ci-integration.yml: Observes your existing CI, labels PRs
+  - This workflow does NOT run build commands - it watches external CI
+
+Install CI integration workflow? (Y/n) Y
+  Installed
+
+Tier 3 (Greptile Review):
+  - karimo-greptile-review.yml: Automated code review via Greptile
+  - Requires GREPTILE_API_KEY secret in your repository
+
+Install Greptile review workflow? (y/N) n
+  Skipped
+```
+
+**Recommendations:**
+- **CI Integration (Tier 2):** Accept the default (Y) if you have any CI workflows
+- **Greptile Review (Tier 3):** Install if you have a Greptile API key
+
 This installs:
 - Agent definitions to `.claude/agents/`
 - Slash commands to `.claude/commands/`
 - Skills to `.claude/skills/`
 - Agent rules to `.claude/KARIMO_RULES.md`
 - Templates to `.karimo/templates/`
-- GitHub Actions to `.github/workflows/`
+- GitHub Actions based on your tier selections
 - Reference block appended to `CLAUDE.md`
 
 ### 3. Verify Installation
@@ -236,7 +266,16 @@ Should show KARIMO agents alongside any existing agents.
 
 ### "Workflow conflicts"
 
-Check GitHub Actions tab for errors. Review workflow triggers and job names. KARIMO workflows use unique job names and label prefixes to minimize conflicts.
+Check GitHub Actions tab for errors. KARIMO workflows use unique names (`karimo-*`) and self-exclude from CI detection. If you skipped a tier during installation, you can add it later:
+
+```bash
+# Copy missing workflow from KARIMO source
+cp KARIMO/.github/workflows/karimo-ci-integration.yml .github/workflows/
+```
+
+### "CI always shows skipped"
+
+The CI Integration workflow only monitors external CI. If you don't have GitHub Actions, CircleCI, Jenkins, or similar, it will apply `ci-skipped`. This is expected — add CI workflows to your project and KARIMO will automatically detect them.
 
 ### "CLAUDE.md too long"
 
