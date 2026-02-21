@@ -265,35 +265,41 @@ PRs are created with KARIMO metadata:
 
 ## Configuration
 
-KARIMO reads optional configuration from `.karimo/config.yaml`:
+KARIMO configuration lives in `CLAUDE.md`. On first `/karimo:plan`, the investigator agent auto-detects your project and populates these sections:
 
-```yaml
-project:
-  name: "my-project"
+### Project Context
 
-commands:
-  build: "npm run build"
-  lint: "npm run lint"
-  test: "npm test"
-  typecheck: "npm run typecheck"
+| Setting | Value |
+|---------|-------|
+| Runtime | node |
+| Framework | next.js |
+| Package Manager | pnpm |
 
-execution:
-  max_parallel: 3
+### Commands
 
-models:
-  simple: "sonnet"
-  complex: "opus"
-  threshold: 5
+| Type | Command |
+|------|---------|
+| Build | `pnpm run build` |
+| Lint | `pnpm run lint` |
+| Test | `pnpm test` |
+| Typecheck | `pnpm run typecheck` |
 
-boundaries:
-  never_touch:
-    - "*.lock"
-    - ".env*"
-  require_review:
-    - "src/auth/*"
-```
+### Boundaries
 
-Configuration is auto-detected by the investigator agent on first `/karimo:plan` and stored in `CLAUDE.md`.
+**Never Touch:**
+- `*.lock`
+- `.env*`
+- `migrations/`
+
+**Require Review:**
+- `src/auth/*`
+- `*.config.js`
+
+### Hardcoded Defaults
+
+Some values are not configurable:
+- **max_parallel:** 3 (concurrent tasks)
+- **model threshold:** 5 (complexity < 5 → sonnet, >= 5 → opus)
 
 ---
 
