@@ -28,11 +28,21 @@ if [ ! -f .karimo/MANIFEST.json ]; then
   exit 1
 fi
 
+# Helper functions for manifest parsing (jq-free)
+manifest_list() {
+  local key="$1"
+  sed -n "/\"$key\"/,/]/p" .karimo/MANIFEST.json | grep '"' | grep -v "\"$key\"" | sed 's/.*"\([^"]*\)".*/\1/'
+}
+
+manifest_count() {
+  manifest_list "$1" | wc -l | tr -d ' '
+}
+
 # Read expected counts
-EXPECTED_AGENTS=$(jq '.agents | length' .karimo/MANIFEST.json)
-EXPECTED_COMMANDS=$(jq '.commands | length' .karimo/MANIFEST.json)
-EXPECTED_SKILLS=$(jq '.skills | length' .karimo/MANIFEST.json)
-EXPECTED_TEMPLATES=$(jq '.templates | length' .karimo/MANIFEST.json)
+EXPECTED_AGENTS=$(manifest_count "agents")
+EXPECTED_COMMANDS=$(manifest_count "commands")
+EXPECTED_SKILLS=$(manifest_count "skills")
+EXPECTED_TEMPLATES=$(manifest_count "templates")
 ```
 
 **Count actual files:**
@@ -73,8 +83,8 @@ Ensure all templates listed in manifest have valid markdown structure.
 - Each template contains at least one markdown heading (`#`)
 
 ```bash
-# Check each template from manifest
-for template in $(jq -r '.templates[]' .karimo/MANIFEST.json); do
+# Check each template from manifest (jq-free)
+for template in $(manifest_list "templates"); do
   if [ -f ".karimo/templates/$template" ]; then
     head -20 ".karimo/templates/$template" | grep -q "^#" && echo "✅ $template" || echo "❌ $template (no heading)"
   else
@@ -128,8 +138,8 @@ Verify `.karimo/state.json` is valid JSON (if it exists).
 ```bash
 # Check if state.json exists
 if [ -f .karimo/state.json ]; then
-  # Validate JSON structure
-  jq empty .karimo/state.json 2>/dev/null && echo "Valid JSON" || echo "Invalid JSON"
+  # Validate JSON structure using Node.js (available on all systems with Claude Code)
+  node -e "JSON.parse(require('fs').readFileSync('.karimo/state.json'))" 2>/dev/null && echo "Valid JSON" || echo "Invalid JSON"
 else
   echo "No state.json (OK for new installations)"
 fi
