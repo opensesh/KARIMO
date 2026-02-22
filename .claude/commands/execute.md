@@ -167,6 +167,9 @@ Proceed with 4 tasks?
 - Exit without executing
 - Briefs remain on disk for later execution
 
+> **Note:** To add, remove, or restructure tasks (not just adjust briefs),
+> use `/karimo:modify --prd {slug}` first, then re-run execute.
+
 ---
 
 ### 4. Dry Run Mode
