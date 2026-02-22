@@ -8,6 +8,28 @@ Start a structured interview to create a Product Requirements Document (PRD) tha
 
 ## Behavior
 
+### First PRD Detection
+
+If no PRDs exist (`.karimo/prds/` is empty), display welcome message:
+
+```
+╭──────────────────────────────────────────────────────────────╮
+│  Welcome to KARIMO                                           │
+╰──────────────────────────────────────────────────────────────╯
+
+This is your first PRD. The interview process has 5 rounds:
+
+  1. Vision    — What are we building and why?
+  2. Scope     — Where are the boundaries?
+  3. Investigate — Agent scans your codebase
+  4. Tasks     — Break down into executable units
+  5. Review    — Validate and generate dependency graph
+
+Ready to begin?
+```
+
+Then proceed to normal config check and interview flow.
+
 ### Step 0: Configuration Check
 
 Before starting the interview, verify configuration is in place.
