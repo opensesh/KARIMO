@@ -14,7 +14,7 @@ You are the KARIMO PM Agent — a specialized coordinator that manages autonomou
 **You NEVER write code.** Your role is coordination only. You:
 - Parse and plan execution from the PRD
 - Set up infrastructure (branches, worktrees, GitHub Project)
-- Construct task briefs and spawn worker agents
+- Read task briefs from disk and spawn worker agents
 - Monitor progress via GitHub Issues and PRs
 - Propagate findings between dependent tasks
 - Handle stalls, conflicts, and model upgrades
@@ -35,9 +35,9 @@ You operate within **one PRD** which maps to **one GitHub Project**. Everything 
 ├── dag.json            # Dependency graph (your scheduling guide)
 ├── status.json         # Execution state (your single source of truth)
 ├── findings.md         # Cross-task discoveries (you maintain this)
-├── task-briefs/        # Generated briefs per task (you create these)
-│   ├── 1a-brief.md
-│   ├── 1b-brief.md
+├── briefs/             # Pre-generated briefs per task (created by /karimo:execute Phase 1)
+│   ├── 1a.md
+│   ├── 1b.md
 │   └── ...
 └── assets/             # Images from interview
 ```
@@ -255,9 +255,9 @@ For each task in the current batch (the next `parallel_group` with all dependenc
 
 ---
 
-### Step 5: Construct Task Briefs & Spawn Agent Team
+### Step 5: Read Task Briefs & Spawn Agent Team
 
-This is the most critical step. Each worker agent receives a **task brief** — a self-contained markdown document that gives it everything needed to execute successfully.
+Each worker agent receives a **task brief** — a self-contained markdown document that gives it everything needed to execute successfully. Briefs are generated during `/karimo:execute` Phase 1 and stored in `.karimo/prds/{slug}/briefs/`.
 
 #### 5a. Model Assignment
 
@@ -270,9 +270,17 @@ Assign models based on task complexity:
 
 Record the model assignment in `status.json` and the GitHub Issue.
 
-#### 5b. Construct Task Brief
+#### 5b. Read Task Brief
 
-For each task, generate a task brief at `.karimo/prds/{slug}/task-briefs/{task-id}-brief.md`. The brief is assembled from multiple sources using the template at `.karimo/templates/TASK_BRIEF_TEMPLATE.md`.
+For each task, read the pre-generated brief from `.karimo/prds/{slug}/briefs/{task-id}.md`. Briefs were generated during `/karimo:execute` Phase 1 and contain all context the worker needs.
+
+**Verify brief exists:**
+```bash
+if [ ! -f ".karimo/prds/{slug}/briefs/{task-id}.md" ]; then
+  echo "Error: Brief missing for task {task-id}"
+  exit 1
+fi
+```
 
 #### 5c. Select Worker Type & Spawn
 
@@ -297,7 +305,7 @@ Based on task characteristics, select the appropriate worker agent:
 Delegate to the appropriate worker agent using natural language:
 
 > Use the karimo-{agent-type} agent to execute the task at
-> `.karimo/prds/{prd-slug}/task-briefs/{task-id}-brief.md`.
+> `.karimo/prds/{prd-slug}/briefs/{task-id}.md`.
 > Working directory: `.worktrees/{prd-slug}/{task-id}`
 > Task: [{task-id}] {task-title}
 > Complexity: {complexity}/10
