@@ -7,6 +7,55 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.8.1] - 2026-02-21
+
+### Added
+
+**Manifest System**
+- `.karimo/MANIFEST.json` — Single source of truth for file inventory
+- Contains lists of agents, commands, skills, templates, and workflows
+- Version tracking embedded in manifest
+- Enables CI validation and consistent installation
+
+**CI Mode**
+- `install.sh --ci` — Non-interactive installation for CI/CD pipelines
+- `update.sh --ci` — Non-interactive updates
+- Auto-confirms all prompts, installs all workflows
+- Required for automated testing and deployment
+
+**CI Validation**
+- `karimo-ci.yml` now validates against manifest
+- `validate-manifest` job runs first, checks file existence
+- `validate-installation` job tests install script with --ci flag
+- Catches manifest drift before installation failures
+
+### Changed
+
+**install.sh**
+- Reads file lists from MANIFEST.json instead of hardcoded copies
+- Copies MANIFEST.json to target project
+- Requires `jq` dependency (with helpful error message)
+- Displays manifest-derived counts in summary
+
+**update.sh**
+- Uses manifest for file comparison
+- Syncs MANIFEST.json on update
+- Requires `jq` dependency
+
+**test.md and doctor.md**
+- Read expected counts from MANIFEST.json
+- Dynamic validation instead of hardcoded expectations
+- Template validation iterates manifest list
+
+### Fixed
+
+**CI Workflow**
+- Previously expected 10 agents, now correctly reads 13 from manifest
+- Previously expected 7 templates, now correctly reads 9 from manifest
+- Counts stay in sync when files are added or removed
+
+---
+
 ## [2.8.0] - 2026-02-21
 
 ### Added
