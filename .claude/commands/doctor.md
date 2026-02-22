@@ -12,7 +12,7 @@ Check the health of a KARIMO installation, identify issues, and provide actionab
 
 ## Behavior
 
-Run six diagnostic checks and display results with clear status indicators.
+Run seven diagnostic checks and display results with clear status indicators.
 
 ### Check 0: Version Status
 
