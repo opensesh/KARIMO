@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.9.0] - 2026-02-22
+
+### Changed
+
+- **CLAUDE.md as single source of truth** — Eliminated config.yaml entirely
+- `/karimo:configure` writes directly to CLAUDE.md tables
+- `/karimo:plan` checks CLAUDE.md for `_pending_` markers instead of config.yaml
+- `/karimo:doctor` Check 3 validates CLAUDE.md configuration
+- **Removed jq dependency** — All scripts use grep/sed/awk/Node.js
+- `uninstall.sh` reads file lists from MANIFEST.json dynamically
+
+### Removed
+
+- `.karimo/config.yaml` — No longer created or used
+- `--skip-config` flag from `install.sh`
+- `jq` as required dependency
+
+---
+
 ## [2.8.1] - 2026-02-21
 
 ### Added
