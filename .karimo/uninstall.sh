@@ -113,7 +113,7 @@ if [ -f "$MANIFEST" ]; then
     done
 else
     # Fallback: known KARIMO commands
-    for cmd in plan.md review.md execute.md status.md configure.md feedback.md learn.md doctor.md overview.md test.md; do
+    for cmd in plan.md execute.md status.md configure.md feedback.md learn.md doctor.md overview.md test.md; do
         if [ -f "$TARGET_DIR/.claude/commands/$cmd" ]; then
             rm "$TARGET_DIR/.claude/commands/$cmd"
             REMOVED_COUNT=$((REMOVED_COUNT + 1))

@@ -259,7 +259,7 @@ PR status unavailable. Run: gh auth login
 | Command | Purpose |
 |---------|---------|
 | `/karimo:overview` | Cross-PRD oversight: blocked tasks, revision loops, completions |
-| `/karimo:review` | Review and approve PRD before execution |
-| `/karimo:execute` | Execute approved PRD |
+| `/karimo:plan` | Create PRD with interactive approval |
+| `/karimo:execute` | Execute PRD (brief gen + task execution) |
 
 For cross-PRD oversight (blocked tasks needing human review, revision loops, rebase conflicts), use `/karimo:overview`.
