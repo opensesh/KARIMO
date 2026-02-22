@@ -475,6 +475,7 @@ This project uses KARIMO for autonomous development.
 - `/karimo:plan` — Start PRD interview with interactive approval
 - `/karimo:overview` — Cross-PRD oversight: blocked tasks, revision loops
 - `/karimo:execute` — Run tasks from PRD (brief gen + execution)
+- `/karimo:modify` — Modify approved PRD before execution
 - `/karimo:status` — View execution state
 - `/karimo:configure` — Create or update configuration
 - `/karimo:feedback` — Quick capture of single learnings
