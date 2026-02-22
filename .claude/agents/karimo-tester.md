@@ -349,4 +349,4 @@ Your task is complete when:
 - [ ] Edge case tests passing
 - [ ] Full test suite passes (including your tests)
 - [ ] Commits follow `test(scope):` format
-- [ ] findings.json written if discoveries exist
+- [ ] findings.md written if discoveries exist
