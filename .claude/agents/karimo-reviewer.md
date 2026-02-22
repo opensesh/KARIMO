@@ -67,55 +67,93 @@ Validate the PRD is complete, consistent, and executable. Flag issues for human 
 - Task touches more than 5-7 files
 - Task has both "create" and "modify" actions on unrelated code
 
-### 4. Dependency Graph Validation
+### 4. Execution Plan Generation
 
-**Build and validate the DAG:**
+**Validate dependencies:**
 - [ ] All `depends_on` references exist as task IDs
-- [ ] No circular dependencies
-- [ ] Graph is connected (no orphaned tasks)
-- [ ] Critical path is reasonable
+- [ ] No circular dependencies (tasks can be fully ordered into waves)
+- [ ] All tasks are reachable (assigned to exactly one wave)
 
-**Generate `dag.json`:**
-```json
-{
-  "nodes": [
-    { "id": "1a", "depends_on": [], "depth": 0 },
-    { "id": "1b", "depends_on": ["1a"], "depth": 1 }
-  ],
-  "edges": [
-    { "from": "1a", "to": "1b" }
-  ],
-  "critical_path": ["1a", "1b", "2a"],
-  "parallel_groups": [
-    ["1a"],
-    ["1b", "1c"],
-    ["2a"]
-  ]
-}
+**Generate `execution_plan.yaml`:**
+```yaml
+waves:
+  1: [1a]           # No dependencies - start here
+  2: [1b, 1c]       # Depend only on wave 1
+  3: [2a]           # Depends on waves 1-2
+
+summary:
+  total_waves: 3
+  total_tasks: 4
+  longest_chain: "1a → 1b → 2a"
+  parallel_capacity: 2
 ```
 
-**Algorithm for generating dag.json:**
+**Wave Generation Algorithm:**
 
-1. **Build nodes array:**
-   - For each task in `tasks.yaml`, create node with `{ id, depends_on }`
-   - Calculate depth via BFS from roots (depth 0 for tasks with empty `depends_on`)
-   - Each task's depth = max(depth of all dependencies) + 1
+```
+1. INITIALIZE:
+   wave_number = 1
+   completed_tasks = []
 
-2. **Build edges array:**
-   - For each `depends_on` reference, create `{ from: dependency, to: task }`
+2. WAVE 1:
+   wave_1 = tasks where depends_on == []
+   waves[1] = wave_1
+   completed_tasks = wave_1
 
-3. **Calculate parallel_groups:**
-   - Group nodes by depth value
-   - Tasks at depth 0 form the first parallel group
-   - Tasks at depth 1 form the second, etc.
+3. SUBSEQUENT WAVES:
+   remaining = all tasks NOT in completed_tasks
 
-4. **Calculate critical_path:**
-   - Find longest path (by task count) through the DAG
-   - Use DFS from each root, track visited path
-   - Return the path with most tasks
-   - Tie-break: prefer lower task IDs (lexicographic)
+   WHILE remaining is not empty:
+     wave_number += 1
+     current_wave = []
 
-**Reference:** See `.karimo/templates/DAG_SCHEMA.md` for full specification including pseudocode, validation rules, and worked examples.
+     FOR each task in remaining:
+       IF ALL dependencies in completed_tasks:
+         ADD task to current_wave
+
+     IF current_wave is empty:
+       CYCLE DETECTED → Report error and stop
+
+     waves[wave_number] = current_wave
+     ADD current_wave to completed_tasks
+
+4. BUILD SUMMARY:
+   total_waves = wave_number
+   total_tasks = count of all tasks
+   parallel_capacity = max tasks in any wave
+   longest_chain = trace one path from wave 1 to final wave
+```
+
+**Self-Validation (same turn):**
+
+After generating waves, validate correctness:
+
+```
+FOR each wave N (N > 1):
+  FOR each task in waves[N]:
+    FOR each dependency in task.depends_on:
+      ASSERT dependency appears in waves 1..(N-1)
+      IF NOT: ERROR "Task {id} depends on {dep} in same/later wave"
+
+ASSERT all task IDs appear in exactly one wave
+```
+
+If validation fails, report errors before asking for approval.
+
+**Reference:** See `.karimo/templates/EXECUTION_PLAN_SCHEMA.md` for full specification.
+
+**Complexity Warning (10+ tasks):**
+
+When `total_tasks >= 10`, include a warning in the review output:
+
+```
+⚠️ This PRD has {N} tasks across {W} waves.
+
+Consider:
+- Splitting into 2 PRDs if natural boundaries exist
+- Ensuring complex tasks (5+) aren't blocking multiple others
+- Running /karimo:overview after completion to review learnings
+```
 
 ### 5. Consistency Check
 
@@ -202,14 +240,19 @@ review:
 
   info:
     - "Model distribution: 4 sonnet, 2 opus across 6 tasks"
-    - "Critical path length: 4 tasks"
-    - "3 tasks can run in parallel in first batch"
+    - "Execution: 3 waves, max 2 parallel"
+    - "Longest chain: 1a → 1b → 2a (3 tasks)"
 
-  dag:
-    nodes: [...]
-    edges: [...]
-    critical_path: [...]
-    parallel_groups: [...]
+  execution_plan:
+    waves:
+      1: [1a]
+      2: [1b, 1c]
+      3: [2a]
+    summary:
+      total_waves: 3
+      total_tasks: 4
+      longest_chain: "1a → 1b → 2a"
+      parallel_capacity: 2
 ```
 
 ## Resolution Flow
@@ -307,7 +350,7 @@ On approval, save to `.karimo/prds/{NNN}_{slug}/`:
 .karimo/prds/001_feature-slug/
 ├── PRD.md              # Complete narrative document
 ├── tasks.yaml          # Extracted task block only
-├── dag.json            # Generated dependency graph
+├── execution_plan.yaml # Wave-based execution plan
 ├── assets/             # Images from interview
 └── status.json         # Empty execution state
 ```
@@ -332,7 +375,7 @@ After saving, confirm to the interviewer:
 > - Tasks: {count} ({must_count} must, {should_count} should, {could_count} could)
 > - Total complexity: {sum} points
 > - Models: {sonnet_count} sonnet, {opus_count} opus
-> - Critical path: {length} tasks
-> - Ready for parallel: {parallel_count} tasks
+> - Execution: {wave_count} waves, max {parallel_capacity} parallel
+> - Longest chain: {longest_chain}
 >
 > Run `/karimo:execute --prd {slug}` to start execution."
