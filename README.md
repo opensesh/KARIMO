@@ -15,7 +15,7 @@
 
 ## What is KARIMO?
 
-A product design and development framework based on the typical development cycle inside most big tech companies. This is a PRD-driven framework that starts with a detailed plan for a feature. Agents help plan, execute, and ship. You review and merge. That's the loop.
+A product design framework based on the development cycle inside most big tech companies. This is a PRD-driven framework that starts with a detailed plan for a feature. Agents help plan, execute, and ship. You review and merge. That's the loop.
 
 > **Philosophy:** You are the architect, agents are the builders, Greptile is the inspector.
 
