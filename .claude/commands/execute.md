@@ -66,6 +66,49 @@ Pre-flight checks:
 Ready to begin execution?
 ```
 
+**Pre-flight validation commands:**
+
+Run these checks before spawning the PM agent:
+
+```bash
+# 1. Check git is clean
+if [ -n "$(git status --porcelain)" ]; then
+  echo "❌ Uncommitted changes detected"
+  exit 1
+fi
+
+# 2. Check GitHub CLI authenticated
+gh auth status 2>/dev/null || { echo "❌ GitHub CLI not authenticated"; exit 1; }
+
+# 3. Check GitHub Configuration exists in CLAUDE.md
+if ! grep -q "### GitHub Configuration" CLAUDE.md; then
+  echo "❌ GitHub Configuration not found"
+  exit 1
+fi
+
+# 4. Parse and validate project scope
+OWNER=$(grep -A5 "### GitHub Configuration" CLAUDE.md | grep "Owner |" | head -1 | awk -F'|' '{print $3}' | tr -d ' ')
+OWNER_TYPE=$(grep -A5 "### GitHub Configuration" CLAUDE.md | grep "Owner Type |" | head -1 | awk -F'|' '{print $3}' | tr -d ' ')
+
+if [ "$OWNER_TYPE" = "personal" ]; then
+  gh project list --owner @me --limit 1 2>/dev/null || {
+    echo "❌ GitHub Project permissions denied"
+    echo "Fix: gh auth refresh -s project"
+    exit 1
+  }
+else
+  gh project list --owner "$OWNER" --limit 1 2>/dev/null || {
+    echo "❌ GitHub Project permissions denied"
+    echo "Cannot access projects for '$OWNER'"
+    echo "Fix: gh auth refresh -s project"
+    exit 1
+  }
+fi
+
+# 5. Verify CLAUDE.md has commands and boundaries
+grep -q "### Commands" CLAUDE.md || { echo "❌ Commands section missing"; exit 1; }
+```
+
 **If GitHub Configuration is missing:**
 
 ```
