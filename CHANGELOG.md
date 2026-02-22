@@ -7,6 +7,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [3.0.2] - 2026-02-22
+
+### Changed
+
+- **Standardized Findings Format** — Eliminated findings.json, all findings now use markdown format
+  - Workers produce `findings.md` in worktree root (not JSON)
+  - PM agent reads `findings.md` from worktrees, appends to PRD-level findings.md
+  - Single format throughout the system for human readability and consistency
+
+### Updated
+
+**Worker Agents (6 files):**
+- `karimo-implementer.md` — findings.json contract → findings.md contract
+- `karimo-implementer-opus.md` — findings.json contract → findings.md contract
+- `karimo-tester.md` — findings.json contract → findings.md contract
+- `karimo-tester-opus.md` — findings.json contract → findings.md contract
+- `karimo-documenter.md` — findings.json contract → findings.md contract
+- `karimo-documenter-opus.md` — findings.json contract → findings.md contract
+
+**PM Agent:**
+- `karimo-pm.md` Step 6c now reads `findings.md` instead of `findings.json`
+
+**Templates:**
+- `FINDINGS_TEMPLATE.md` — Added two-level structure documentation (worker findings + PRD findings)
+
+---
+
 ## [3.0.1] - 2026-02-22
 
 ### Fixed
