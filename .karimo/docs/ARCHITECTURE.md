@@ -97,10 +97,11 @@ Target Project/
 │   │   ├── karimo-tester-opus.md    # Task agent: tests (Opus)
 │   │   ├── karimo-documenter.md     # Task agent: docs (Sonnet)
 │   │   └── karimo-documenter-opus.md # Task agent: docs (Opus)
-│   ├── commands/                    # 9 commands from manifest
+│   ├── commands/                    # 10 commands from manifest
 │   │   ├── plan.md                  # /karimo:plan (with interactive review)
 │   │   ├── overview.md              # /karimo:overview (cross-PRD oversight)
 │   │   ├── execute.md               # /karimo:execute (brief gen + execution)
+│   │   ├── modify.md                # /karimo:modify (modify PRD before execution)
 │   │   ├── status.md                # /karimo:status
 │   │   ├── configure.md             # /karimo:configure
 │   │   ├── feedback.md              # /karimo:feedback
