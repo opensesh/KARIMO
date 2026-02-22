@@ -237,17 +237,7 @@ This ensures re-running `/karimo:execute` on the same PRD reuses the existing pr
 
 #### Step 3c: Configure Project
 
-1. **Add custom fields** (if not exists):
-   - `complexity` (Number)
-   - `depends_on` (Text)
-   - `files_affected` (Text)
-   - `agent_status` (Single Select: queued / running / in-review / needs-revision / needs-human-review / done / failed / needs-human-rebase / paused)
-   - `pr_number` (Number)
-   - `revision_count` (Number)
-   - `model` (Text — "sonnet" or "opus")
-   - `loop_count` (Number)
-
-2. **Add custom fields:**
+**Add custom fields** (if not already present):
    - `complexity` (Number)
    - `depends_on` (Text)
    - `files_affected` (Text)

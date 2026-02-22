@@ -10,6 +10,14 @@ Display the current status of KARIMO PRDs and task execution.
 /karimo:status --active         # Show only active PRDs
 ```
 
+## Staleness Thresholds
+
+| State | Threshold | Interpretation |
+|-------|-----------|----------------|
+| `running` | > 4 hours | Agent likely crashed or disconnected |
+| `pending-cleanup` | > 6 hours | Worktree cleanup was interrupted |
+| `in-review` | > 48 hours | PR may need attention |
+
 ## Behavior
 
 ### 1. Load Status Data
@@ -75,6 +83,10 @@ Tasks:
   ✓ [2a] Implement profile edit form           done
     PR #44 merged • opus • 3 loops
     Completed 45m ago
+
+  ⏰ [2c] Implement settings panel             running (STALE: 6h 23m)
+    Branch created • opus • loop 1
+    ⚠ Agent may have crashed — re-run /karimo:execute
 
   ✓ [2b] Add avatar upload                     done
     PR #45 merged • sonnet • 2 loops
