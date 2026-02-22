@@ -7,6 +7,44 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [3.0.4] - 2026-02-22
+
+### Added
+
+**Mid-Execution Failure Recovery Detection**
+
+Detect stale state that indicates crashed or disconnected agents, guiding users to recovery.
+
+**`/karimo:status` — Staleness Detection**
+- New "Staleness Thresholds" section defining detection intervals
+- Step 7b: Staleness Detection logic for running, cleanup, and review states
+- `⏰` icon for stale tasks in status icons table
+- Warnings section shows stale tasks and worktrees with recovery suggestions
+- Next actions prioritize recovery command when stale state detected
+
+**`/karimo:doctor` — Check 6: Execution Health**
+- 6a: Stale running tasks (> 4 hours since `started_at`)
+- 6b: Orphaned worktrees (in filesystem but not in status.json)
+- 6c: Ghost branches (in status.json but deleted from git)
+- 6d: Status-PR mismatch (merged PRs still showing `in-review`)
+- 6e: Pending cleanup (worktrees stuck > 6 hours after merge)
+- Recovery recommendations in summary output
+
+**Staleness Thresholds**
+
+| State | Threshold | Interpretation |
+|-------|-----------|----------------|
+| `running` | 4 hours | Agent likely crashed or disconnected |
+| `pending-cleanup` | 6 hours | Worktree cleanup was interrupted |
+| `in-review` | 48 hours | PR may need attention |
+| `paused` | 7 days | Task may be forgotten |
+
+### Documentation
+
+- `STATUS_SCHEMA.md`: Added Staleness Thresholds section with recovery documentation
+
+---
+
 ## [3.0.3] - 2026-02-22
 
 ### Added
