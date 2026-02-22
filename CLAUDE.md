@@ -12,10 +12,9 @@ KARIMO is an autonomous development **methodology** delivered via Claude Code co
 
 | Command | Purpose |
 |---------|---------|
-| `/karimo:plan` | Start PRD interview to capture requirements |
-| `/karimo:review` | Review and approve PRD before execution |
+| `/karimo:plan` | Start PRD interview with interactive approval |
 | `/karimo:overview` | Cross-PRD oversight dashboard |
-| `/karimo:execute --prd {slug}` | Execute approved tasks from a PRD |
+| `/karimo:execute --prd {slug}` | Execute tasks from a PRD (brief gen + execution) |
 | `/karimo:status` | View execution state and progress |
 | `/karimo:configure` | Create or update CLAUDE.md configuration (~5 min) |
 | `/karimo:feedback` | Quick capture of single learnings (~2 min) |
@@ -81,12 +80,12 @@ When you run `install.sh`, these files are added:
 
 | Location | Contents |
 |----------|----------|
-| `.claude/agents/` | 10 agent definitions (7 coordination + 3 task agents) |
-| `.claude/commands/` | 10 slash commands (plan, review, overview, execute, status, configure, feedback, learn, doctor, test) |
+| `.claude/agents/` | 13 agent definitions (7 coordination + 6 task agents) |
+| `.claude/commands/` | 9 slash commands (plan, overview, execute, status, configure, feedback, learn, doctor, test) |
 | `.claude/skills/` | 5 skills (2 coordination + 3 task agent skills) |
 | `.claude/KARIMO_RULES.md` | Agent behavior rules |
-| `.karimo/templates/` | 7 templates (PRD, interview, task, status, dependencies, learn-interview, task-brief) |
-| `.github/workflows/` | 4 GitHub Actions (review, integration, sync, dependency-watch) |
+| `.karimo/templates/` | 9 templates (PRD, interview, task, status, dependencies, DAG, learn-interview, findings, task-brief) |
+| `.github/workflows/` | 5 GitHub Actions (ci, sync, dependency-watch, ci-integration, greptile-review) |
 
 ### Agent Types
 
