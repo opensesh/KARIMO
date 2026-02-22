@@ -571,3 +571,7 @@ if [ "$INSTALLED_GREPTILE" = "true" ]; then
 fi
 echo
 echo "For more information, see: https://github.com/opensesh/KARIMO"
+echo
+echo "License: Apache 2.0 (see LICENSE in KARIMO source)"
+echo "KARIMO installed files are licensed under Apache 2.0."
+echo "Your project code remains under your own license."
