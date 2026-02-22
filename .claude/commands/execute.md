@@ -11,9 +11,9 @@ Start autonomous execution of an approved PRD using the PM agent and worker team
 ## Prerequisites
 
 Before execution, the PRD must be:
-1. **Finalized** via `/karimo:plan` (status: `ready`)
-2. **Approved** via `/karimo:review` (status: `approved`)
-3. **Briefs generated** in `.karimo/prds/{slug}/briefs/`
+1. **Approved** via `/karimo:plan` (status: `ready`)
+
+Note: For backward compatibility, `approved` status is treated as equivalent to `ready`.
 
 ## Behavior
 
@@ -21,17 +21,17 @@ Before execution, the PRD must be:
 
 **If no `--prd` argument:**
 
-List available approved PRDs from `.karimo/prds/`:
+List available PRDs from `.karimo/prds/`:
 
 ```
 Available PRDs:
 
-  001_user-profiles     approved  5 tasks ready (1 excluded)
+  001_user-profiles     ready     5 tasks
     Approved: 2 hours ago
-    Briefs: 5/5 generated
+    Ready to execute
 
-  002_token-studio      ready     — Not yet approved
-    Run: /karimo:review --prd token-studio
+  002_token-studio      draft     — Not yet approved
+    Resume: /karimo:plan --resume token-studio
 
   003_auth-refactor     active    3/8 tasks complete
     Resume: /karimo:execute --prd auth-refactor
@@ -43,9 +43,8 @@ Run: /karimo:execute --prd user-profiles
 
 Validate the PRD:
 1. Check `.karimo/prds/{NNN}_{slug}/` exists
-2. Verify `status.json` shows `status: "approved"` or `status: "active"`
-3. Verify briefs exist in `briefs/` directory
-4. Load task briefs and DAG
+2. Verify `status.json` shows `status: "ready"`, `status: "approved"` (backward compat), or `status: "active"`
+3. Load tasks and DAG
 
 ### 2. Pre-Execution Checks
 
@@ -54,20 +53,96 @@ Validate the PRD:
 │  Execute: user-profiles                                      │
 ╰──────────────────────────────────────────────────────────────╯
 
-Status: approved
-Tasks: 5 approved, 1 excluded
-Briefs: 5/5 ready
+Status: ready
+Tasks: 5 tasks
 
 Pre-flight checks:
   ✓ Git repository clean
   ✓ GitHub CLI authenticated
   ✓ CLAUDE.md loaded (commands, boundaries)
-  ✓ All briefs present
 
 Ready to begin execution?
 ```
 
-### 3. Dry Run Mode
+### 3. Phase 1: Brief Generation
+
+If briefs don't exist yet, generate them before execution:
+
+```
+Generating task briefs for: user-profiles
+
+  [1a] Create UserProfile component... ✓
+  [1b] Add user type definitions... ✓
+  [2a] Implement profile edit form... ✓
+  [2b] Add avatar upload... ✓
+  [3a] Integration tests... ✓
+
+Briefs saved to: .karimo/prds/001_user-profiles/briefs/
+```
+
+For each task, spawn the brief-writer agent:
+
+```
+@karimo-brief-writer.md
+```
+
+Pass:
+- Task definition from `tasks.yaml`
+- Relevant sections from `PRD.md`
+- Project configuration from `CLAUDE.md`
+
+After brief generation, present review options:
+
+```
+╭──────────────────────────────────────────────────────────────╮
+│  Brief Review: user-profiles                                 │
+╰──────────────────────────────────────────────────────────────╯
+
+Generated: 5 briefs
+
+  [1a] Create UserProfile component      complexity: 4  model: sonnet
+  [1b] Add user type definitions         complexity: 2  model: sonnet
+  [2a] Implement profile edit form       complexity: 5  model: opus
+  [2b] Add avatar upload                 complexity: 4  model: sonnet
+  [3a] Integration tests                 complexity: 3  model: sonnet
+
+Options:
+  1. Execute all — Begin autonomous execution
+  2. Adjust briefs — Modify scope, add criteria
+  3. Exclude tasks — Remove specific tasks from execution
+  4. Cancel — Return without executing
+
+Your choice:
+```
+
+**Option 1 — Execute all:**
+- Proceed to Phase 2 (PM Agent execution)
+
+**Option 2 — Adjust briefs:**
+- Accept user modifications
+- Re-generate affected brief(s)
+- Loop back to present updated options
+
+**Option 3 — Exclude tasks:**
+```
+Enter task IDs to exclude (comma-separated):
+> 2b
+
+Excluding: [2b] Add avatar upload
+
+Note: This will also exclude dependent tasks:
+  - No dependent tasks found
+
+Proceed with 4 tasks?
+```
+
+**Option 4 — Cancel:**
+- Exit without executing
+- Briefs remain on disk for later execution
+
+---
+
+### 4. Dry Run Mode
 
 If `--dry-run` is specified, show the execution plan without acting:
 
@@ -98,9 +173,9 @@ Parallel opportunities: 3 tasks across 2 batches
 Ready to execute? Run without --dry-run to start.
 ```
 
-### 4. Spawn PM Agent
+### 5. Phase 2: Spawn PM Agent
 
-Hand off to the PM agent with brief-based context:
+Hand off to the PM agent for execution:
 
 ```
 @karimo-pm.md
@@ -113,7 +188,7 @@ Pass:
 - Dependency graph from `dag.json`
 - Execution mode (full PRD or single task)
 
-### 5. Brief-Based Execution
+### 6. Brief-Based Execution
 
 The PM agent:
 1. Creates feature branch and GitHub Project
@@ -126,7 +201,7 @@ The PM agent:
 4. Creates PRs when tasks complete
 5. Unblocks dependent tasks
 
-### 6. Single Task Mode
+### 7. Single Task Mode
 
 If `--task {id}` is specified:
 - Execute only that task
@@ -135,7 +210,7 @@ If `--task {id}` is specified:
 - Create PR directly to feature branch
 - Useful for retrying failed tasks
 
-### 7. Resume Behavior
+### 8. Resume Behavior
 
 If `status.json` shows tasks already in progress:
 
@@ -158,7 +233,7 @@ Excluded: 1 task
 Continue execution?
 ```
 
-### 8. Execution Handoff
+### 9. Execution Handoff
 
 The PM agent takes over and:
 1. Creates/updates GitHub Project
@@ -169,7 +244,7 @@ The PM agent takes over and:
 6. Monitors progress and creates PRs
 7. Updates status.json continuously
 
-### 9. Completion
+### 10. Completion
 
 When all approved tasks complete, the PM agent:
 1. Cleans up worktrees
@@ -241,8 +316,7 @@ Execution updates these files:
 | Error | Action |
 |-------|--------|
 | PRD not found | List available PRDs |
-| PRD not approved | "Run /karimo:review to approve first" |
-| Briefs missing | "Run /karimo:review to generate briefs" |
+| PRD not ready | "Run /karimo:plan to approve first" |
 | Task failed | Mark as failed, continue with independent tasks |
 | All tasks blocked | Report blockers, suggest intervention |
 | Task stalled | Attempt model upgrade (Sonnet→Opus), pause if still failing |
@@ -251,9 +325,11 @@ Execution updates these files:
 ## PRD Status Flow
 
 ```
-draft → ready → approved → active → complete
-                   │          │
-                   │          └─► /karimo:execute (running)
-                   │
-                   └─► /karimo:review (human approval)
+draft → ready → active → complete
+          │        │
+          │        └─► /karimo:execute (running)
+          │
+          └─► /karimo:plan (approval via interactive review)
 ```
+
+Note: For backward compatibility, `approved` status is treated as equivalent to `ready`.
