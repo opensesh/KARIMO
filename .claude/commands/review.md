@@ -159,6 +159,37 @@ Each brief is saved to:
 .karimo/prds/{slug}/briefs/{task_id}.md
 ```
 
+### Validate Brief Generation
+
+After generating briefs, verify the count:
+
+```
+Validating briefs...
+
+  Expected: 5 briefs (approved tasks)
+  Generated: 5 briefs ✓
+
+All briefs ready.
+```
+
+If any briefs failed to generate:
+
+```
+⚠ Brief generation incomplete
+
+  Expected: 5 briefs
+  Generated: 4 briefs
+  Missing: [2a]
+
+Cannot approve PRD with missing briefs.
+Options:
+  1. Retry brief generation for [2a]
+  2. Exclude task [2a] and continue
+  3. Cancel review
+```
+
+Count briefs by checking `.karimo/prds/{slug}/briefs/` directory against approved task list.
+
 ### Update Status
 
 Update `status.json`:
