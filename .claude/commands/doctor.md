@@ -80,6 +80,65 @@ Check 1: Environment
   ℹ️  Greptile       Not configured (optional for Phase 2)
 ```
 
+### Check 1.5: GitHub Project Access
+
+Verify GitHub Project permissions are configured and accessible.
+
+**Step 1: Check GitHub Configuration exists in CLAUDE.md**
+
+```bash
+grep -q "### GitHub Configuration" CLAUDE.md
+```
+
+**Step 2: Read configuration and test project access**
+
+```bash
+# Parse owner from CLAUDE.md
+OWNER=$(grep -A5 "### GitHub Configuration" CLAUDE.md | grep "Owner |" | head -1 | awk -F'|' '{print $3}' | tr -d ' ')
+OWNER_TYPE=$(grep -A5 "### GitHub Configuration" CLAUDE.md | grep "Owner Type |" | awk -F'|' '{print $3}' | tr -d ' ')
+
+# Test project access
+if [ "$OWNER_TYPE" = "personal" ]; then
+  gh project list --owner @me --limit 1
+else
+  gh project list --owner "$OWNER" --limit 1
+fi
+```
+
+**Example output (success):**
+
+```
+Check 1.5: GitHub Project Access
+────────────────────────────────
+
+  ✅ GitHub Configuration present
+      Owner: opensesh (organization)
+  ✅ Project access verified
+```
+
+**Example output (configuration missing):**
+
+```
+Check 1.5: GitHub Project Access
+────────────────────────────────
+
+  ❌ GitHub Configuration not found in CLAUDE.md
+      Run /karimo:configure to add GitHub settings
+```
+
+**Example output (access denied):**
+
+```
+Check 1.5: GitHub Project Access
+────────────────────────────────
+
+  ✅ GitHub Configuration present
+      Owner: opensesh (organization)
+  ❌ Project access denied
+      Cannot access projects for 'opensesh'
+      Fix: gh auth refresh -s project
+```
+
 ### Check 2: Installation Integrity
 
 Verify all KARIMO files listed in `.karimo/MANIFEST.json` are present.

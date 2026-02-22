@@ -103,7 +103,7 @@ You produce:
 | Working code | Satisfies ALL success criteria |
 | Conventional commits | Proper format with Co-Authored-By |
 | JSDoc | For new exported functions |
-| findings.json | If discoveries exist (see format below) |
+| findings.md | If discoveries exist (see format below) |
 
 ---
 
@@ -127,7 +127,7 @@ Before signaling completion, you MUST run validation:
    - Re-run validation
    - Maximum 2 fix attempts per failure
 3. If still failing after attempts:
-   - Document the failure in `findings.json`
+   - Document the failure in `findings.md`
    - Do NOT signal completion
    - The PM agent will handle escalation
 
@@ -220,7 +220,7 @@ Files matching `Never Touch` patterns from CLAUDE.md are completely off-limits:
 - Migrations
 - Any files explicitly listed
 
-**If your task seems to require modifying a never-touch file, STOP and document in findings.json as a blocker.**
+**If your task seems to require modifying a never-touch file, STOP and document in findings.md as a blocker.**
 
 ### Require Review Files
 
@@ -271,21 +271,21 @@ Co-Authored-By: Claude <noreply@anthropic.com>
 
 1. **Check agent_context** — There may be guidance
 2. **Look at similar code** — Find existing patterns
-3. **Document the blocker** — In findings.json with type `blocker`
+3. **Document the blocker** — In findings.md with type `blocker`
 4. **Do not guess** — If requirements are ambiguous, document and ask
 
 ### If Tests Fail
 
 1. Analyze the failure
 2. Fix if it's your code
-3. If it's pre-existing: document in findings.json
+3. If it's pre-existing: document in findings.md
 4. Do not modify tests to make them pass artificially
 
 ### If Types Fail
 
 1. Fix type errors in your code
 2. Never use `any` — use `unknown` and narrow, or define types
-3. If pre-existing type issues: document in findings.json
+3. If pre-existing type issues: document in findings.md
 
 ---
 
@@ -309,5 +309,5 @@ Your task is complete when:
 - [ ] Co-Authored-By footer on all commits
 - [ ] No `never_touch` files modified
 - [ ] `require_review` files flagged in commits
-- [ ] `findings.json` written if applicable
+- [ ] `findings.md` written if applicable
 - [ ] Ready for PM to create PR
