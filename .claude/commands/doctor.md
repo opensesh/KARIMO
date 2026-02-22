@@ -96,14 +96,17 @@ Verify all KARIMO files are present:
 - `.claude/agents/karimo-tester.md`
 - `.claude/agents/karimo-documenter.md`
 
-**Commands (7 expected):**
+**Commands (10 expected):**
 - `.claude/commands/plan.md`
 - `.claude/commands/review.md`
+- `.claude/commands/overview.md`
 - `.claude/commands/execute.md`
 - `.claude/commands/status.md`
+- `.claude/commands/configure.md`
 - `.claude/commands/feedback.md`
 - `.claude/commands/learn.md`
 - `.claude/commands/doctor.md`
+- `.claude/commands/test.md`
 
 **Skills (5 expected):**
 - `.claude/skills/git-worktree-ops.md`
@@ -141,7 +144,7 @@ Check 2: Installation Integrity
 ───────────────────────────────
 
   ✅ Agents          10/10 present
-  ✅ Commands        7/7 present
+  ✅ Commands        10/10 present
   ✅ Skills          5/5 present
   ✅ Rules           KARIMO_RULES.md present
   ✅ Templates       7/7 present
@@ -153,8 +156,8 @@ Check 2: Installation Integrity
 
   ⚠️  Agents          9/10 present
       Missing: karimo-documenter.md
-  ❌ Commands        5/7 present
-      Missing: doctor.md, learn.md
+  ❌ Commands        8/10 present
+      Missing: doctor.md, test.md
 ```
 
 ### Check 3: Configuration Validation

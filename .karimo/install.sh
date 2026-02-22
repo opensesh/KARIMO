@@ -105,6 +105,7 @@ cp "$KARIMO_ROOT/.claude/commands/learn.md" "$TARGET_DIR/.claude/commands/"
 cp "$KARIMO_ROOT/.claude/commands/doctor.md" "$TARGET_DIR/.claude/commands/"
 cp "$KARIMO_ROOT/.claude/commands/configure.md" "$TARGET_DIR/.claude/commands/"
 cp "$KARIMO_ROOT/.claude/commands/overview.md" "$TARGET_DIR/.claude/commands/"
+cp "$KARIMO_ROOT/.claude/commands/test.md" "$TARGET_DIR/.claude/commands/"
 
 # Copy skills
 echo "Copying skills..."
@@ -518,7 +519,7 @@ echo -e "${GREEN}╰────────────────────
 echo
 echo "Installed files:"
 echo "  .claude/agents/           10 agent definitions"
-echo "  .claude/commands/         9 slash commands"
+echo "  .claude/commands/         10 slash commands"
 echo "  .claude/skills/           5 skill definitions"
 echo "  .claude/KARIMO_RULES.md   Agent behavior rules"
 echo "  .karimo/templates/        7 templates"
