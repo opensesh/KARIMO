@@ -7,6 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [3.1.1] - 2026-02-22
+
+### Fixed
+
+**Documentation Sync**
+
+Synced all documentation to reflect `/karimo:modify` command introduced in v3.1.0.
+
+- **MANIFEST.json**: Added `modify.md` to commands array (now 10 commands)
+- **COMMANDS.md**: Added full sections for `/karimo:modify` and `/karimo:test`, updated summary table (10 rows)
+- **install.sh**: Added `/karimo:modify` to CLAUDE.md template slash commands list
+
+### Added
+
+**Integration Points for `/karimo:modify`**
+
+- **plan.md**: Added tip after approval mentioning `/karimo:modify` for later adjustments
+- **execute.md**: Added note about using `/karimo:modify` for structural changes before execution
+- **status.md**: Added `modified_at` and `modification_count` to PRD details and JSON output
+- **overview.md**: Added `(modified Nx)` annotation to PRD rows in dashboard
+
+---
+
 ## [3.1.0] - 2026-02-22
 
 ### Added
