@@ -233,6 +233,12 @@ if [ -d "$TARGET_DIR/.github" ] && [ -z "$(ls -A "$TARGET_DIR/.github")" ]; then
     echo "  Removed empty .github/"
 fi
 
+# Clean up stale worktree references
+if [ -d "$TARGET_DIR/.git" ]; then
+    echo "Cleaning up git worktree references..."
+    cd "$TARGET_DIR" && git worktree prune 2>/dev/null || true
+fi
+
 echo
 echo -e "${GREEN}╭──────────────────────────────────────────────────────────────╮${NC}"
 echo -e "${GREEN}│  Uninstall Complete!                                         │${NC}"
