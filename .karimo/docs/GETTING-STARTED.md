@@ -44,10 +44,9 @@ bash KARIMO/.karimo/install.sh /path/to/your/project
 - Framework (Next.js, Nuxt, SvelteKit, Astro, etc.)
 - Build commands from package.json scripts
 
-If detection succeeds, `config.yaml` is created with actual values instead of placeholders.
+If detection succeeds, CLAUDE.md is populated with actual values instead of `_pending_` placeholders.
 
 **Options:**
-- `--skip-config` — Skip auto-detection, install with `_pending_` placeholders
 - `--ci` — CI mode: non-interactive, installs all workflows, skips prompts
 
 The installer uses `.karimo/MANIFEST.json` as the single source of truth for file inventory.
@@ -113,7 +112,7 @@ bash KARIMO/.karimo/update.sh /path/to/your/project
 
 This shows a diff of what changed and asks for confirmation before applying updates.
 
-Your `CLAUDE.md`, `config.yaml`, and `.gitignore` are never overwritten.
+Your `CLAUDE.md` and `.gitignore` are never overwritten.
 
 ---
 
@@ -170,7 +169,7 @@ If install.sh auto-detected your project, configuration is ready. To verify:
 /karimo:doctor
 ```
 
-This confirms config.yaml exists and values are valid. If issues are found, run `/karimo:configure` to fix them.
+This confirms your configuration is valid. If issues are found, run `/karimo:configure` to fix them.
 
 ### 3. Run the Plan Command
 
@@ -252,7 +251,7 @@ This appends rules to `CLAUDE.md` for future agents.
 
 ## Configuration
 
-Configuration is stored in `.karimo/config.yaml` (source of truth) and mirrored in `CLAUDE.md` (human-readable).
+Configuration is stored in `CLAUDE.md` (single source of truth). The `## KARIMO Framework` section contains tables for project context, commands, and boundaries.
 
 ### Auto-Detection During Install
 
@@ -260,10 +259,10 @@ When you run `install.sh`, it automatically detects:
 - **Runtime** — Node.js, Bun, Deno, Python, Go, Rust
 - **Framework** — Next.js, Nuxt, SvelteKit, Astro, Vue, etc.
 - **Package manager** — pnpm, yarn, npm, bun, poetry, pip
-- **Commands** — build, lint, test, typecheck from package.json (requires `jq`)
+- **Commands** — build, lint, test, typecheck from package.json
 - **Boundaries** — Default patterns for lock files, .env files, migrations, auth
 
-If detection succeeds, `config.yaml` is created immediately. CLAUDE.md is populated with actual values instead of `_pending_` placeholders.
+If detection succeeds, CLAUDE.md is populated with actual values instead of `_pending_` placeholders.
 
 ### Verify Configuration
 
@@ -274,9 +273,9 @@ After installation, verify configuration is valid:
 ```
 
 This checks for:
-- `config.yaml` existence
+- KARIMO Framework section exists in CLAUDE.md
 - No `_pending_` markers remaining
-- Configuration drift (config vs actual project state)
+- Configuration drift (values vs actual project state)
 
 ### Configure or Update
 
@@ -287,19 +286,8 @@ If doctor reports issues, or you need to change configuration:
 ```
 
 This walks you through 5 configuration sections (~5 min) and:
-- Creates or updates `.karimo/config.yaml`
-- Syncs values to `CLAUDE.md`
+- Updates CLAUDE.md tables with your values
 - Replaces any remaining `_pending_` markers
-
-### Skip Auto-Detection
-
-If you prefer to configure manually after installation:
-
-```bash
-bash KARIMO/.karimo/install.sh /path/to/your/project --skip-config
-```
-
-This installs with `_pending_` placeholders. Run `/karimo:configure` afterward.
 
 ---
 
