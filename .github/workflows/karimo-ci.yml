@@ -7,8 +7,145 @@ on:
     branches: [main]
 
 jobs:
+  validate-manifest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate MANIFEST.json exists
+        run: |
+          if [ ! -f ".karimo/MANIFEST.json" ]; then
+            echo "Error: MANIFEST.json not found"
+            exit 1
+          fi
+          echo "✓ MANIFEST.json exists"
+
+      - name: Validate MANIFEST.json is valid JSON
+        run: |
+          jq empty .karimo/MANIFEST.json
+          echo "✓ MANIFEST.json is valid JSON"
+
+      - name: Validate manifest alignment with actual files
+        run: |
+          MANIFEST=".karimo/MANIFEST.json"
+          ERRORS=0
+
+          echo "Validating agents..."
+          EXPECTED_AGENTS=$(jq '.agents | length' "$MANIFEST")
+          ACTUAL_AGENTS=$(ls -1 .claude/agents/karimo-*.md 2>/dev/null | wc -l | tr -d ' ')
+          echo "  Expected: $EXPECTED_AGENTS, Actual: $ACTUAL_AGENTS"
+          if [ "$ACTUAL_AGENTS" -ne "$EXPECTED_AGENTS" ]; then
+            echo "  ❌ Agent count mismatch"
+            ERRORS=$((ERRORS + 1))
+          else
+            echo "  ✓ Agent count matches"
+          fi
+
+          echo "Validating commands..."
+          EXPECTED_COMMANDS=$(jq '.commands | length' "$MANIFEST")
+          ACTUAL_COMMANDS=$(ls -1 .claude/commands/*.md 2>/dev/null | wc -l | tr -d ' ')
+          echo "  Expected: $EXPECTED_COMMANDS, Actual: $ACTUAL_COMMANDS"
+          if [ "$ACTUAL_COMMANDS" -ne "$EXPECTED_COMMANDS" ]; then
+            echo "  ❌ Command count mismatch"
+            ERRORS=$((ERRORS + 1))
+          else
+            echo "  ✓ Command count matches"
+          fi
+
+          echo "Validating skills..."
+          EXPECTED_SKILLS=$(jq '.skills | length' "$MANIFEST")
+          ACTUAL_SKILLS=$(ls -1 .claude/skills/*.md 2>/dev/null | wc -l | tr -d ' ')
+          echo "  Expected: $EXPECTED_SKILLS, Actual: $ACTUAL_SKILLS"
+          if [ "$ACTUAL_SKILLS" -ne "$EXPECTED_SKILLS" ]; then
+            echo "  ❌ Skill count mismatch"
+            ERRORS=$((ERRORS + 1))
+          else
+            echo "  ✓ Skill count matches"
+          fi
+
+          echo "Validating templates..."
+          EXPECTED_TEMPLATES=$(jq '.templates | length' "$MANIFEST")
+          ACTUAL_TEMPLATES=$(ls -1 .karimo/templates/*.md 2>/dev/null | wc -l | tr -d ' ')
+          echo "  Expected: $EXPECTED_TEMPLATES, Actual: $ACTUAL_TEMPLATES"
+          if [ "$ACTUAL_TEMPLATES" -ne "$EXPECTED_TEMPLATES" ]; then
+            echo "  ❌ Template count mismatch"
+            ERRORS=$((ERRORS + 1))
+          else
+            echo "  ✓ Template count matches"
+          fi
+
+          echo ""
+          if [ "$ERRORS" -gt 0 ]; then
+            echo "❌ $ERRORS validation errors found"
+            echo ""
+            echo "To fix: Update .karimo/MANIFEST.json to match actual files"
+            exit 1
+          fi
+
+          echo "✓ All manifest counts match actual files"
+
+      - name: Verify each manifest file exists
+        run: |
+          MANIFEST=".karimo/MANIFEST.json"
+          MISSING=0
+
+          echo "Checking agents..."
+          for agent in $(jq -r '.agents[]' "$MANIFEST"); do
+            if [ ! -f ".claude/agents/$agent" ]; then
+              echo "  ❌ Missing: .claude/agents/$agent"
+              MISSING=$((MISSING + 1))
+            fi
+          done
+
+          echo "Checking commands..."
+          for cmd in $(jq -r '.commands[]' "$MANIFEST"); do
+            if [ ! -f ".claude/commands/$cmd" ]; then
+              echo "  ❌ Missing: .claude/commands/$cmd"
+              MISSING=$((MISSING + 1))
+            fi
+          done
+
+          echo "Checking skills..."
+          for skill in $(jq -r '.skills[]' "$MANIFEST"); do
+            if [ ! -f ".claude/skills/$skill" ]; then
+              echo "  ❌ Missing: .claude/skills/$skill"
+              MISSING=$((MISSING + 1))
+            fi
+          done
+
+          echo "Checking templates..."
+          for template in $(jq -r '.templates[]' "$MANIFEST"); do
+            if [ ! -f ".karimo/templates/$template" ]; then
+              echo "  ❌ Missing: .karimo/templates/$template"
+              MISSING=$((MISSING + 1))
+            fi
+          done
+
+          echo "Checking workflows..."
+          for workflow in $(jq -r '.workflows.required[]' "$MANIFEST"); do
+            if [ ! -f ".github/workflows/$workflow" ]; then
+              echo "  ❌ Missing required workflow: .github/workflows/$workflow"
+              MISSING=$((MISSING + 1))
+            fi
+          done
+
+          for workflow in $(jq -r '.workflows.optional[]' "$MANIFEST"); do
+            if [ ! -f ".github/workflows/$workflow" ]; then
+              echo "  ⚠️  Missing optional workflow: .github/workflows/$workflow"
+            fi
+          done
+
+          if [ "$MISSING" -gt 0 ]; then
+            echo ""
+            echo "❌ $MISSING required files missing"
+            exit 1
+          fi
+
+          echo "✓ All manifest files exist"
+
   validate-installation:
     runs-on: ubuntu-latest
+    needs: validate-manifest
     steps:
       - uses: actions/checkout@v4
 
@@ -19,35 +156,43 @@ jobs:
           git init
           echo '{}' > package.json
 
-      - name: Run install script
+      - name: Run install script in CI mode
         run: |
-          bash .karimo/install.sh /tmp/test-project
+          bash .karimo/install.sh --ci /tmp/test-project
 
-      - name: Verify file counts
+      - name: Verify installed file counts match manifest
         run: |
           cd /tmp/test-project
+          MANIFEST=".karimo/MANIFEST.json"
 
-          # Count agents (expected: 10)
-          AGENT_COUNT=$(ls -1 .claude/agents/karimo-*.md 2>/dev/null | wc -l)
-          echo "Agents: $AGENT_COUNT (expected: 10)"
-          [ "$AGENT_COUNT" -eq 10 ] || exit 1
+          # Verify manifest was copied
+          if [ ! -f "$MANIFEST" ]; then
+            echo "❌ MANIFEST.json not copied to target"
+            exit 1
+          fi
 
-          # Count commands (expected: 10)
-          CMD_COUNT=$(ls -1 .claude/commands/*.md 2>/dev/null | wc -l)
-          echo "Commands: $CMD_COUNT (expected: 10)"
-          [ "$CMD_COUNT" -eq 10 ] || exit 1
+          # Verify counts match manifest
+          EXPECTED_AGENTS=$(jq '.agents | length' "$MANIFEST")
+          ACTUAL_AGENTS=$(ls -1 .claude/agents/karimo-*.md 2>/dev/null | wc -l | tr -d ' ')
+          echo "Agents: $ACTUAL_AGENTS (expected: $EXPECTED_AGENTS)"
+          [ "$ACTUAL_AGENTS" -eq "$EXPECTED_AGENTS" ] || exit 1
 
-          # Count skills (expected: 5)
-          SKILL_COUNT=$(ls -1 .claude/skills/*.md 2>/dev/null | wc -l)
-          echo "Skills: $SKILL_COUNT (expected: 5)"
-          [ "$SKILL_COUNT" -eq 5 ] || exit 1
+          EXPECTED_COMMANDS=$(jq '.commands | length' "$MANIFEST")
+          ACTUAL_COMMANDS=$(ls -1 .claude/commands/*.md 2>/dev/null | wc -l | tr -d ' ')
+          echo "Commands: $ACTUAL_COMMANDS (expected: $EXPECTED_COMMANDS)"
+          [ "$ACTUAL_COMMANDS" -eq "$EXPECTED_COMMANDS" ] || exit 1
 
-          # Count templates (expected: 7)
-          TEMPLATE_COUNT=$(ls -1 .karimo/templates/*.md 2>/dev/null | wc -l)
-          echo "Templates: $TEMPLATE_COUNT (expected: 7)"
-          [ "$TEMPLATE_COUNT" -eq 7 ] || exit 1
+          EXPECTED_SKILLS=$(jq '.skills | length' "$MANIFEST")
+          ACTUAL_SKILLS=$(ls -1 .claude/skills/*.md 2>/dev/null | wc -l | tr -d ' ')
+          echo "Skills: $ACTUAL_SKILLS (expected: $EXPECTED_SKILLS)"
+          [ "$ACTUAL_SKILLS" -eq "$EXPECTED_SKILLS" ] || exit 1
 
-          echo "✓ All file counts match"
+          EXPECTED_TEMPLATES=$(jq '.templates | length' "$MANIFEST")
+          ACTUAL_TEMPLATES=$(ls -1 .karimo/templates/*.md 2>/dev/null | wc -l | tr -d ' ')
+          echo "Templates: $ACTUAL_TEMPLATES (expected: $EXPECTED_TEMPLATES)"
+          [ "$ACTUAL_TEMPLATES" -eq "$EXPECTED_TEMPLATES" ] || exit 1
+
+          echo "✓ All file counts match manifest"
 
       - name: Verify KARIMO_RULES exists
         run: |
