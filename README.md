@@ -27,10 +27,10 @@ A product design framework based on the development cycle inside most big tech c
 ┌──────────┐     ┌──────────┐     ┌───────────┐     ┌──────────┐     ┌───────────┐
 │   Plan   │ ──▸ │  Tasks   │ ──▸ │  Execute  │ ──▸ │  Review  │ ──▸ │   Merge   │
 └──────────┘     └──────────┘     └───────────┘     └──────────┘     └───────────┘
-                                                                            │
-                                        ┌───────────┐                       │
-                                        │  Monitor  │ ◂─────────────────────┘
-                                        └───────────┘
+                                        │                                  │
+                                        │          ┌───────────┐           │
+                                        └────────▸ │  Monitor  │ ◂─────────┘
+                                                   └───────────┘
 ```
 
 ### 1. Plan
@@ -64,10 +64,10 @@ Clear audit trail at both levels.
 - Full markdown + code diff for each change
 
 ### 6. Monitor
-GitHub Projects tracks everything.
-- Native GitHub integration (no external tools)
-- Real-time status via `/karimo:status` and `/karimo:overview`
-- Foundation for agentic workflow automation
+Real-time visibility into what's happening.
+- `/karimo:status` shows live execution progress
+- `/karimo:overview` provides cross-PRD dashboard
+- GitHub Projects + PRs for persistent tracking
 
 ---
 
