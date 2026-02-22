@@ -18,92 +18,68 @@ Run synthetic validation tests to ensure all KARIMO components are correctly ins
 
 ### Test 1: File Presence Validation
 
-Verify all required KARIMO files exist.
+Verify all required KARIMO files exist. Expected counts are read from `.karimo/MANIFEST.json`.
 
-**Agents (10 expected):**
+**Read expected counts from manifest:**
 ```bash
-ls .claude/agents/karimo-*.md | wc -l
+# Check manifest exists
+if [ ! -f .karimo/MANIFEST.json ]; then
+  echo "❌ MANIFEST.json not found"
+  exit 1
+fi
+
+# Read expected counts
+EXPECTED_AGENTS=$(jq '.agents | length' .karimo/MANIFEST.json)
+EXPECTED_COMMANDS=$(jq '.commands | length' .karimo/MANIFEST.json)
+EXPECTED_SKILLS=$(jq '.skills | length' .karimo/MANIFEST.json)
+EXPECTED_TEMPLATES=$(jq '.templates | length' .karimo/MANIFEST.json)
 ```
 
-Expected files:
-- `karimo-interviewer.md`
-- `karimo-investigator.md`
-- `karimo-reviewer.md`
-- `karimo-brief-writer.md`
-- `karimo-pm.md`
-- `karimo-review-architect.md`
-- `karimo-learn-auditor.md`
-- `karimo-implementer.md`
-- `karimo-tester.md`
-- `karimo-documenter.md`
-
-**Commands (10 expected):**
+**Count actual files:**
 ```bash
-ls .claude/commands/*.md | wc -l
+ACTUAL_AGENTS=$(ls .claude/agents/karimo-*.md 2>/dev/null | wc -l)
+ACTUAL_COMMANDS=$(ls .claude/commands/*.md 2>/dev/null | wc -l)
+ACTUAL_SKILLS=$(ls .claude/skills/*.md 2>/dev/null | wc -l)
+ACTUAL_TEMPLATES=$(ls .karimo/templates/*.md 2>/dev/null | wc -l)
 ```
 
-Expected files:
-- `plan.md`
-- `review.md`
-- `overview.md`
-- `execute.md`
-- `status.md`
-- `configure.md`
-- `feedback.md`
-- `learn.md`
-- `doctor.md`
-- `test.md` (this file)
-
-**Skills (5 expected):**
+**Verify counts match:**
 ```bash
-ls .claude/skills/*.md | wc -l
+[ "$ACTUAL_AGENTS" -eq "$EXPECTED_AGENTS" ] && echo "✅ Agents" || echo "❌ Agents"
+[ "$ACTUAL_COMMANDS" -eq "$EXPECTED_COMMANDS" ] && echo "✅ Commands" || echo "❌ Commands"
+[ "$ACTUAL_SKILLS" -eq "$EXPECTED_SKILLS" ] && echo "✅ Skills" || echo "❌ Skills"
+[ "$ACTUAL_TEMPLATES" -eq "$EXPECTED_TEMPLATES" ] && echo "✅ Templates" || echo "❌ Templates"
 ```
-
-Expected files:
-- `git-worktree-ops.md`
-- `github-project-ops.md`
-- `karimo-code-standards.md`
-- `karimo-testing-standards.md`
-- `karimo-doc-standards.md`
-
-**Templates (7 expected):**
-```bash
-ls .karimo/templates/*.md | wc -l
-```
-
-Expected files:
-- `PRD_TEMPLATE.md`
-- `INTERVIEW_PROTOCOL.md`
-- `TASK_SCHEMA.md`
-- `STATUS_SCHEMA.md`
-- `LEARN_INTERVIEW_PROTOCOL.md`
-- `FINDINGS_TEMPLATE.md`
-- `TASK_BRIEF_TEMPLATE.md`
 
 **Output:**
 ```
 Test 1: File Presence
 ─────────────────────
 
-  ✅ Agents     10/10 present
-  ✅ Commands   10/10 present
-  ✅ Skills     5/5 present
-  ✅ Templates  7/7 present
+  ✅ Manifest    Present (.karimo/MANIFEST.json)
+  ✅ Agents      13/13 present (from manifest)
+  ✅ Commands    10/10 present (from manifest)
+  ✅ Skills      5/5 present (from manifest)
+  ✅ Templates   9/9 present (from manifest)
 ```
 
 ### Test 2: Template Parsing Validation
 
-Ensure all templates have valid markdown structure with expected sections.
+Ensure all templates listed in manifest have valid markdown structure.
 
 **Checks:**
+- Each template listed in manifest exists
 - Each template file is readable
 - Each template contains at least one markdown heading (`#`)
-- No syntax errors in template structure
 
 ```bash
-# Check each template is readable and has headings
-for f in .karimo/templates/*.md; do
-  head -20 "$f" | grep -q "^#" && echo "OK: $f" || echo "FAIL: $f"
+# Check each template from manifest
+for template in $(jq -r '.templates[]' .karimo/MANIFEST.json); do
+  if [ -f ".karimo/templates/$template" ]; then
+    head -20 ".karimo/templates/$template" | grep -q "^#" && echo "✅ $template" || echo "❌ $template (no heading)"
+  else
+    echo "❌ $template (missing)"
+  fi
 done
 ```
 
@@ -112,13 +88,15 @@ done
 Test 2: Template Parsing
 ────────────────────────
 
-  ✅ PRD_TEMPLATE.md              Valid structure
-  ✅ INTERVIEW_PROTOCOL.md        Valid structure
-  ✅ TASK_SCHEMA.md               Valid structure
-  ✅ STATUS_SCHEMA.md             Valid structure
-  ✅ LEARN_INTERVIEW_PROTOCOL.md  Valid structure
-  ✅ FINDINGS_TEMPLATE.md         Valid structure
-  ✅ TASK_BRIEF_TEMPLATE.md       Valid structure
+  ✅ DAG_SCHEMA.md                  Valid structure
+  ✅ DEPENDENCIES_TEMPLATE.md       Valid structure
+  ✅ FINDINGS_TEMPLATE.md           Valid structure
+  ✅ INTERVIEW_PROTOCOL.md          Valid structure
+  ✅ LEARN_INTERVIEW_PROTOCOL.md    Valid structure
+  ✅ PRD_TEMPLATE.md                Valid structure
+  ✅ STATUS_SCHEMA.md               Valid structure
+  ✅ TASK_BRIEF_TEMPLATE.md         Valid structure
+  ✅ TASK_SCHEMA.md                 Valid structure
 ```
 
 ### Test 3: GitHub CLI Authentication

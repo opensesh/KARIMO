@@ -82,58 +82,48 @@ Check 1: Environment
 
 ### Check 2: Installation Integrity
 
-Verify all KARIMO files are present:
+Verify all KARIMO files listed in `.karimo/MANIFEST.json` are present.
 
-**Agents (10 expected):**
-- `.claude/agents/karimo-interviewer.md`
-- `.claude/agents/karimo-investigator.md`
-- `.claude/agents/karimo-reviewer.md`
-- `.claude/agents/karimo-brief-writer.md`
-- `.claude/agents/karimo-pm.md`
-- `.claude/agents/karimo-review-architect.md`
-- `.claude/agents/karimo-learn-auditor.md`
-- `.claude/agents/karimo-implementer.md`
-- `.claude/agents/karimo-tester.md`
-- `.claude/agents/karimo-documenter.md`
+**Step 2a: Check manifest exists**
 
-**Commands (10 expected):**
-- `.claude/commands/plan.md`
-- `.claude/commands/review.md`
-- `.claude/commands/overview.md`
-- `.claude/commands/execute.md`
-- `.claude/commands/status.md`
-- `.claude/commands/configure.md`
-- `.claude/commands/feedback.md`
-- `.claude/commands/learn.md`
-- `.claude/commands/doctor.md`
-- `.claude/commands/test.md`
+```bash
+if [ ! -f .karimo/MANIFEST.json ]; then
+  echo "❌ MANIFEST.json not found"
+  exit 1
+fi
+```
 
-**Skills (5 expected):**
-- `.claude/skills/git-worktree-ops.md`
-- `.claude/skills/github-project-ops.md`
-- `.claude/skills/karimo-code-standards.md`
-- `.claude/skills/karimo-testing-standards.md`
-- `.claude/skills/karimo-doc-standards.md`
+**Step 2b: Read expected counts from manifest**
 
-**Rules:**
-- `.claude/KARIMO_RULES.md`
+```bash
+EXPECTED_AGENTS=$(jq '.agents | length' .karimo/MANIFEST.json)
+EXPECTED_COMMANDS=$(jq '.commands | length' .karimo/MANIFEST.json)
+EXPECTED_SKILLS=$(jq '.skills | length' .karimo/MANIFEST.json)
+EXPECTED_TEMPLATES=$(jq '.templates | length' .karimo/MANIFEST.json)
+```
 
-**Templates (7 expected):**
-- `.karimo/templates/PRD_TEMPLATE.md`
-- `.karimo/templates/INTERVIEW_PROTOCOL.md`
-- `.karimo/templates/TASK_SCHEMA.md`
-- `.karimo/templates/STATUS_SCHEMA.md`
-- `.karimo/templates/LEARN_INTERVIEW_PROTOCOL.md`
-- `.karimo/templates/FINDINGS_TEMPLATE.md`
-- `.karimo/templates/TASK_BRIEF_TEMPLATE.md`
+**Step 2c: Count actual files and compare**
 
-**GitHub Workflows:**
-- `.github/workflows/karimo-sync.yml` (required)
-- `.github/workflows/karimo-dependency-watch.yml` (required)
-- `.github/workflows/karimo-ci-integration.yml` (optional)
-- `.github/workflows/karimo-greptile-review.yml` (optional)
+```bash
+ACTUAL_AGENTS=$(ls .claude/agents/karimo-*.md 2>/dev/null | wc -l)
+ACTUAL_COMMANDS=$(ls .claude/commands/*.md 2>/dev/null | wc -l)
+ACTUAL_SKILLS=$(ls .claude/skills/*.md 2>/dev/null | wc -l)
+ACTUAL_TEMPLATES=$(ls .karimo/templates/*.md 2>/dev/null | wc -l)
+```
 
-**Other:**
+**Step 2d: Verify each manifest file exists**
+
+```bash
+# Check each agent from manifest
+for agent in $(jq -r '.agents[]' .karimo/MANIFEST.json); do
+  [ -f ".claude/agents/$agent" ] || echo "Missing: $agent"
+done
+
+# Similar for commands, skills, templates
+```
+
+**Other checks:**
+- `.claude/KARIMO_RULES.md` exists
 - `CLAUDE.md` contains `## KARIMO Framework` section
 - `.gitignore` contains `.worktrees/`
 
@@ -143,19 +133,20 @@ Verify all KARIMO files are present:
 Check 2: Installation Integrity
 ───────────────────────────────
 
-  ✅ Agents          10/10 present
-  ✅ Commands        10/10 present
-  ✅ Skills          5/5 present
+  ✅ Manifest        Present (.karimo/MANIFEST.json)
+  ✅ Agents          13/13 present (from manifest)
+  ✅ Commands        10/10 present (from manifest)
+  ✅ Skills          5/5 present (from manifest)
   ✅ Rules           KARIMO_RULES.md present
-  ✅ Templates       7/7 present
-  ✅ Workflows       4/4 present (2 required, 2 optional)
+  ✅ Templates       9/9 present (from manifest)
+  ✅ Workflows       5/5 present (1 required, 4 optional)
   ✅ CLAUDE.md       KARIMO Framework section present
   ✅ .gitignore      .worktrees/ entry present
 
   Or if issues found:
 
-  ⚠️  Agents          9/10 present
-      Missing: karimo-documenter.md
+  ⚠️  Agents          12/13 present
+      Missing: karimo-documenter-opus.md
   ❌ Commands        8/10 present
       Missing: doctor.md, test.md
 ```
@@ -458,10 +449,23 @@ which claude
 gh auth status
 git --version
 
-# Check 2: Installation (via file existence)
-ls .claude/agents/*.md | wc -l
-ls .claude/commands/*.md | wc -l
-# etc.
+# Check 2: Installation (manifest-driven)
+# Read expected counts from manifest
+EXPECTED_AGENTS=$(jq '.agents | length' .karimo/MANIFEST.json)
+EXPECTED_COMMANDS=$(jq '.commands | length' .karimo/MANIFEST.json)
+EXPECTED_SKILLS=$(jq '.skills | length' .karimo/MANIFEST.json)
+EXPECTED_TEMPLATES=$(jq '.templates | length' .karimo/MANIFEST.json)
+
+# Count actual files
+ACTUAL_AGENTS=$(ls .claude/agents/karimo-*.md 2>/dev/null | wc -l)
+ACTUAL_COMMANDS=$(ls .claude/commands/*.md 2>/dev/null | wc -l)
+ACTUAL_SKILLS=$(ls .claude/skills/*.md 2>/dev/null | wc -l)
+ACTUAL_TEMPLATES=$(ls .karimo/templates/*.md 2>/dev/null | wc -l)
+
+# Verify each file from manifest exists
+for agent in $(jq -r '.agents[]' .karimo/MANIFEST.json); do
+  [ -f ".claude/agents/$agent" ] || echo "Missing: $agent"
+done
 
 # Check 3: Configuration
 # 3a: Check config.yaml existence
