@@ -1,0 +1,63 @@
+{
+  "version": "2.8.0",
+  "agents": [
+    "karimo-brief-writer.md",
+    "karimo-documenter.md",
+    "karimo-documenter-opus.md",
+    "karimo-implementer.md",
+    "karimo-implementer-opus.md",
+    "karimo-interviewer.md",
+    "karimo-investigator.md",
+    "karimo-learn-auditor.md",
+    "karimo-pm.md",
+    "karimo-review-architect.md",
+    "karimo-reviewer.md",
+    "karimo-tester.md",
+    "karimo-tester-opus.md"
+  ],
+  "commands": [
+    "configure.md",
+    "doctor.md",
+    "execute.md",
+    "feedback.md",
+    "learn.md",
+    "overview.md",
+    "plan.md",
+    "review.md",
+    "status.md",
+    "test.md"
+  ],
+  "skills": [
+    "git-worktree-ops.md",
+    "github-project-ops.md",
+    "karimo-code-standards.md",
+    "karimo-doc-standards.md",
+    "karimo-testing-standards.md"
+  ],
+  "templates": [
+    "DAG_SCHEMA.md",
+    "DEPENDENCIES_TEMPLATE.md",
+    "FINDINGS_TEMPLATE.md",
+    "INTERVIEW_PROTOCOL.md",
+    "LEARN_INTERVIEW_PROTOCOL.md",
+    "PRD_TEMPLATE.md",
+    "STATUS_SCHEMA.md",
+    "TASK_BRIEF_TEMPLATE.md",
+    "TASK_SCHEMA.md"
+  ],
+  "workflows": {
+    "required": [
+      "karimo-ci.yml"
+    ],
+    "optional": [
+      "karimo-ci-integration.yml",
+      "karimo-dependency-watch.yml",
+      "karimo-greptile-review.yml",
+      "karimo-sync.yml"
+    ]
+  },
+  "other": {
+    "rules": "KARIMO_RULES.md",
+    "issue_template": "karimo-task.yml"
+  }
+}
