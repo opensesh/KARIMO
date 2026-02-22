@@ -14,6 +14,20 @@ NC='\033[0m' # No Color
 
 # Target directory (default: current directory)
 TARGET_DIR="${1:-.}"
+MANIFEST="$TARGET_DIR/.karimo/MANIFEST.json"
+
+# ==============================================================================
+# MANIFEST PARSING HELPERS (jq-free)
+# ==============================================================================
+
+# List items from a simple array in MANIFEST.json
+manifest_list() {
+  local key="$1"
+  local manifest="${2:-$MANIFEST}"
+  if [ -f "$manifest" ]; then
+    sed -n "/\"$key\"/,/]/p" "$manifest" | grep '"' | grep -v "\"$key\"" | sed 's/.*"\([^"]*\)".*/\1/'
+  fi
+}
 
 echo -e "${BLUE}╭──────────────────────────────────────────────────────────────╮${NC}"
 echo -e "${BLUE}│  KARIMO Uninstall                                            │${NC}"
@@ -35,10 +49,10 @@ fi
 echo -e "${YELLOW}This will remove KARIMO from: $TARGET_DIR${NC}"
 echo
 echo "The following will be removed:"
-echo "  - .karimo/ directory (templates, PRDs, config)"
-echo "  - .claude/agents/karimo-*.md (10 agents)"
-echo "  - .claude/commands/{plan,review,execute,status,configure,feedback,learn,doctor}.md"
-echo "  - .claude/skills/{git-worktree-ops,github-project-ops,karimo-code-standards,karimo-testing-standards,karimo-doc-standards}.md"
+echo "  - .karimo/ directory (templates, PRDs)"
+echo "  - .claude/agents/karimo-*.md (agents from manifest)"
+echo "  - .claude/commands/*.md (commands from manifest)"
+echo "  - .claude/skills/*.md (skills from manifest)"
 echo "  - .claude/KARIMO_RULES.md"
 echo "  - .github/workflows/karimo-*.yml"
 echo "  - .github/ISSUE_TEMPLATE/karimo-task.yml"
@@ -69,61 +83,62 @@ if [ -d "$TARGET_DIR/.karimo" ]; then
     REMOVED_COUNT=$((REMOVED_COUNT + 1))
 fi
 
-# Remove KARIMO agents
+# Remove KARIMO agents (from manifest or fallback to pattern)
 echo "Removing KARIMO agents..."
-AGENT_FILES=(
-    "karimo-interviewer.md"
-    "karimo-investigator.md"
-    "karimo-reviewer.md"
-    "karimo-brief-writer.md"
-    "karimo-pm.md"
-    "karimo-review-architect.md"
-    "karimo-learn-auditor.md"
-    "karimo-implementer.md"
-    "karimo-tester.md"
-    "karimo-documenter.md"
-)
-for agent in "${AGENT_FILES[@]}"; do
-    if [ -f "$TARGET_DIR/.claude/agents/$agent" ]; then
-        rm "$TARGET_DIR/.claude/agents/$agent"
-        REMOVED_COUNT=$((REMOVED_COUNT + 1))
-    fi
-done
+if [ -f "$MANIFEST" ]; then
+    for agent in $(manifest_list "agents"); do
+        if [ -f "$TARGET_DIR/.claude/agents/$agent" ]; then
+            rm "$TARGET_DIR/.claude/agents/$agent"
+            REMOVED_COUNT=$((REMOVED_COUNT + 1))
+        fi
+    done
+else
+    # Fallback: remove all karimo-*.md files
+    for agent in "$TARGET_DIR"/.claude/agents/karimo-*.md; do
+        if [ -f "$agent" ]; then
+            rm "$agent"
+            REMOVED_COUNT=$((REMOVED_COUNT + 1))
+        fi
+    done
+fi
 
-# Remove KARIMO commands
+# Remove KARIMO commands (from manifest or fallback to known list)
 echo "Removing KARIMO commands..."
-COMMAND_FILES=(
-    "plan.md"
-    "review.md"
-    "execute.md"
-    "status.md"
-    "configure.md"
-    "feedback.md"
-    "learn.md"
-    "doctor.md"
-)
-for cmd in "${COMMAND_FILES[@]}"; do
-    if [ -f "$TARGET_DIR/.claude/commands/$cmd" ]; then
-        rm "$TARGET_DIR/.claude/commands/$cmd"
-        REMOVED_COUNT=$((REMOVED_COUNT + 1))
-    fi
-done
+if [ -f "$MANIFEST" ]; then
+    for cmd in $(manifest_list "commands"); do
+        if [ -f "$TARGET_DIR/.claude/commands/$cmd" ]; then
+            rm "$TARGET_DIR/.claude/commands/$cmd"
+            REMOVED_COUNT=$((REMOVED_COUNT + 1))
+        fi
+    done
+else
+    # Fallback: known KARIMO commands
+    for cmd in plan.md review.md execute.md status.md configure.md feedback.md learn.md doctor.md overview.md test.md; do
+        if [ -f "$TARGET_DIR/.claude/commands/$cmd" ]; then
+            rm "$TARGET_DIR/.claude/commands/$cmd"
+            REMOVED_COUNT=$((REMOVED_COUNT + 1))
+        fi
+    done
+fi
 
-# Remove KARIMO skills
+# Remove KARIMO skills (from manifest or fallback to known list)
 echo "Removing KARIMO skills..."
-SKILL_FILES=(
-    "git-worktree-ops.md"
-    "github-project-ops.md"
-    "karimo-code-standards.md"
-    "karimo-testing-standards.md"
-    "karimo-doc-standards.md"
-)
-for skill in "${SKILL_FILES[@]}"; do
-    if [ -f "$TARGET_DIR/.claude/skills/$skill" ]; then
-        rm "$TARGET_DIR/.claude/skills/$skill"
-        REMOVED_COUNT=$((REMOVED_COUNT + 1))
-    fi
-done
+if [ -f "$MANIFEST" ]; then
+    for skill in $(manifest_list "skills"); do
+        if [ -f "$TARGET_DIR/.claude/skills/$skill" ]; then
+            rm "$TARGET_DIR/.claude/skills/$skill"
+            REMOVED_COUNT=$((REMOVED_COUNT + 1))
+        fi
+    done
+else
+    # Fallback: known KARIMO skills
+    for skill in git-worktree-ops.md github-project-ops.md karimo-code-standards.md karimo-testing-standards.md karimo-doc-standards.md; do
+        if [ -f "$TARGET_DIR/.claude/skills/$skill" ]; then
+            rm "$TARGET_DIR/.claude/skills/$skill"
+            REMOVED_COUNT=$((REMOVED_COUNT + 1))
+        fi
+    done
+fi
 
 # Remove KARIMO_RULES.md
 if [ -f "$TARGET_DIR/.claude/KARIMO_RULES.md" ]; then
