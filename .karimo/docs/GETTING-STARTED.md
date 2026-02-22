@@ -2,9 +2,11 @@
 
 This guide walks you through installing KARIMO and creating your first PRD.
 
+**Total time: ~20 minutes** (5 min install + 10 min first PRD + 5 min verification)
+
 ---
 
-## Prerequisites
+## Prerequisites (~2 min)
 
 Before installing KARIMO, ensure you have:
 
@@ -24,17 +26,20 @@ Greptile acts as a force multiplier — catching issues before human review and 
 
 ---
 
-## Installation
+## Installation (~3 min)
 
-### 1. Clone KARIMO
+### Option A: One-liner (fastest)
+
+```bash
+curl -sL https://raw.githubusercontent.com/opensesh/KARIMO/main/.karimo/remote-install.sh | bash -s /path/to/your/project
+```
+
+This downloads KARIMO to a temp directory, runs the installer, and cleans up automatically.
+
+### Option B: Clone first (inspect before running)
 
 ```bash
 git clone https://github.com/opensesh/KARIMO.git
-```
-
-### 2. Run the Install Script
-
-```bash
 bash KARIMO/.karimo/install.sh /path/to/your/project
 ```
 
@@ -102,7 +107,7 @@ You should see the KARIMO components in both directories.
 
 ---
 
-## Updating KARIMO
+## Updating KARIMO (~1 min)
 
 To update KARIMO in a project that already has it installed:
 
@@ -152,7 +157,7 @@ If your project already has `.claude/` with custom agents, commands, or `CLAUDE.
 
 ---
 
-## Your First PRD
+## Your First PRD (~10 min)
 
 ### 1. Start Claude Code
 
@@ -179,18 +184,18 @@ This confirms your configuration is valid. If issues are found, run `/karimo:con
 
 Since configuration is already in place, the interview starts immediately.
 
-### 4. Follow the Interview
+### 4. Follow the Interview (~8 min)
 
 The interviewer agent guides you through 6 rounds:
 
-| Round | Focus |
-|-------|-------|
-| 1 | **Vision** — What are you building and why? |
-| 2 | **Scope** — Where are the boundaries? |
-| 3 | **Investigation** — Agent scans your codebase |
-| 4 | **Tasks** — Break down into executable units |
-| 5 | **Review** — Validate and generate dependency graph |
-| 6 | **Approve** — Confirm PRD is ready for execution |
+| Round | Focus | Time |
+|-------|-------|------|
+| 1 | **Vision** — What are you building and why? | ~2 min |
+| 2 | **Scope** — Where are the boundaries? | ~2 min |
+| 3 | **Investigation** — Agent scans your codebase | ~1 min |
+| 4 | **Tasks** — Break down into executable units | ~2 min |
+| 5 | **Review** — Validate and generate dependency graph | ~30 sec |
+| 6 | **Approve** — Confirm PRD is ready for execution | ~30 sec |
 
 ### 5. Approve the PRD
 
@@ -208,6 +213,32 @@ cat .karimo/prds/{slug}/prd.md
 cat .karimo/prds/{slug}/tasks.yaml
 ```
 
+**Example output structure:**
+
+```
+.karimo/prds/user-profiles/
+├── prd.md              # Full PRD document
+├── tasks.yaml          # Task definitions with dependencies
+├── execution_plan.yaml # DAG for parallel execution
+└── status.json         # Execution state (created during /karimo:execute)
+```
+
+The `tasks.yaml` contains entries like:
+
+```yaml
+tasks:
+  - id: T001
+    title: Create user profile model
+    type: implementation
+    complexity: 2
+    dependencies: []
+  - id: T002
+    title: Add profile API endpoints
+    type: implementation
+    complexity: 3
+    dependencies: [T001]
+```
+
 ---
 
 ## Executing Tasks
@@ -220,26 +251,54 @@ cat .karimo/prds/{slug}/tasks.yaml
 
 Replace `{slug}` with your PRD slug (e.g., `user-profiles`).
 
-### 2. Monitor Progress
+### 2. What Happens During Execution
 
-The PM Agent coordinates task execution:
-- Creates worktrees for isolation
-- Spawns agents for ready tasks
+**Phase 1: Brief Generation** (~2 min)
+- Generates self-contained briefs for each task
+- User reviews briefs and can adjust or exclude tasks
+
+**Phase 2: Task Execution** (varies by PRD size)
+- PM Agent creates a feature branch: `karimo/{prd-slug}`
+- Creates worktrees for each task: `.worktrees/{prd-slug}/{task-id}/`
+- Spawns agents for ready tasks (respects dependency order)
+- Propagates findings between related tasks
 - Creates PRs when tasks complete
 
-### 3. Check Status
+Example worktree structure during execution:
+
+```
+.worktrees/user-profiles/
+├── T001/    # Implementing user profile model
+├── T002/    # Waiting on T001 (dependency)
+└── T003/    # Running in parallel with T001
+```
+
+### 3. Monitor Progress
+
+The PM Agent coordinates execution in real-time. Check status:
 
 ```
 /karimo:status
 ```
 
-Shows real-time progress across all PRDs.
+Shows progress across all PRDs:
+
+```
+╭──────────────────────────────────────────────────────────────╮
+│  KARIMO Status                                               │
+╰──────────────────────────────────────────────────────────────╯
+
+PRDs:
+
+  001_user-profiles          active     ████████░░ 80%
+    Tasks: 4/5 done, 1 in-review
+```
 
 ---
 
 ## After Execution
 
-### Review PRs
+### Review PRs (~5 min per PR)
 
 Agent-created PRs appear in your repository. Review and merge as normal.
 
