@@ -551,6 +551,11 @@ Summary
 | Project access denied | `gh auth refresh -s project` |
 | Missing files | Re-run installer |
 | PRD creation | `/karimo:plan` |
+| Stale running tasks | Re-run `/karimo:execute --prd {slug}` |
+| Orphaned worktrees | `git worktree remove <path>` |
+| Ghost branches | Re-run `/karimo:execute --prd {slug}` |
+| Status-PR mismatch | Re-run `/karimo:execute --prd {slug}` |
+| Pending cleanup | Re-run `/karimo:execute --prd {slug}` |
 
 Or if all checks pass:
 
@@ -558,7 +563,7 @@ Or if all checks pass:
 Summary
 ───────
 
-  ✅ All 6 checks passed
+  ✅ All 7 checks passed
 
   KARIMO installation is healthy.
 ```
