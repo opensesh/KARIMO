@@ -17,13 +17,14 @@ If no PRDs exist (`.karimo/prds/` is empty), display welcome message:
 │  Welcome to KARIMO                                           │
 ╰──────────────────────────────────────────────────────────────╯
 
-This is your first PRD. The interview process has 5 rounds:
+This is your first PRD. The interview process has 6 rounds:
 
   1. Vision    — What are we building and why?
   2. Scope     — Where are the boundaries?
   3. Investigate — Agent scans your codebase
   4. Tasks     — Break down into executable units
   5. Review    — Validate and generate dependency graph
+  6. Approve   — Confirm PRD is ready for execution
 
 Ready to begin?
 ```
@@ -207,7 +208,67 @@ After Round 4:
 3. Address any issues flagged by the reviewer
 4. Save artifacts to `.karimo/prds/{NNN}_{slug}/`
 
-### Step 7: PRD Folder Structure
+### Step 7: Interactive Review & Approval
+
+After the reviewer validates the PRD, present a summary for user approval:
+
+```
+╭──────────────────────────────────────────────────────────────╮
+│  PRD Ready: {slug}                                           │
+╰──────────────────────────────────────────────────────────────╯
+
+Summary: {2-3 sentence executive summary from PRD.md}
+
+Tasks ({count}):
+  [{id}] {title}    complexity: {n}  priority: {must|should|could}
+    depends_on: {deps or "none"}
+
+  [{id}] {title}    complexity: {n}  priority: {must|should|could}
+    depends_on: {deps or "none"}
+
+  ...
+
+Dependency Graph:
+  [{id}] ──┬──► [{id}] ──┬──► [{id}]
+  [{id}] ──┘    [{id}] ──┘
+
+Execution Plan:
+  Batch 1 (parallel): [{ids}]
+  Batch 2 (parallel): [{ids}]
+  Batch 3 (sequential): [{ids}]
+
+Total: {count} tasks, {complexity} complexity points
+
+Options:
+  1. Approve — Ready for execution
+  2. Modify — Add, remove, or change tasks (re-runs reviewer)
+  3. Save as draft — Come back later
+
+Your choice:
+```
+
+**Option 1 — Approve:**
+- Update `status.json` with `status: "ready"`
+- Print completion message with execute command
+
+**Option 2 — Modify:**
+- Accept user feedback on what to change
+- Re-spawn the reviewer agent with modifications
+- Loop back to present updated summary
+
+**Option 3 — Save as draft:**
+- Update `status.json` with `status: "draft"`
+- Print resume information:
+  ```
+  PRD saved as draft: {slug}
+
+  Resume planning later with:
+    /karimo:plan --resume {slug}
+  ```
+
+---
+
+### Step 8: PRD Folder Structure
 
 ```
 .karimo/prds/001_feature-slug/
@@ -225,12 +286,29 @@ After Round 4:
 
 ## Output
 
-On completion, confirm:
+### On Approval (Option 1)
 
-> "PRD created at `.karimo/prds/{NNN}_{slug}/PRD.md`
->
-> - **Tasks:** {count} tasks defined
-> - **Estimated complexity:** {total_complexity} points
-> - **Ready tasks:** {ready_count} (no dependencies)
->
-> Run `/karimo:execute --prd {slug}` to start execution."
+```
+╭──────────────────────────────────────────────────────────────╮
+│  PRD Approved: {slug}                                        │
+╰──────────────────────────────────────────────────────────────╯
+
+PRD saved to: .karimo/prds/{NNN}_{slug}/PRD.md
+
+Tasks: {count} tasks defined
+Complexity: {total_complexity} points
+Ready tasks: {ready_count} (no dependencies)
+
+The PRD is ready for execution. Run:
+
+  /karimo:execute --prd {slug}
+```
+
+### On Save as Draft (Option 3)
+
+```
+PRD saved as draft: {slug}
+
+Resume planning later with:
+  /karimo:plan --resume {slug}
+```
