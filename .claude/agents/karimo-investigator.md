@@ -65,6 +65,22 @@ You operate in three distinct modes:
    - Generated files (dist/, .next/, node_modules/)
    - Sensitive paths (src/auth/*, api/middleware.*)
 
+6. **GitHub Repository**
+   - Owner type: personal vs organization
+   - Owner name: username or org name
+   - Repository name
+   - Default branch
+
+**Detection command for GitHub:**
+```bash
+gh repo view --json owner,name,defaultBranchRef -q '{
+  owner_type: .owner.type,
+  owner_login: .owner.login,
+  repo_name: .name,
+  default_branch: .defaultBranchRef.name
+}'
+```
+
 ### Context Scan Output
 
 Return findings in this format for CLAUDE.md injection:
@@ -91,6 +107,12 @@ project_context:
     require_review:
       - "src/auth/*"
       - "api/middleware.ts"
+
+  github:
+    owner_type: "organization"  # or "personal"
+    owner: "opensesh"
+    repo: "my-project"
+    default_branch: "main"
 ```
 
 ---
@@ -116,6 +138,11 @@ Compare current codebase state against CLAUDE.md:
    - New migration folders
    - New config files that should be protected
 
+4. **GitHub Configuration**
+   - Repository owner changed
+   - Default branch changed
+   - Missing GitHub Configuration section in CLAUDE.md
+
 ### Drift Check Output
 
 ```yaml
@@ -139,6 +166,11 @@ drift_report:
       path: "src/lib/auth/"
       reason: "New auth directory with sensitive logic"
       recommendation: "Add to require_review"
+
+    - type: "github_config_missing"
+      detected: "No GitHub Configuration section in CLAUDE.md"
+      evidence: "grep found no '### GitHub Configuration' in CLAUDE.md"
+      recommendation: "Run /karimo:configure to add GitHub settings"
 
   no_changes:
     - "runtime"
