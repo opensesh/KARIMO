@@ -19,28 +19,55 @@ A product design framework based on the development cycle inside most big tech c
 
 > **Philosophy:** You are the architect, agents are the builders, Greptile is the inspector.
 
-**What KARIMO produces:**
-- Structured PRDs from conversational interviews
-- Parallel task execution across git worktrees
-- Pull requests ready for your review
-- Automated code quality checks (optional)
-
 ---
 
 ## How It Works
 
 ```
-┌──────────┐     ┌───────────┐     ┌──────────┐     ┌───────────┐
-│   Plan   │ ──▸ │  Execute  │ ──▸ │  Review  │ ──▸ │   Merge   │
-│ (you +   │     │ (agents)  │     │(Greptile)│     │  (you)    │
-│  agents) │     │           │     │          │     │           │
-└──────────┘     └───────────┘     └──────────┘     └───────────┘
+┌──────────┐     ┌──────────┐     ┌───────────┐     ┌──────────┐     ┌───────────┐
+│   Plan   │ ──▸ │  Tasks   │ ──▸ │  Execute  │ ──▸ │  Review  │ ──▸ │   Merge   │
+└──────────┘     └──────────┘     └───────────┘     └──────────┘     └───────────┘
+                                                                            │
+                                        ┌───────────┐                       │
+                                        │  Monitor  │ ◂─────────────────────┘
+                                        └───────────┘
 ```
 
-1. **Plan** — `/karimo:plan` starts an interview to capture requirements
-2. **Execute** — Agents work in parallel across git worktrees
-3. **Review** — Greptile scores code quality (optional Phase 2)
-4. **Merge** — You review PRs and merge what's ready
+### 1. Plan
+Structured PRD interview captures requirements.
+- 5-round interview with customizable template
+- Investigator scans codebase for patterns and context
+- PRD optimized for agent comprehension
+
+### 2. Tasks
+PRD decomposed into isolated task briefs.
+- One holistic PRD → many focused briefs
+- Each brief is self-contained with full context
+- Dependency graph ensures correct execution order
+
+### 3. Execute
+Agents work in parallel isolation.
+- Each task runs in its own git worktree
+- Feature branches prevent agents from conflicting
+- Findings propagate between related tasks
+
+### 4. Review
+Greptile provides objective code review.
+- Vector embedding of your codebase enables deep understanding
+- 0-5 quality score with automatic revision loops
+- Model escalation (Sonnet → Opus) on failures
+
+### 5. Merge
+Clear audit trail at both levels.
+- Task PRs merge to feature branch (agent-driven)
+- Feature PR merges to main (human gate)
+- Full markdown + code diff for each change
+
+### 6. Monitor
+GitHub Projects tracks everything.
+- Native GitHub integration (no external tools)
+- Real-time status via `/karimo:status` and `/karimo:overview`
+- Foundation for agentic workflow automation
 
 ---
 
@@ -84,6 +111,20 @@ The interview takes ~10 minutes. See [Getting Started](.karimo/docs/GETTING-STAR
 
 ---
 
+## Keeping KARIMO Updated
+
+Updates never overwrite your configuration or break your environment:
+
+```bash
+bash KARIMO/.karimo/update.sh /path/to/your/project
+```
+
+- Your `CLAUDE.md` and custom agents are preserved
+- Shows diff before applying changes
+- KARIMO agents use `karimo-*` prefix to avoid conflicts
+
+---
+
 ## Core Commands
 
 | Command | What it does |
@@ -117,14 +158,24 @@ Full details: [PHASES.md](.karimo/docs/PHASES.md)
 
 ## Agents
 
-KARIMO includes 13 specialized agents:
+KARIMO includes 13 specialized agents in two categories:
 
-| Type | Agents |
-|------|--------|
-| **Coordination** | interviewer, investigator, reviewer, brief-writer, pm, review-architect, learn-auditor |
-| **Task** | implementer, tester, documenter (each with Sonnet + Opus variants) |
+**Coordination agents** orchestrate work without writing code:
+- `karimo-interviewer` — Conducts PRD interviews
+- `karimo-investigator` — Scans codebase for patterns
+- `karimo-reviewer` — Validates PRDs and generates task DAGs
+- `karimo-brief-writer` — Creates self-contained task briefs
+- `karimo-pm` — Coordinates execution, spawns task agents
+- `karimo-review-architect` — Resolves merge conflicts
+- `karimo-learn-auditor` — Investigates learnings from feedback
 
-Agents follow rules defined in [KARIMO_RULES.md](.claude/KARIMO_RULES.md).
+**Task agents** write and modify code:
+- `karimo-implementer` — Writes production code (Sonnet + Opus)
+- `karimo-tester` — Writes tests (Sonnet + Opus)
+- `karimo-documenter` — Writes documentation (Sonnet + Opus)
+
+Agent definitions: [`.claude/agents/`](.claude/agents/)
+Behavior rules: [`KARIMO_RULES.md`](.claude/KARIMO_RULES.md)
 
 ---
 
