@@ -1,6 +1,6 @@
 ---
 name: karimo-documenter
-description: Creates and updates documentation. Writes README updates, API docs, component docs, inline docs. Use for documentation-specific tasks.
+description: Creates and updates documentation (complexity 1-4). Writes README updates, API docs, component docs, inline docs. Use for straightforward documentation-specific tasks.
 tools: Read, Write, Edit, Bash, Glob, Grep
 model: sonnet
 skills: karimo-doc-standards
