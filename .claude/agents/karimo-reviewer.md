@@ -227,6 +227,78 @@ review:
 3. **If no issues:**
    - Confirm: "PRD validated. Ready to save to `.karimo/prds/{slug}/`?"
 
+## PRD Directory Numbering
+
+When creating a new PRD directory, generate the sequential number prefix:
+
+### Algorithm
+
+1. **List existing PRDs:**
+   ```bash
+   ls -d .karimo/prds/*/ 2>/dev/null
+   ```
+
+2. **Extract highest number:**
+   - Pattern match directories: `NNN_*` (3-digit prefix followed by underscore)
+   - Extract numeric prefix from each matching directory
+   - Find the maximum value
+
+3. **Calculate next number:**
+   ```bash
+   next_number=$((highest + 1))
+   ```
+
+4. **Format with zero-padding:**
+   ```bash
+   printf "%03d" $next_number
+   ```
+
+5. **Create directory:**
+   ```bash
+   mkdir -p ".karimo/prds/${NNN}_${slug}"
+   ```
+
+### Edge Cases
+
+| Scenario | Behavior |
+|----------|----------|
+| No existing PRDs | Start at `001` |
+| Gaps in numbering (001, 003) | Continue from highest → `004` |
+| Non-conforming directories | Ignore in count (e.g., `my-feature/` without prefix) |
+| Invalid prefix (0ab_) | Ignore in count |
+
+### Example
+
+```bash
+# Existing directories:
+.karimo/prds/001_user-auth/
+.karimo/prds/002_dashboard/
+.karimo/prds/005_settings/    # Note: gap in numbering
+
+# Next PRD slug: "notifications"
+# Result: .karimo/prds/006_notifications/
+```
+
+## PRD Date Population
+
+When writing `PRD.md`, populate the `created_date` field in the YAML frontmatter:
+
+### Implementation
+
+1. **Get current date:**
+   ```bash
+   date +%Y-%m-%d
+   ```
+
+2. **Set in frontmatter:**
+   ```yaml
+   ---
+   created_date: "2026-02-22"  # Today's date in ISO format
+   ---
+   ```
+
+The date must be populated at PRD creation time, not left empty.
+
 ## Saving Artifacts
 
 On approval, save to `.karimo/prds/{NNN}_{slug}/`:
