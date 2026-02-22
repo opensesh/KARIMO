@@ -31,7 +31,7 @@ KARIMO provides a structured methodology for autonomous development:
 
 **Single-PRD scope.** KARIMO operates within one PRD at a time. Each PRD maps to one feature branch. Cross-feature dependencies are your responsibility — you sequence PRDs so that dependent features execute only after their prerequisites are merged to main.
 
-**Sequential feature execution.** If Feature 8 depends on Feature 3, you finish Feature 3's PRD cycle (plan → execute → review → merge to main) before starting Feature 8. You may run Features 1, 2, and 3 in parallel if they're independent, but Feature 8 waits.
+**Sequential feature execution.** If Feature 8 depends on Feature 3, you finish Feature 3's PRD cycle (plan → execute → merge to main) before starting Feature 8. You may run Features 1, 2, and 3 in parallel if they're independent, but Feature 8 waits.
 
 This is intentional: the goal isn't to produce a hundred features simultaneously, it's to let agents autonomously execute a few features at a time while building trust between you, the codebase, and the agents.
 
@@ -40,13 +40,13 @@ This is intentional: the goal isn't to produce a hundred features simultaneously
 ## How It Works
 
 ```
-┌──────────────┐    ┌───────────────┐    ┌─────────────┐    ┌────────────┐    ┌─────────────┐    ┌───────────┐
-│   Interview  │ →  │   PRD + DAG   │ →  │   Execute   │ →  │   Review   │ →  │ Reconcile   │ →  │   Merge   │
-│  (/plan)     │    │  (generated)  │    │   (agents)  │    │ (Greptile) │    │ (Architect) │    │   (PR)    │
-└──────────────┘    └───────────────┘    └─────────────┘    └────────────┘    └─────────────┘    └───────────┘
+┌─────────────────────────────────────────┐    ┌─────────────────────────────────────────┐    ┌────────────┐    ┌─────────────┐    ┌───────────┐
+│            /karimo:plan                 │    │           /karimo:execute               │    │   Review   │    │ Reconcile   │    │   Merge   │
+│  Interview → PRD → Review → Approve     │ →  │  Brief Gen → Agent Execution → PRs     │ →  │ (Greptile) │ →  │ (Architect) │ →  │   (PR)    │
+└─────────────────────────────────────────┘    └─────────────────────────────────────────┘    └────────────┘    └─────────────┘    └───────────┘
 ```
 
-### Interview Phase
+### Interview Phase (`/karimo:plan`)
 
 The interviewer agent conducts a structured conversation:
 
@@ -55,23 +55,27 @@ The interviewer agent conducts a structured conversation:
 3. Spawns investigator to scan your codebase
 4. Breaks work into tasks with dependencies
 5. Reviewer validates and generates execution graph
+6. **Interactive approval** — Approve, modify, or save as draft
 
-### Execution Phase
+### Execution Phase (`/karimo:execute`)
 
-The PM Agent coordinates parallel execution:
+**Phase 1: Brief Generation**
+- Generates self-contained briefs for each task
+- User reviews and can adjust or exclude tasks
 
-1. Parses `dag.json` for task dependencies
+**Phase 2: Task Execution**
+1. PM Agent reads briefs and `dag.json`
 2. Creates worktrees for parallel work
 3. Spawns agents for ready tasks
 4. Monitors completion, propagates findings
 5. Creates PRs when tasks complete
 
-### Review Phase (Phase 2)
+### Greptile Review (Phase 2)
 
 GitHub Actions handle automated review:
 
-1. **karimo-review.yml** — Triggers Greptile code review
-2. **karimo-integration.yml** — Runs build/test on review pass
+1. **karimo-greptile-review.yml** — Triggers Greptile code review
+2. **karimo-ci-integration.yml** — Observes external CI, labels PRs
 3. **karimo-sync.yml** — Updates status when PRs merge
 
 ---
@@ -119,7 +123,7 @@ bash KARIMO/.karimo/install.sh /path/to/your/project
 
 This copies (from `.karimo/MANIFEST.json`):
 - 13 agent definitions to `.claude/agents/`
-- 10 slash commands to `.claude/commands/`
+- 9 slash commands to `.claude/commands/`
 - 5 skills to `.claude/skills/`
 - KARIMO rules to `.claude/KARIMO_RULES.md`
 - 9 templates to `.karimo/templates/`
@@ -144,7 +148,7 @@ claude
 /karimo:plan
 ```
 
-The interviewer agent guides you through a 5-round conversation to define your feature.
+The interviewer agent guides you through a 6-round conversation to define your feature, ending with an interactive approval step.
 
 ### 3. Execute the PRD
 
@@ -161,11 +165,9 @@ Agents work through tasks in parallel, creating PRs for each.
 
 | Command | Purpose |
 |---------|---------|
-| `/karimo:plan` | Start PRD interview — 5 rounds with codebase analysis |
-| `/karimo:review` | Review and approve PRD before execution |
-| `/karimo:review --prd {slug}` | Approve specific PRD and generate task briefs |
+| `/karimo:plan` | Start PRD interview — 6 rounds with interactive approval |
 | `/karimo:overview` | Cross-PRD oversight: blocked tasks, revision loops, completions |
-| `/karimo:execute --prd {slug}` | Execute approved tasks from a PRD |
+| `/karimo:execute --prd {slug}` | Execute tasks from a PRD (brief gen + execution) |
 | `/karimo:status` | View execution progress across all PRDs |
 | `/karimo:configure` | Create or update CLAUDE.md configuration (~5 min) |
 | `/karimo:feedback` | Quick capture of single learnings (~2 min) |
@@ -182,19 +184,9 @@ Orchestrates a structured interview to create a PRD:
 3. **Investigation** — Agent scans codebase for patterns
 4. **Tasks** — Break down into executable units
 5. **Review** — Validate and generate dependency graph
+6. **Approve** — Approve, modify, or save as draft
 
 Output: `.karimo/prds/{slug}/PRD.md` with `tasks.yaml` and `dag.json`
-
-### /karimo:review
-
-**Human checkpoint** between planning and execution:
-
-- Review the PRD and task breakdown
-- Approve or exclude specific tasks
-- Generates self-contained briefs for each task
-- Updates status from `ready` to `approved`
-
-**Default (no args):** Lists PRDs waiting for approval (`--pending`)
 
 ### /karimo:overview
 
@@ -209,8 +201,13 @@ Check this each morning or after a run completes.
 
 ### /karimo:execute
 
-Runs the PM Agent to coordinate task execution:
+Two-phase execution with user review:
 
+**Phase 1: Brief Generation**
+- Generates self-contained briefs for each task
+- User reviews briefs, can adjust or exclude tasks
+
+**Phase 2: Task Execution**
 - Creates feature branch and worktrees
 - Spawns agents for ready tasks (respects dependencies)
 - Monitors progress and propagates findings
@@ -254,7 +251,7 @@ KARIMO includes specialized agents:
 
 | Agent | Role | Writes Code? |
 |-------|------|--------------|
-| `karimo-interviewer` | Conducts 5-round PRD interview | No |
+| `karimo-interviewer` | Conducts 6-round PRD interview with approval | No |
 | `karimo-investigator` | Scans codebase for patterns and context | No |
 | `karimo-reviewer` | Validates PRD, generates task DAG | No |
 | `karimo-brief-writer` | Generates self-contained task briefs | No |
@@ -317,9 +314,8 @@ After installation, your project contains:
     karimo-tester-opus.md        # Task agent (Opus)
     karimo-documenter.md         # Task agent (Sonnet)
     karimo-documenter-opus.md    # Task agent (Opus)
-  commands/                      # 10 commands
+  commands/                      # 9 commands
     plan.md
-    review.md
     overview.md
     execute.md
     status.md
