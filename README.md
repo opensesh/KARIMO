@@ -123,7 +123,7 @@ bash KARIMO/.karimo/install.sh /path/to/your/project
 
 This copies (from `.karimo/MANIFEST.json`):
 - 13 agent definitions to `.claude/agents/`
-- 9 slash commands to `.claude/commands/`
+- 10 slash commands to `.claude/commands/`
 - 5 skills to `.claude/skills/`
 - KARIMO rules to `.claude/KARIMO_RULES.md`
 - 9 templates to `.karimo/templates/`

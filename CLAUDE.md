@@ -82,7 +82,7 @@ When you run `install.sh`, these files are added:
 | Location | Contents |
 |----------|----------|
 | `.claude/agents/` | 13 agent definitions (7 coordination + 6 task agents) |
-| `.claude/commands/` | 9 slash commands (plan, overview, execute, status, configure, feedback, learn, doctor, test) |
+| `.claude/commands/` | 10 slash commands (plan, overview, execute, modify, status, configure, feedback, learn, doctor, test) |
 | `.claude/skills/` | 5 skills (2 coordination + 3 task agent skills) |
 | `.claude/KARIMO_RULES.md` | Agent behavior rules |
 | `.karimo/templates/` | 9 templates (PRD, interview, task, status, dependencies, DAG, learn-interview, findings, task-brief) |
