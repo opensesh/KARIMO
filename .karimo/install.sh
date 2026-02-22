@@ -114,6 +114,18 @@ if [ ! -d "$TARGET_DIR/.git" ]; then
     fi
 fi
 
+# Check Git version (worktrees require 2.5+)
+GIT_VERSION=$(git --version | awk '{print $3}')
+GIT_MAJOR=$(echo "$GIT_VERSION" | cut -d. -f1)
+GIT_MINOR=$(echo "$GIT_VERSION" | cut -d. -f2)
+
+if [ "$GIT_MAJOR" -lt 2 ] || { [ "$GIT_MAJOR" -eq 2 ] && [ "$GIT_MINOR" -lt 5 ]; }; then
+    echo -e "${RED}Error: Git 2.5+ required for worktree support.${NC}"
+    echo "Current version: $GIT_VERSION"
+    echo "Please upgrade Git and try again."
+    exit 1
+fi
+
 # Check for existing installation
 if [ -d "$TARGET_DIR/.karimo" ] && [ -d "$TARGET_DIR/.claude/commands" ]; then
     if [ "$CI_MODE" = true ]; then

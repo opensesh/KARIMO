@@ -1,6 +1,6 @@
 # KARIMO Architecture
 
-**Version:** 3.0
+**Version:** 3.1
 **Status:** Active
 
 ---
@@ -32,7 +32,7 @@ KARIMO uses `.karimo/MANIFEST.json` as the single source of truth for all instal
 
 ```json
 {
-  "version": "2.8.0",
+  "version": "3.1.1",
   "agents": ["karimo-brief-writer.md", "karimo-documenter.md", ...],
   "commands": ["configure.md", "doctor.md", ...],
   "skills": ["git-worktree-ops.md", ...],
