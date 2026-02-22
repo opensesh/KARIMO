@@ -2,6 +2,7 @@
 
 # KARIMO Update Script
 # Updates KARIMO installation with diff preview
+# Uses MANIFEST.json as the single source of truth
 
 set -e
 
@@ -15,22 +16,54 @@ NC='\033[0m' # No Color
 # Get script directory (where KARIMO source lives)
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 KARIMO_ROOT="$(dirname "$SCRIPT_DIR")"
+MANIFEST="$SCRIPT_DIR/MANIFEST.json"
 
-# Target directory (required argument)
-TARGET_DIR="${1:-}"
+# Parse arguments
+CI_MODE=false
+TARGET_DIR=""
+
+for arg in "$@"; do
+    case $arg in
+        --ci)
+            CI_MODE=true
+            ;;
+        *)
+            if [ -z "$TARGET_DIR" ]; then
+                TARGET_DIR="$arg"
+            fi
+            ;;
+    esac
+done
 
 # Show usage
 usage() {
-    echo "Usage: bash KARIMO/.karimo/update.sh /path/to/your/project"
+    echo "Usage: bash KARIMO/.karimo/update.sh [--ci] /path/to/your/project"
     echo ""
     echo "Updates an existing KARIMO installation with changes from the source."
     echo "Shows a diff preview before applying any changes."
+    echo ""
+    echo "Options:"
+    echo "  --ci    CI mode: auto-confirm updates without prompts"
     echo ""
     echo "Files never updated:"
     echo "  - CLAUDE.md (user-customized)"
     echo "  - .karimo/config.yaml (project-specific)"
     echo "  - .gitignore (already configured)"
 }
+
+# Verify manifest exists
+if [ ! -f "$MANIFEST" ]; then
+    echo -e "${RED}Error: MANIFEST.json not found at $MANIFEST${NC}"
+    echo "KARIMO source may be corrupted. Please re-download."
+    exit 1
+fi
+
+# Verify jq is available
+if ! command -v jq &> /dev/null; then
+    echo -e "${RED}Error: jq is required but not installed${NC}"
+    echo "Install with: brew install jq (macOS) or apt-get install jq (Linux)"
+    exit 1
+fi
 
 echo -e "${BLUE}╭──────────────────────────────────────────────────────────────╮${NC}"
 echo -e "${BLUE}│  KARIMO Update                                               │${NC}"
@@ -61,11 +94,15 @@ fi
 
 # Check target is a git repo
 if [ ! -d "$TARGET_DIR/.git" ]; then
-    echo -e "${YELLOW}Warning: Target is not a git repository.${NC}"
-    read -p "Continue anyway? (y/n) " -n 1 -r
-    echo
-    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-        exit 1
+    if [ "$CI_MODE" = true ]; then
+        echo "CI mode: target is not a git repository, continuing anyway"
+    else
+        echo -e "${YELLOW}Warning: Target is not a git repository.${NC}"
+        read -p "Continue anyway? (y/n) " -n 1 -r
+        echo
+        if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+            exit 1
+        fi
     fi
 fi
 
@@ -104,16 +141,20 @@ echo "  Source version:    $SOURCE_VERSION"
 echo "  Installed version: $INSTALLED_VERSION"
 echo
 
-# If versions match, ask for confirmation
+# If versions match, ask for confirmation (unless CI mode)
 if [ "$SOURCE_VERSION" = "$INSTALLED_VERSION" ]; then
-    echo -e "${YELLOW}Versions match. Force update anyway? [y/N]${NC}"
-    read -p "" -n 1 -r
-    echo
-    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-        echo "Update cancelled."
-        exit 0
+    if [ "$CI_MODE" = true ]; then
+        echo "CI mode: versions match, proceeding with update"
+    else
+        echo -e "${YELLOW}Versions match. Force update anyway? [y/N]${NC}"
+        read -p "" -n 1 -r
+        echo
+        if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+            echo "Update cancelled."
+            exit 0
+        fi
+        echo
     fi
-    echo
 fi
 
 # Step 3: Diff and present changes
@@ -144,52 +185,62 @@ compare_file() {
     fi
 }
 
-echo "  Scanning files..."
+echo "  Scanning files using manifest..."
 echo
 
-# Compare agents
-for agent in karimo-interviewer karimo-investigator karimo-reviewer karimo-brief-writer karimo-pm karimo-review-architect karimo-learn-auditor karimo-implementer karimo-tester karimo-documenter; do
-    if [ -f "$KARIMO_ROOT/.claude/agents/${agent}.md" ]; then
-        compare_file "$KARIMO_ROOT/.claude/agents/${agent}.md" "$TARGET_DIR/.claude/agents/${agent}.md" ".claude/agents/${agent}.md"
+# Compare agents from manifest
+for agent in $(jq -r '.agents[]' "$MANIFEST"); do
+    if [ -f "$KARIMO_ROOT/.claude/agents/$agent" ]; then
+        compare_file "$KARIMO_ROOT/.claude/agents/$agent" "$TARGET_DIR/.claude/agents/$agent" ".claude/agents/$agent"
     fi
 done
 
-# Compare commands
-for cmd in plan review execute status configure feedback learn doctor; do
-    if [ -f "$KARIMO_ROOT/.claude/commands/${cmd}.md" ]; then
-        compare_file "$KARIMO_ROOT/.claude/commands/${cmd}.md" "$TARGET_DIR/.claude/commands/${cmd}.md" ".claude/commands/${cmd}.md"
+# Compare commands from manifest
+for cmd in $(jq -r '.commands[]' "$MANIFEST"); do
+    if [ -f "$KARIMO_ROOT/.claude/commands/$cmd" ]; then
+        compare_file "$KARIMO_ROOT/.claude/commands/$cmd" "$TARGET_DIR/.claude/commands/$cmd" ".claude/commands/$cmd"
     fi
 done
 
-# Compare skills
-for skill in git-worktree-ops github-project-ops karimo-code-standards karimo-testing-standards karimo-doc-standards; do
-    if [ -f "$KARIMO_ROOT/.claude/skills/${skill}.md" ]; then
-        compare_file "$KARIMO_ROOT/.claude/skills/${skill}.md" "$TARGET_DIR/.claude/skills/${skill}.md" ".claude/skills/${skill}.md"
+# Compare skills from manifest
+for skill in $(jq -r '.skills[]' "$MANIFEST"); do
+    if [ -f "$KARIMO_ROOT/.claude/skills/$skill" ]; then
+        compare_file "$KARIMO_ROOT/.claude/skills/$skill" "$TARGET_DIR/.claude/skills/$skill" ".claude/skills/$skill"
     fi
 done
 
 # Compare KARIMO_RULES.md
-compare_file "$KARIMO_ROOT/.claude/KARIMO_RULES.md" "$TARGET_DIR/.claude/KARIMO_RULES.md" ".claude/KARIMO_RULES.md"
+RULES_FILE=$(jq -r '.other.rules' "$MANIFEST")
+compare_file "$KARIMO_ROOT/.claude/$RULES_FILE" "$TARGET_DIR/.claude/$RULES_FILE" ".claude/$RULES_FILE"
 
-# Compare templates
-for template in PRD_TEMPLATE INTERVIEW_PROTOCOL TASK_SCHEMA STATUS_SCHEMA LEARN_INTERVIEW_PROTOCOL FINDINGS_TEMPLATE TASK_BRIEF_TEMPLATE; do
-    if [ -f "$KARIMO_ROOT/.karimo/templates/${template}.md" ]; then
-        compare_file "$KARIMO_ROOT/.karimo/templates/${template}.md" "$TARGET_DIR/.karimo/templates/${template}.md" ".karimo/templates/${template}.md"
+# Compare templates from manifest
+for template in $(jq -r '.templates[]' "$MANIFEST"); do
+    if [ -f "$KARIMO_ROOT/.karimo/templates/$template" ]; then
+        compare_file "$KARIMO_ROOT/.karimo/templates/$template" "$TARGET_DIR/.karimo/templates/$template" ".karimo/templates/$template"
     fi
 done
 
-# Compare workflows
-for workflow in karimo-sync karimo-dependency-watch karimo-ci-integration karimo-greptile-review; do
-    if [ -f "$KARIMO_ROOT/.github/workflows/${workflow}.yml" ]; then
-        compare_file "$KARIMO_ROOT/.github/workflows/${workflow}.yml" "$TARGET_DIR/.github/workflows/${workflow}.yml" ".github/workflows/${workflow}.yml"
+# Compare required workflows from manifest
+for workflow in $(jq -r '.workflows.required[]' "$MANIFEST"); do
+    if [ -f "$KARIMO_ROOT/.github/workflows/$workflow" ]; then
+        compare_file "$KARIMO_ROOT/.github/workflows/$workflow" "$TARGET_DIR/.github/workflows/$workflow" ".github/workflows/$workflow"
+    fi
+done
+
+# Compare optional workflows from manifest
+for workflow in $(jq -r '.workflows.optional[]' "$MANIFEST"); do
+    if [ -f "$KARIMO_ROOT/.github/workflows/$workflow" ]; then
+        compare_file "$KARIMO_ROOT/.github/workflows/$workflow" "$TARGET_DIR/.github/workflows/$workflow" ".github/workflows/$workflow"
     fi
 done
 
 # Compare issue template
-compare_file "$KARIMO_ROOT/.github/ISSUE_TEMPLATE/karimo-task.yml" "$TARGET_DIR/.github/ISSUE_TEMPLATE/karimo-task.yml" ".github/ISSUE_TEMPLATE/karimo-task.yml"
+ISSUE_TEMPLATE=$(jq -r '.other.issue_template' "$MANIFEST")
+compare_file "$KARIMO_ROOT/.github/ISSUE_TEMPLATE/$ISSUE_TEMPLATE" "$TARGET_DIR/.github/ISSUE_TEMPLATE/$ISSUE_TEMPLATE" ".github/ISSUE_TEMPLATE/$ISSUE_TEMPLATE"
 
-# Compare VERSION file
+# Compare VERSION and MANIFEST files
 compare_file "$KARIMO_ROOT/.karimo/VERSION" "$TARGET_DIR/.karimo/VERSION" ".karimo/VERSION"
+compare_file "$KARIMO_ROOT/.karimo/MANIFEST.json" "$TARGET_DIR/.karimo/MANIFEST.json" ".karimo/MANIFEST.json"
 
 # Display changes
 echo "  Changes:"
@@ -230,13 +281,17 @@ if [ $((${#MODIFIED_FILES[@]} + ${#NEW_FILES[@]})) -eq 0 ]; then
     exit 0
 fi
 
-echo -e "Apply these changes? [y/N] "
-read -p "" -n 1 -r
-echo
+if [ "$CI_MODE" = true ]; then
+    echo "CI mode: auto-applying changes"
+else
+    echo -e "Apply these changes? [y/N] "
+    read -p "" -n 1 -r
+    echo
 
-if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-    echo "Update cancelled."
-    exit 0
+    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+        echo "Update cancelled."
+        exit 0
+    fi
 fi
 
 echo
@@ -253,94 +308,86 @@ mkdir -p "$TARGET_DIR/.karimo/templates"
 mkdir -p "$TARGET_DIR/.github/workflows"
 mkdir -p "$TARGET_DIR/.github/ISSUE_TEMPLATE"
 
-# Copy modified agents
-for agent in karimo-interviewer karimo-investigator karimo-reviewer karimo-brief-writer karimo-pm karimo-review-architect karimo-learn-auditor karimo-implementer karimo-tester karimo-documenter; do
-    source_file="$KARIMO_ROOT/.claude/agents/${agent}.md"
-    target_file="$TARGET_DIR/.claude/agents/${agent}.md"
-    if [ -f "$source_file" ]; then
-        for entry in "${MODIFIED_FILES[@]}" "${NEW_FILES[@]}"; do
-            if [[ "$entry" == ".claude/agents/${agent}.md"* ]]; then
-                cp "$source_file" "$target_file"
-                break
-            fi
-        done
+# Helper function to check if file should be copied
+should_copy() {
+    local path="$1"
+    for entry in "${MODIFIED_FILES[@]}" "${NEW_FILES[@]}"; do
+        if [[ "$entry" == "$path"* ]]; then
+            return 0
+        fi
+    done
+    return 1
+}
+
+# Copy modified agents from manifest
+for agent in $(jq -r '.agents[]' "$MANIFEST"); do
+    source_file="$KARIMO_ROOT/.claude/agents/$agent"
+    target_file="$TARGET_DIR/.claude/agents/$agent"
+    if [ -f "$source_file" ] && should_copy ".claude/agents/$agent"; then
+        cp "$source_file" "$target_file"
     fi
 done
 
-# Copy modified commands
-for cmd in plan review execute status configure feedback learn doctor; do
-    source_file="$KARIMO_ROOT/.claude/commands/${cmd}.md"
-    target_file="$TARGET_DIR/.claude/commands/${cmd}.md"
-    if [ -f "$source_file" ]; then
-        for entry in "${MODIFIED_FILES[@]}" "${NEW_FILES[@]}"; do
-            if [[ "$entry" == ".claude/commands/${cmd}.md"* ]]; then
-                cp "$source_file" "$target_file"
-                break
-            fi
-        done
+# Copy modified commands from manifest
+for cmd in $(jq -r '.commands[]' "$MANIFEST"); do
+    source_file="$KARIMO_ROOT/.claude/commands/$cmd"
+    target_file="$TARGET_DIR/.claude/commands/$cmd"
+    if [ -f "$source_file" ] && should_copy ".claude/commands/$cmd"; then
+        cp "$source_file" "$target_file"
     fi
 done
 
-# Copy modified skills
-for skill in git-worktree-ops github-project-ops karimo-code-standards karimo-testing-standards karimo-doc-standards; do
-    source_file="$KARIMO_ROOT/.claude/skills/${skill}.md"
-    target_file="$TARGET_DIR/.claude/skills/${skill}.md"
-    if [ -f "$source_file" ]; then
-        for entry in "${MODIFIED_FILES[@]}" "${NEW_FILES[@]}"; do
-            if [[ "$entry" == ".claude/skills/${skill}.md"* ]]; then
-                cp "$source_file" "$target_file"
-                break
-            fi
-        done
+# Copy modified skills from manifest
+for skill in $(jq -r '.skills[]' "$MANIFEST"); do
+    source_file="$KARIMO_ROOT/.claude/skills/$skill"
+    target_file="$TARGET_DIR/.claude/skills/$skill"
+    if [ -f "$source_file" ] && should_copy ".claude/skills/$skill"; then
+        cp "$source_file" "$target_file"
     fi
 done
 
 # Copy KARIMO_RULES.md if modified
-for entry in "${MODIFIED_FILES[@]}" "${NEW_FILES[@]}"; do
-    if [[ "$entry" == ".claude/KARIMO_RULES.md"* ]]; then
-        cp "$KARIMO_ROOT/.claude/KARIMO_RULES.md" "$TARGET_DIR/.claude/KARIMO_RULES.md"
-        break
+RULES_FILE=$(jq -r '.other.rules' "$MANIFEST")
+if should_copy ".claude/$RULES_FILE"; then
+    cp "$KARIMO_ROOT/.claude/$RULES_FILE" "$TARGET_DIR/.claude/$RULES_FILE"
+fi
+
+# Copy modified templates from manifest
+for template in $(jq -r '.templates[]' "$MANIFEST"); do
+    source_file="$KARIMO_ROOT/.karimo/templates/$template"
+    target_file="$TARGET_DIR/.karimo/templates/$template"
+    if [ -f "$source_file" ] && should_copy ".karimo/templates/$template"; then
+        cp "$source_file" "$target_file"
     fi
 done
 
-# Copy modified templates
-for template in PRD_TEMPLATE INTERVIEW_PROTOCOL TASK_SCHEMA STATUS_SCHEMA LEARN_INTERVIEW_PROTOCOL FINDINGS_TEMPLATE TASK_BRIEF_TEMPLATE; do
-    source_file="$KARIMO_ROOT/.karimo/templates/${template}.md"
-    target_file="$TARGET_DIR/.karimo/templates/${template}.md"
-    if [ -f "$source_file" ]; then
-        for entry in "${MODIFIED_FILES[@]}" "${NEW_FILES[@]}"; do
-            if [[ "$entry" == ".karimo/templates/${template}.md"* ]]; then
-                cp "$source_file" "$target_file"
-                break
-            fi
-        done
+# Copy modified workflows from manifest (required)
+for workflow in $(jq -r '.workflows.required[]' "$MANIFEST"); do
+    source_file="$KARIMO_ROOT/.github/workflows/$workflow"
+    target_file="$TARGET_DIR/.github/workflows/$workflow"
+    if [ -f "$source_file" ] && should_copy ".github/workflows/$workflow"; then
+        cp "$source_file" "$target_file"
     fi
 done
 
-# Copy modified workflows
-for workflow in karimo-sync karimo-dependency-watch karimo-ci-integration karimo-greptile-review; do
-    source_file="$KARIMO_ROOT/.github/workflows/${workflow}.yml"
-    target_file="$TARGET_DIR/.github/workflows/${workflow}.yml"
-    if [ -f "$source_file" ]; then
-        for entry in "${MODIFIED_FILES[@]}" "${NEW_FILES[@]}"; do
-            if [[ "$entry" == ".github/workflows/${workflow}.yml"* ]]; then
-                cp "$source_file" "$target_file"
-                break
-            fi
-        done
+# Copy modified workflows from manifest (optional)
+for workflow in $(jq -r '.workflows.optional[]' "$MANIFEST"); do
+    source_file="$KARIMO_ROOT/.github/workflows/$workflow"
+    target_file="$TARGET_DIR/.github/workflows/$workflow"
+    if [ -f "$source_file" ] && should_copy ".github/workflows/$workflow"; then
+        cp "$source_file" "$target_file"
     fi
 done
 
 # Copy issue template if modified
-for entry in "${MODIFIED_FILES[@]}" "${NEW_FILES[@]}"; do
-    if [[ "$entry" == ".github/ISSUE_TEMPLATE/karimo-task.yml"* ]]; then
-        cp "$KARIMO_ROOT/.github/ISSUE_TEMPLATE/karimo-task.yml" "$TARGET_DIR/.github/ISSUE_TEMPLATE/karimo-task.yml"
-        break
-    fi
-done
+ISSUE_TEMPLATE=$(jq -r '.other.issue_template' "$MANIFEST")
+if should_copy ".github/ISSUE_TEMPLATE/$ISSUE_TEMPLATE"; then
+    cp "$KARIMO_ROOT/.github/ISSUE_TEMPLATE/$ISSUE_TEMPLATE" "$TARGET_DIR/.github/ISSUE_TEMPLATE/$ISSUE_TEMPLATE"
+fi
 
-# Always update VERSION file
+# Always update VERSION and MANIFEST files
 cp "$KARIMO_ROOT/.karimo/VERSION" "$TARGET_DIR/.karimo/VERSION"
+cp "$KARIMO_ROOT/.karimo/MANIFEST.json" "$TARGET_DIR/.karimo/MANIFEST.json"
 
 # Step 6: Post-update summary
 
