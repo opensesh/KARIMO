@@ -86,15 +86,19 @@ jobs:
           EOF
           )
 
-          # Check for API errors
-          if echo "$RESPONSE" | jq -e '.error' > /dev/null 2>&1; then
-            ERROR=$(echo "$RESPONSE" | jq -r '.error')
+          # Check for API errors (jq-free parsing)
+          if echo "$RESPONSE" | grep -q '"error"'; then
+            ERROR=$(echo "$RESPONSE" | sed 's/.*"error"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/')
             echo "Greptile API error: $ERROR"
             echo "score=0" >> $GITHUB_OUTPUT
             echo "error=true" >> $GITHUB_OUTPUT
             echo "error-message=$ERROR" >> $GITHUB_OUTPUT
           else
-            SCORE=$(echo "$RESPONSE" | jq -r '.score // 0')
+            SCORE=$(echo "$RESPONSE" | grep -o '"score"[[:space:]]*:[[:space:]]*[0-9]*' | grep -o '[0-9]*$' || echo "0")
+            # Handle empty score
+            if [ -z "$SCORE" ]; then
+              SCORE=0
+            fi
             echo "Greptile score: $SCORE"
             echo "score=$SCORE" >> $GITHUB_OUTPUT
             echo "error=false" >> $GITHUB_OUTPUT
