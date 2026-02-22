@@ -228,6 +228,9 @@ Detect stale state that indicates crashed or disconnected agents, guiding users 
 
 ---
 
+<details>
+<summary>View v2.x changelog history (internal evolution)</summary>
+
 ## [2.9.0] - 2026-02-22
 
 ### Changed
@@ -881,6 +884,8 @@ Complete architectural transformation from TypeScript CLI application to Claude 
 - `package.json`, `bun.lock`, `biome.json`, `tsconfig.json`
 
 The v1 implementation is preserved for reference but no longer maintained. KARIMO v2 is configuration-only.
+
+</details>
 
 ---
 

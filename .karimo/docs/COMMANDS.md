@@ -11,11 +11,13 @@ Reference for all KARIMO slash commands available in Claude Code.
 | `/karimo:plan` | Start PRD interview with interactive approval |
 | `/karimo:overview` | Cross-PRD oversight dashboard |
 | `/karimo:execute` | Execute tasks from PRD (brief gen + execution) |
+| `/karimo:modify` | Modify approved PRD before execution |
 | `/karimo:status` | View execution progress |
 | `/karimo:configure` | Create or update CLAUDE.md configuration |
 | `/karimo:feedback` | Quick capture of single learnings |
 | `/karimo:learn` | Deep learning cycle (3 modes) |
 | `/karimo:doctor` | Check installation health |
+| `/karimo:test` | Installation smoke test |
 
 ---
 
