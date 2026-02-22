@@ -7,6 +7,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [3.1.2] - 2026-02-22
+
+### Fixed
+
+**jq Dependency Removal**
+
+Eliminated external `jq` dependency from all KARIMO agent and skill instructions. All JSON parsing now uses jq-free approaches.
+
+**Three-pronged approach:**
+- **Simple fields:** grep/sed for root-level status.json fields (POSIX-compliant)
+- **GitHub CLI:** `gh --jq` built-in flag for API responses (embedded Go implementation)
+- **Complex queries:** Node.js one-liner fallback for nested JSON (documented escape hatch)
+
+**Files updated:**
+- `karimo-pm.md` — status.json parsing (grep/sed), project listing/creation (gh --jq)
+- `github-project-ops.md` — project creation, item filtering (gh --jq)
+- `modify.md` — status.json parsing (grep/sed)
+- `KARIMO_RULES.md` — Added "JSON Parsing Without jq" documentation section
+
+**Why this matters:**
+- install.sh, update.sh, and uninstall.sh were already jq-free
+- Agent instructions contained jq commands that could fail on systems without jq
+- GitHub CLI has embedded jq via `--jq` flag, no external binary needed
+- grep/sed patterns work on any POSIX system
+
+---
+
 ## [3.1.1] - 2026-02-22
 
 ### Fixed
