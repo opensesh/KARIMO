@@ -159,7 +159,6 @@ No active PRDs found. Run /karimo:plan to create one, or /karimo:execute to star
 
 | Command | Purpose |
 |---------|---------|
-| `/karimo:review` | Review and approve PRD before execution |
+| `/karimo:plan` | Create PRD with interactive approval |
+| `/karimo:execute` | Execute PRD (brief gen + task execution) |
 | `/karimo:status` | View execution status for specific PRD |
-| `/karimo:execute` | Execute approved PRD |
-| `/karimo:plan` | Create or edit PRD |
