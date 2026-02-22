@@ -7,6 +7,43 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.8.0] - 2026-02-21
+
+### Added
+
+**Dual-Model Task Agent System**
+- `karimo-implementer-opus` — Complex implementation tasks (complexity 5+)
+- `karimo-tester-opus` — Complex test writing (complexity 5+)
+- `karimo-documenter-opus` — Complex documentation (complexity 5+)
+- PM agent now routes to Opus variants automatically based on task complexity
+
+**KARIMO vs Native Worktree Documentation**
+- Added clarification section to `git-worktree-ops.md` explaining why KARIMO uses manual worktree creation
+- Documents path control, branch naming, and lifecycle management requirements
+
+### Changed
+
+**PM Agent Spawn Mechanics**
+- Replaced fake `Task: @{agent-type}` syntax with natural language Claude Code delegation
+- Step 5c now uses actual Task tool delegation format
+- Updated dual-model routing table (Sonnet for 1-4, Opus for 5+)
+- Updated Greptile revision loop to reference Opus variant usage
+
+**Worker Agent Descriptions**
+- `karimo-implementer` — Added "(complexity 1-4)" scope clarification
+- `karimo-tester` — Added "(complexity 1-4)" scope clarification
+- `karimo-documenter` — Added "(complexity 1-4)" scope clarification
+
+**Worktree Instructions**
+- `TASK_BRIEF_TEMPLATE.md` — Generic working directory instruction (no hardcoded paths)
+- `KARIMO_RULES.md` — Updated worktree discipline to use "assigned directory"
+
+**Documentation**
+- `ARCHITECTURE.md` — Expanded Task Agents table with dual-model system
+- Added Model Assignment table showing complexity-to-model routing
+
+---
+
 ## [2.7.1] - 2026-02-21
 
 ### Added
