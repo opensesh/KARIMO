@@ -59,9 +59,36 @@ Tasks: 5 tasks
 Pre-flight checks:
   ✓ Git repository clean
   ✓ GitHub CLI authenticated
+  ✓ GitHub owner: opensesh (organization)
+  ✓ GitHub Project permissions verified
   ✓ CLAUDE.md loaded (commands, boundaries)
 
 Ready to begin execution?
+```
+
+**If GitHub Configuration is missing:**
+
+```
+Pre-flight checks:
+  ✓ Git repository clean
+  ✓ GitHub CLI authenticated
+  ❌ GitHub Configuration not found
+
+GitHub Configuration is required for GitHub Project creation.
+Run /karimo:configure to set up GitHub settings.
+```
+
+**If GitHub Project access is denied:**
+
+```
+Pre-flight checks:
+  ✓ Git repository clean
+  ✓ GitHub CLI authenticated
+  ✓ GitHub owner: opensesh (organization)
+  ❌ GitHub Project permissions denied
+
+Cannot access projects for 'opensesh'.
+Fix: gh auth refresh -s project
 ```
 
 ### 3. Phase 1: Brief Generation
@@ -317,6 +344,8 @@ Execution updates these files:
 |-------|--------|
 | PRD not found | List available PRDs |
 | PRD not ready | "Run /karimo:plan to approve first" |
+| GitHub config missing | "Run /karimo:configure to set up GitHub settings" |
+| GitHub project access denied | "Run `gh auth refresh -s project` to add project scope" |
 | Task failed | Mark as failed, continue with independent tasks |
 | All tasks blocked | Report blockers, suggest intervention |
 | Task stalled | Attempt model upgrade (Sonnet→Opus), pause if still failing |
