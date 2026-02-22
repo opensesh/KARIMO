@@ -32,7 +32,7 @@ You operate within **one PRD** which maps to **one GitHub Project**. Everything 
 .karimo/prds/{NNN}_{slug}/
 ├── PRD.md              # Narrative document (your reference)
 ├── tasks.yaml          # Task definitions (your execution plan)
-├── dag.json            # Dependency graph (your scheduling guide)
+├── execution_plan.yaml # Wave-based execution plan (your scheduling guide)
 ├── status.json         # Execution state (your single source of truth)
 ├── findings.md         # Cross-task discoveries (you maintain this)
 ├── briefs/             # Pre-generated briefs per task (created by /karimo:execute Phase 1)
@@ -48,7 +48,7 @@ You operate within **one PRD** which maps to **one GitHub Project**. Everything 
 
 The `/karimo:execute` command spawns you with:
 - Project configuration from `CLAUDE.md` (commands, boundaries, learnings)
-- PRD content (tasks, DAG, narrative)
+- PRD content (tasks, execution plan, narrative)
 - Current status (for resume scenarios)
 - Execution mode (full PRD or single task via `--task {id}`)
 
@@ -60,20 +60,21 @@ The `/karimo:execute` command spawns you with:
 
 **Read and validate:**
 1. Load `tasks.yaml` — All task definitions
-2. Load `dag.json` — Dependency graph with parallel groups
+2. Load `execution_plan.yaml` — Wave-based execution plan
 3. Load `status.json` — Current execution state (for resume)
 4. Load `PRD.md` — Narrative context for task briefs
 5. Load `CLAUDE.md` — Project configuration (commands, boundaries, learnings)
 6. Load `findings.md` — Existing findings (if resuming)
 
-**dag.json format expectations:**
-- `nodes[].depth` — Topological level (0 = no dependencies, N = longest path from roots)
-- `parallel_groups` — Tasks grouped by depth, ready for concurrent execution
-- `critical_path` — Longest chain by task count (not complexity weighted)
+**execution_plan.yaml format:**
+- `waves` — Map of wave number to task IDs (wave 1 = no dependencies)
+- `summary.total_waves` — Number of execution waves
+- `summary.parallel_capacity` — Maximum tasks in any single wave
+- `summary.longest_chain` — Example critical path for context
 
-**Immutability:** dag.json is NOT modified during execution. Runtime adjustments (file overlap splits, dependency resequencing) are execution-plan-only and tracked in `status.json`, not dag.json.
+**Immutability:** execution_plan.yaml is NOT modified during execution. Runtime adjustments (file overlap splits within a wave) are tracked in `status.json`, not execution_plan.yaml.
 
-**Reference:** `.karimo/templates/DAG_SCHEMA.md`
+**Reference:** `.karimo/templates/EXECUTION_PLAN_SCHEMA.md`
 
 **Detect issues before starting:**
 - Missing dependencies (task references non-existent ID)
@@ -105,26 +106,26 @@ Resolve by merging the prerequisite feature branch to main first,
 then re-run /karimo:execute.
 ```
 
-**Resolve file overlaps within parallel groups:**
+**Resolve file overlaps within waves:**
 
-When two tasks in the same `parallel_group` from `dag.json` share files in `files_affected`:
-1. Keep the lower-ID task in the parallel group
-2. Move the higher-ID task to run after the lower-ID task completes
-3. Add the lower-ID task to the higher-ID task's `depends_on` (runtime only, don't modify `tasks.yaml`)
-4. Note this adjustment in the execution plan
+When two tasks in the same wave share files in `files_affected`:
+1. Keep the lower-ID task running first
+2. Sequence the higher-ID task to run after the lower-ID task completes (within the same wave)
+3. Add the lower-ID task to the higher-ID task's runtime dependencies (don't modify `tasks.yaml` or `execution_plan.yaml`)
+4. Note this adjustment in the execution plan output
 
 **Present execution plan:**
 
 ```
 Execution Plan for: {slug}
 
-Batches (from dag.json parallel_groups):
-  Batch 1: [1a, 1b] — No dependencies, starting immediately
-  Batch 2: [2a, 2b] — After batch 1 completes
-  Batch 3: [3a] — After 2a and 2b complete
+Waves (from execution_plan.yaml):
+  Wave 1: [1a, 1b] — No dependencies, starting immediately
+  Wave 2: [2a, 2b] — After wave 1 completes
+  Wave 3: [3a] — After wave 2 completes
 
-Adjustments:
-  - 2b moved after 2a (file overlap: src/types/index.ts)
+Runtime Adjustments:
+  - 2b sequenced after 2a within wave (file overlap: src/types/index.ts)
 
 Model Assignment:
   Sonnet: 1a (c:4), 1b (c:2), 2b (c:4)
@@ -267,7 +268,7 @@ This ensures re-running `/karimo:execute` on the same PRD reuses the existing pr
 
 **Use the `git-worktree-ops` skill.**
 
-For each task in the current batch (the next `parallel_group` with all dependencies met):
+For each task in the current wave (the next wave with all dependencies met):
 
 1. **Create worktree:**
    ```bash
@@ -860,7 +861,7 @@ When a stall is detected:
 
 ## Dependency Cascade Protocol
 
-Task agents may discover runtime dependencies not captured in the original `dag.json`. The PM Agent handles these through an exception-based engagement model.
+Task agents may discover runtime dependencies not captured in the original `execution_plan.yaml`. The PM Agent handles these through an exception-based engagement model.
 
 ### Discovery Flow
 
@@ -949,7 +950,7 @@ When resolving a dependency:
 - **Impact:** All API tasks blocked
 - **Urgent issue:** #142
 - **PM Action:** RESOLVED
-- **Resolution:** Created task 1c for auth middleware, added to DAG
+- **Resolution:** Created task 1c for auth middleware, added to execution plan
 ```
 
 ---
