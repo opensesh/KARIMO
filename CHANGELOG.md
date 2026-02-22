@@ -7,6 +7,43 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.7.0] - 2026-02-21
+
+### Added
+
+**Install Script Auto-Detection**
+- Auto-detects package manager from lock files (pnpm, yarn, npm, bun, poetry, pip, go, cargo)
+- Auto-detects runtime (Node.js, Bun, Deno, Python, Go, Rust)
+- Auto-detects framework (Next.js, Nuxt, SvelteKit, Astro, Remix, Vite, Angular, Vue)
+- Extracts build commands from package.json scripts (requires `jq`, graceful fallback)
+- Creates `.karimo/config.yaml` with detected values during installation
+- Populates CLAUDE.md with actual values instead of `_pending_` placeholders
+- Added `--skip-config` flag to skip auto-detection
+
+**Doctor Drift Detection**
+- config.yaml existence check as first validation step
+- Drift detection: compares configured package manager vs actual lock files
+- Drift detection: compares configured commands vs package.json scripts
+- Recommendation mapping table for different issue types
+
+### Changed
+
+**Configuration Workflow**
+- `config.yaml` is now the source of truth for KARIMO configuration
+- CLAUDE.md mirrors config.yaml for human readability
+- `/karimo:configure` now syncs both files on completion
+- `/karimo:plan` checks for config.yaml first, offers choice if missing
+- `/karimo:doctor` recommends `/karimo:configure` for config issues (not `/karimo:plan`)
+
+**Documentation Updates**
+- GETTING-STARTED.md: Documented auto-detection, `--skip-config` flag, new workflow
+- COMMANDS.md: Updated configure and doctor sections with new behaviors
+- doctor.md: Added config.yaml validation and drift detection steps
+- configure.md: Added source-of-truth documentation, dual-file sync behavior
+- plan.md: Added config.yaml check before interview, user choice for missing config
+
+---
+
 ## [2.6.0] - 2026-02-21
 
 ### Added
