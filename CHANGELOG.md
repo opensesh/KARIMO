@@ -20,11 +20,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Populates CLAUDE.md with actual values instead of `_pending_` placeholders
 - Added `--skip-config` flag to skip auto-detection
 
-**Doctor Drift Detection**
+**Doctor Command Enhancements**
 - config.yaml existence check as first validation step
 - Drift detection: compares configured package manager vs actual lock files
 - Drift detection: compares configured commands vs package.json scripts
 - Recommendation mapping table for different issue types
+- **Check 0: Version Status** — Detects when installed KARIMO is behind source version
+- Compares `.karimo/VERSION` against `KARIMO_SOURCE_PATH/VERSION` environment variable
+- Graceful degradation when source path unknown
+
+**`/karimo:test` Command**
+- New smoke test command for installation verification
+- 5 lightweight validation tests (no agent spawning or PR simulation):
+  - File presence: agents, commands, skills, templates
+  - Template parsing validation
+  - GitHub CLI authentication check
+  - State file integrity (JSON validation)
+  - CLAUDE.md integration check
+- Pass/fail output with detailed error messages
+- Fast and safe — suitable for CI/pre-commit hooks
+
+**Install Script License Notice**
+- Added Apache 2.0 license notice to installation completion output
+- Clarifies installed files are Apache 2.0 while user code remains under their own license
+
+**Documentation**
+- CONTRIBUTING.md: Added "Testing Your Changes" section with validation checks table
 
 ### Changed
 
