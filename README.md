@@ -206,6 +206,33 @@ Run `/karimo:configure` to update configuration manually.
 
 ---
 
+## FAQ
+
+### Have questions about KARIMO?
+
+Point Claude to this directory and ask. Run `claude` in the KARIMO repo (or your project with KARIMO installed) and ask your question. 90% of challenges can be answered by letting Claude read the documentation and understand the repository.
+
+### Can I run KARIMO without Greptile?
+
+Yes. Phase 1 is fully functional without Greptile — PRD interviews, agent execution, worktrees, and PRs all work out of the box. Greptile adds automated code review with revision loops (Phase 2), but it's optional. Without Greptile, task PRs are created and you review them manually.
+
+The workflow automatically applies the `greptile-skipped` label when no API key is configured, so everything continues to work.
+
+### How do I set up Greptile?
+
+1. Get an API key from [greptile.com](https://greptile.com)
+2. Add `GREPTILE_API_KEY` to your GitHub repository secrets
+3. Ensure the `karimo` label exists on your repository
+4. PRs with the `karimo` label will trigger automated review
+
+That's it. The `karimo-greptile-review.yml` workflow handles the rest — scoring PRs on a 0-5 scale, posting review comments, and triggering revision loops when scores fall below 3.
+
+### Having issues?
+
+Run `/karimo:doctor` to diagnose installation problems. If that doesn't help, reach out to us at [hello@opensession.co](mailto:hello@opensession.co).
+
+---
+
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for how to add agents, commands, skills, and templates.
