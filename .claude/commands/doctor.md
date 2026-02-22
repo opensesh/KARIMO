@@ -96,10 +96,16 @@ fi
 **Step 2b: Read expected counts from manifest**
 
 ```bash
-EXPECTED_AGENTS=$(jq '.agents | length' .karimo/MANIFEST.json)
-EXPECTED_COMMANDS=$(jq '.commands | length' .karimo/MANIFEST.json)
-EXPECTED_SKILLS=$(jq '.skills | length' .karimo/MANIFEST.json)
-EXPECTED_TEMPLATES=$(jq '.templates | length' .karimo/MANIFEST.json)
+# Helper function for manifest parsing (jq-free)
+manifest_count() {
+  local key="$1"
+  sed -n "/\"$key\"/,/]/p" .karimo/MANIFEST.json | grep '"' | grep -v "\"$key\"" | wc -l | tr -d ' '
+}
+
+EXPECTED_AGENTS=$(manifest_count "agents")
+EXPECTED_COMMANDS=$(manifest_count "commands")
+EXPECTED_SKILLS=$(manifest_count "skills")
+EXPECTED_TEMPLATES=$(manifest_count "templates")
 ```
 
 **Step 2c: Count actual files and compare**
@@ -114,8 +120,14 @@ ACTUAL_TEMPLATES=$(ls .karimo/templates/*.md 2>/dev/null | wc -l)
 **Step 2d: Verify each manifest file exists**
 
 ```bash
+# Helper function to list manifest items (jq-free)
+manifest_list() {
+  local key="$1"
+  sed -n "/\"$key\"/,/]/p" .karimo/MANIFEST.json | grep '"' | grep -v "\"$key\"" | sed 's/.*"\([^"]*\)".*/\1/'
+}
+
 # Check each agent from manifest
-for agent in $(jq -r '.agents[]' .karimo/MANIFEST.json); do
+for agent in $(manifest_list "agents"); do
   [ -f ".claude/agents/$agent" ] || echo "Missing: $agent"
 done
 
@@ -153,43 +165,67 @@ Check 2: Installation Integrity
 
 ### Check 3: Configuration Validation
 
-Validate configuration files and detect drift between `config.yaml` and actual project state.
+Validate CLAUDE.md configuration and detect drift from actual project state.
 
-**Step 3a: Check for config.yaml existence**
+**Step 3a: Check CLAUDE.md exists with KARIMO section**
 
 ```bash
-ls .karimo/config.yaml
+grep -q "## KARIMO Framework" CLAUDE.md
 ```
 
-**If no config.yaml found:**
+**If no KARIMO section found:**
 
 ```
 Check 3: Configuration Validation
 ──────────────────────────────────
 
-  ❌ No config.yaml found
+  ❌ No KARIMO Framework section in CLAUDE.md
 
-  .karimo/config.yaml is the source of truth for KARIMO configuration.
+  CLAUDE.md is the source of truth for KARIMO configuration.
   Without it, agents cannot execute tasks properly.
 
   Recommendation:
     Run /karimo:configure to create configuration
 ```
 
-**Step 3b: Drift detection (if config.yaml exists)**
+**Step 3b: Check for _pending_ markers**
 
-Compare configured values against actual project state:
+Look for unresolved configuration placeholders:
 
-1. **Package manager drift** — Compare `config.yaml` package_manager vs actual lock files:
+```bash
+grep "_pending_" CLAUDE.md | grep -E "(Runtime|Framework|Package Manager|Build|Lint|Test|Typecheck)"
+```
+
+**If placeholders found:**
+
+```
+Check 3: Configuration Validation
+──────────────────────────────────
+
+  ⚠️  Unresolved placeholders:
+      - Runtime: _pending_
+      - Build command: _pending_
+
+  Recommendation:
+    Run /karimo:configure to complete configuration
+```
+
+**Step 3c: Drift detection**
+
+Compare CLAUDE.md values against actual project state:
+
+1. **Package manager drift** — Compare configured package_manager vs actual lock files:
    ```bash
-   # Check for lock file that matches configured package manager
+   # Check for lock files
    ls pnpm-lock.yaml yarn.lock package-lock.json bun.lockb 2>/dev/null
+   # Parse configured value from CLAUDE.md
+   grep "Package Manager" CLAUDE.md | sed 's/.*| *\([^|]*\) *|$/\1/' | tr -d ' '
    ```
 
 2. **Command drift** — Compare configured commands vs `package.json` scripts:
    ```bash
    # Check if configured commands exist in package.json
-   jq '.scripts' package.json 2>/dev/null
+   cat package.json | grep -o '"[^"]*"[[:space:]]*:' | tr -d '":' | head -20
    ```
 
 **If drift detected:**
@@ -200,48 +236,12 @@ Check 3: Configuration Validation
 
   ⚠️  Configuration drift detected
 
-    - Package manager: config says "npm", found pnpm-lock.yaml
+    - Package manager: CLAUDE.md says "npm", found pnpm-lock.yaml
     - Test command: "npm test" but package.json has no test script
     - New lock file: bun.lockb appeared (not in config)
 
   Recommendation:
     Run /karimo:configure to update configuration
-```
-
-**Step 3c: Validate CLAUDE.md section**
-
-Parse `CLAUDE.md` for the KARIMO Framework section:
-
-```bash
-grep -q "## KARIMO Framework" CLAUDE.md
-```
-
-**If no KARIMO section:**
-
-```
-  ⚠️  No KARIMO Framework section in CLAUDE.md
-
-  Recommendation:
-    Run /karimo:configure to create configuration
-```
-
-**Step 3d: Placeholder check**
-
-Look for `_pending_` values in CLAUDE.md or config.yaml:
-
-```bash
-grep "_pending_" CLAUDE.md .karimo/config.yaml
-```
-
-**If placeholders found:**
-
-```
-  ⚠️  Unresolved placeholders:
-      - Runtime: _pending_
-      - Build command: _pending_
-
-  Recommendation:
-    Run /karimo:configure to complete configuration
 ```
 
 **Example output (healthy):**
@@ -250,8 +250,8 @@ grep "_pending_" CLAUDE.md .karimo/config.yaml
 Check 3: Configuration Validation
 ──────────────────────────────────
 
-  ✅ config.yaml       Present and valid
   ✅ CLAUDE.md         KARIMO Framework section present
+  ✅ No placeholders   All configuration values set
   ✅ No drift          Config matches project state
 
   Project Context:
@@ -381,7 +381,7 @@ Summary
 | Issue Type | Recommendation |
 |------------|----------------|
 | Version drift | Run `update.sh` from KARIMO source |
-| Missing config.yaml | `/karimo:configure` |
+| Missing KARIMO section | `/karimo:configure` |
 | Configuration drift | `/karimo:configure` |
 | Placeholder values | `/karimo:configure` |
 | Missing files | Re-run installer |
@@ -449,41 +449,48 @@ which claude
 gh auth status
 git --version
 
-# Check 2: Installation (manifest-driven)
+# Check 2: Installation (manifest-driven, jq-free)
+# Helper functions for manifest parsing
+manifest_list() {
+  local key="$1"
+  sed -n "/\"$key\"/,/]/p" .karimo/MANIFEST.json | grep '"' | grep -v "\"$key\"" | sed 's/.*"\([^"]*\)".*/\1/'
+}
+
+manifest_count() {
+  manifest_list "$1" | wc -l | tr -d ' '
+}
+
 # Read expected counts from manifest
-EXPECTED_AGENTS=$(jq '.agents | length' .karimo/MANIFEST.json)
-EXPECTED_COMMANDS=$(jq '.commands | length' .karimo/MANIFEST.json)
-EXPECTED_SKILLS=$(jq '.skills | length' .karimo/MANIFEST.json)
-EXPECTED_TEMPLATES=$(jq '.templates | length' .karimo/MANIFEST.json)
+EXPECTED_AGENTS=$(manifest_count "agents")
+EXPECTED_COMMANDS=$(manifest_count "commands")
+EXPECTED_SKILLS=$(manifest_count "skills")
+EXPECTED_TEMPLATES=$(manifest_count "templates")
 
 # Count actual files
-ACTUAL_AGENTS=$(ls .claude/agents/karimo-*.md 2>/dev/null | wc -l)
-ACTUAL_COMMANDS=$(ls .claude/commands/*.md 2>/dev/null | wc -l)
-ACTUAL_SKILLS=$(ls .claude/skills/*.md 2>/dev/null | wc -l)
-ACTUAL_TEMPLATES=$(ls .karimo/templates/*.md 2>/dev/null | wc -l)
+ACTUAL_AGENTS=$(ls .claude/agents/karimo-*.md 2>/dev/null | wc -l | tr -d ' ')
+ACTUAL_COMMANDS=$(ls .claude/commands/*.md 2>/dev/null | wc -l | tr -d ' ')
+ACTUAL_SKILLS=$(ls .claude/skills/*.md 2>/dev/null | wc -l | tr -d ' ')
+ACTUAL_TEMPLATES=$(ls .karimo/templates/*.md 2>/dev/null | wc -l | tr -d ' ')
 
 # Verify each file from manifest exists
-for agent in $(jq -r '.agents[]' .karimo/MANIFEST.json); do
+for agent in $(manifest_list "agents"); do
   [ -f ".claude/agents/$agent" ] || echo "Missing: $agent"
 done
 
-# Check 3: Configuration
-# 3a: Check config.yaml existence
-ls .karimo/config.yaml
+# Check 3: Configuration (CLAUDE.md is source of truth)
+# 3a: Check KARIMO Framework section exists
+grep -q "## KARIMO Framework" CLAUDE.md
 
-# 3b: Drift detection
+# 3b: Check for _pending_ markers
+grep "_pending_" CLAUDE.md | grep -E "(Runtime|Framework|Package Manager|Build|Lint|Test|Typecheck)"
+
+# 3c: Drift detection
 # Compare configured package manager vs actual lock files
 ls pnpm-lock.yaml yarn.lock package-lock.json bun.lockb 2>/dev/null
-# Read configured package manager from config.yaml
-cat .karimo/config.yaml | grep "package_manager"
+# Read configured package manager from CLAUDE.md
+grep "Package Manager" CLAUDE.md | sed 's/.*| *\([^|]*\) *|$/\1/'
 # Check if configured commands exist in package.json
-jq '.scripts' package.json 2>/dev/null
-
-# 3c: CLAUDE.md validation
-grep "## KARIMO Framework" CLAUDE.md
-
-# 3d: Placeholder check
-grep "_pending_" CLAUDE.md .karimo/config.yaml
+cat package.json | grep -o '"[^"]*"[[:space:]]*:' | tr -d '":' | head -20
 
 # Check 4: Sanity
 # Parse package.json for script names
