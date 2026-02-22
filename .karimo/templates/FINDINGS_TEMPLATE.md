@@ -6,9 +6,58 @@
 
 ---
 
+## Two-Level Findings Structure
+
+KARIMO uses a two-level findings system:
+
+### 1. Worker Findings (Per-Task)
+
+Each worker agent creates `findings.md` in its worktree root when discoveries need to be communicated to downstream tasks. The PM agent reads these files and propagates findings to relevant tasks.
+
+**Location:** `.worktrees/{prd-slug}/{task-id}/findings.md`
+
+**Worker findings.md template:**
+
+```markdown
+# Findings: {task_id}
+
+## Metadata
+- **Task:** {task_id} - {task_title}
+- **Completed:** {ISO timestamp}
+- **Type:** discovery | pattern | api_change | blocker
+
+## Severity: info | warning | blocker
+
+## Description
+{What was discovered or changed}
+
+## Affected Tasks
+- {task_id_1}
+- {task_id_2}
+
+## Files
+- {file_path_1}
+- {file_path_2}
+
+## Action Required
+{None | Specific action for downstream tasks}
+```
+
+### 2. PRD Findings (Aggregated)
+
+This file (`.karimo/prds/{slug}/findings.md`) is the cross-task communication channel maintained by the PM agent. The PM agent reads worker findings from worktrees and appends them here for reference and downstream task briefs.
+
+Worker agents never write to this file directly — the PM agent is the sole author.
+
+---
+
 ## About This File
 
-This file is the cross-task communication channel. When a worker agent completes a task, the PM agent reviews the diff and extracts any discoveries, decisions, or artifacts that downstream tasks need to know about. Worker agents never write to this file directly — the PM agent is the sole author.
+This file is the PRD-level findings log. When a worker agent completes a task:
+1. Worker writes `findings.md` in its worktree (if discoveries exist)
+2. PM agent reads the worker's findings.md
+3. PM agent appends the findings to this file
+4. PM agent propagates relevant findings to downstream task briefs
 
 Task briefs for downstream tasks include the relevant findings from this file, so worker agents receive the information they need without having to read this file themselves.
 
