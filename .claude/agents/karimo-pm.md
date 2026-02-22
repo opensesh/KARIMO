@@ -278,42 +278,41 @@ For each task, generate a task brief at `.karimo/prds/{slug}/task-briefs/{task-i
 
 Based on task characteristics, select the appropriate worker agent:
 
-| Task Type | Agent | Indicators |
-|-----------|-------|------------|
-| Implementation | `@karimo-implementer` | feat, fix, refactor, new code |
-| Testing | `@karimo-tester` | test-only tasks, coverage increase |
-| Documentation | `@karimo-documenter` | docs, README, API docs |
-| Mixed | `@karimo-implementer` | Multiple types (implementer handles inline) |
+| Task Type | Complexity 1-4 | Complexity 5+ | Indicators |
+|-----------|----------------|---------------|------------|
+| Implementation | karimo-implementer | karimo-implementer-opus | feat, fix, refactor, new code |
+| Testing | karimo-tester | karimo-tester-opus | test-only tasks, coverage |
+| Documentation | karimo-documenter | karimo-documenter-opus | docs, README, API docs |
+| Mixed | karimo-implementer | karimo-implementer-opus | Multiple types |
 
 **Detection Logic:**
 1. Check task `title` and `description` for type indicators
-2. If task includes tests alongside code → use implementer (handles inline)
-3. If task is test-only (success criteria are all test-related) → use tester
-4. If task is docs-only (no code changes) → use documenter
+2. If task includes tests alongside code → use implementer
+3. If task is test-only → use tester
+4. If task is docs-only → use documenter
 5. Default to implementer for ambiguous cases
 
-**Spawn using Claude Code's Task tool with agent reference:**
+**Spawn using Claude Code's Task tool:**
 
-```
-Task: @{agent-type}
-Model: {opus|sonnet based on complexity}
-Worktree: .worktrees/{prd-slug}/{task-id}
-Prompt: {full task brief content from 5b}
-```
+Delegate to the appropriate worker agent using natural language:
 
-For **complexity 3+** tasks, prepend to prompt:
-```
-Before implementing, create an implementation plan. Review it, then execute.
-```
+> Use the karimo-{agent-type} agent to execute the task at
+> `.karimo/prds/{prd-slug}/task-briefs/{task-id}-brief.md`.
+> Working directory: `.worktrees/{prd-slug}/{task-id}`
+> Task: [{task-id}] {task-title}
+> Complexity: {complexity}/10
+
+For **complexity 5+** tasks, use the Opus variant:
+> Use the karimo-implementer-opus agent to execute...
+
+For **complexity 3+** tasks, prepend:
+> Before implementing, create an implementation plan. Review it, then execute.
 
 **After spawning:**
 - Update `status.json`: task status → `running`, record `started_at`, `model`, `agent_type`, `loop_count: 1`
 - Update GitHub Issue: `agent_status` → `running`
 
-**Respect parallelism limits:**
-- Maximum 3 concurrent agents (default)
-- If limit reached, queue remaining tasks
-- Start queued tasks as running ones complete
+**Parallelism limits:** Maximum 3 concurrent agents. Queue remaining tasks
 
 ---
 
@@ -342,7 +341,7 @@ WHILE tasks remain (status != done/failed for all tasks):
   3. For each NEWLY UNBLOCKED task:
      a. Create worktree (Step 4)
      b. Construct task brief with latest findings (Step 5)
-     c. Spawn worker (Step 5c)
+     c. Spawn worker via Task tool delegation (Step 5c)
 
   4. CHECK for usage limit pauses:
      - If Claude Code returns a rate limit or usage cap signal
@@ -595,7 +594,8 @@ When a task PR receives a Greptile score < 3 (on a 0–5 scale), enter the revis
          }
        }
        ```
-   - Spawn the worker agent with updated context (include Greptile feedback + model override if escalated)
+   - Spawn the worker agent via Task tool with updated context (include Greptile feedback)
+   - If escalated to Opus, use the Opus variant (e.g., karimo-implementer-opus instead of karimo-implementer)
    - Worker revises code and updates PR
 
 #### Attempts 2–3 (Subsequent Failures)
