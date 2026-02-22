@@ -12,7 +12,46 @@ Check the health of a KARIMO installation, identify issues, and provide actionab
 
 ## Behavior
 
-Run five diagnostic checks and display results with clear status indicators.
+Run six diagnostic checks and display results with clear status indicators.
+
+### Check 0: Version Status
+
+Check if the installed KARIMO version is current.
+
+**Steps:**
+1. Read `.karimo/VERSION` from the project root
+2. If `KARIMO_SOURCE_PATH` environment variable is set, read `VERSION` from source
+3. Compare installed version against source version
+
+**Output:**
+
+```
+Check 0: Version Status
+───────────────────────
+
+  ✅ Version current    2.6.0
+
+  Or if update available:
+
+  ⚠️  Update available
+      Installed: 2.5.0
+      Available: 2.6.0
+      Run: bash $KARIMO_SOURCE_PATH/.karimo/update.sh .
+
+  Or if source path unknown:
+
+  ℹ️  Version: 2.6.0 (source path unknown, cannot check for updates)
+      Set KARIMO_SOURCE_PATH to enable version checking
+```
+
+**Bash commands:**
+```bash
+# Read installed version
+cat .karimo/VERSION 2>/dev/null
+
+# Read source version (if path known)
+cat "$KARIMO_SOURCE_PATH/.karimo/VERSION" 2>/dev/null
+```
 
 ### Check 1: Environment
 
@@ -335,7 +374,7 @@ End with a summary of findings:
 Summary
 ───────
 
-  ✅ 4 checks passed
+  ✅ 5 checks passed
   ⚠️  1 warning (placeholder in config)
   ❌ 0 errors
 
@@ -347,6 +386,7 @@ Summary
 
 | Issue Type | Recommendation |
 |------------|----------------|
+| Version drift | Run `update.sh` from KARIMO source |
 | Missing config.yaml | `/karimo:configure` |
 | Configuration drift | `/karimo:configure` |
 | Placeholder values | `/karimo:configure` |
@@ -359,7 +399,7 @@ Or if all checks pass:
 Summary
 ───────
 
-  ✅ All 5 checks passed
+  ✅ All 6 checks passed
 
   KARIMO installation is healthy.
 ```
@@ -406,6 +446,10 @@ Recommendation:
 ### Bash Commands Used
 
 ```bash
+# Check 0: Version Status
+cat .karimo/VERSION 2>/dev/null
+cat "$KARIMO_SOURCE_PATH/.karimo/VERSION" 2>/dev/null
+
 # Check 1: Environment
 which claude
 gh auth status
