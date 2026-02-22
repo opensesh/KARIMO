@@ -165,6 +165,7 @@ Agents work through tasks in parallel, creating PRs for each.
 | `/karimo:feedback` | Quick capture of single learnings (~2 min) |
 | `/karimo:learn` | Deep learning cycle with investigation (~45 min) |
 | `/karimo:doctor` | Check installation health and diagnose issues |
+| `/karimo:test` | Verify installation works end-to-end |
 
 ### /karimo:plan
 
@@ -310,12 +311,14 @@ After installation, your project contains:
   commands/
     plan.md
     review.md
+    overview.md
     execute.md
     status.md
     configure.md
     feedback.md
     learn.md
     doctor.md
+    test.md
   skills/
     git-worktree-ops.md
     github-project-ops.md
@@ -477,6 +480,7 @@ Optional but highly recommended:
 | [GETTING-STARTED.md](.karimo/docs/GETTING-STARTED.md) | Installation and first PRD |
 | [PHASES.md](.karimo/docs/PHASES.md) | Adoption phases explained |
 | [SAFEGUARDS.md](.karimo/docs/SAFEGUARDS.md) | Code integrity, security, Greptile |
+| [CHANGELOG.md](CHANGELOG.md) | Version history and release notes |
 
 **Also see:**
 - [CLAUDE.md](CLAUDE.md) — Project configuration reference
