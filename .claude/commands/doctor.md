@@ -338,7 +338,7 @@ Check 5: Phase Assessment
     Total: 3
       ✓ user-profiles     complete
       ⋯ token-studio      active (4/8 tasks)
-      ○ auth-refactor     approved (ready for execution)
+      ○ auth-refactor     ready (for execution)
 ```
 
 ## Output Format

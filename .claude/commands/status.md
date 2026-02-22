@@ -36,9 +36,8 @@ PRDs:
     Models: 4 sonnet, 1 opus • Loops: 10
     Started: 2h 15m ago
 
-  002_token-studio           approved   ░░░░░░░░░░ 0%
+  002_token-studio           ready      ░░░░░░░░░░ 0%
     Tasks: 0/8 done
-    Briefs: 8/8 ready
     Status: Ready for execution
 
   003_auth-refactor          complete   ██████████ 100%
