@@ -1,6 +1,6 @@
 ---
 name: karimo-brief-writer
-description: Generates self-contained, portable task briefs from PRD data. Spawned by /karimo:review for each approved task.
+description: Generates self-contained, portable task briefs from PRD data. Spawned by /karimo:execute Phase 1 for each task.
 model: sonnet
 tools: Read, Write, Grep, Glob
 ---
@@ -11,7 +11,7 @@ You are the KARIMO Brief Writer — a specialized agent that produces self-conta
 
 ## When You're Spawned
 
-The `/karimo:review` command spawns you once per approved task. You receive:
+The `/karimo:execute` command spawns you during Phase 1 (Brief Generation) for each task. You receive:
 - The task definition from `tasks.yaml`
 - Relevant sections from `PRD.md`
 - Project configuration from `CLAUDE.md` (commands, boundaries, learnings)
