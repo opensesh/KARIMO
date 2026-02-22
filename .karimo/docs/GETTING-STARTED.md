@@ -141,7 +141,7 @@ If your project already has `.claude/` with custom agents, commands, or `CLAUDE.
 
 **What gets added (from MANIFEST.json):**
 - 13 KARIMO agents (prefixed `karimo-*`)
-- 10 slash commands (prefixed `karimo:`)
+- 9 slash commands (prefixed `karimo:`)
 - 5 KARIMO skills
 - `.claude/KARIMO_RULES.md`
 - `.karimo/` directory with templates and manifest
@@ -181,7 +181,7 @@ Since configuration is already in place, the interview starts immediately.
 
 ### 4. Follow the Interview
 
-The interviewer agent guides you through 5 rounds:
+The interviewer agent guides you through 6 rounds:
 
 | Round | Focus |
 |-------|-------|
@@ -190,10 +190,18 @@ The interviewer agent guides you through 5 rounds:
 | 3 | **Investigation** — Agent scans your codebase |
 | 4 | **Tasks** — Break down into executable units |
 | 5 | **Review** — Validate and generate dependency graph |
+| 6 | **Approve** — Confirm PRD is ready for execution |
 
-### 4. Review the Generated PRD
+### 5. Approve the PRD
 
-After the interview, check your PRD:
+After review, you'll see a summary with options:
+- **Approve** — Marks PRD as `ready` for execution
+- **Modify** — Make changes and re-run the reviewer
+- **Save as draft** — Come back later with `/karimo:plan --resume {slug}`
+
+### 6. Check the Generated PRD
+
+After approval, verify your PRD:
 
 ```bash
 cat .karimo/prds/{slug}/prd.md
@@ -370,7 +378,7 @@ Yes. Remove these files:
 ```bash
 rm -rf .karimo/
 rm .claude/agents/karimo-*.md
-rm .claude/commands/{plan,review,execute,status,configure,feedback,learn,doctor}.md
+rm .claude/commands/{plan,execute,status,configure,feedback,learn,doctor,overview,test}.md
 rm .claude/skills/{git-worktree-ops,github-project-ops,karimo-code-standards,karimo-testing-standards,karimo-doc-standards}.md
 rm .claude/KARIMO_RULES.md
 rm .github/workflows/karimo-*.yml
