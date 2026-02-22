@@ -22,7 +22,8 @@ jobs:
 
       - name: Validate MANIFEST.json is valid JSON
         run: |
-          jq empty .karimo/MANIFEST.json
+          # Check JSON validity using Node.js (available on all GitHub runners)
+          node -e "JSON.parse(require('fs').readFileSync('.karimo/MANIFEST.json'))"
           echo "✓ MANIFEST.json is valid JSON"
 
       - name: Validate manifest alignment with actual files
@@ -30,8 +31,18 @@ jobs:
           MANIFEST=".karimo/MANIFEST.json"
           ERRORS=0
 
+          # Helper functions for jq-free manifest parsing
+          manifest_list() {
+            local key="$1"
+            sed -n "/\"$key\"/,/]/p" "$MANIFEST" | grep '"' | grep -v "\"$key\"" | sed 's/.*"\([^"]*\)".*/\1/'
+          }
+
+          manifest_count() {
+            manifest_list "$1" | wc -l | tr -d ' '
+          }
+
           echo "Validating agents..."
-          EXPECTED_AGENTS=$(jq '.agents | length' "$MANIFEST")
+          EXPECTED_AGENTS=$(manifest_count "agents")
           ACTUAL_AGENTS=$(ls -1 .claude/agents/karimo-*.md 2>/dev/null | wc -l | tr -d ' ')
           echo "  Expected: $EXPECTED_AGENTS, Actual: $ACTUAL_AGENTS"
           if [ "$ACTUAL_AGENTS" -ne "$EXPECTED_AGENTS" ]; then
@@ -42,7 +53,7 @@ jobs:
           fi
 
           echo "Validating commands..."
-          EXPECTED_COMMANDS=$(jq '.commands | length' "$MANIFEST")
+          EXPECTED_COMMANDS=$(manifest_count "commands")
           ACTUAL_COMMANDS=$(ls -1 .claude/commands/*.md 2>/dev/null | wc -l | tr -d ' ')
           echo "  Expected: $EXPECTED_COMMANDS, Actual: $ACTUAL_COMMANDS"
           if [ "$ACTUAL_COMMANDS" -ne "$EXPECTED_COMMANDS" ]; then
@@ -53,7 +64,7 @@ jobs:
           fi
 
           echo "Validating skills..."
-          EXPECTED_SKILLS=$(jq '.skills | length' "$MANIFEST")
+          EXPECTED_SKILLS=$(manifest_count "skills")
           ACTUAL_SKILLS=$(ls -1 .claude/skills/*.md 2>/dev/null | wc -l | tr -d ' ')
           echo "  Expected: $EXPECTED_SKILLS, Actual: $ACTUAL_SKILLS"
           if [ "$ACTUAL_SKILLS" -ne "$EXPECTED_SKILLS" ]; then
@@ -64,7 +75,7 @@ jobs:
           fi
 
           echo "Validating templates..."
-          EXPECTED_TEMPLATES=$(jq '.templates | length' "$MANIFEST")
+          EXPECTED_TEMPLATES=$(manifest_count "templates")
           ACTUAL_TEMPLATES=$(ls -1 .karimo/templates/*.md 2>/dev/null | wc -l | tr -d ' ')
           echo "  Expected: $EXPECTED_TEMPLATES, Actual: $ACTUAL_TEMPLATES"
           if [ "$ACTUAL_TEMPLATES" -ne "$EXPECTED_TEMPLATES" ]; then
@@ -89,8 +100,23 @@ jobs:
           MANIFEST=".karimo/MANIFEST.json"
           MISSING=0
 
+          # Helper functions for jq-free manifest parsing
+          manifest_list() {
+            local key="$1"
+            sed -n "/\"$key\"/,/]/p" "$MANIFEST" | grep '"' | grep -v "\"$key\"" | sed 's/.*"\([^"]*\)".*/\1/'
+          }
+
+          manifest_nested_list() {
+            local key="$1"
+            local parent="${key%%.*}"
+            local child="${key#*.}"
+            sed -n "/\"$parent\"/,/^[[:space:]]*}/p" "$MANIFEST" | \
+              sed -n "/\"$child\"/,/]/p" | grep '"' | grep -v "\"$child\"" | \
+              sed 's/.*"\([^"]*\)".*/\1/'
+          }
+
           echo "Checking agents..."
-          for agent in $(jq -r '.agents[]' "$MANIFEST"); do
+          for agent in $(manifest_list "agents"); do
             if [ ! -f ".claude/agents/$agent" ]; then
               echo "  ❌ Missing: .claude/agents/$agent"
               MISSING=$((MISSING + 1))
@@ -98,7 +124,7 @@ jobs:
           done
 
           echo "Checking commands..."
-          for cmd in $(jq -r '.commands[]' "$MANIFEST"); do
+          for cmd in $(manifest_list "commands"); do
             if [ ! -f ".claude/commands/$cmd" ]; then
               echo "  ❌ Missing: .claude/commands/$cmd"
               MISSING=$((MISSING + 1))
@@ -106,7 +132,7 @@ jobs:
           done
 
           echo "Checking skills..."
-          for skill in $(jq -r '.skills[]' "$MANIFEST"); do
+          for skill in $(manifest_list "skills"); do
             if [ ! -f ".claude/skills/$skill" ]; then
               echo "  ❌ Missing: .claude/skills/$skill"
               MISSING=$((MISSING + 1))
@@ -114,7 +140,7 @@ jobs:
           done
 
           echo "Checking templates..."
-          for template in $(jq -r '.templates[]' "$MANIFEST"); do
+          for template in $(manifest_list "templates"); do
             if [ ! -f ".karimo/templates/$template" ]; then
               echo "  ❌ Missing: .karimo/templates/$template"
               MISSING=$((MISSING + 1))
@@ -122,14 +148,14 @@ jobs:
           done
 
           echo "Checking workflows..."
-          for workflow in $(jq -r '.workflows.required[]' "$MANIFEST"); do
+          for workflow in $(manifest_nested_list "workflows.required"); do
             if [ ! -f ".github/workflows/$workflow" ]; then
               echo "  ❌ Missing required workflow: .github/workflows/$workflow"
               MISSING=$((MISSING + 1))
             fi
           done
 
-          for workflow in $(jq -r '.workflows.optional[]' "$MANIFEST"); do
+          for workflow in $(manifest_nested_list "workflows.optional"); do
             if [ ! -f ".github/workflows/$workflow" ]; then
               echo "  ⚠️  Missing optional workflow: .github/workflows/$workflow"
             fi
@@ -171,23 +197,29 @@ jobs:
             exit 1
           fi
 
+          # Helper function for counting
+          manifest_count() {
+            local key="$1"
+            sed -n "/\"$key\"/,/]/p" "$MANIFEST" | grep '"' | grep -v "\"$key\"" | wc -l | tr -d ' '
+          }
+
           # Verify counts match manifest
-          EXPECTED_AGENTS=$(jq '.agents | length' "$MANIFEST")
+          EXPECTED_AGENTS=$(manifest_count "agents")
           ACTUAL_AGENTS=$(ls -1 .claude/agents/karimo-*.md 2>/dev/null | wc -l | tr -d ' ')
           echo "Agents: $ACTUAL_AGENTS (expected: $EXPECTED_AGENTS)"
           [ "$ACTUAL_AGENTS" -eq "$EXPECTED_AGENTS" ] || exit 1
 
-          EXPECTED_COMMANDS=$(jq '.commands | length' "$MANIFEST")
+          EXPECTED_COMMANDS=$(manifest_count "commands")
           ACTUAL_COMMANDS=$(ls -1 .claude/commands/*.md 2>/dev/null | wc -l | tr -d ' ')
           echo "Commands: $ACTUAL_COMMANDS (expected: $EXPECTED_COMMANDS)"
           [ "$ACTUAL_COMMANDS" -eq "$EXPECTED_COMMANDS" ] || exit 1
 
-          EXPECTED_SKILLS=$(jq '.skills | length' "$MANIFEST")
+          EXPECTED_SKILLS=$(manifest_count "skills")
           ACTUAL_SKILLS=$(ls -1 .claude/skills/*.md 2>/dev/null | wc -l | tr -d ' ')
           echo "Skills: $ACTUAL_SKILLS (expected: $EXPECTED_SKILLS)"
           [ "$ACTUAL_SKILLS" -eq "$EXPECTED_SKILLS" ] || exit 1
 
-          EXPECTED_TEMPLATES=$(jq '.templates | length' "$MANIFEST")
+          EXPECTED_TEMPLATES=$(manifest_count "templates")
           ACTUAL_TEMPLATES=$(ls -1 .karimo/templates/*.md 2>/dev/null | wc -l | tr -d ' ')
           echo "Templates: $ACTUAL_TEMPLATES (expected: $EXPECTED_TEMPLATES)"
           [ "$ACTUAL_TEMPLATES" -eq "$EXPECTED_TEMPLATES" ] || exit 1
