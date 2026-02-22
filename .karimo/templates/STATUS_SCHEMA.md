@@ -241,6 +241,31 @@ Each PRD folder contains a `status.json` file that tracks execution state. This 
 
 **Backward Compatibility:** The `approved` task status is treated as equivalent to `queued` for tasks from PRDs created before v3.0.0.
 
+### Staleness Thresholds
+
+KARIMO commands use these thresholds to detect potentially stale state that may indicate crashed or disconnected agents:
+
+| State | Threshold | Timestamp Field | Interpretation |
+|-------|-----------|-----------------|----------------|
+| `running` | 4 hours | `started_at` | Agent likely crashed or disconnected |
+| `in-review` | 48 hours | `completed_at` | PR may need attention |
+| `paused` | 7 days | `paused_at` | Task may be forgotten |
+| `pending-cleanup` | 6 hours | `merged_at` | Worktree cleanup was interrupted |
+
+#### Recovery
+
+When stale state is detected, re-running `/karimo:execute --prd {slug}` triggers the PM agent's Step 2 reconciliation, which:
+
+1. Compares status.json to git/GitHub state
+2. Resets stale "running" tasks to "queued"
+3. Updates merged PRs to "done"
+4. Cleans up pending worktrees
+
+#### Detection Locations
+
+- `/karimo:status` — Shows ⏰ indicator for stale tasks, suggests recovery
+- `/karimo:doctor` — Check 6 performs comprehensive staleness detection
+
 ### Summary Fields (Completion Only)
 
 | Field | Type | Description |
