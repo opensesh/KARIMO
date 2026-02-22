@@ -166,15 +166,38 @@ Execution Summary:
     [3a] sonnet • running (loop 1)
 ```
 
+### 7b. Staleness Detection
+
+For each task, calculate elapsed time from timestamps:
+
+- `running`: Compare `started_at` to now. If > 4 hours, mark as stale.
+- `pending-cleanup`: Compare `merged_at` to now. If > 6 hours, mark as stale.
+- `in-review`: Compare `completed_at` to now. If > 48 hours, flag for attention.
+
+Display stale tasks with the ⏰ icon and elapsed time:
+
+```
+  ⏰ [2a] Implement profile edit form           running (STALE: 6h 23m)
+```
+
 ### 8. Warnings and Blockers
 
 Surface issues that need attention:
 
 ```
-⚠ Warnings:
+⚠️ Warnings:
 
-  [2a] Stall detected (3 loops, same error) — considering Opus upgrade
-  [3a] PR #46 has been in-review for 2 hours
+  ⏰ Stale Tasks:
+    [2a] Running for 6h 23m — agent may have crashed
+         Suggestion: Re-run /karimo:execute --prd user-profiles
+
+    [1c] In-review for 3 days — PR may need attention
+
+  🧹 Stale Worktrees:
+    [1a] Cleanup pending for 8h — worktree still exists after merge
+
+  Other:
+    [2c] Stall detected (3 loops, same error) — considering Opus upgrade
 
 ✗ Blockers:
 
@@ -195,15 +218,20 @@ Or if there are blockers:
 
 ### 9. Next Actions
 
-Suggest what to do:
+Suggest what to do, prioritizing stale task recovery:
 
 ```
 Next Actions:
 
-  1. Review PR #46 for task [3a]
-  2. Resolve conflicts in task [2c] (needs-human-rebase)
-  3. Retry failed task [3b]: /karimo:execute --prd user-profiles --task 3b
+  1. ⏰ RECOVERY: Re-run execution to reconcile stale tasks
+     Command: /karimo:execute --prd user-profiles
+
+  2. Review PR #46 for task [3a]
+  3. Resolve conflicts in task [2c] (needs-human-rebase)
+  4. Retry failed task [3b]: /karimo:execute --prd user-profiles --task 3b
 ```
+
+**Note:** When stale tasks are detected, re-running `/karimo:execute` triggers the PM agent's Step 2 reconciliation, which automatically resets stale "running" tasks to "queued".
 
 ### 10. JSON Output (--json)
 

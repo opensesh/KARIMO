@@ -11,6 +11,38 @@ KARIMO uses GitHub Projects (V2) to track task execution. Each PRD gets a Projec
 - `gh` CLI installed and authenticated
 - Repository write access
 - Projects enabled for the repository/organization
+- GitHub Configuration present in CLAUDE.md (run `/karimo:configure` if missing)
+
+## Resolve Project Owner
+
+**Read owner from CLAUDE.md before any project operations:**
+
+```bash
+# Parse GitHub Configuration from CLAUDE.md
+OWNER_TYPE=$(grep -A5 "### GitHub Configuration" CLAUDE.md | grep "Owner Type |" | head -1 | awk -F'|' '{print $3}' | tr -d ' ')
+OWNER=$(grep -A5 "### GitHub Configuration" CLAUDE.md | grep "Owner |" | head -1 | awk -F'|' '{print $3}' | tr -d ' ')
+
+# Set PROJECT_OWNER based on owner type
+PROJECT_OWNER=$([[ "$OWNER_TYPE" == "personal" ]] && echo "@me" || echo "$OWNER")
+```
+
+**Validation:**
+
+```bash
+# Check if GitHub Configuration exists
+if ! grep -q "### GitHub Configuration" CLAUDE.md; then
+  echo "❌ GitHub Configuration not found in CLAUDE.md"
+  echo "   Run /karimo:configure to set up GitHub settings"
+  exit 1
+fi
+
+# Test project access
+if ! gh project list --owner "$PROJECT_OWNER" --limit 1 &>/dev/null; then
+  echo "❌ Cannot access projects for '$PROJECT_OWNER'"
+  echo "   Fix: gh auth refresh -s project"
+  exit 1
+fi
+```
 
 ## Project Setup
 

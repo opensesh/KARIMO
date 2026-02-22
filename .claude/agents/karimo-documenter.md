@@ -95,7 +95,7 @@ You produce:
 | Documentation | Matching existing patterns |
 | JSDoc/TSDoc | For exported functions |
 | Conventional commits | `docs(scope): description` |
-| findings.json | If documentation gaps discovered |
+| findings.md | If documentation gaps discovered |
 
 ---
 
@@ -292,33 +292,59 @@ If the project has a docs build command:
 
 ---
 
-## findings.json for Documentation Gaps
+## findings.md for Documentation Gaps
 
-If you discover missing documentation or inconsistencies:
+If you discover missing documentation or inconsistencies, create `findings.md` in the worktree root:
 
-```json
-{
-  "task_id": "1a-docs",
-  "completed_at": "2026-02-21T10:00:00Z",
-  "findings": [
-    {
-      "type": "discovery",
-      "severity": "warning",
-      "description": "No existing documentation for error codes",
-      "affected_tasks": [],
-      "files": ["src/errors.ts"],
-      "action_required": "Consider adding error code reference"
-    },
-    {
-      "type": "pattern",
-      "severity": "info",
-      "description": "Using Markdown tables for all API props",
-      "affected_tasks": ["2a-docs", "3a-docs"],
-      "files": [],
-      "action_required": null
-    }
-  ]
-}
+```markdown
+# Findings: {task_id}
+
+## Metadata
+- **Task:** {task_id} - {task_title}
+- **Completed:** {ISO timestamp}
+- **Type:** discovery | pattern | api_change | blocker
+
+## Severity: info | warning | blocker
+
+## Description
+{What was discovered or changed}
+
+## Affected Tasks
+- {task_id_1}
+- {task_id_2}
+
+## Files
+- {file_path_1}
+- {file_path_2}
+
+## Action Required
+{None | Specific action for downstream tasks}
+```
+
+**Example:**
+
+```markdown
+# Findings: 1a-docs
+
+## Metadata
+- **Task:** 1a-docs - Document profile service API
+- **Completed:** 2026-02-21T10:00:00Z
+- **Type:** discovery
+
+## Severity: warning
+
+## Description
+No existing documentation for error codes. Also established pattern of using Markdown tables for all API props.
+
+## Affected Tasks
+- 2a-docs
+- 3a-docs
+
+## Files
+- src/errors.ts
+
+## Action Required
+Consider adding error code reference. Downstream docs tasks should use Markdown tables for API props.
 ```
 
 ---
@@ -402,4 +428,4 @@ Your task is complete when:
 - [ ] JSDoc added for new exported functions
 - [ ] Documentation is concise and focused
 - [ ] Commits follow `docs(scope):` format
-- [ ] findings.json written if gaps discovered
+- [ ] findings.md written if gaps discovered
