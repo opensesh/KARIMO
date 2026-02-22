@@ -25,26 +25,58 @@ if [ ! -f "$MANIFEST" ]; then
     exit 1
 fi
 
-# Verify jq is available (required for manifest parsing)
-if ! command -v jq &> /dev/null; then
-    echo -e "${RED}Error: jq is required but not installed${NC}"
-    echo "Install with: brew install jq (macOS) or apt-get install jq (Linux)"
-    exit 1
-fi
+# ==============================================================================
+# MANIFEST PARSING HELPERS (jq-free)
+# ==============================================================================
 
-# Parse arguments
-SKIP_CONFIG=false
+# List items from a simple array in MANIFEST.json
+# Usage: manifest_list "agents" [manifest_path]
+manifest_list() {
+  local key="$1"
+  local manifest="${2:-$MANIFEST}"
+  sed -n "/\"$key\"/,/]/p" "$manifest" | grep '"' | grep -v "\"$key\"" | sed 's/.*"\([^"]*\)".*/\1/'
+}
+
+# Count items in a simple array
+# Usage: manifest_count "agents" [manifest_path]
+manifest_count() {
+  manifest_list "$1" "$2" | wc -l | tr -d ' '
+}
+
+# List items from a nested array (e.g., workflows.required)
+# Usage: manifest_nested_list "workflows.required" [manifest_path]
+manifest_nested_list() {
+  local key="$1"
+  local manifest="${2:-$MANIFEST}"
+  local parent="${key%%.*}"
+  local child="${key#*.}"
+  sed -n "/\"$parent\"/,/^[[:space:]]*}/p" "$manifest" | \
+    sed -n "/\"$child\"/,/]/p" | grep '"' | grep -v "\"$child\"" | \
+    sed 's/.*"\([^"]*\)".*/\1/'
+}
+
+# Get a simple string value from nested object
+# Usage: manifest_get "other.rules" [manifest_path]
+manifest_get() {
+  local key="$1"
+  local manifest="${2:-$MANIFEST}"
+  local parent="${key%%.*}"
+  local child="${key#*.}"
+  sed -n "/\"$parent\"/,/}/p" "$manifest" | \
+    grep "\"$child\"" | head -1 | sed 's/.*"'"$child"'"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/'
+}
+
+# ==============================================================================
+# ARGUMENT PARSING
+# ==============================================================================
+
 CI_MODE=false
 TARGET_DIR=""
 
 for arg in "$@"; do
     case $arg in
-        --skip-config)
-            SKIP_CONFIG=true
-            ;;
         --ci)
             CI_MODE=true
-            SKIP_CONFIG=true  # CI mode implies skip-config
             ;;
         *)
             if [ -z "$TARGET_DIR" ]; then
@@ -118,7 +150,7 @@ mkdir -p "$TARGET_DIR/.github/ISSUE_TEMPLATE"
 # Copy agents from manifest
 echo "Copying agents..."
 AGENT_COUNT=0
-for agent in $(jq -r '.agents[]' "$MANIFEST"); do
+for agent in $(manifest_list "agents"); do
     if [ -f "$KARIMO_ROOT/.claude/agents/$agent" ]; then
         cp "$KARIMO_ROOT/.claude/agents/$agent" "$TARGET_DIR/.claude/agents/"
         AGENT_COUNT=$((AGENT_COUNT + 1))
@@ -131,7 +163,7 @@ echo "  Copied $AGENT_COUNT agents"
 # Copy commands from manifest
 echo "Copying commands..."
 COMMAND_COUNT=0
-for cmd in $(jq -r '.commands[]' "$MANIFEST"); do
+for cmd in $(manifest_list "commands"); do
     if [ -f "$KARIMO_ROOT/.claude/commands/$cmd" ]; then
         cp "$KARIMO_ROOT/.claude/commands/$cmd" "$TARGET_DIR/.claude/commands/"
         COMMAND_COUNT=$((COMMAND_COUNT + 1))
@@ -144,7 +176,7 @@ echo "  Copied $COMMAND_COUNT commands"
 # Copy skills from manifest
 echo "Copying skills..."
 SKILL_COUNT=0
-for skill in $(jq -r '.skills[]' "$MANIFEST"); do
+for skill in $(manifest_list "skills"); do
     if [ -f "$KARIMO_ROOT/.claude/skills/$skill" ]; then
         cp "$KARIMO_ROOT/.claude/skills/$skill" "$TARGET_DIR/.claude/skills/"
         SKILL_COUNT=$((SKILL_COUNT + 1))
@@ -157,7 +189,7 @@ echo "  Copied $SKILL_COUNT skills"
 # Copy templates from manifest
 echo "Copying templates..."
 TEMPLATE_COUNT=0
-for template in $(jq -r '.templates[]' "$MANIFEST"); do
+for template in $(manifest_list "templates"); do
     if [ -f "$KARIMO_ROOT/.karimo/templates/$template" ]; then
         cp "$KARIMO_ROOT/.karimo/templates/$template" "$TARGET_DIR/.karimo/templates/"
         TEMPLATE_COUNT=$((TEMPLATE_COUNT + 1))
@@ -190,14 +222,14 @@ if [ "$CI_MODE" = true ]; then
     echo "CI mode: installing all workflows from manifest"
 
     # Copy required workflows
-    for workflow in $(jq -r '.workflows.required[]' "$MANIFEST"); do
+    for workflow in $(manifest_nested_list "workflows.required"); do
         if [ -f "$KARIMO_ROOT/.github/workflows/$workflow" ]; then
             cp "$KARIMO_ROOT/.github/workflows/$workflow" "$TARGET_DIR/.github/workflows/"
         fi
     done
 
     # Copy optional workflows (all in CI mode)
-    for workflow in $(jq -r '.workflows.optional[]' "$MANIFEST"); do
+    for workflow in $(manifest_nested_list "workflows.optional"); do
         if [ -f "$KARIMO_ROOT/.github/workflows/$workflow" ]; then
             cp "$KARIMO_ROOT/.github/workflows/$workflow" "$TARGET_DIR/.github/workflows/"
         fi
@@ -280,7 +312,7 @@ DETECTED_NEVER_TOUCH="_pending_"
 DETECTED_REQUIRE_REVIEW="_pending_"
 CONFIG_AUTODETECTED=false
 
-if [ "$SKIP_CONFIG" = false ]; then
+if [ "$CI_MODE" = false ]; then
     echo ""
     echo "Auto-detecting project configuration..."
 
@@ -342,13 +374,14 @@ if [ "$SKIP_CONFIG" = false ]; then
         DETECTED_FRAMEWORK="Vue"
     fi
 
-    # Extract commands from package.json (using jq if available)
-    if [ -f "$TARGET_DIR/package.json" ] && command -v jq &> /dev/null; then
-        # Extract script names
-        BUILD_SCRIPT=$(jq -r '.scripts.build // empty' "$TARGET_DIR/package.json" 2>/dev/null)
-        LINT_SCRIPT=$(jq -r '.scripts.lint // empty' "$TARGET_DIR/package.json" 2>/dev/null)
-        TEST_SCRIPT=$(jq -r '.scripts.test // empty' "$TARGET_DIR/package.json" 2>/dev/null)
-        TYPECHECK_SCRIPT=$(jq -r '.scripts.typecheck // .scripts["type-check"] // empty' "$TARGET_DIR/package.json" 2>/dev/null)
+    # Extract commands from package.json (using grep/sed, no jq required)
+    if [ -f "$TARGET_DIR/package.json" ]; then
+        # Check for script presence using grep
+        BUILD_SCRIPT=$(grep -o '"build"[[:space:]]*:' "$TARGET_DIR/package.json" 2>/dev/null | head -1)
+        LINT_SCRIPT=$(grep -o '"lint"[[:space:]]*:' "$TARGET_DIR/package.json" 2>/dev/null | head -1)
+        TEST_SCRIPT=$(grep -o '"test"[[:space:]]*:' "$TARGET_DIR/package.json" 2>/dev/null | head -1)
+        TYPECHECK_SCRIPT=$(grep -o '"typecheck"[[:space:]]*:' "$TARGET_DIR/package.json" 2>/dev/null | head -1)
+        TYPE_CHECK_SCRIPT=$(grep -o '"type-check"[[:space:]]*:' "$TARGET_DIR/package.json" 2>/dev/null | head -1)
 
         # Set detected commands with package manager prefix
         if [ -n "$BUILD_SCRIPT" ] && [ "$DETECTED_PKG_MANAGER" != "_pending_" ]; then
@@ -361,14 +394,10 @@ if [ "$SKIP_CONFIG" = false ]; then
             DETECTED_TEST="${DETECTED_PKG_MANAGER} run test"
         fi
         if [ -n "$TYPECHECK_SCRIPT" ] && [ "$DETECTED_PKG_MANAGER" != "_pending_" ]; then
-            if [ -n "$(jq -r '.scripts.typecheck // empty' "$TARGET_DIR/package.json" 2>/dev/null)" ]; then
-                DETECTED_TYPECHECK="${DETECTED_PKG_MANAGER} run typecheck"
-            else
-                DETECTED_TYPECHECK="${DETECTED_PKG_MANAGER} run type-check"
-            fi
+            DETECTED_TYPECHECK="${DETECTED_PKG_MANAGER} run typecheck"
+        elif [ -n "$TYPE_CHECK_SCRIPT" ] && [ "$DETECTED_PKG_MANAGER" != "_pending_" ]; then
+            DETECTED_TYPECHECK="${DETECTED_PKG_MANAGER} run type-check"
         fi
-    elif [ -f "$TARGET_DIR/package.json" ]; then
-        echo -e "  ${YELLOW}Note: jq not installed, limited command detection${NC}"
     fi
 
     # Set default boundary patterns
@@ -516,63 +545,6 @@ else
     echo ".worktrees/" >> "$GITIGNORE"
 fi
 
-# ==============================================================================
-# CREATE CONFIG.YAML (if auto-detection succeeded)
-# ==============================================================================
-
-CONFIG_CREATED=false
-if [ "$SKIP_CONFIG" = false ] && [ "$CONFIG_AUTODETECTED" = true ]; then
-    echo "Creating configuration file..."
-
-    # Get project name from directory
-    PROJECT_NAME=$(basename "$(cd "$TARGET_DIR" && pwd)")
-
-    cat > "$TARGET_DIR/.karimo/config.yaml" << EOF
-# KARIMO Configuration
-# Generated by install.sh on $(date +%Y-%m-%d)
-# Edit with /karimo:configure or manually
-
-project:
-  name: ${PROJECT_NAME}
-  runtime: ${DETECTED_RUNTIME}
-  framework: ${DETECTED_FRAMEWORK}
-  package_manager: ${DETECTED_PKG_MANAGER}
-
-commands:
-  build: "${DETECTED_BUILD}"
-  lint: "${DETECTED_LINT}"
-  test: "${DETECTED_TEST}"
-  typecheck: "${DETECTED_TYPECHECK}"
-
-boundaries:
-  never_touch:
-    - ".env*"
-    - "*.lock"
-    - "pnpm-lock.yaml"
-    - "yarn.lock"
-    - "package-lock.json"
-  require_review:
-    - "migrations/**"
-    - "auth/**"
-    - "**/middleware.*"
-
-execution:
-  default_model: sonnet
-  max_parallel: 3
-  pre_pr_checks:
-    - build
-    - typecheck
-    - lint
-
-cost:
-  escalate_after_failures: 1
-  max_attempts: 3
-  greptile_enabled: false
-EOF
-    CONFIG_CREATED=true
-    echo -e "  ${GREEN}✓${NC} Created .karimo/config.yaml"
-fi
-
 # Count installed workflows
 WORKFLOW_COUNT=2
 if [ "$INSTALLED_CI" = "true" ]; then
@@ -583,10 +555,10 @@ if [ "$INSTALLED_GREPTILE" = "true" ]; then
 fi
 
 # Get counts from manifest for summary
-MANIFEST_AGENTS=$(jq '.agents | length' "$MANIFEST")
-MANIFEST_COMMANDS=$(jq '.commands | length' "$MANIFEST")
-MANIFEST_SKILLS=$(jq '.skills | length' "$MANIFEST")
-MANIFEST_TEMPLATES=$(jq '.templates | length' "$MANIFEST")
+MANIFEST_AGENTS=$(manifest_count "agents")
+MANIFEST_COMMANDS=$(manifest_count "commands")
+MANIFEST_SKILLS=$(manifest_count "skills")
+MANIFEST_TEMPLATES=$(manifest_count "templates")
 
 echo
 echo -e "${GREEN}╭──────────────────────────────────────────────────────────────╮${NC}"
@@ -605,18 +577,16 @@ echo "  .github/ISSUE_TEMPLATE/   1 issue template"
 echo "  CLAUDE.md                 Updated with reference block"
 echo "  .gitignore                Updated with .worktrees/"
 echo
-echo "Configuration:"
-if [ "$CONFIG_CREATED" = true ]; then
-    echo -e "  ${GREEN}✓${NC} .karimo/config.yaml    Auto-detected and created"
+echo "Configuration (stored in CLAUDE.md):"
+if [ "$CONFIG_AUTODETECTED" = true ]; then
+    echo -e "  ${GREEN}✓${NC} Auto-detected and written to CLAUDE.md"
     echo "    Runtime: ${DETECTED_RUNTIME}"
     echo "    Framework: ${DETECTED_FRAMEWORK}"
     echo "    Package manager: ${DETECTED_PKG_MANAGER}"
-elif [ "$SKIP_CONFIG" = true ]; then
-    echo -e "  ${YELLOW}○${NC} Configuration skipped (--skip-config)"
-    echo "    Run /karimo:configure to set up project configuration"
 else
     echo -e "  ${YELLOW}○${NC} Configuration pending"
-    echo "    Run /karimo:configure to set up project configuration"
+    echo "    CLAUDE.md has _pending_ markers"
+    echo "    Run /karimo:configure to complete configuration"
 fi
 echo
 echo "Workflows installed: ${WORKFLOW_COUNT}"
@@ -634,11 +604,11 @@ fi
 echo
 echo "Next steps:"
 echo "  1. Run '/karimo:doctor' to verify installation health"
-if [ "$CONFIG_CREATED" = true ]; then
+if [ "$CONFIG_AUTODETECTED" = true ]; then
     echo "  2. Run '/karimo:plan' to create your first PRD"
     echo "  3. Run '/karimo:execute --prd {slug}' to start execution"
 else
-    echo "  2. Run '/karimo:configure' to set up project configuration"
+    echo "  2. Run '/karimo:configure' to complete configuration"
     echo "  3. Run '/karimo:plan' to create your first PRD"
 fi
 echo "  4. Run '/karimo:feedback' for quick single-rule capture"
