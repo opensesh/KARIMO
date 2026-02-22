@@ -34,7 +34,7 @@
     "karimo-testing-standards.md"
   ],
   "templates": [
-    "DAG_SCHEMA.md",
+    "EXECUTION_PLAN_SCHEMA.md",
     "DEPENDENCIES_TEMPLATE.md",
     "FINDINGS_TEMPLATE.md",
     "INTERVIEW_PROTOCOL.md",

@@ -64,7 +64,7 @@ The interviewer agent conducts a structured conversation:
 - User reviews and can adjust or exclude tasks
 
 **Phase 2: Task Execution**
-1. PM Agent reads briefs and `dag.json`
+1. PM Agent reads briefs and `execution_plan.yaml`
 2. Creates worktrees for parallel work
 3. Spawns agents for ready tasks
 4. Monitors completion, propagates findings
@@ -186,7 +186,7 @@ Orchestrates a structured interview to create a PRD:
 5. **Review** — Validate and generate dependency graph
 6. **Approve** — Approve, modify, or save as draft
 
-Output: `.karimo/prds/{slug}/PRD.md` with `tasks.yaml` and `dag.json`
+Output: `.karimo/prds/{slug}/PRD.md` with `tasks.yaml` and `execution_plan.yaml`
 
 ### /karimo:overview
 
@@ -341,7 +341,7 @@ After installation, your project contains:
     TASK_SCHEMA.md
     STATUS_SCHEMA.md
     DEPENDENCIES_TEMPLATE.md
-    DAG_SCHEMA.md
+    EXECUTION_PLAN_SCHEMA.md
     LEARN_INTERVIEW_PROTOCOL.md
     FINDINGS_TEMPLATE.md
     TASK_BRIEF_TEMPLATE.md
@@ -349,7 +349,7 @@ After installation, your project contains:
     {prd-slug}/
       prd.md
       tasks.yaml
-      dag.json
+      execution_plan.yaml
       status.json
   learn/
     {timestamp}/

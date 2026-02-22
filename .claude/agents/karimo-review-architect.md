@@ -83,7 +83,7 @@ For overlapping changes in the same function/component:
 → Merge both changes, preserving intent from each task.
 
 **b. Check if one supersedes the other:**
-- Based on dependency order in `dag.json`
+- Based on dependency order in `execution_plan.yaml`
 - Later task's changes take precedence if they extend earlier work
 - Earlier task's changes take precedence if later task conflicts with established interface
 

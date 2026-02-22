@@ -15,6 +15,7 @@ KARIMO is an autonomous development **methodology** delivered via Claude Code co
 | `/karimo:plan` | Start PRD interview with interactive approval |
 | `/karimo:overview` | Cross-PRD oversight dashboard |
 | `/karimo:execute --prd {slug}` | Execute tasks from a PRD (brief gen + execution) |
+| `/karimo:modify --prd {slug}` | Modify an approved PRD before execution |
 | `/karimo:status` | View execution state and progress |
 | `/karimo:configure` | Create or update CLAUDE.md configuration (~5 min) |
 | `/karimo:feedback` | Quick capture of single learnings (~2 min) |

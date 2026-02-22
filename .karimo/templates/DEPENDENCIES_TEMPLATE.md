@@ -6,7 +6,7 @@
 
 ---
 
-## Original Dependencies (from dag.json)
+## Original Dependencies (from execution_plan.yaml)
 
 _Dependencies established during PRD planning phase._
 

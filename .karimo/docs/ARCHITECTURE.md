@@ -124,7 +124,7 @@ Target Project/
 │   │   ├── TASK_SCHEMA.md
 │   │   ├── STATUS_SCHEMA.md
 │   │   ├── DEPENDENCIES_TEMPLATE.md
-│   │   ├── DAG_SCHEMA.md
+│   │   ├── EXECUTION_PLAN_SCHEMA.md
 │   │   ├── LEARN_INTERVIEW_PROTOCOL.md
 │   │   ├── FINDINGS_TEMPLATE.md
 │   │   └── TASK_BRIEF_TEMPLATE.md
@@ -240,7 +240,7 @@ task-branch-1b ─┘         ▲                  ▲
 **Output**: `.karimo/prds/{slug}/` containing:
 - `PRD.md` — Full PRD document
 - `tasks.yaml` — Task definitions
-- `dag.json` — Dependency graph
+- `execution_plan.yaml` — Wave-based execution plan
 - `status.json` — Execution tracking (status: `ready` when approved)
 - `findings.md` — Cross-task discoveries (populated during execution)
 
@@ -253,7 +253,7 @@ task-branch-1b ─┘         ▲                  ▲
 
 **Phase 2: Task Execution**
 
-1. PM Agent reads `dag.json` for dependencies
+1. PM Agent reads `execution_plan.yaml` for wave-based scheduling
 2. PM Agent reads pre-generated briefs from `.karimo/prds/{slug}/briefs/`
 3. Creates worktrees at `.worktrees/{prd-slug}/{task-id}`
 4. Spawns agents for ready tasks (respects `max_parallel`)

@@ -443,7 +443,7 @@ Only write changes if at least one value modified.
 | Aspect | /karimo:configure | /karimo:plan |
 |--------|-------------------|--------------|
 | Purpose | Setup config only | Create PRD (config should exist) |
-| Output | CLAUDE.md updates | PRD + tasks.yaml + dag.json |
+| Output | CLAUDE.md updates | PRD + tasks.yaml + execution_plan.yaml |
 | Duration | ~5 minutes | ~30 minutes |
 | When to use | Initial setup, config changes | New feature planning |
 

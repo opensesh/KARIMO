@@ -98,7 +98,7 @@ done
 Test 2: Template Parsing
 ────────────────────────
 
-  ✅ DAG_SCHEMA.md                  Valid structure
+  ✅ EXECUTION_PLAN_SCHEMA.md       Valid structure
   ✅ DEPENDENCIES_TEMPLATE.md       Valid structure
   ✅ FINDINGS_TEMPLATE.md           Valid structure
   ✅ INTERVIEW_PROTOCOL.md          Valid structure

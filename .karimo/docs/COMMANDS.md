@@ -60,7 +60,7 @@ After the review round, you'll see a summary with options:
 Creates `.karimo/prds/{slug}/`:
 - `prd.md` — Full PRD document
 - `tasks.yaml` — Task definitions
-- `dag.json` — Dependency graph
+- `execution_plan.yaml` — Wave-based execution plan
 - `status.json` — Execution tracking
 
 ### Example
@@ -161,7 +161,7 @@ Execute tasks from a finalized PRD. Two-phase flow: brief generation, then execu
 3. **Options**: Execute all, Adjust briefs, Exclude tasks, Cancel
 
 **Phase 2: Execution**
-1. **Reads** `dag.json` for dependencies
+1. **Reads** `execution_plan.yaml` for wave-based scheduling
 2. **Creates** feature branch and worktrees
 3. **Spawns** agents with pre-generated briefs
 4. **Monitors** progress and propagates findings

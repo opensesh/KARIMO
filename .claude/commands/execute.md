@@ -44,7 +44,7 @@ Run: /karimo:execute --prd user-profiles
 Validate the PRD:
 1. Check `.karimo/prds/{NNN}_{slug}/` exists
 2. Verify `status.json` shows `status: "ready"`, `status: "approved"` (backward compat), or `status: "active"`
-3. Load tasks and DAG
+3. Load tasks and execution plan
 
 ### 2. Pre-Execution Checks
 
@@ -212,7 +212,7 @@ Pass:
 - Project configuration from CLAUDE.md (commands, boundaries, learnings)
 - PRD status (approved tasks, excluded tasks)
 - Brief file paths for each task
-- Dependency graph from `dag.json`
+- Execution plan from `execution_plan.yaml`
 - Execution mode (full PRD or single task)
 
 ### 6. Brief-Based Execution
