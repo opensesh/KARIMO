@@ -136,11 +136,13 @@ Show only PRDs with in-progress work:
 │  KARIMO Overview — Active PRDs                               │
 ╰──────────────────────────────────────────────────────────────╯
 
-  user-profiles     67% (4/6)     2 blocked, 0 in progress
+  user-profiles     67% (4/6)     2 blocked, 0 in progress (modified 2x)
   token-studio      25% (2/8)     1 in revision
 
 Summary: 2 active PRDs
 ```
+
+Note: The `(modified Nx)` annotation appears when a PRD has been modified via `/karimo:modify`.
 
 ---
 
