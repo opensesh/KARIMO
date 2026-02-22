@@ -7,6 +7,67 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [3.1.0] - 2026-02-22
+
+### Added
+
+**Wave-Based Execution Plan**
+
+Replaced complex DAG algorithms (BFS/DFS) with simple wave-based task grouping. This simplification scales better and enables PRD modification.
+
+- `EXECUTION_PLAN_SCHEMA.md`: New schema replacing `DAG_SCHEMA.md`
+- Waves group tasks by dependency resolution (no graph theory required)
+- Self-validation ensures dependencies are in earlier waves
+- Complexity warning for PRDs with 10+ tasks
+
+**`/karimo:modify` Command**
+
+New command to modify approved PRDs before execution:
+- Add, remove, or change tasks
+- Update dependencies
+- Split or merge tasks
+- Automatic execution plan regeneration
+- Natural language modification interface
+- Validation and diff display before saving
+
+### Changed
+
+**Execution Plan Format**
+
+Old (`dag.json`):
+```json
+{
+  "nodes": [...], "edges": [...], "depth": ..., "critical_path": [...], "parallel_groups": [...]
+}
+```
+
+New (`execution_plan.yaml`):
+```yaml
+waves:
+  1: [1a]
+  2: [1b, 1c]
+  3: [2a]
+summary:
+  total_waves: 3
+  longest_chain: "1a → 1b → 2a"
+  parallel_capacity: 2
+```
+
+**Updated Components**
+- `karimo-reviewer.md`: Wave-based generation with self-validation
+- `karimo-pm.md`: Reads waves instead of parallel_groups
+- `plan.md`: Updated review output format
+- Templates, docs, and README updated for new schema
+
+### Removed
+
+- `DAG_SCHEMA.md` (replaced by `EXECUTION_PLAN_SCHEMA.md`)
+- BFS depth calculation algorithm
+- DFS critical path calculation algorithm
+- Edge enumeration (deps now only in tasks.yaml)
+
+---
+
 ## [3.0.4] - 2026-02-22
 
 ### Added
