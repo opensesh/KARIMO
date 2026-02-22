@@ -18,6 +18,38 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 KARIMO_ROOT="$(dirname "$SCRIPT_DIR")"
 MANIFEST="$SCRIPT_DIR/MANIFEST.json"
 
+# ==============================================================================
+# MANIFEST PARSING HELPERS (jq-free)
+# ==============================================================================
+
+# List items from a simple array in MANIFEST.json
+manifest_list() {
+  local key="$1"
+  local manifest="${2:-$MANIFEST}"
+  sed -n "/\"$key\"/,/]/p" "$manifest" | grep '"' | grep -v "\"$key\"" | sed 's/.*"\([^"]*\)".*/\1/'
+}
+
+# List items from a nested array (e.g., workflows.required)
+manifest_nested_list() {
+  local key="$1"
+  local manifest="${2:-$MANIFEST}"
+  local parent="${key%%.*}"
+  local child="${key#*.}"
+  sed -n "/\"$parent\"/,/^[[:space:]]*}/p" "$manifest" | \
+    sed -n "/\"$child\"/,/]/p" | grep '"' | grep -v "\"$child\"" | \
+    sed 's/.*"\([^"]*\)".*/\1/'
+}
+
+# Get a simple string value from nested object
+manifest_get() {
+  local key="$1"
+  local manifest="${2:-$MANIFEST}"
+  local parent="${key%%.*}"
+  local child="${key#*.}"
+  sed -n "/\"$parent\"/,/}/p" "$manifest" | \
+    grep "\"$child\"" | head -1 | sed 's/.*"'"$child"'"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/'
+}
+
 # Parse arguments
 CI_MODE=false
 TARGET_DIR=""
@@ -47,7 +79,6 @@ usage() {
     echo ""
     echo "Files never updated:"
     echo "  - CLAUDE.md (user-customized)"
-    echo "  - .karimo/config.yaml (project-specific)"
     echo "  - .gitignore (already configured)"
 }
 
@@ -55,13 +86,6 @@ usage() {
 if [ ! -f "$MANIFEST" ]; then
     echo -e "${RED}Error: MANIFEST.json not found at $MANIFEST${NC}"
     echo "KARIMO source may be corrupted. Please re-download."
-    exit 1
-fi
-
-# Verify jq is available
-if ! command -v jq &> /dev/null; then
-    echo -e "${RED}Error: jq is required but not installed${NC}"
-    echo "Install with: brew install jq (macOS) or apt-get install jq (Linux)"
     exit 1
 fi
 
@@ -189,53 +213,53 @@ echo "  Scanning files using manifest..."
 echo
 
 # Compare agents from manifest
-for agent in $(jq -r '.agents[]' "$MANIFEST"); do
+for agent in $(manifest_list "agents"); do
     if [ -f "$KARIMO_ROOT/.claude/agents/$agent" ]; then
         compare_file "$KARIMO_ROOT/.claude/agents/$agent" "$TARGET_DIR/.claude/agents/$agent" ".claude/agents/$agent"
     fi
 done
 
 # Compare commands from manifest
-for cmd in $(jq -r '.commands[]' "$MANIFEST"); do
+for cmd in $(manifest_list "commands"); do
     if [ -f "$KARIMO_ROOT/.claude/commands/$cmd" ]; then
         compare_file "$KARIMO_ROOT/.claude/commands/$cmd" "$TARGET_DIR/.claude/commands/$cmd" ".claude/commands/$cmd"
     fi
 done
 
 # Compare skills from manifest
-for skill in $(jq -r '.skills[]' "$MANIFEST"); do
+for skill in $(manifest_list "skills"); do
     if [ -f "$KARIMO_ROOT/.claude/skills/$skill" ]; then
         compare_file "$KARIMO_ROOT/.claude/skills/$skill" "$TARGET_DIR/.claude/skills/$skill" ".claude/skills/$skill"
     fi
 done
 
 # Compare KARIMO_RULES.md
-RULES_FILE=$(jq -r '.other.rules' "$MANIFEST")
+RULES_FILE=$(manifest_get "other.rules")
 compare_file "$KARIMO_ROOT/.claude/$RULES_FILE" "$TARGET_DIR/.claude/$RULES_FILE" ".claude/$RULES_FILE"
 
 # Compare templates from manifest
-for template in $(jq -r '.templates[]' "$MANIFEST"); do
+for template in $(manifest_list "templates"); do
     if [ -f "$KARIMO_ROOT/.karimo/templates/$template" ]; then
         compare_file "$KARIMO_ROOT/.karimo/templates/$template" "$TARGET_DIR/.karimo/templates/$template" ".karimo/templates/$template"
     fi
 done
 
 # Compare required workflows from manifest
-for workflow in $(jq -r '.workflows.required[]' "$MANIFEST"); do
+for workflow in $(manifest_nested_list "workflows.required"); do
     if [ -f "$KARIMO_ROOT/.github/workflows/$workflow" ]; then
         compare_file "$KARIMO_ROOT/.github/workflows/$workflow" "$TARGET_DIR/.github/workflows/$workflow" ".github/workflows/$workflow"
     fi
 done
 
 # Compare optional workflows from manifest
-for workflow in $(jq -r '.workflows.optional[]' "$MANIFEST"); do
+for workflow in $(manifest_nested_list "workflows.optional"); do
     if [ -f "$KARIMO_ROOT/.github/workflows/$workflow" ]; then
         compare_file "$KARIMO_ROOT/.github/workflows/$workflow" "$TARGET_DIR/.github/workflows/$workflow" ".github/workflows/$workflow"
     fi
 done
 
 # Compare issue template
-ISSUE_TEMPLATE=$(jq -r '.other.issue_template' "$MANIFEST")
+ISSUE_TEMPLATE=$(manifest_get "other.issue_template")
 compare_file "$KARIMO_ROOT/.github/ISSUE_TEMPLATE/$ISSUE_TEMPLATE" "$TARGET_DIR/.github/ISSUE_TEMPLATE/$ISSUE_TEMPLATE" ".github/ISSUE_TEMPLATE/$ISSUE_TEMPLATE"
 
 # Compare VERSION and MANIFEST files
@@ -269,7 +293,6 @@ echo "  Files unchanged: ${#UNCHANGED_FILES[@]}"
 echo
 echo "  ${YELLOW}WILL NOT TOUCH:${NC}"
 echo "    CLAUDE.md           (user-customized)"
-echo "    .karimo/config.yaml (project-specific)"
 echo "    .gitignore          (already configured)"
 echo
 
@@ -320,7 +343,7 @@ should_copy() {
 }
 
 # Copy modified agents from manifest
-for agent in $(jq -r '.agents[]' "$MANIFEST"); do
+for agent in $(manifest_list "agents"); do
     source_file="$KARIMO_ROOT/.claude/agents/$agent"
     target_file="$TARGET_DIR/.claude/agents/$agent"
     if [ -f "$source_file" ] && should_copy ".claude/agents/$agent"; then
@@ -329,7 +352,7 @@ for agent in $(jq -r '.agents[]' "$MANIFEST"); do
 done
 
 # Copy modified commands from manifest
-for cmd in $(jq -r '.commands[]' "$MANIFEST"); do
+for cmd in $(manifest_list "commands"); do
     source_file="$KARIMO_ROOT/.claude/commands/$cmd"
     target_file="$TARGET_DIR/.claude/commands/$cmd"
     if [ -f "$source_file" ] && should_copy ".claude/commands/$cmd"; then
@@ -338,7 +361,7 @@ for cmd in $(jq -r '.commands[]' "$MANIFEST"); do
 done
 
 # Copy modified skills from manifest
-for skill in $(jq -r '.skills[]' "$MANIFEST"); do
+for skill in $(manifest_list "skills"); do
     source_file="$KARIMO_ROOT/.claude/skills/$skill"
     target_file="$TARGET_DIR/.claude/skills/$skill"
     if [ -f "$source_file" ] && should_copy ".claude/skills/$skill"; then
@@ -347,13 +370,13 @@ for skill in $(jq -r '.skills[]' "$MANIFEST"); do
 done
 
 # Copy KARIMO_RULES.md if modified
-RULES_FILE=$(jq -r '.other.rules' "$MANIFEST")
+RULES_FILE=$(manifest_get "other.rules")
 if should_copy ".claude/$RULES_FILE"; then
     cp "$KARIMO_ROOT/.claude/$RULES_FILE" "$TARGET_DIR/.claude/$RULES_FILE"
 fi
 
 # Copy modified templates from manifest
-for template in $(jq -r '.templates[]' "$MANIFEST"); do
+for template in $(manifest_list "templates"); do
     source_file="$KARIMO_ROOT/.karimo/templates/$template"
     target_file="$TARGET_DIR/.karimo/templates/$template"
     if [ -f "$source_file" ] && should_copy ".karimo/templates/$template"; then
@@ -362,7 +385,7 @@ for template in $(jq -r '.templates[]' "$MANIFEST"); do
 done
 
 # Copy modified workflows from manifest (required)
-for workflow in $(jq -r '.workflows.required[]' "$MANIFEST"); do
+for workflow in $(manifest_nested_list "workflows.required"); do
     source_file="$KARIMO_ROOT/.github/workflows/$workflow"
     target_file="$TARGET_DIR/.github/workflows/$workflow"
     if [ -f "$source_file" ] && should_copy ".github/workflows/$workflow"; then
@@ -371,7 +394,7 @@ for workflow in $(jq -r '.workflows.required[]' "$MANIFEST"); do
 done
 
 # Copy modified workflows from manifest (optional)
-for workflow in $(jq -r '.workflows.optional[]' "$MANIFEST"); do
+for workflow in $(manifest_nested_list "workflows.optional"); do
     source_file="$KARIMO_ROOT/.github/workflows/$workflow"
     target_file="$TARGET_DIR/.github/workflows/$workflow"
     if [ -f "$source_file" ] && should_copy ".github/workflows/$workflow"; then
@@ -380,7 +403,7 @@ for workflow in $(jq -r '.workflows.optional[]' "$MANIFEST"); do
 done
 
 # Copy issue template if modified
-ISSUE_TEMPLATE=$(jq -r '.other.issue_template' "$MANIFEST")
+ISSUE_TEMPLATE=$(manifest_get "other.issue_template")
 if should_copy ".github/ISSUE_TEMPLATE/$ISSUE_TEMPLATE"; then
     cp "$KARIMO_ROOT/.github/ISSUE_TEMPLATE/$ISSUE_TEMPLATE" "$TARGET_DIR/.github/ISSUE_TEMPLATE/$ISSUE_TEMPLATE"
 fi
