@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [3.0.1] - 2026-02-22
+
+### Fixed
+
+**PRD Directory Numbering**
+- Added sequential 3-digit numbering algorithm to reviewer agent
+- PRD directories now created as `001_slug/`, `002_slug/`, etc.
+- Handles edge cases: no existing PRDs, gaps in numbering, non-conforming directories
+
+**PRD Date Population**
+- `created_date` field in PRD.md frontmatter now auto-populated
+- Uses ISO format (YYYY-MM-DD) at creation time
+
+### Documentation
+
+- Updated `karimo-reviewer.md` with PRD Directory Numbering and PRD Date Population sections
+- Updated `plan.md` Step 8 to document auto-generated numbering and date behavior
+
+---
+
 ## [3.0.0] - 2026-02-22
 
 ### Changed
