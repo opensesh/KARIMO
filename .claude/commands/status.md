@@ -69,6 +69,7 @@ Status: active
 Feature Branch: feature/user-profiles
 GitHub Project: https://github.com/orgs/.../projects/42
 Started: 2026-02-19 10:30 (2h 15m ago)
+Modified: 2 time(s), last at 2026-02-19 11:45
 
 Tasks:
 
@@ -262,6 +263,8 @@ Returns:
         "model_upgrades": 0
       },
       "started_at": "2026-02-19T10:30:00Z",
+      "modified_at": "2026-02-19T11:45:00Z",
+      "modification_count": 2,
       "github_project_url": "..."
     }
   ]
