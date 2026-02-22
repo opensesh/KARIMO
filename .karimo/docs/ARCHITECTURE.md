@@ -245,20 +245,31 @@ For PRD approval before execution, use `/karimo:review --prd {slug}`.
 
 #### Task Agents
 
-| Agent | Purpose | Model | Writes Code? |
-|-------|---------|-------|--------------|
-| **Implementer** | Executes coding tasks | Sonnet/Opus | Yes |
-| **Tester** | Writes and maintains tests | Sonnet | Yes |
-| **Documenter** | Creates and updates documentation | Sonnet | Yes (docs) |
+KARIMO uses a dual-model system for task agents. Each agent type has a Sonnet variant (complexity 1-4) and an Opus variant (complexity 5+):
+
+| Agent | Complexity | Purpose | Model | Writes Code? |
+|-------|------------|---------|-------|--------------|
+| **Implementer** | 1-4 | Standard coding tasks | Sonnet | Yes |
+| **Implementer (Opus)** | 5+ | Complex coding tasks | Opus | Yes |
+| **Tester** | 1-4 | Standard test writing | Sonnet | Yes |
+| **Tester (Opus)** | 5+ | Complex test suites | Opus | Yes |
+| **Documenter** | 1-4 | Standard documentation | Sonnet | Yes (docs) |
+| **Documenter (Opus)** | 5+ | Complex documentation | Opus | Yes (docs) |
 
 The PM Agent coordinates but never writes code. Task agents are spawned by PM to execute work in isolated worktrees.
 
 **Task Agent Selection:**
-- PM analyzes task type from title/description
-- Implementation tasks → `@karimo-implementer`
-- Test-only tasks → `@karimo-tester`
-- Documentation-only tasks → `@karimo-documenter`
-- Mixed tasks → `@karimo-implementer` (handles inline)
+- PM analyzes task type from title/description and complexity from task definition
+- Implementation tasks → `karimo-implementer` (or `karimo-implementer-opus` for complexity 5+)
+- Test-only tasks → `karimo-tester` (or `karimo-tester-opus` for complexity 5+)
+- Documentation-only tasks → `karimo-documenter` (or `karimo-documenter-opus` for complexity 5+)
+- Mixed tasks → `karimo-implementer` (handles inline)
+
+**Model Assignment:**
+| Complexity | Model | Rationale |
+|------------|-------|-----------|
+| 1-4 | Sonnet | Efficient for straightforward tasks |
+| 5+ | Opus | Complex reasoning, multi-file coordination |
 
 The Review/Architect Agent handles code-level integration:
 - Validates task PRs integrate cleanly with feature branch
