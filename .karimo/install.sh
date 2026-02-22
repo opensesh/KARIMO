@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# KARIMO v2 Installation Script
+# KARIMO v3 Installation Script
 # Installs KARIMO into a target project
 # Uses MANIFEST.json as the single source of truth for file inventory
 
@@ -90,7 +90,7 @@ done
 TARGET_DIR="${TARGET_DIR:-.}"
 
 echo -e "${BLUE}╭──────────────────────────────────────────────────────────────╮${NC}"
-echo -e "${BLUE}│  KARIMO v2 Installation                                      │${NC}"
+echo -e "${BLUE}│  KARIMO v3 Installation                                      │${NC}"
 echo -e "${BLUE}╰──────────────────────────────────────────────────────────────╯${NC}"
 echo
 
@@ -472,15 +472,15 @@ This project uses KARIMO for autonomous development.
 
 ### Slash Commands
 
-- `/karimo:plan` — Start PRD interview (auto-detects on first run)
-- `/karimo:review` — Review and approve PRD before execution
+- `/karimo:plan` — Start PRD interview with interactive approval
 - `/karimo:overview` — Cross-PRD oversight: blocked tasks, revision loops
-- `/karimo:execute` — Run tasks from PRD
+- `/karimo:execute` — Run tasks from PRD (brief gen + execution)
 - `/karimo:status` — View execution state
 - `/karimo:configure` — Create or update configuration
 - `/karimo:feedback` — Quick capture of single learnings
 - `/karimo:learn` — Deep learning cycle with investigation
 - `/karimo:doctor` — Check installation health and diagnose issues
+- `/karimo:test` — Verify installation works end-to-end
 
 ### Workflows
 
