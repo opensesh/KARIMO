@@ -1,6 +1,6 @@
 # KARIMO Architecture
 
-**Version:** 2.2
+**Version:** 3.0
 **Status:** Active
 
 ---
@@ -97,11 +97,10 @@ Target Project/
 │   │   ├── karimo-tester-opus.md    # Task agent: tests (Opus)
 │   │   ├── karimo-documenter.md     # Task agent: docs (Sonnet)
 │   │   └── karimo-documenter-opus.md # Task agent: docs (Opus)
-│   ├── commands/                    # 10 commands from manifest
-│   │   ├── plan.md                  # /karimo:plan
-│   │   ├── review.md                # /karimo:review (PRD approval)
+│   ├── commands/                    # 9 commands from manifest
+│   │   ├── plan.md                  # /karimo:plan (with interactive review)
 │   │   ├── overview.md              # /karimo:overview (cross-PRD oversight)
-│   │   ├── execute.md               # /karimo:execute
+│   │   ├── execute.md               # /karimo:execute (brief gen + execution)
 │   │   ├── status.md                # /karimo:status
 │   │   ├── configure.md             # /karimo:configure
 │   │   ├── feedback.md              # /karimo:feedback
@@ -196,10 +195,10 @@ If the user already has a `## KARIMO Framework` section in their `CLAUDE.md`, `i
 ## System Flow
 
 ```
-┌──────────────┐    ┌───────────────┐    ┌────────────┐    ┌─────────────┐    ┌────────────┐    ┌─────────────┐    ┌───────────┐
-│   Interview  │ →  │   PRD + DAG   │ →  │   Approve  │ →  │   Execute   │ →  │   Review   │ →  │ Reconcile   │ →  │   Merge   │
-│  (/plan)     │    │  (generated)  │    │  (/review) │    │   (agents)  │    │ (Greptile) │    │ (Architect) │    │   (PR)    │
-└──────────────┘    └───────────────┘    └────────────┘    └─────────────┘    └────────────┘    └─────────────┘    └───────────┘
+┌─────────────────────────────────────────┐    ┌─────────────────────────────────────────┐    ┌────────────┐    ┌─────────────┐    ┌───────────┐
+│            /karimo:plan                 │    │           /karimo:execute               │    │   Review   │    │ Reconcile   │    │   Merge   │
+│  Interview → PRD → Review → Approve     │ →  │  Brief Gen → Agent Execution → PRs     │ →  │ (Greptile) │ →  │ (Architect) │ →  │   (PR)    │
+└─────────────────────────────────────────┘    └─────────────────────────────────────────┘    └────────────┘    └─────────────┘    └───────────┘
 ```
 
 ### Two-Tier Merge Model
@@ -236,31 +235,32 @@ task-branch-1b ─┘         ▲                  ▲
 2. **Investigator**: Scans codebase for patterns
 3. **Conversational**: 5-round structured interview
 4. **Reviewer**: Validates and generates task DAG
+5. **Interactive Review**: User approves, modifies, or saves as draft
 
 **Output**: `.karimo/prds/{slug}/` containing:
 - `PRD.md` — Full PRD document
 - `tasks.yaml` — Task definitions
 - `dag.json` — Dependency graph
-- `status.json` — Execution tracking
+- `status.json` — Execution tracking (status: `ready` when approved)
 - `findings.md` — Cross-task discoveries (populated during execution)
-- `task-briefs/` — Generated briefs per task (created during execution)
-
-### Approve Phase (`/karimo:review`)
-
-1. User reviews PRD and task breakdown
-2. Approves or excludes specific tasks
-3. Brief Writer generates self-contained briefs per task
-4. Status updated to `approved`
-
-**Output**: `.karimo/prds/{slug}/briefs/{task_id}.md` for each approved task
 
 ### Execution Phase (`/karimo:execute`)
 
+**Phase 1: Brief Generation**
+1. Brief Writer generates self-contained briefs per task
+2. User reviews briefs, can adjust or exclude tasks
+3. Briefs saved to `.karimo/prds/{slug}/briefs/`
+
+**Phase 2: Task Execution**
+
 1. PM Agent reads `dag.json` for dependencies
-2. Creates worktrees at `.worktrees/{prd-slug}/{task-id}`
-3. Spawns agents for ready tasks (respects `max_parallel`)
-4. Propagates findings between dependent tasks
-5. Creates PRs when tasks complete
+2. PM Agent reads pre-generated briefs from `.karimo/prds/{slug}/briefs/`
+3. Creates worktrees at `.worktrees/{prd-slug}/{task-id}`
+4. Spawns agents for ready tasks (respects `max_parallel`)
+5. Propagates findings between dependent tasks
+6. Creates PRs when tasks complete
+
+**Output**: `.karimo/prds/{slug}/briefs/{task_id}.md` for each approved task
 
 ### Review Phase (Phase 2)
 
@@ -279,8 +279,6 @@ After execution completes (or during long runs), use `/karimo:overview` to surfa
 - Recently completed and merged tasks
 
 This is the primary human oversight touchpoint — check it each morning or after a run completes.
-
-For PRD approval before execution, use `/karimo:review --prd {slug}`.
 
 ---
 
