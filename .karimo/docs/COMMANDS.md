@@ -13,7 +13,7 @@ Reference for all KARIMO slash commands available in Claude Code.
 | `/karimo:overview` | Cross-PRD oversight dashboard |
 | `/karimo:execute` | Execute tasks from PRD |
 | `/karimo:status` | View execution progress |
-| `/karimo:configure` | Create or update config.yaml |
+| `/karimo:configure` | Create or update CLAUDE.md configuration |
 | `/karimo:feedback` | Quick capture of single learnings |
 | `/karimo:learn` | Deep learning cycle (3 modes) |
 | `/karimo:doctor` | Check installation health |
@@ -281,7 +281,7 @@ PRDs:
 
 ## /karimo:configure
 
-Create or update `.karimo/config.yaml` (source of truth) and sync values to `CLAUDE.md`.
+Create or update configuration in `CLAUDE.md` (single source of truth).
 
 ### Usage
 
@@ -301,8 +301,7 @@ Walks through 5 configuration sections:
 5. **Cost Controls** — Model escalation, max attempts, Greptile
 
 On completion:
-- Writes `.karimo/config.yaml` (source of truth)
-- Syncs values to `CLAUDE.md` tables
+- Updates CLAUDE.md tables with configuration values
 - Replaces any `_pending_` markers
 
 ### When to Use
@@ -312,7 +311,7 @@ On completion:
 | Doctor found config issues | Creating a PRD |
 | Changing config later | Config already in place |
 | ~5 minutes | ~30 minutes |
-| Produces config.yaml + CLAUDE.md sync | Produces PRD + tasks |
+| Updates CLAUDE.md | Produces PRD + tasks |
 
 ### Output Example
 
@@ -334,42 +333,34 @@ Detected: Node.js project with Next.js
 Accept these values? [Y/n/edit]
 ```
 
-### Config File
+### CLAUDE.md Structure
 
-Creates `.karimo/config.yaml`:
+Updates these sections in CLAUDE.md:
 
-```yaml
-project:
-  name: my-project
-  runtime: Node.js 20
-  framework: Next.js 14
-  package_manager: pnpm
+```markdown
+## KARIMO Framework
 
-commands:
-  build: pnpm build
-  lint: pnpm lint
-  test: pnpm test
-  typecheck: pnpm typecheck
+### Project Context
 
-boundaries:
-  never_touch:
-    - ".env*"
-    - "*.lock"
-  require_review:
-    - "migrations/**"
-    - "auth/**"
+| Setting | Value |
+|---------|-------|
+| Runtime | Node.js 20 |
+| Framework | Next.js 14 |
+| Package Manager | pnpm |
 
-execution:
-  default_model: sonnet
-  max_parallel: 3
-  pre_pr_checks:
-    - build
-    - typecheck
+### Commands
 
-cost:
-  escalate_after_failures: 1
-  max_attempts: 3
-  greptile_enabled: false
+| Command | Script |
+|---------|--------|
+| Build | pnpm build |
+| Lint | pnpm lint |
+| Test | pnpm test |
+| Typecheck | pnpm typecheck |
+
+### Boundaries
+
+**Never Touch:** .env*, *.lock
+**Require Review:** migrations/**, auth/**
 ```
 
 ### Update Mode
@@ -523,7 +514,7 @@ Runs 5 diagnostic checks (read-only, never modifies files):
 
 1. **Environment** — Claude Code, GitHub CLI, Git, Greptile
 2. **Installation** — All expected files present
-3. **Configuration** — config.yaml exists, no `_pending_` markers, no drift
+3. **Configuration** — CLAUDE.md has KARIMO section, no `_pending_` markers, no drift
 4. **Sanity** — Commands exist, boundary patterns match files
 5. **Phase Assessment** — Current adoption phase and PRD status
 
@@ -552,8 +543,8 @@ Check 1: Environment
 Check 3: Configuration
 ──────────────────────
 
-  ✅ config.yaml       Present and valid
   ✅ CLAUDE.md         KARIMO Framework section present
+  ✅ No placeholders   All configuration values set
   ✅ No drift          Config matches project state
 
 ...
@@ -567,7 +558,7 @@ Summary
 ```
 
 **Recommendations mapping:**
-- Missing config.yaml → `/karimo:configure`
+- Missing KARIMO section → `/karimo:configure`
 - Configuration drift → `/karimo:configure`
 - `_pending_` placeholders → `/karimo:configure`
 - Missing files → Re-run installer
