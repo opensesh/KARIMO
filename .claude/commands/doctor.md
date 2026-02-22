@@ -64,6 +64,23 @@ Verify required tools are available:
 | Git | `git --version` | ✅ 2.5+ (worktree support) / ⚠️ Older version |
 | Greptile API | `GREPTILE_API_KEY` env var | ✅ Set / ℹ️ Not set (optional for Phase 2) |
 
+**1c: Git Version Check**
+
+```bash
+GIT_VERSION=$(git --version | awk '{print $3}')
+GIT_MAJOR=$(echo "$GIT_VERSION" | cut -d. -f1)
+GIT_MINOR=$(echo "$GIT_VERSION" | cut -d. -f2)
+
+if [ "$GIT_MAJOR" -lt 2 ] || { [ "$GIT_MAJOR" -eq 2 ] && [ "$GIT_MINOR" -lt 5 ]; }; then
+    echo "⚠️  Git $GIT_VERSION (worktrees require 2.5+)"
+else
+    echo "✅ Git $GIT_VERSION (worktree support)"
+fi
+```
+
+If Git version is < 2.5, show warning with upgrade recommendation:
+- `⚠️ Git 2.4.0 — Worktrees require Git 2.5+. Upgrade before running /karimo:execute.`
+
 **Example output:**
 
 ```
