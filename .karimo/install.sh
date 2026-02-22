@@ -60,7 +60,9 @@ fi
 # Check for existing installation
 if [ -d "$TARGET_DIR/.karimo" ] && [ -d "$TARGET_DIR/.claude/commands" ]; then
     echo -e "${YELLOW}KARIMO appears to already be installed.${NC}"
-    read -p "Reinstall/update? (y/n) " -n 1 -r
+    echo -e "${YELLOW}This will overwrite all KARIMO command and agent files.${NC}"
+    echo -e "${YELLOW}Use update.sh to preview changes first.${NC}"
+    read -p "Reinstall anyway? (y/n) " -n 1 -r
     echo
     if [[ ! $REPLY =~ ^[Yy]$ ]]; then
         exit 0
