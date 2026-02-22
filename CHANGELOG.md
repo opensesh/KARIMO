@@ -7,6 +7,39 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [3.0.0] - 2026-02-22
+
+### Changed
+
+- **Plan/Execute Flow Redesign** — Consolidated `/karimo:review` into `/karimo:plan` and `/karimo:execute`
+  - Old flow: `/karimo:plan` → `/karimo:review` → `/karimo:execute`
+  - New flow: `/karimo:plan` (with interactive review) → `/karimo:execute` (with brief generation)
+- `/karimo:plan` now includes Step 7: Interactive Review & Feedback Loop
+  - Options: Approve (→ ready), Modify (→ re-run reviewer), Save as draft
+  - PRD summary displayed after generation for approval
+- `/karimo:execute` now has two-phase structure
+  - Phase 1: Brief Generation — spawns brief-writer, presents briefs for review
+  - Phase 2: Execution — PM agent reads briefs from disk, runs workers
+- `karimo-pm.md` reads existing briefs from disk instead of generating them
+- `karimo-brief-writer.md` spawn context updated from "review" to "execute"
+- Status flow simplified: `draft → ready → active → complete` (removed `approved`)
+- Backward compatibility: `approved` status treated as equivalent to `ready`
+
+### Removed
+
+- `/karimo:review` command — functionality absorbed by plan.md and execute.md
+- `approved` status from STATUS_SCHEMA.md (backward compat maintained)
+
+### Documentation
+
+- COMMANDS.md: Removed review section, updated plan/execute documentation
+- ARCHITECTURE.md: Updated flow diagram to show two-command flow
+- GETTING-STARTED.md: Updated quickstart (plan → execute, no review step)
+- README.md: Updated flow diagram, command table, directory structure
+- CLAUDE.md: Updated slash commands (9 instead of 10)
+
+---
+
 ## [2.9.0] - 2026-02-22
 
 ### Changed
