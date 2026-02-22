@@ -584,6 +584,61 @@ Summary
 
 ---
 
+## /karimo:test
+
+Installation smoke test — verify KARIMO installation works without creating PRDs or spawning agents.
+
+### Usage
+
+```
+/karimo:test
+```
+
+### What It Does
+
+Runs 5 read-only validation tests:
+
+| Test | Validates |
+|------|-----------|
+| 1. File Presence | All files from MANIFEST.json exist |
+| 2. Template Parsing | Templates have valid markdown structure |
+| 3. GitHub CLI | `gh auth status` succeeds |
+| 4. State Files | `.karimo/state.json` is valid JSON (if exists) |
+| 5. CLAUDE.md | KARIMO Framework section present |
+
+### Output
+
+```
+╭──────────────────────────────────────────────────────────────╮
+│  KARIMO Installation Test                                    │
+╰──────────────────────────────────────────────────────────────╯
+
+Test 1: File Presence
+  ✅ Agents: 13/13
+  ✅ Commands: 10/10
+  ✅ Skills: 5/5
+  ✅ Templates: 9/9
+
+...
+
+Summary
+───────
+
+  ✅ 5/5 tests passed
+
+  KARIMO installation verified.
+```
+
+### When to Use
+
+| Scenario | Command |
+|----------|---------|
+| After fresh install | `/karimo:test` |
+| Diagnose broken install | `/karimo:doctor` |
+| Verify before first PRD | `/karimo:test` then `/karimo:plan` |
+
+---
+
 ## Command Locations
 
 Commands are defined in `.claude/commands/`:
@@ -593,6 +648,7 @@ Commands are defined in `.claude/commands/`:
 | `plan.md` | `/karimo:plan` |
 | `overview.md` | `/karimo:overview` |
 | `execute.md` | `/karimo:execute` |
+| `modify.md` | `/karimo:modify` |
 | `status.md` | `/karimo:status` |
 | `configure.md` | `/karimo:configure` |
 | `feedback.md` | `/karimo:feedback` |
