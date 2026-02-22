@@ -200,6 +200,57 @@ When finishing a task that other tasks depend on:
 
 ---
 
+## JSON Parsing Without jq
+
+KARIMO avoids external `jq` dependency. Use these approaches:
+
+### Simple Root-Level Fields (grep/sed)
+
+For parsing simple fields from status.json or similar files:
+
+```bash
+# Parse status field
+status=$(grep -o '"status"[[:space:]]*:[[:space:]]*"[^"]*"' file.json | \
+  sed 's/.*"\([^"]*\)"$/\1/')
+
+# Parse optional field (with fallback)
+feature_merged=$(grep -o '"feature_merged_at"[[:space:]]*:[[:space:]]*"[^"]*"' \
+  file.json 2>/dev/null | sed 's/.*"\([^"]*\)"$/\1/' || echo "")
+```
+
+### GitHub CLI Operations (gh --jq)
+
+GitHub CLI has built-in jq support via the `--jq` flag. This uses an embedded Go implementation, NOT the external jq binary:
+
+```bash
+# Filter project list
+gh project list --owner "$OWNER" --format json \
+  --jq '.projects[] | select(.title == "My Project") | .number'
+
+# Extract field from creation response
+gh project create --title "Title" --format json --jq '.number'
+
+# Filter project items
+gh project item-list 123 --owner "$OWNER" --format json \
+  --jq '.items[] | select(.content.number == 42) | .id'
+```
+
+### Complex JSON Queries (Node.js Fallback)
+
+For complex nested queries, arrays, or transformations, use Node.js one-liners:
+
+```bash
+# Read nested field
+node -e "const s = JSON.parse(require('fs').readFileSync('.karimo/prds/\${slug}/status.json','utf8')); console.log(s.tasks['1a'].status)"
+
+# Filter array
+node -e "const s = JSON.parse(require('fs').readFileSync('status.json','utf8')); const done = Object.values(s.tasks).filter(t => t.status === 'done'); console.log(done.length)"
+```
+
+Node.js is available in most KARIMO target projects (JavaScript/TypeScript ecosystems).
+
+---
+
 ## Security
 
 ### 1. Never Commit Secrets
