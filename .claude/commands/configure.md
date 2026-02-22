@@ -249,7 +249,7 @@ Accept these values? [Y/n/edit]
 Configure model escalation and attempt limits:
 
 ```
-Section 5 of 5: Cost Controls
+Section 6 of 6: Cost Controls
 ─────────────────────────────
 
 These settings control cost and quality tradeoffs:
@@ -274,7 +274,7 @@ Accept these values? [Y/n/edit]
 Present final configuration for confirmation:
 
 ```
-Section 6 of 6: Confirm and Write
+Section 7 of 7: Confirm and Write
 ─────────────────────────────────
 
 Configuration Summary:
@@ -369,6 +369,14 @@ The command writes to these sections in CLAUDE.md:
 - `auth/**`
 - `**/middleware.*`
 
+### GitHub Configuration
+
+| Setting | Value |
+|---------|-------|
+| Owner Type | organization |
+| Owner | opensesh |
+| Repository | my-project |
+
 ### Execution Settings
 
 | Setting | Value |
@@ -396,6 +404,7 @@ On completion:
    - Updated Project Context table
    - Updated Commands table
    - Updated Boundaries section
+   - Updated GitHub Configuration table
    - Updated Execution Settings table
    - Replaced _pending_ markers: 0 remaining
 

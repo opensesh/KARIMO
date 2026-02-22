@@ -135,33 +135,60 @@ Before signaling completion, you MUST run validation:
 
 ---
 
-## findings.json Contract
+## findings.md Contract
 
-If you discover information that downstream tasks need, create `findings.json` in the worktree root:
+If you discover information that downstream tasks need, create `findings.md` in the worktree root:
 
-```json
-{
-  "task_id": "1a",
-  "completed_at": "2026-02-21T10:00:00Z",
-  "findings": [
-    {
-      "type": "discovery",
-      "severity": "info",
-      "description": "Created useProfile hook for profile data fetching",
-      "affected_tasks": ["2a", "2b"],
-      "files": ["src/hooks/useProfile.ts"],
-      "action_required": null
-    },
-    {
-      "type": "api_change",
-      "severity": "warning",
-      "description": "ProfileService.getUser now returns paginated results",
-      "affected_tasks": ["2a"],
-      "files": ["src/services/ProfileService.ts"],
-      "action_required": "Update callers to handle pagination"
-    }
-  ]
-}
+```markdown
+# Findings: {task_id}
+
+## Metadata
+- **Task:** {task_id} - {task_title}
+- **Completed:** {ISO timestamp}
+- **Type:** discovery | pattern | api_change | blocker
+
+## Severity: info | warning | blocker
+
+## Description
+{What was discovered or changed}
+
+## Affected Tasks
+- {task_id_1}
+- {task_id_2}
+
+## Files
+- {file_path_1}
+- {file_path_2}
+
+## Action Required
+{None | Specific action for downstream tasks}
+```
+
+**Example:**
+
+```markdown
+# Findings: 1a
+
+## Metadata
+- **Task:** 1a - Create user profile hook
+- **Completed:** 2026-02-21T10:00:00Z
+- **Type:** discovery
+
+## Severity: info
+
+## Description
+Created useProfile hook for profile data fetching. Also discovered that ProfileService.getUser now returns paginated results.
+
+## Affected Tasks
+- 2a
+- 2b
+
+## Files
+- src/hooks/useProfile.ts
+- src/services/ProfileService.ts
+
+## Action Required
+Task 2a: Update callers to handle pagination from ProfileService.getUser
 ```
 
 ### Finding Types
