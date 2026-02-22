@@ -48,6 +48,9 @@ If detection succeeds, `config.yaml` is created with actual values instead of pl
 
 **Options:**
 - `--skip-config` — Skip auto-detection, install with `_pending_` placeholders
+- `--ci` — CI mode: non-interactive, installs all workflows, skips prompts
+
+The installer uses `.karimo/MANIFEST.json` as the single source of truth for file inventory.
 
 The installer will prompt you for optional workflow tiers:
 
@@ -137,12 +140,12 @@ If your project already has `.claude/` with custom agents, commands, or `CLAUDE.
 - Your existing skills in `.claude/skills/`
 - Your existing `CLAUDE.md` content
 
-**What gets added:**
-- 6 KARIMO agents (prefixed `karimo-*`)
-- 6 slash commands (prefixed `karimo:`)
-- 2 KARIMO skills
+**What gets added (from MANIFEST.json):**
+- 13 KARIMO agents (prefixed `karimo-*`)
+- 10 slash commands (prefixed `karimo:`)
+- 5 KARIMO skills
 - `.claude/KARIMO_RULES.md`
-- `.karimo/` directory with templates
+- `.karimo/` directory with templates and manifest
 - GitHub Actions workflows
 - Reference block appended to `CLAUDE.md`
 

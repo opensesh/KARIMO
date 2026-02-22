@@ -1,6 +1,6 @@
 # KARIMO Architecture
 
-**Version:** 2.1
+**Version:** 2.2
 **Status:** Active
 
 ---
@@ -19,6 +19,46 @@ KARIMO is an autonomous development **methodology** delivered via Claude Code co
 
 ---
 
+## Manifest System
+
+KARIMO uses `.karimo/MANIFEST.json` as the single source of truth for all installed files. This enables:
+
+- **Consistent installation**: `install.sh` reads from manifest, not hardcoded lists
+- **Version tracking**: Manifest includes version number for update detection
+- **CI validation**: `karimo-ci.yml` validates actual files against manifest
+- **Easy updates**: Adding new files requires only updating MANIFEST.json
+
+### Manifest Structure
+
+```json
+{
+  "version": "2.8.0",
+  "agents": ["karimo-brief-writer.md", "karimo-documenter.md", ...],
+  "commands": ["configure.md", "doctor.md", ...],
+  "skills": ["git-worktree-ops.md", ...],
+  "templates": ["PRD_TEMPLATE.md", ...],
+  "workflows": {
+    "required": ["karimo-ci.yml"],
+    "optional": ["karimo-sync.yml", ...]
+  },
+  "other": {
+    "rules": "KARIMO_RULES.md",
+    "issue_template": "karimo-task.yml"
+  }
+}
+```
+
+### CI Validation
+
+The `karimo-ci.yml` workflow validates:
+1. MANIFEST.json exists and is valid JSON
+2. File counts match manifest expectations
+3. Each file listed in manifest exists on disk
+
+This catches drift between manifest and actual files, preventing installation failures.
+
+---
+
 ## What KARIMO Is
 
 KARIMO v2 is a **configuration framework**, not a compiled application:
@@ -28,6 +68,7 @@ KARIMO v2 is a **configuration framework**, not a compiled application:
 - **Skills**: Reusable capabilities agents can invoke
 - **Templates**: PRD, task, and status schemas
 - **Workflows**: GitHub Actions for automation
+- **Manifest**: JSON file tracking all components
 
 Everything is installed into your project via `install.sh` — no binaries, no build step.
 
@@ -37,12 +78,12 @@ Everything is installed into your project via `install.sh` — no binaries, no b
 
 ### What Gets Installed
 
-When you run `bash KARIMO/.karimo/install.sh /path/to/project`, these files are copied:
+When you run `bash KARIMO/.karimo/install.sh /path/to/project`, files are copied based on `.karimo/MANIFEST.json`:
 
 ```
 Target Project/
 ├── .claude/
-│   ├── agents/
+│   ├── agents/                      # 13 agents from manifest
 │   │   ├── karimo-interviewer.md    # PRD interview conductor
 │   │   ├── karimo-investigator.md   # Codebase pattern scanner
 │   │   ├── karimo-reviewer.md       # PRD validation and DAG generation
@@ -50,18 +91,24 @@ Target Project/
 │   │   ├── karimo-pm.md             # Task coordination (never writes code)
 │   │   ├── karimo-review-architect.md # Code-level integration
 │   │   ├── karimo-learn-auditor.md  # Learning investigation agent
-│   │   ├── karimo-implementer.md    # Task agent: coding tasks
-│   │   ├── karimo-tester.md         # Task agent: test writing
-│   │   └── karimo-documenter.md     # Task agent: documentation
-│   ├── commands/
+│   │   ├── karimo-implementer.md    # Task agent: coding (Sonnet)
+│   │   ├── karimo-implementer-opus.md # Task agent: coding (Opus)
+│   │   ├── karimo-tester.md         # Task agent: tests (Sonnet)
+│   │   ├── karimo-tester-opus.md    # Task agent: tests (Opus)
+│   │   ├── karimo-documenter.md     # Task agent: docs (Sonnet)
+│   │   └── karimo-documenter-opus.md # Task agent: docs (Opus)
+│   ├── commands/                    # 10 commands from manifest
 │   │   ├── plan.md                  # /karimo:plan
 │   │   ├── review.md                # /karimo:review (PRD approval)
 │   │   ├── overview.md              # /karimo:overview (cross-PRD oversight)
 │   │   ├── execute.md               # /karimo:execute
 │   │   ├── status.md                # /karimo:status
+│   │   ├── configure.md             # /karimo:configure
 │   │   ├── feedback.md              # /karimo:feedback
-│   │   └── learn.md                 # /karimo:learn
-│   ├── skills/
+│   │   ├── learn.md                 # /karimo:learn
+│   │   ├── doctor.md                # /karimo:doctor
+│   │   └── test.md                  # /karimo:test
+│   ├── skills/                      # 5 skills from manifest
 │   │   ├── git-worktree-ops.md      # Worktree management
 │   │   ├── github-project-ops.md    # GitHub Projects via gh CLI
 │   │   ├── karimo-code-standards.md     # Task agent skill
@@ -70,11 +117,15 @@ Target Project/
 │   └── KARIMO_RULES.md              # Agent behavior rules
 │
 ├── .karimo/
-│   ├── templates/
+│   ├── MANIFEST.json                # Single source of truth
+│   ├── VERSION                      # Version tracking
+│   ├── templates/                   # 9 templates from manifest
 │   │   ├── PRD_TEMPLATE.md
 │   │   ├── INTERVIEW_PROTOCOL.md
 │   │   ├── TASK_SCHEMA.md
 │   │   ├── STATUS_SCHEMA.md
+│   │   ├── DEPENDENCIES_TEMPLATE.md
+│   │   ├── DAG_SCHEMA.md
 │   │   ├── LEARN_INTERVIEW_PROTOCOL.md
 │   │   ├── FINDINGS_TEMPLATE.md
 │   │   └── TASK_BRIEF_TEMPLATE.md
@@ -82,6 +133,7 @@ Target Project/
 │
 ├── .github/
 │   ├── workflows/
+│   │   ├── karimo-ci.yml                # CI validation (validates manifest)
 │   │   ├── karimo-sync.yml              # Tier 1: Status sync on merge
 │   │   ├── karimo-dependency-watch.yml  # Tier 1: Runtime dependency alerts
 │   │   ├── karimo-ci-integration.yml    # Tier 2: Observes external CI (opt-in)
@@ -91,6 +143,11 @@ Target Project/
 │
 ├── CLAUDE.md                        # Modified with reference block
 └── .gitignore                       # Updated with .worktrees/
+```
+
+**CI Mode:** For non-interactive installation (CI/CD pipelines), use the `--ci` flag:
+```bash
+bash KARIMO/.karimo/install.sh --ci /path/to/project
 ```
 
 ### How CLAUDE.md is Modified

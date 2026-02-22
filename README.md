@@ -117,14 +117,20 @@ git clone https://github.com/opensesh/KARIMO.git
 bash KARIMO/.karimo/install.sh /path/to/your/project
 ```
 
-This copies:
-- Agent definitions to `.claude/agents/`
-- Slash commands to `.claude/commands/`
-- Skills to `.claude/skills/`
+This copies (from `.karimo/MANIFEST.json`):
+- 13 agent definitions to `.claude/agents/`
+- 10 slash commands to `.claude/commands/`
+- 5 skills to `.claude/skills/`
 - KARIMO rules to `.claude/KARIMO_RULES.md`
-- Templates to `.karimo/templates/`
+- 9 templates to `.karimo/templates/`
 - GitHub Actions to `.github/workflows/`
+- Manifest file to `.karimo/MANIFEST.json`
 - Reference block appended to `CLAUDE.md`
+
+**CI Mode:** For non-interactive installation (CI/CD pipelines):
+```bash
+bash KARIMO/.karimo/install.sh --ci /path/to/your/project
+```
 
 To update an existing installation, run `bash KARIMO/.karimo/update.sh /path/to/your/project`.
 
@@ -297,7 +303,7 @@ After installation, your project contains:
 
 ```
 .claude/
-  agents/
+  agents/                        # 13 agents (from MANIFEST.json)
     karimo-interviewer.md
     karimo-investigator.md
     karimo-reviewer.md
@@ -305,10 +311,13 @@ After installation, your project contains:
     karimo-pm.md
     karimo-review-architect.md
     karimo-learn-auditor.md
-    karimo-implementer.md      # Task agent
-    karimo-tester.md           # Task agent
-    karimo-documenter.md       # Task agent
-  commands/
+    karimo-implementer.md        # Task agent (Sonnet)
+    karimo-implementer-opus.md   # Task agent (Opus)
+    karimo-tester.md             # Task agent (Sonnet)
+    karimo-tester-opus.md        # Task agent (Opus)
+    karimo-documenter.md         # Task agent (Sonnet)
+    karimo-documenter-opus.md    # Task agent (Opus)
+  commands/                      # 10 commands
     plan.md
     review.md
     overview.md
@@ -319,22 +328,27 @@ After installation, your project contains:
     learn.md
     doctor.md
     test.md
-  skills/
+  skills/                        # 5 skills
     git-worktree-ops.md
     github-project-ops.md
-    karimo-code-standards.md       # Task agent skill
-    karimo-testing-standards.md    # Task agent skill
-    karimo-doc-standards.md        # Task agent skill
+    karimo-code-standards.md
+    karimo-testing-standards.md
+    karimo-doc-standards.md
   KARIMO_RULES.md
 
 .karimo/
-  templates/
+  MANIFEST.json                  # Single source of truth for file inventory
+  VERSION                        # Version tracking
+  templates/                     # 9 templates
     PRD_TEMPLATE.md
     INTERVIEW_PROTOCOL.md
     TASK_SCHEMA.md
     STATUS_SCHEMA.md
     DEPENDENCIES_TEMPLATE.md
+    DAG_SCHEMA.md
     LEARN_INTERVIEW_PROTOCOL.md
+    FINDINGS_TEMPLATE.md
+    TASK_BRIEF_TEMPLATE.md
   prds/
     {prd-slug}/
       prd.md
@@ -350,6 +364,7 @@ After installation, your project contains:
 
 .github/
   workflows/
+    karimo-ci.yml                # CI validation (validates manifest)
     karimo-sync.yml              # Tier 1
     karimo-dependency-watch.yml  # Tier 1
     karimo-ci-integration.yml    # Tier 2 (opt-in)
