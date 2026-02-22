@@ -148,7 +148,7 @@ Before submitting a PR:
 | Change Type | Validation |
 |-------------|------------|
 | Agent | Spawn agent, verify output format |
-| Command | Run command, check state.json updates |
+| Command | Run command, check status.json updates |
 | Template | Create PRD, verify structure |
 | Workflow | Trigger action, check logs |
 | Documentation | Render markdown, check links |
@@ -156,7 +156,7 @@ Before submitting a PR:
 ### Common Issues
 
 - **Agent not spawning:** Check skill reference in agent definition
-- **Command failing:** Verify state.json schema compatibility
+- **Command failing:** Verify status.json schema compatibility
 - **Template errors:** Ensure placeholders match expected format
 
 ---

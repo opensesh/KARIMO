@@ -191,6 +191,54 @@ Preview what would happen without executing:
 
 ---
 
+## /karimo:modify
+
+Modify an approved PRD before execution — add, remove, or change tasks with automatic execution plan regeneration.
+
+### Usage
+
+```
+/karimo:modify --prd {slug}
+```
+
+### What It Does
+
+1. **Validates PRD status** — Only works on `ready` status (approved but not executing)
+2. **Displays current structure** — Shows existing tasks organized by wave
+3. **Accepts modifications** — Natural language input for changes:
+   - Add new tasks with dependencies
+   - Remove tasks (warns about orphaned dependencies)
+   - Change dependencies
+   - Split or merge tasks
+   - Update task details (title, description, complexity)
+4. **Regenerates execution plan** — Recomputes waves, validates no cycles
+5. **Shows diff** — Added/removed/modified tasks, wave changes
+6. **Confirms changes** — Save, continue editing, or discard
+
+### Validation
+
+- No dependency cycles
+- All referenced task IDs must exist
+- Required fields present
+
+### Brief Handling
+
+| Change Type | Brief Action |
+|-------------|--------------|
+| Added task | Generated at execution time |
+| Removed task | Brief deleted |
+| Modified task | Brief marked stale, regenerated at execution |
+
+### When to Use
+
+| Scenario | Command |
+|----------|---------|
+| PRD in draft, needs changes | `/karimo:plan --resume {slug}` |
+| PRD approved, needs structural changes | `/karimo:modify --prd {slug}` |
+| PRD executing, needs task adjustments | Adjust briefs in execute, or pause and modify |
+
+---
+
 ## /karimo:status
 
 View execution progress across all PRDs.
