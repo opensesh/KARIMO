@@ -1,0 +1,60 @@
+name: KARIMO CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  validate-installation:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Create test fixture
+        run: |
+          mkdir -p /tmp/test-project
+          cd /tmp/test-project
+          git init
+          echo '{}' > package.json
+
+      - name: Run install script
+        run: |
+          bash .karimo/install.sh /tmp/test-project
+
+      - name: Verify file counts
+        run: |
+          cd /tmp/test-project
+
+          # Count agents (expected: 10)
+          AGENT_COUNT=$(ls -1 .claude/agents/karimo-*.md 2>/dev/null | wc -l)
+          echo "Agents: $AGENT_COUNT (expected: 10)"
+          [ "$AGENT_COUNT" -eq 10 ] || exit 1
+
+          # Count commands (expected: 10)
+          CMD_COUNT=$(ls -1 .claude/commands/*.md 2>/dev/null | wc -l)
+          echo "Commands: $CMD_COUNT (expected: 10)"
+          [ "$CMD_COUNT" -eq 10 ] || exit 1
+
+          # Count skills (expected: 5)
+          SKILL_COUNT=$(ls -1 .claude/skills/*.md 2>/dev/null | wc -l)
+          echo "Skills: $SKILL_COUNT (expected: 5)"
+          [ "$SKILL_COUNT" -eq 5 ] || exit 1
+
+          # Count templates (expected: 7)
+          TEMPLATE_COUNT=$(ls -1 .karimo/templates/*.md 2>/dev/null | wc -l)
+          echo "Templates: $TEMPLATE_COUNT (expected: 7)"
+          [ "$TEMPLATE_COUNT" -eq 7 ] || exit 1
+
+          echo "✓ All file counts match"
+
+      - name: Verify KARIMO_RULES exists
+        run: |
+          test -f /tmp/test-project/.claude/KARIMO_RULES.md
+          echo "✓ KARIMO_RULES.md exists"
+
+      - name: Verify VERSION file
+        run: |
+          test -f /tmp/test-project/.karimo/VERSION
+          echo "✓ VERSION file exists"
