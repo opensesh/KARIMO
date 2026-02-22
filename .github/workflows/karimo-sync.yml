@@ -77,34 +77,41 @@ jobs:
             exit 0
           fi
 
-          # Update task status to done
+          # Update task status to done using Node.js (available on all GitHub runners)
           MERGED_AT=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 
-          # Use jq to update status
-          jq --arg task "$TASK_ID" \
-             --arg merged "$MERGED_AT" \
-             --argjson pr "$PR_NUMBER" \
-             '.tasks[$task].status = "done" |
-              .tasks[$task].merged_at = $merged |
-              .tasks[$task].pr_number = $pr' \
-             "$STATUS_FILE" > "${STATUS_FILE}.tmp" && mv "${STATUS_FILE}.tmp" "$STATUS_FILE"
+          node -e "
+          const fs = require('fs');
+          const f = '$STATUS_FILE';
+          const s = JSON.parse(fs.readFileSync(f, 'utf8'));
 
-          # Check if all tasks are done
-          TOTAL=$(jq '.tasks | length' "$STATUS_FILE")
-          DONE=$(jq '[.tasks[] | select(.status == "done")] | length' "$STATUS_FILE")
+          // Update task status
+          if (!s.tasks) s.tasks = {};
+          s.tasks['$TASK_ID'] = {
+            ...s.tasks['$TASK_ID'],
+            status: 'done',
+            merged_at: '$MERGED_AT',
+            pr_number: $PR_NUMBER
+          };
 
-          echo "total=$TOTAL" >> $GITHUB_OUTPUT
-          echo "done=$DONE" >> $GITHUB_OUTPUT
+          // Count done tasks
+          const tasks = Object.values(s.tasks);
+          const total = tasks.length;
+          const done = tasks.filter(t => t.status === 'done').length;
 
-          if [ "$TOTAL" -eq "$DONE" ]; then
-            # Update overall status to complete
-            jq --arg completed "$(date -u +"%Y-%m-%dT%H:%M:%SZ")" \
-               '.status = "complete" | .completed_at = $completed' \
-               "$STATUS_FILE" > "${STATUS_FILE}.tmp" && mv "${STATUS_FILE}.tmp" "$STATUS_FILE"
-            echo "all-done=true" >> $GITHUB_OUTPUT
-          else
-            echo "all-done=false" >> $GITHUB_OUTPUT
-          fi
+          // Check if all done
+          if (total === done && total > 0) {
+            s.status = 'complete';
+            s.completed_at = '$MERGED_AT';
+          }
+
+          fs.writeFileSync(f, JSON.stringify(s, null, 2));
+
+          // Output counts
+          console.log('total=' + total);
+          console.log('done=' + done);
+          console.log('all-done=' + (total === done && total > 0));
+          " >> $GITHUB_OUTPUT
 
       - name: Commit Status Update
         run: |
