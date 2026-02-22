@@ -21,8 +21,9 @@ The PRD must have status `ready` (approved but not yet executing).
 Validate the PRD can be modified:
 
 ```bash
-# Check status
-status=$(jq -r '.status' ".karimo/prds/${slug}/status.json")
+# Check status (using grep/sed, no jq dependency)
+status=$(grep -o '"status"[[:space:]]*:[[:space:]]*"[^"]*"' ".karimo/prds/${slug}/status.json" | \
+  sed 's/.*"\([^"]*\)"$/\1/')
 
 if [ "$status" != "ready" ]; then
   # Cannot modify
