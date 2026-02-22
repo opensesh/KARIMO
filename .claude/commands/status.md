@@ -133,6 +133,7 @@ No blocked tasks.
 | ✗ | Task failed |
 | ⚠ | Task needs attention (conflicts, revision) |
 | ◌ | Task blocked (waiting on dependencies) |
+| ⏰ | Task stale (exceeded threshold, agent may have crashed) |
 
 ### 6. PR Status Integration
 

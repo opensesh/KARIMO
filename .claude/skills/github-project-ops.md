@@ -46,23 +46,35 @@ fi
 
 ## Project Setup
 
-### Create Project
+### Create Project (Idempotent)
+
+**Always check if project exists before creating:**
 
 ```bash
-# For organization repos:
-gh project create \
-  --owner {org} \
-  --title "KARIMO: {feature_name}" \
-  --format json
+# Read owner from CLAUDE.md (see "Resolve Project Owner" above)
+PROJECT_OWNER=$([[ "$OWNER_TYPE" == "personal" ]] && echo "@me" || echo "$OWNER")
+PROJECT_TITLE="KARIMO: {feature_name}"
 
-# For personal repos:
-gh project create \
-  --owner @me \
-  --title "KARIMO: {feature_name}" \
-  --format json
+# Check if project already exists
+EXISTING=$(gh project list --owner "$PROJECT_OWNER" --format json 2>/dev/null | \
+  jq -r --arg title "$PROJECT_TITLE" \
+  '.projects[] | select(.title == $title) | .number' 2>/dev/null)
+
+if [ -n "$EXISTING" ]; then
+  # Reuse existing project
+  PROJECT_NUMBER=$EXISTING
+  echo "Using existing project #$PROJECT_NUMBER"
+else
+  # Create new project
+  PROJECT_NUMBER=$(gh project create \
+    --owner "$PROJECT_OWNER" \
+    --title "$PROJECT_TITLE" \
+    --format json | jq -r '.number')
+  echo "Created new project #$PROJECT_NUMBER"
+fi
 ```
 
-**Response:**
+**Response (when creating new):**
 ```json
 {
   "id": "PVT_kwDOABC123...",
@@ -99,35 +111,35 @@ KARIMO uses these custom fields for tracking:
 ```bash
 # Create single-select field
 gh project field-create {project-number} \
-  --owner {org} \
+  --owner "$PROJECT_OWNER" \
   --name "agent_status" \
   --data-type "SINGLE_SELECT" \
   --single-select-options "queued,running,in-review,needs-revision,done,failed,needs-human-rebase"
 
 # Create number fields
 gh project field-create {project-number} \
-  --owner {org} \
+  --owner "$PROJECT_OWNER" \
   --name "complexity" \
   --data-type "NUMBER"
 
 gh project field-create {project-number} \
-  --owner {org} \
+  --owner "$PROJECT_OWNER" \
   --name "pr_number" \
   --data-type "NUMBER"
 
 gh project field-create {project-number} \
-  --owner {org} \
+  --owner "$PROJECT_OWNER" \
   --name "revision_count" \
   --data-type "NUMBER"
 
 # Create text fields
 gh project field-create {project-number} \
-  --owner {org} \
+  --owner "$PROJECT_OWNER" \
   --name "depends_on" \
   --data-type "TEXT"
 
 gh project field-create {project-number} \
-  --owner {org} \
+  --owner "$PROJECT_OWNER" \
   --name "files_affected" \
   --data-type "TEXT"
 ```
@@ -184,7 +196,7 @@ ISSUE_ID=$(gh issue view {issue_number} --repo {owner}/{repo} --json id -q .id)
 
 # Add to project
 gh project item-add {project-number} \
-  --owner {org} \
+  --owner "$PROJECT_OWNER" \
   --url "https://github.com/{owner}/{repo}/issues/{issue_number}"
 ```
 
@@ -192,7 +204,7 @@ gh project item-add {project-number} \
 
 ```bash
 # Get project item ID
-ITEM_ID=$(gh project item-list {project-number} --owner {org} --format json | \
+ITEM_ID=$(gh project item-list {project-number} --owner "$PROJECT_OWNER" --format json | \
   jq -r '.items[] | select(.content.number == {issue_number}) | .id')
 
 # Update agent_status field
@@ -394,7 +406,7 @@ gh label create "needs-human-rebase" \
 
 ```bash
 gh project item-list {project-number} \
-  --owner {org} \
+  --owner "$PROJECT_OWNER" \
   --format json
 ```
 
@@ -402,7 +414,7 @@ gh project item-list {project-number} \
 
 ```bash
 gh project field-list {project-number} \
-  --owner {org} \
+  --owner "$PROJECT_OWNER" \
   --format json
 ```
 
@@ -410,7 +422,7 @@ gh project field-list {project-number} \
 
 ```bash
 gh project item-list {project-number} \
-  --owner {org} \
+  --owner "$PROJECT_OWNER" \
   --format json | \
   jq '.items[] | select(.fieldValues.agent_status == "running")'
 ```
@@ -421,11 +433,11 @@ gh project item-list {project-number} \
 
 ```bash
 # Close the project (optional)
-gh project close {project-number} --owner {org}
+gh project close {project-number} --owner "$PROJECT_OWNER"
 
 # Or mark as complete in description
 gh project edit {project-number} \
-  --owner {org} \
+  --owner "$PROJECT_OWNER" \
   --title "KARIMO: {feature_name} ✓ Complete"
 ```
 
@@ -479,8 +491,8 @@ gh api rate_limit
 
 ```bash
 # List available projects
-gh project list --owner {org}
+gh project list --owner "$PROJECT_OWNER"
 
 # Verify project exists
-gh project view {project-number} --owner {org}
+gh project view {project-number} --owner "$PROJECT_OWNER"
 ```
