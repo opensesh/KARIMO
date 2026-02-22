@@ -1,5 +1,5 @@
 {
-  "version": "2.9.0",
+  "version": "3.0.0",
   "agents": [
     "karimo-brief-writer.md",
     "karimo-documenter.md",
@@ -23,7 +23,6 @@
     "learn.md",
     "overview.md",
     "plan.md",
-    "review.md",
     "status.md",
     "test.md"
   ],
