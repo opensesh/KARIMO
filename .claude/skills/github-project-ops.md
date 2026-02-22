@@ -55,21 +55,20 @@ fi
 PROJECT_OWNER=$([[ "$OWNER_TYPE" == "personal" ]] && echo "@me" || echo "$OWNER")
 PROJECT_TITLE="KARIMO: {feature_name}"
 
-# Check if project already exists
-EXISTING=$(gh project list --owner "$PROJECT_OWNER" --format json 2>/dev/null | \
-  jq -r --arg title "$PROJECT_TITLE" \
-  '.projects[] | select(.title == $title) | .number' 2>/dev/null)
+# Check if project already exists (using gh CLI built-in --jq, no external jq)
+EXISTING=$(gh project list --owner "$PROJECT_OWNER" --format json \
+  --jq ".projects[] | select(.title == \"$PROJECT_TITLE\") | .number" 2>/dev/null)
 
 if [ -n "$EXISTING" ]; then
   # Reuse existing project
   PROJECT_NUMBER=$EXISTING
   echo "Using existing project #$PROJECT_NUMBER"
 else
-  # Create new project
+  # Create new project (using gh CLI built-in --jq)
   PROJECT_NUMBER=$(gh project create \
     --owner "$PROJECT_OWNER" \
     --title "$PROJECT_TITLE" \
-    --format json | jq -r '.number')
+    --format json --jq '.number')
   echo "Created new project #$PROJECT_NUMBER"
 fi
 ```
@@ -203,9 +202,9 @@ gh project item-add {project-number} \
 ### Update Issue Fields
 
 ```bash
-# Get project item ID
-ITEM_ID=$(gh project item-list {project-number} --owner "$PROJECT_OWNER" --format json | \
-  jq -r '.items[] | select(.content.number == {issue_number}) | .id')
+# Get project item ID (using gh CLI built-in --jq, no external jq)
+ITEM_ID=$(gh project item-list {project-number} --owner "$PROJECT_OWNER" --format json \
+  --jq ".items[] | select(.content.number == {issue_number}) | .id")
 
 # Update agent_status field
 gh project item-edit \
@@ -421,10 +420,11 @@ gh project field-list {project-number} \
 ### Filter by Status
 
 ```bash
+# Using gh CLI built-in --jq (no external jq dependency)
 gh project item-list {project-number} \
   --owner "$PROJECT_OWNER" \
-  --format json | \
-  jq '.items[] | select(.fieldValues.agent_status == "running")'
+  --format json \
+  --jq '.items[] | select(.fieldValues.agent_status == "running")'
 ```
 
 ## Closing Out
