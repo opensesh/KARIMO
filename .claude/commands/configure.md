@@ -77,7 +77,7 @@ ls -la src/ app/ lib/ 2>/dev/null
 Collect basic project information:
 
 ```
-Section 1 of 5: Project Identity
+Section 1 of 6: Project Identity
 ─────────────────────────────────
 
 Detected: Node.js project with Next.js
@@ -99,7 +99,7 @@ Accept these values? [Y/n/edit]
 Collect project commands:
 
 ```
-Section 2 of 5: Build Commands
+Section 2 of 6: Build Commands
 ──────────────────────────────
 
 I found these scripts in package.json:
@@ -121,7 +121,7 @@ Accept these values? [Y/n/edit]
 **If no package.json or scripts missing:**
 
 ```
-Section 2 of 5: Build Commands
+Section 2 of 6: Build Commands
 ──────────────────────────────
 
 No package.json found (or no scripts defined).
@@ -141,7 +141,7 @@ Enter your build commands:
 Define files agents should not touch or must flag for review:
 
 ```
-Section 3 of 5: File Boundaries
+Section 3 of 6: File Boundaries
 ───────────────────────────────
 
 Detected sensitive files:
@@ -164,12 +164,67 @@ Require Review (agents must flag these for human attention):
 
 ---
 
+### Step 4.5: GitHub Configuration
+
+Detect GitHub repository settings for project creation:
+
+```bash
+gh repo view --json owner,name -q '.owner.type + "|" + .owner.login + "|" + .name'
+```
+
+**Display for confirmation:**
+
+```
+Section 4 of 6: GitHub Configuration
+────────────────────────────────────
+
+Detected from repository:
+  Owner type: organization
+  Owner: opensesh
+  Repository: my-project
+
+GitHub Project will use: --owner opensesh
+
+Accept? [Y/n]
+```
+
+**If not a git repository or gh not authenticated:**
+
+```
+Section 4 of 6: GitHub Configuration
+────────────────────────────────────
+
+⚠️  Could not detect GitHub repository settings.
+
+Options:
+  1. Run 'gh auth login' and retry
+  2. Enter manually:
+     Owner type (personal/organization): _______
+     Owner: _______
+     Repository: _______
+  3. Skip (GitHub Projects will not work)
+```
+
+**Write to CLAUDE.md (in KARIMO Framework section):**
+
+```markdown
+### GitHub Configuration
+
+| Setting | Value |
+|---------|-------|
+| Owner Type | organization |
+| Owner | opensesh |
+| Repository | my-project |
+```
+
+---
+
 ### Step 5: Execution Settings
 
 Configure agent execution behavior:
 
 ```
-Section 4 of 5: Execution Settings
+Section 5 of 6: Execution Settings
 ──────────────────────────────────
 
 These settings control how agents execute tasks:
@@ -356,7 +411,7 @@ Next steps:
 When updating existing configuration, show current vs new values:
 
 ```
-Section 2 of 5: Build Commands
+Section 2 of 6: Build Commands
 ──────────────────────────────
 
   Build command:
