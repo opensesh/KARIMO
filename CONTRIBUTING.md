@@ -111,6 +111,56 @@ When updating templates, ensure backward compatibility with existing PRDs.
 
 ---
 
+## Testing Your Changes
+
+KARIMO is a configuration framework, not compiled code. Testing is validation-focused.
+
+### Manual Testing (Required)
+
+Before submitting a PR:
+
+1. **Install to test project:**
+   ```bash
+   cd /path/to/test-project
+   bash /path/to/KARIMO/.karimo/install.sh .
+   ```
+
+2. **Run doctor:**
+   ```bash
+   # In Claude Code
+   /karimo:doctor
+   ```
+   All checks should pass.
+
+3. **Test your specific change:**
+   - Agent changes: Run `/karimo:plan` and verify agent behavior
+   - Command changes: Execute the command with various inputs
+   - Template changes: Create a PRD using the template
+   - Workflow changes: Trigger workflow in test repo
+
+4. **Run smoke test:**
+   ```bash
+   /karimo:test
+   ```
+
+### Validation Checks
+
+| Change Type | Validation |
+|-------------|------------|
+| Agent | Spawn agent, verify output format |
+| Command | Run command, check state.json updates |
+| Template | Create PRD, verify structure |
+| Workflow | Trigger action, check logs |
+| Documentation | Render markdown, check links |
+
+### Common Issues
+
+- **Agent not spawning:** Check skill reference in agent definition
+- **Command failing:** Verify state.json schema compatibility
+- **Template errors:** Ensure placeholders match expected format
+
+---
+
 ## Documentation
 
 Documentation lives in `.karimo/docs/`:
