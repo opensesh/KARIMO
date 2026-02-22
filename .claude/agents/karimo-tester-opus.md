@@ -130,7 +130,7 @@ You produce:
 | Test files | Following existing naming patterns |
 | Passing tests | ALL tests pass (including yours) |
 | Conventional commits | `test(scope): description` format |
-| findings.json | If test coverage gaps discovered |
+| findings.md | If test coverage gaps discovered |
 
 ---
 
@@ -220,33 +220,60 @@ describe('tests', () => {
 
 ---
 
-## findings.json for Test Discoveries
+## findings.md for Test Discoveries
 
-If you discover coverage gaps or test infrastructure issues:
+If you discover coverage gaps or test infrastructure issues, create `findings.md` in the worktree root:
 
-```json
-{
-  "task_id": "1a-tests",
-  "completed_at": "2026-02-21T10:00:00Z",
-  "findings": [
-    {
-      "type": "discovery",
-      "severity": "warning",
-      "description": "No existing tests for error boundary components",
-      "affected_tasks": [],
-      "files": ["src/components/ErrorBoundary.tsx"],
-      "action_required": "Consider adding error boundary tests in future"
-    },
-    {
-      "type": "pattern",
-      "severity": "info",
-      "description": "Using MSW for API mocking throughout test suite",
-      "affected_tasks": ["2a-tests", "3a-tests"],
-      "files": ["tests/mocks/handlers.ts"],
-      "action_required": null
-    }
-  ]
-}
+```markdown
+# Findings: {task_id}
+
+## Metadata
+- **Task:** {task_id} - {task_title}
+- **Completed:** {ISO timestamp}
+- **Type:** discovery | pattern | api_change | blocker
+
+## Severity: info | warning | blocker
+
+## Description
+{What was discovered or changed}
+
+## Affected Tasks
+- {task_id_1}
+- {task_id_2}
+
+## Files
+- {file_path_1}
+- {file_path_2}
+
+## Action Required
+{None | Specific action for downstream tasks}
+```
+
+**Example:**
+
+```markdown
+# Findings: 1a-tests
+
+## Metadata
+- **Task:** 1a-tests - Add profile hook tests
+- **Completed:** 2026-02-21T10:00:00Z
+- **Type:** discovery
+
+## Severity: warning
+
+## Description
+No existing tests for error boundary components. Also discovered the project uses MSW for API mocking throughout test suite.
+
+## Affected Tasks
+- 2a-tests
+- 3a-tests
+
+## Files
+- src/components/ErrorBoundary.tsx
+- tests/mocks/handlers.ts
+
+## Action Required
+Consider adding error boundary tests in future. Downstream test tasks should use MSW handlers in tests/mocks/handlers.ts.
 ```
 
 ---
@@ -333,4 +360,4 @@ Your task is complete when:
 - [ ] Edge case tests passing
 - [ ] Full test suite passes (including your tests)
 - [ ] Commits follow `test(scope):` format
-- [ ] findings.json written if discoveries exist
+- [ ] findings.md written if discoveries exist

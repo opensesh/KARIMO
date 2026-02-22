@@ -188,13 +188,64 @@ Wait for human confirmation before proceeding.
 
 ### Step 3: GitHub Project Setup
 
-**Use the `github-project-ops` skill:**
+**Use the `github-project-ops` skill.**
 
-1. **Create GitHub Project** (if not exists):
-   ```
-   Name: KARIMO: {feature_name}
-   Description: Autonomous execution of {prd_slug}
-   ```
+#### Step 3a: Read GitHub Configuration
+
+Read owner settings from CLAUDE.md:
+
+```bash
+OWNER=$(grep -A5 "### GitHub Configuration" CLAUDE.md | grep "Owner |" | head -1 | awk -F'|' '{print $3}' | tr -d ' ')
+OWNER_TYPE=$(grep -A5 "### GitHub Configuration" CLAUDE.md | grep "Owner Type |" | head -1 | awk -F'|' '{print $3}' | tr -d ' ')
+
+if [ "$OWNER_TYPE" = "personal" ]; then
+  PROJECT_OWNER="@me"
+else
+  PROJECT_OWNER="$OWNER"
+fi
+```
+
+**If GitHub Configuration is missing, STOP and report:**
+
+```
+❌ GitHub Configuration not found in CLAUDE.md
+
+GitHub Projects require owner configuration.
+Run /karimo:configure to set up GitHub settings.
+```
+
+#### Step 3b: Check if Project Exists (Idempotency)
+
+Before creating a project, check if one already exists for this PRD:
+
+```bash
+EXISTING=$(gh project list --owner "$PROJECT_OWNER" --format json | \
+  jq -r --arg title "KARIMO: {feature_name}" \
+  '.projects[] | select(.title == $title) | .number')
+
+if [ -n "$EXISTING" ]; then
+  PROJECT_NUMBER=$EXISTING
+  echo "Using existing project #$PROJECT_NUMBER"
+else
+  PROJECT_NUMBER=$(gh project create --owner "$PROJECT_OWNER" \
+    --title "KARIMO: {feature_name}" --format json | jq -r '.number')
+  echo "Created new project #$PROJECT_NUMBER"
+fi
+```
+
+This ensures re-running `/karimo:execute` on the same PRD reuses the existing project rather than failing.
+
+#### Step 3c: Configure Project
+
+1. **Add custom fields** (if not exists):
+   - `complexity` (Number)
+   - `depends_on` (Text)
+   - `files_affected` (Text)
+   - `agent_status` (Single Select: queued / running / in-review / needs-revision / needs-human-review / done / failed / needs-human-rebase / paused)
+   - `pr_number` (Number)
+   - `revision_count` (Number)
+   - `model` (Text — "sonnet" or "opus")
+   - `loop_count` (Number)
 
 2. **Add custom fields:**
    - `complexity` (Number)
