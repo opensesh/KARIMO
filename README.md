@@ -15,11 +15,7 @@
 
 ## What is KARIMO?
 
-**KARIMO** = **Karim** + **Mo**rgan + the **O** in agentic l**o**ops.
-
-Named after Open Session's founders, KARIMO is an autonomous development methodology that turns you into the architect while AI agents do the building.
-
-You describe what you want. Agents plan, execute, and ship. You review and merge. That's the loop.
+A product design and development framework based on the typical development cycle inside most big tech companies. This is a PRD-driven framework that starts with a detailed plan for a feature. Agents help plan, execute, and ship. You review and merge. That's the loop.
 
 > **Philosophy:** You are the architect, agents are the builders, Greptile is the inspector.
 
