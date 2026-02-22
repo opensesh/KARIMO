@@ -400,6 +400,110 @@ Check 5: Phase Assessment
       ○ auth-refactor     ready (for execution)
 ```
 
+### Check 6: Execution Health
+
+**Purpose:** Detect inconsistencies between status.json, git state, and GitHub that indicate interrupted execution.
+
+**Skip this check if no active PRDs exist.**
+
+#### 6a. Stale Running Tasks
+
+Detect tasks marked "running" for > 4 hours:
+
+```bash
+# For each active PRD, parse status.json
+# Compare started_at timestamps to current time
+# If elapsed > 4 hours, report as stale
+
+for prd in .karimo/prds/*/status.json; do
+  # Parse running tasks with started_at
+  # Calculate elapsed time
+  # Report if > 4 hours (14400 seconds)
+done
+```
+
+#### 6b. Orphaned Worktrees
+
+Detect worktrees in filesystem not tracked in status.json:
+
+```bash
+# List all worktrees
+git worktree list | grep ".worktrees/"
+
+# Compare against status.json worktree entries
+# Report any worktrees not in status.json
+```
+
+#### 6c. Ghost Branches
+
+Detect branches referenced in status.json that no longer exist:
+
+```bash
+# Extract branch names from status.json
+# Check each with: git rev-parse --verify {branch} 2>/dev/null
+# Report missing branches
+```
+
+#### 6d. Status-PR Mismatch
+
+Detect PRs that merged but status.json still shows `in-review`:
+
+```bash
+# Get merged PRs with karimo label
+gh pr list --repo {owner}/{repo} --label karimo --state merged --json number
+
+# Check status.json for tasks with matching pr_number still "in-review"
+# Report mismatches
+```
+
+#### 6e. Pending Cleanup
+
+Detect worktrees marked "pending-cleanup" for > 6 hours:
+
+```bash
+# Find tasks with worktree_status: "pending-cleanup"
+# Compare merged_at to current time
+# Check if worktree still exists on disk
+# Report stale cleanup
+```
+
+**Example output:**
+
+```
+Check 6: Execution Health
+─────────────────────────
+
+  ⚠️  Stale running tasks (2)
+      [2a] user-profiles — 6h 23m (threshold: 4h)
+      [1c] token-studio — 4h 15m
+
+  ⚠️  Pending cleanup (1)
+      .worktrees/user-profiles/1a — 8h since merge
+
+  ✅ No orphaned worktrees
+  ✅ No ghost branches
+  ✅ No status-PR mismatches
+
+  Recovery:
+    /karimo:execute --prd user-profiles
+    /karimo:execute --prd token-studio
+```
+
+**Example output (healthy):**
+
+```
+Check 6: Execution Health
+─────────────────────────
+
+  ✅ No stale running tasks
+  ✅ No orphaned worktrees
+  ✅ No ghost branches
+  ✅ No status-PR mismatches
+  ✅ No pending cleanup
+
+  Execution state is consistent.
+```
+
 ## Output Format
 
 Use KARIMO box-style header:
@@ -427,7 +531,7 @@ End with a summary of findings:
 Summary
 ───────
 
-  ✅ 6 checks passed
+  ✅ 7 checks passed
   ⚠️  1 warning (placeholder in config)
   ❌ 0 errors
 

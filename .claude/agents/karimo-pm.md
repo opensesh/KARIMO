@@ -444,13 +444,13 @@ git rebase feature/{prd-slug}
 
 After a task completes successfully, extract and propagate findings to downstream tasks.
 
-**Step 1: Read Worker's findings.json**
+**Step 1: Read Worker's findings.md**
 
 Check if the worker produced a findings file:
 
 ```bash
-if [ -f ".worktrees/{prd-slug}/{task-id}/findings.json" ]; then
-  cat ".worktrees/{prd-slug}/{task-id}/findings.json"
+if [ -f ".worktrees/{prd-slug}/{task-id}/findings.md" ]; then
+  cat ".worktrees/{prd-slug}/{task-id}/findings.md"
 fi
 ```
 
