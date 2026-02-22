@@ -89,8 +89,11 @@ If the PRD metadata includes `cross_feature_blockers`, verify those features are
 ```bash
 # For each blocker in cross_feature_blockers:
 if [ -f ".karimo/prds/${blocker_slug}/status.json" ]; then
-  status=$(jq -r '.status' ".karimo/prds/${blocker_slug}/status.json")
-  feature_merged=$(jq -r '.feature_merged_at // empty' ".karimo/prds/${blocker_slug}/status.json")
+  # Parse status.json using grep/sed (no jq dependency)
+  status=$(grep -o '"status"[[:space:]]*:[[:space:]]*"[^"]*"' ".karimo/prds/${blocker_slug}/status.json" | \
+    sed 's/.*"\([^"]*\)"$/\1/')
+  feature_merged=$(grep -o '"feature_merged_at"[[:space:]]*:[[:space:]]*"[^"]*"' \
+    ".karimo/prds/${blocker_slug}/status.json" 2>/dev/null | sed 's/.*"\([^"]*\)"$/\1/' || echo "")
 fi
 ```
 
@@ -220,16 +223,16 @@ Run /karimo:configure to set up GitHub settings.
 Before creating a project, check if one already exists for this PRD:
 
 ```bash
-EXISTING=$(gh project list --owner "$PROJECT_OWNER" --format json | \
-  jq -r --arg title "KARIMO: {feature_name}" \
-  '.projects[] | select(.title == $title) | .number')
+# Use gh CLI's built-in --jq flag (no external jq dependency)
+EXISTING=$(gh project list --owner "$PROJECT_OWNER" --format json \
+  --jq ".projects[] | select(.title == \"KARIMO: {feature_name}\") | .number")
 
 if [ -n "$EXISTING" ]; then
   PROJECT_NUMBER=$EXISTING
   echo "Using existing project #$PROJECT_NUMBER"
 else
   PROJECT_NUMBER=$(gh project create --owner "$PROJECT_OWNER" \
-    --title "KARIMO: {feature_name}" --format json | jq -r '.number')
+    --title "KARIMO: {feature_name}" --format json --jq '.number')
   echo "Created new project #$PROJECT_NUMBER"
 fi
 ```
