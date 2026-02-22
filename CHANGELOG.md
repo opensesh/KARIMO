@@ -7,6 +7,48 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [3.0.3] - 2026-02-22
+
+### Added
+
+- **GitHub Configuration Detection** — Automatically detect and store GitHub repository settings
+  - Investigator agent now detects owner type (personal/org), owner name, repo name, default branch
+  - Configure command adds Step 4.5: GitHub Configuration
+  - Writes `### GitHub Configuration` table to CLAUDE.md
+
+- **GitHub Project Access Validation** — Pre-flight checks for project permissions
+  - Doctor command adds Check 1.5: GitHub Project Access
+  - Execute command validates GitHub config and project access before starting
+  - Clear error messages with remediation steps (`gh auth refresh -s project`)
+
+- **Idempotent Project Creation** — Re-running execute reuses existing projects
+  - PM agent checks for existing project before creating new one
+  - github-project-ops skill updated with idempotent creation pattern
+
+### Changed
+
+- **PM Agent Step 3** — Now reads owner from CLAUDE.md instead of hardcoding
+  - Step 3a: Read GitHub Configuration
+  - Step 3b: Check if Project Exists (idempotency)
+  - Step 3c: Configure Project
+
+- **github-project-ops Skill** — Added owner resolution section
+  - `Resolve Project Owner` section reads from CLAUDE.md
+  - Replaced hardcoded `{org}` with dynamic `$PROJECT_OWNER`
+  - Added validation commands for config and access
+
+### Updated
+
+**Files Modified:**
+- `karimo-investigator.md` — GitHub repo detection in context-scan and drift-check
+- `configure.md` — Step 4.5: GitHub Configuration (section numbering updated)
+- `doctor.md` — Check 1.5: GitHub Project Access
+- `execute.md` — GitHub pre-flight checks and error handling
+- `karimo-pm.md` — Step 3 rewritten for config-driven owner resolution
+- `github-project-ops.md` — Owner resolution and idempotent project creation
+
+---
+
 ## [3.0.2] - 2026-02-22
 
 ### Changed
