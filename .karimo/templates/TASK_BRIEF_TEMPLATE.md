@@ -37,7 +37,7 @@
 ## Rules
 
 - Follow `.claude/KARIMO_RULES.md` for commit standards, boundaries, and code quality
-- Stay within your worktree: `.worktrees/{prd-slug}/{task-id}`
+- Execute all work in the working directory provided by the PM agent
 - Run validation before committing: {config.commands.build}, {config.commands.typecheck}
 - Do NOT modify files matching `never_touch` patterns
 - Flag `require_review` files in your commit message

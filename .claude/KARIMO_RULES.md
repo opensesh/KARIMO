@@ -66,8 +66,8 @@ KARIMO agents execute tasks defined in PRDs. The human architect designs the fea
 
 ### 2. Worktree Discipline
 
-- **Stay in your worktree.** Each task has its own worktree in `.worktrees/{prd-slug}/{task-id}`.
-- **Don't modify other worktrees.** Your changes should only affect your assigned branch.
+- **Work in your assigned directory.** The PM agent sets your working directory when spawning.
+- **Don't navigate outside your directory.** Your changes should only affect your assigned branch.
 - **Commit frequently.** Make atomic commits that can be understood independently.
 
 ### 3. Pre-PR Validation

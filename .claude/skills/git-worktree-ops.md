@@ -6,6 +6,17 @@ Patterns and commands for managing git worktrees in KARIMO execution.
 
 KARIMO uses git worktrees to enable parallel task execution. Each task gets its own worktree with an isolated working directory, allowing multiple agents to work simultaneously without conflicts.
 
+## KARIMO vs Native Claude Code Worktrees
+
+Claude Code supports automatic worktree isolation via `isolation: worktree` frontmatter.
+KARIMO does **not** use this feature because:
+
+1. **Path Control:** KARIMO needs deterministic paths for status tracking and TTL cleanup
+2. **Branch Naming:** KARIMO requires `feature/{prd-slug}/{task-id}` branch naming
+3. **Lifecycle Management:** Worktrees persist through review cycles (not auto-cleanup)
+
+KARIMO creates worktrees manually in Step 4 of the PM agent's execution flow.
+
 ## Directory Structure
 
 ```
