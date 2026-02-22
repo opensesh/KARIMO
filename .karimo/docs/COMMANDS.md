@@ -8,10 +8,9 @@ Reference for all KARIMO slash commands available in Claude Code.
 
 | Command | Purpose |
 |---------|---------|
-| `/karimo:plan` | Start PRD interview |
-| `/karimo:review` | Review and approve PRD before execution |
+| `/karimo:plan` | Start PRD interview with interactive approval |
 | `/karimo:overview` | Cross-PRD oversight dashboard |
-| `/karimo:execute` | Execute tasks from PRD |
+| `/karimo:execute` | Execute tasks from PRD (brief gen + execution) |
 | `/karimo:status` | View execution progress |
 | `/karimo:configure` | Create or update CLAUDE.md configuration |
 | `/karimo:feedback` | Quick capture of single learnings |
@@ -22,7 +21,7 @@ Reference for all KARIMO slash commands available in Claude Code.
 
 ## /karimo:plan
 
-Start a structured PRD interview to define a new feature.
+Start a structured PRD interview to define a new feature, with interactive approval.
 
 ### Usage
 
@@ -36,6 +35,7 @@ Start a structured PRD interview to define a new feature.
 2. **Investigation** — Scans codebase for patterns
 3. **Conversation** — 5-round structured interview
 4. **Review** — Validates and generates task DAG
+5. **Interactive Approval** — Approve, modify, or save as draft
 
 ### Interview Rounds
 
@@ -46,6 +46,14 @@ Start a structured PRD interview to define a new feature.
 | 3 | Investigation | Agent scans codebase |
 | 4 | Tasks | Break into executable units |
 | 5 | Review | Validate and finalize |
+| 6 | Approve | Confirm PRD is ready for execution |
+
+### Approval Options
+
+After the review round, you'll see a summary with options:
+- **Approve** — Marks PRD as `ready` for execution
+- **Modify** — Make changes and re-run the reviewer
+- **Save as draft** — Come back later with `/karimo:plan --resume {slug}`
 
 ### Output
 
@@ -63,58 +71,6 @@ Creates `.karimo/prds/{slug}/`:
 > I want to add user profile pages where users can edit their
 > name, avatar, and notification preferences.
 ```
-
----
-
-## /karimo:review
-
-Review and approve PRDs before execution begins. This is the **human checkpoint** between planning and execution.
-
-### Usage
-
-```
-/karimo:review --prd {slug}     # Review and approve a specific PRD
-/karimo:review --pending        # List PRDs ready for approval
-/karimo:review                  # Same as --pending (no default dashboard)
-```
-
-### Mode 1: PRD Approval (`--prd {slug}`)
-
-Review and approve a specific PRD before execution begins.
-
-```
-/karimo:review --prd user-profiles
-```
-
-What It Does:
-1. **Display** PRD summary with task breakdown
-2. **Request approval** — approve all, exclude tasks, or return to planning
-3. **Generate briefs** — self-contained task briefs for each approved task
-4. **Update status** — marks PRD as `approved`
-
-### Mode 2: List Pending (`--pending`)
-
-Show PRDs waiting for initial approval. This is the default mode when no arguments are provided.
-
-```
-/karimo:review --pending
-
-PRDs Ready for Review:
-
-  001_user-profiles     ready     6 tasks (4 must, 2 should)
-  002_token-studio      ready     8 tasks (5 must, 3 should)
-
-Run: /karimo:review --prd user-profiles
-```
-
-### Why This Command Exists
-
-Creates a deliberate checkpoint between planning and execution:
-- Ensures human sign-off before agents start working
-- Allows excluding tasks from execution
-- Generates portable task briefs for agent handoff
-
-For cross-PRD oversight (blocked tasks, revision loops, completions), see `/karimo:overview`.
 
 ---
 
@@ -181,7 +137,7 @@ Check this each morning or after a run completes.
 
 ## /karimo:execute
 
-Execute tasks from a finalized PRD.
+Execute tasks from a finalized PRD. Two-phase flow: brief generation, then execution.
 
 ### Usage
 
@@ -199,16 +155,22 @@ Execute tasks from a finalized PRD.
 
 ### What It Does
 
+**Phase 1: Brief Generation**
+1. **Generates** task briefs for each task
+2. **Presents** briefs for user review
+3. **Options**: Execute all, Adjust briefs, Exclude tasks, Cancel
+
+**Phase 2: Execution**
 1. **Reads** `dag.json` for dependencies
 2. **Creates** feature branch and worktrees
-3. **Spawns** agents for ready tasks
+3. **Spawns** agents with pre-generated briefs
 4. **Monitors** progress and propagates findings
 5. **Creates** PRs when tasks complete
 
 ### Execution Flow
 
 ```
-Parse DAG → Create Worktrees → Execute Tasks → Pre-PR Checks → Create PRs
+Generate Briefs → User Review → Create Worktrees → Execute Tasks → Create PRs
 ```
 
 ### Example
@@ -579,7 +541,6 @@ Commands are defined in `.claude/commands/`:
 | File | Command |
 |------|---------|
 | `plan.md` | `/karimo:plan` |
-| `review.md` | `/karimo:review` |
 | `overview.md` | `/karimo:overview` |
 | `execute.md` | `/karimo:execute` |
 | `status.md` | `/karimo:status` |
@@ -587,6 +548,7 @@ Commands are defined in `.claude/commands/`:
 | `feedback.md` | `/karimo:feedback` |
 | `learn.md` | `/karimo:learn` |
 | `doctor.md` | `/karimo:doctor` |
+| `test.md` | `/karimo:test` |
 
 ---
 
