@@ -208,6 +208,7 @@ These settings control cost and quality tradeoffs:
 
   Greptile enabled: [no]
     Requires GREPTILE_API_KEY secret in repository
+    Run /karimo:doctor to verify secrets are configured
 
 Accept these values? [Y/n/edit]
 ```
