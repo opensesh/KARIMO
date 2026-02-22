@@ -2,6 +2,7 @@
 
 # KARIMO v2 Installation Script
 # Installs KARIMO into a target project
+# Uses MANIFEST.json as the single source of truth for file inventory
 
 set -e
 
@@ -15,15 +16,35 @@ NC='\033[0m' # No Color
 # Get script directory (where KARIMO source lives)
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 KARIMO_ROOT="$(dirname "$SCRIPT_DIR")"
+MANIFEST="$SCRIPT_DIR/MANIFEST.json"
+
+# Verify manifest exists
+if [ ! -f "$MANIFEST" ]; then
+    echo -e "${RED}Error: MANIFEST.json not found at $MANIFEST${NC}"
+    echo "KARIMO source may be corrupted. Please re-download."
+    exit 1
+fi
+
+# Verify jq is available (required for manifest parsing)
+if ! command -v jq &> /dev/null; then
+    echo -e "${RED}Error: jq is required but not installed${NC}"
+    echo "Install with: brew install jq (macOS) or apt-get install jq (Linux)"
+    exit 1
+fi
 
 # Parse arguments
 SKIP_CONFIG=false
+CI_MODE=false
 TARGET_DIR=""
 
 for arg in "$@"; do
     case $arg in
         --skip-config)
             SKIP_CONFIG=true
+            ;;
+        --ci)
+            CI_MODE=true
+            SKIP_CONFIG=true  # CI mode implies skip-config
             ;;
         *)
             if [ -z "$TARGET_DIR" ]; then
@@ -49,23 +70,31 @@ fi
 
 # Check if target is a git repository
 if [ ! -d "$TARGET_DIR/.git" ]; then
-    echo -e "${YELLOW}Warning: Target is not a git repository.${NC}"
-    read -p "Continue anyway? (y/n) " -n 1 -r
-    echo
-    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-        exit 1
+    if [ "$CI_MODE" = true ]; then
+        echo "CI mode: target is not a git repository, continuing anyway"
+    else
+        echo -e "${YELLOW}Warning: Target is not a git repository.${NC}"
+        read -p "Continue anyway? (y/n) " -n 1 -r
+        echo
+        if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+            exit 1
+        fi
     fi
 fi
 
 # Check for existing installation
 if [ -d "$TARGET_DIR/.karimo" ] && [ -d "$TARGET_DIR/.claude/commands" ]; then
-    echo -e "${YELLOW}KARIMO appears to already be installed.${NC}"
-    echo -e "${YELLOW}This will overwrite all KARIMO command and agent files.${NC}"
-    echo -e "${YELLOW}Use update.sh to preview changes first.${NC}"
-    read -p "Reinstall anyway? (y/n) " -n 1 -r
-    echo
-    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-        exit 0
+    if [ "$CI_MODE" = true ]; then
+        echo "CI mode: overwriting existing installation"
+    else
+        echo -e "${YELLOW}KARIMO appears to already be installed.${NC}"
+        echo -e "${YELLOW}This will overwrite all KARIMO command and agent files.${NC}"
+        echo -e "${YELLOW}Use update.sh to preview changes first.${NC}"
+        read -p "Reinstall anyway? (y/n) " -n 1 -r
+        echo
+        if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+            exit 0
+        fi
     fi
 fi
 
@@ -82,61 +111,73 @@ mkdir -p "$TARGET_DIR/.karimo/prds"
 mkdir -p "$TARGET_DIR/.github/workflows"
 mkdir -p "$TARGET_DIR/.github/ISSUE_TEMPLATE"
 
-# Copy agents
+# ==============================================================================
+# MANIFEST-DRIVEN FILE INSTALLATION
+# ==============================================================================
+
+# Copy agents from manifest
 echo "Copying agents..."
-cp "$KARIMO_ROOT/.claude/agents/karimo-interviewer.md" "$TARGET_DIR/.claude/agents/"
-cp "$KARIMO_ROOT/.claude/agents/karimo-investigator.md" "$TARGET_DIR/.claude/agents/"
-cp "$KARIMO_ROOT/.claude/agents/karimo-reviewer.md" "$TARGET_DIR/.claude/agents/"
-cp "$KARIMO_ROOT/.claude/agents/karimo-brief-writer.md" "$TARGET_DIR/.claude/agents/"
-cp "$KARIMO_ROOT/.claude/agents/karimo-pm.md" "$TARGET_DIR/.claude/agents/"
-cp "$KARIMO_ROOT/.claude/agents/karimo-review-architect.md" "$TARGET_DIR/.claude/agents/"
-cp "$KARIMO_ROOT/.claude/agents/karimo-learn-auditor.md" "$TARGET_DIR/.claude/agents/"
-# Task agents
-cp "$KARIMO_ROOT/.claude/agents/karimo-implementer.md" "$TARGET_DIR/.claude/agents/"
-cp "$KARIMO_ROOT/.claude/agents/karimo-tester.md" "$TARGET_DIR/.claude/agents/"
-cp "$KARIMO_ROOT/.claude/agents/karimo-documenter.md" "$TARGET_DIR/.claude/agents/"
+AGENT_COUNT=0
+for agent in $(jq -r '.agents[]' "$MANIFEST"); do
+    if [ -f "$KARIMO_ROOT/.claude/agents/$agent" ]; then
+        cp "$KARIMO_ROOT/.claude/agents/$agent" "$TARGET_DIR/.claude/agents/"
+        AGENT_COUNT=$((AGENT_COUNT + 1))
+    else
+        echo -e "  ${YELLOW}Warning: Agent not found: $agent${NC}"
+    fi
+done
+echo "  Copied $AGENT_COUNT agents"
 
-# Copy commands
+# Copy commands from manifest
 echo "Copying commands..."
-cp "$KARIMO_ROOT/.claude/commands/plan.md" "$TARGET_DIR/.claude/commands/"
-cp "$KARIMO_ROOT/.claude/commands/review.md" "$TARGET_DIR/.claude/commands/"
-cp "$KARIMO_ROOT/.claude/commands/execute.md" "$TARGET_DIR/.claude/commands/"
-cp "$KARIMO_ROOT/.claude/commands/feedback.md" "$TARGET_DIR/.claude/commands/"
-cp "$KARIMO_ROOT/.claude/commands/status.md" "$TARGET_DIR/.claude/commands/"
-cp "$KARIMO_ROOT/.claude/commands/learn.md" "$TARGET_DIR/.claude/commands/"
-cp "$KARIMO_ROOT/.claude/commands/doctor.md" "$TARGET_DIR/.claude/commands/"
-cp "$KARIMO_ROOT/.claude/commands/configure.md" "$TARGET_DIR/.claude/commands/"
-cp "$KARIMO_ROOT/.claude/commands/overview.md" "$TARGET_DIR/.claude/commands/"
-cp "$KARIMO_ROOT/.claude/commands/test.md" "$TARGET_DIR/.claude/commands/"
+COMMAND_COUNT=0
+for cmd in $(jq -r '.commands[]' "$MANIFEST"); do
+    if [ -f "$KARIMO_ROOT/.claude/commands/$cmd" ]; then
+        cp "$KARIMO_ROOT/.claude/commands/$cmd" "$TARGET_DIR/.claude/commands/"
+        COMMAND_COUNT=$((COMMAND_COUNT + 1))
+    else
+        echo -e "  ${YELLOW}Warning: Command not found: $cmd${NC}"
+    fi
+done
+echo "  Copied $COMMAND_COUNT commands"
 
-# Copy skills
+# Copy skills from manifest
 echo "Copying skills..."
-cp "$KARIMO_ROOT/.claude/skills/git-worktree-ops.md" "$TARGET_DIR/.claude/skills/"
-cp "$KARIMO_ROOT/.claude/skills/github-project-ops.md" "$TARGET_DIR/.claude/skills/"
-# Task agent skills
-cp "$KARIMO_ROOT/.claude/skills/karimo-code-standards.md" "$TARGET_DIR/.claude/skills/"
-cp "$KARIMO_ROOT/.claude/skills/karimo-testing-standards.md" "$TARGET_DIR/.claude/skills/"
-cp "$KARIMO_ROOT/.claude/skills/karimo-doc-standards.md" "$TARGET_DIR/.claude/skills/"
+SKILL_COUNT=0
+for skill in $(jq -r '.skills[]' "$MANIFEST"); do
+    if [ -f "$KARIMO_ROOT/.claude/skills/$skill" ]; then
+        cp "$KARIMO_ROOT/.claude/skills/$skill" "$TARGET_DIR/.claude/skills/"
+        SKILL_COUNT=$((SKILL_COUNT + 1))
+    else
+        echo -e "  ${YELLOW}Warning: Skill not found: $skill${NC}"
+    fi
+done
+echo "  Copied $SKILL_COUNT skills"
 
-# Copy templates
+# Copy templates from manifest
 echo "Copying templates..."
-cp "$KARIMO_ROOT/.karimo/templates/PRD_TEMPLATE.md" "$TARGET_DIR/.karimo/templates/"
-cp "$KARIMO_ROOT/.karimo/templates/INTERVIEW_PROTOCOL.md" "$TARGET_DIR/.karimo/templates/"
-cp "$KARIMO_ROOT/.karimo/templates/TASK_SCHEMA.md" "$TARGET_DIR/.karimo/templates/"
-cp "$KARIMO_ROOT/.karimo/templates/STATUS_SCHEMA.md" "$TARGET_DIR/.karimo/templates/"
-cp "$KARIMO_ROOT/.karimo/templates/LEARN_INTERVIEW_PROTOCOL.md" "$TARGET_DIR/.karimo/templates/"
-cp "$KARIMO_ROOT/.karimo/templates/FINDINGS_TEMPLATE.md" "$TARGET_DIR/.karimo/templates/"
-cp "$KARIMO_ROOT/.karimo/templates/TASK_BRIEF_TEMPLATE.md" "$TARGET_DIR/.karimo/templates/"
+TEMPLATE_COUNT=0
+for template in $(jq -r '.templates[]' "$MANIFEST"); do
+    if [ -f "$KARIMO_ROOT/.karimo/templates/$template" ]; then
+        cp "$KARIMO_ROOT/.karimo/templates/$template" "$TARGET_DIR/.karimo/templates/"
+        TEMPLATE_COUNT=$((TEMPLATE_COUNT + 1))
+    else
+        echo -e "  ${YELLOW}Warning: Template not found: $template${NC}"
+    fi
+done
+echo "  Copied $TEMPLATE_COUNT templates"
 
-# Copy version tracking
+# Copy version tracking and manifest
 echo "Setting version..."
 cp "$KARIMO_ROOT/.karimo/VERSION" "$TARGET_DIR/.karimo/VERSION"
+cp "$MANIFEST" "$TARGET_DIR/.karimo/MANIFEST.json"
 
-# Copy GitHub workflows (Three-Tier System)
+# ==============================================================================
+# WORKFLOW INSTALLATION (Tiered System)
+# ==============================================================================
+
 echo ""
 echo -e "${BLUE}GitHub Workflow Installation${NC}"
-echo "KARIMO uses a three-tier workflow system:"
-echo ""
 
 # Track installed workflows
 INSTALLED_SYNC="true"
@@ -144,46 +185,73 @@ INSTALLED_DEPENDENCY="true"
 INSTALLED_CI="false"
 INSTALLED_GREPTILE="false"
 
-# Tier 1: Always installed (required)
-echo "Tier 1 (Required):"
-echo "  - karimo-sync.yml: Status sync on PR merge"
-echo "  - karimo-dependency-watch.yml: Runtime dependency alerts"
-cp "$KARIMO_ROOT/.github/workflows/karimo-sync.yml" "$TARGET_DIR/.github/workflows/"
-cp "$KARIMO_ROOT/.github/workflows/karimo-dependency-watch.yml" "$TARGET_DIR/.github/workflows/"
-echo -e "  ${GREEN}Installed${NC}"
-echo ""
+if [ "$CI_MODE" = true ]; then
+    # CI mode: install all workflows from manifest without prompts
+    echo "CI mode: installing all workflows from manifest"
 
-# Tier 2: CI Integration (default Y)
-echo "Tier 2 (CI Integration):"
-echo "  - karimo-ci-integration.yml: Observes your existing CI, labels PRs"
-echo "  - This workflow does NOT run build commands - it watches external CI"
-echo ""
-read -p "Install CI integration workflow? (Y/n) " -n 1 -r CI_RESPONSE
-echo ""
-if [[ ! $CI_RESPONSE =~ ^[Nn]$ ]]; then
-    cp "$KARIMO_ROOT/.github/workflows/karimo-ci-integration.yml" "$TARGET_DIR/.github/workflows/"
+    # Copy required workflows
+    for workflow in $(jq -r '.workflows.required[]' "$MANIFEST"); do
+        if [ -f "$KARIMO_ROOT/.github/workflows/$workflow" ]; then
+            cp "$KARIMO_ROOT/.github/workflows/$workflow" "$TARGET_DIR/.github/workflows/"
+        fi
+    done
+
+    # Copy optional workflows (all in CI mode)
+    for workflow in $(jq -r '.workflows.optional[]' "$MANIFEST"); do
+        if [ -f "$KARIMO_ROOT/.github/workflows/$workflow" ]; then
+            cp "$KARIMO_ROOT/.github/workflows/$workflow" "$TARGET_DIR/.github/workflows/"
+        fi
+    done
+
     INSTALLED_CI="true"
-    echo -e "  ${GREEN}Installed${NC}"
-else
-    echo -e "  ${YELLOW}Skipped${NC}"
-fi
-echo ""
-
-# Tier 3: Greptile Review (default N)
-echo "Tier 3 (Greptile Review):"
-echo "  - karimo-greptile-review.yml: Automated code review via Greptile"
-echo "  - Requires GREPTILE_API_KEY secret in your repository"
-echo ""
-read -p "Install Greptile review workflow? (y/N) " -n 1 -r GREPTILE_RESPONSE
-echo ""
-if [[ $GREPTILE_RESPONSE =~ ^[Yy]$ ]]; then
-    cp "$KARIMO_ROOT/.github/workflows/karimo-greptile-review.yml" "$TARGET_DIR/.github/workflows/"
     INSTALLED_GREPTILE="true"
-    echo -e "  ${GREEN}Installed${NC}"
+    echo -e "  ${GREEN}All workflows installed${NC}"
 else
-    echo -e "  ${YELLOW}Skipped${NC}"
+    # Interactive mode: prompt for optional workflows
+    echo "KARIMO uses a three-tier workflow system:"
+    echo ""
+
+    # Tier 1: Always installed (required)
+    echo "Tier 1 (Required):"
+    echo "  - karimo-sync.yml: Status sync on PR merge"
+    echo "  - karimo-dependency-watch.yml: Runtime dependency alerts"
+    cp "$KARIMO_ROOT/.github/workflows/karimo-sync.yml" "$TARGET_DIR/.github/workflows/"
+    cp "$KARIMO_ROOT/.github/workflows/karimo-dependency-watch.yml" "$TARGET_DIR/.github/workflows/"
+    echo -e "  ${GREEN}Installed${NC}"
+    echo ""
+
+    # Tier 2: CI Integration (default Y)
+    echo "Tier 2 (CI Integration):"
+    echo "  - karimo-ci-integration.yml: Observes your existing CI, labels PRs"
+    echo "  - This workflow does NOT run build commands - it watches external CI"
+    echo ""
+    read -p "Install CI integration workflow? (Y/n) " -n 1 -r CI_RESPONSE
+    echo ""
+    if [[ ! $CI_RESPONSE =~ ^[Nn]$ ]]; then
+        cp "$KARIMO_ROOT/.github/workflows/karimo-ci-integration.yml" "$TARGET_DIR/.github/workflows/"
+        INSTALLED_CI="true"
+        echo -e "  ${GREEN}Installed${NC}"
+    else
+        echo -e "  ${YELLOW}Skipped${NC}"
+    fi
+    echo ""
+
+    # Tier 3: Greptile Review (default N)
+    echo "Tier 3 (Greptile Review):"
+    echo "  - karimo-greptile-review.yml: Automated code review via Greptile"
+    echo "  - Requires GREPTILE_API_KEY secret in your repository"
+    echo ""
+    read -p "Install Greptile review workflow? (y/N) " -n 1 -r GREPTILE_RESPONSE
+    echo ""
+    if [[ $GREPTILE_RESPONSE =~ ^[Yy]$ ]]; then
+        cp "$KARIMO_ROOT/.github/workflows/karimo-greptile-review.yml" "$TARGET_DIR/.github/workflows/"
+        INSTALLED_GREPTILE="true"
+        echo -e "  ${GREEN}Installed${NC}"
+    else
+        echo -e "  ${YELLOW}Skipped${NC}"
+    fi
+    echo ""
 fi
-echo ""
 
 # Copy issue template
 echo "Copying issue template..."
@@ -514,18 +582,25 @@ if [ "$INSTALLED_GREPTILE" = "true" ]; then
     WORKFLOW_COUNT=$((WORKFLOW_COUNT + 1))
 fi
 
+# Get counts from manifest for summary
+MANIFEST_AGENTS=$(jq '.agents | length' "$MANIFEST")
+MANIFEST_COMMANDS=$(jq '.commands | length' "$MANIFEST")
+MANIFEST_SKILLS=$(jq '.skills | length' "$MANIFEST")
+MANIFEST_TEMPLATES=$(jq '.templates | length' "$MANIFEST")
+
 echo
 echo -e "${GREEN}╭──────────────────────────────────────────────────────────────╮${NC}"
 echo -e "${GREEN}│  Installation Complete!                                      │${NC}"
 echo -e "${GREEN}╰──────────────────────────────────────────────────────────────╯${NC}"
 echo
 echo "Installed files:"
-echo "  .claude/agents/           10 agent definitions"
-echo "  .claude/commands/         10 slash commands"
-echo "  .claude/skills/           5 skill definitions"
+echo "  .claude/agents/           $MANIFEST_AGENTS agent definitions"
+echo "  .claude/commands/         $MANIFEST_COMMANDS slash commands"
+echo "  .claude/skills/           $MANIFEST_SKILLS skill definitions"
 echo "  .claude/KARIMO_RULES.md   Agent behavior rules"
-echo "  .karimo/templates/        7 templates"
+echo "  .karimo/templates/        $MANIFEST_TEMPLATES templates"
 echo "  .karimo/VERSION           Version tracking"
+echo "  .karimo/MANIFEST.json     File inventory"
 echo "  .github/ISSUE_TEMPLATE/   1 issue template"
 echo "  CLAUDE.md                 Updated with reference block"
 echo "  .gitignore                Updated with .worktrees/"
