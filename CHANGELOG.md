@@ -7,6 +7,50 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.7.1] - 2026-02-21
+
+### Added
+
+**Brief Count Validation**
+- `/karimo:review` now validates brief count after generation
+- Shows expected vs generated count with clear pass/fail status
+- Offers retry, exclude, or cancel options if briefs are missing
+- Prevents PRD approval with incomplete brief generation
+
+**First-Run Welcome Message**
+- `/karimo:plan` displays welcome message on first use (when no PRDs exist)
+- Explains the 5-round interview process before proceeding
+- Improves onboarding by setting expectations for new users
+
+**KARIMO CI Workflow**
+- New `karimo-ci.yml` validates installation integrity on push/PR
+- Tests install script in isolated fixture project
+- Verifies expected file counts: 10 agents, 10 commands, 5 skills, 7 templates
+- Checks KARIMO_RULES.md and VERSION file existence
+
+**Documentation**
+- README.md: Added `/karimo:test` to slash commands table
+- README.md: Added `overview.md` and `test.md` to directory listing
+- README.md: Added CHANGELOG.md link to documentation section
+
+### Changed
+
+**Reinstall Warning**
+- `install.sh` now explicitly warns that reinstallation overwrites all KARIMO files
+- Directs users to `update.sh` to preview changes first
+
+**Configure Command**
+- Added `/karimo:doctor` reference in Greptile configuration section
+- Helps users verify repository secrets are properly configured
+
+### Fixed
+
+**Uninstall Script**
+- Now runs `git worktree prune` to clean up stale worktree references
+- Prevents orphaned worktree entries after manual directory removal
+
+---
+
 ## [2.7.0] - 2026-02-21
 
 ### Added
