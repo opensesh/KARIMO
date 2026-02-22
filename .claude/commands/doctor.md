@@ -427,7 +427,7 @@ End with a summary of findings:
 Summary
 ───────
 
-  ✅ 5 checks passed
+  ✅ 6 checks passed
   ⚠️  1 warning (placeholder in config)
   ❌ 0 errors
 
@@ -443,6 +443,8 @@ Summary
 | Missing KARIMO section | `/karimo:configure` |
 | Configuration drift | `/karimo:configure` |
 | Placeholder values | `/karimo:configure` |
+| Missing GitHub config | `/karimo:configure` |
+| Project access denied | `gh auth refresh -s project` |
 | Missing files | Re-run installer |
 | PRD creation | `/karimo:plan` |
 
@@ -507,6 +509,18 @@ cat "$KARIMO_SOURCE_PATH/.karimo/VERSION" 2>/dev/null
 which claude
 gh auth status
 git --version
+
+# Check 1.5: GitHub Project Access
+grep -q "### GitHub Configuration" CLAUDE.md
+# Parse owner from CLAUDE.md
+OWNER=$(grep -A5 "### GitHub Configuration" CLAUDE.md | grep "Owner |" | head -1 | awk -F'|' '{print $3}' | tr -d ' ')
+OWNER_TYPE=$(grep -A5 "### GitHub Configuration" CLAUDE.md | grep "Owner Type |" | head -1 | awk -F'|' '{print $3}' | tr -d ' ')
+# Test project access
+if [ "$OWNER_TYPE" = "personal" ]; then
+  gh project list --owner @me --limit 1
+else
+  gh project list --owner "$OWNER" --limit 1
+fi
 
 # Check 2: Installation (manifest-driven, jq-free)
 # Helper functions for manifest parsing
