@@ -309,6 +309,8 @@ Ready tasks: {ready_count} (no dependencies)
 The PRD is ready for execution. Run:
 
   /karimo:execute --prd {slug}
+
+Tip: Need to adjust later? Run /karimo:modify --prd {slug}
 ```
 
 ### On Save as Draft (Option 3)
