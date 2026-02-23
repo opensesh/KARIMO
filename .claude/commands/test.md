@@ -162,15 +162,15 @@ Or for new installations:
 
 ### Test 5: CLAUDE.md Integration
 
-Verify KARIMO Framework section exists and parses correctly in CLAUDE.md.
+Verify KARIMO section exists in CLAUDE.md and required config files are present.
 
 ```bash
-# Check for KARIMO Framework section
-grep -q "## KARIMO Framework" CLAUDE.md && echo "Section found" || echo "Section missing"
+# Check for KARIMO section
+grep -q "## KARIMO" CLAUDE.md && echo "Section found" || echo "Section missing"
 
-# Check for key subsections
-grep -q "### Slash Commands" CLAUDE.md
-grep -q "### Project Context" CLAUDE.md
+# Check for required config files
+[ -f ".karimo/learnings.md" ] && echo "learnings.md found" || echo "learnings.md missing"
+[ -f ".claude/KARIMO_RULES.md" ] && echo "KARIMO_RULES.md found" || echo "KARIMO_RULES.md missing"
 ```
 
 **Output:**
@@ -178,10 +178,9 @@ grep -q "### Project Context" CLAUDE.md
 Test 5: CLAUDE.md Integration
 ─────────────────────────────
 
-  ✅ KARIMO Framework section    Present
-  ✅ Project Context subsection  Present
-  ✅ Slash Commands subsection   Present
-  ✅ Workflows subsection        Present
+  ✅ KARIMO section        Present in CLAUDE.md
+  ✅ learnings.md          Present in .karimo/
+  ✅ KARIMO_RULES.md       Present in .claude/
 ```
 
 ## Output Format
