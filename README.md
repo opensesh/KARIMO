@@ -119,7 +119,7 @@ Updates never overwrite your configuration or break your environment:
 bash KARIMO/.karimo/update.sh /path/to/your/project
 ```
 
-- Your `CLAUDE.md` and custom agents are preserved
+- Your `CLAUDE.md`, custom agents, `config.yaml`, and `learnings.md` are preserved
 - Shows diff before applying changes
 - KARIMO agents use `karimo-*` prefix to avoid conflicts
 
@@ -195,14 +195,15 @@ Behavior rules: [`KARIMO_RULES.md`](.claude/KARIMO_RULES.md)
 
 ## Configuration
 
-Configuration lives in `CLAUDE.md` and is auto-detected on first `/karimo:plan`:
+Configuration lives in `.karimo/config.yaml` (run `/karimo:configure` after install):
 
 - **Runtime** — Node.js, Bun, Deno, Python, etc.
 - **Framework** — Next.js, React, Vue, FastAPI, etc.
 - **Commands** — build, lint, test, typecheck
 - **Boundaries** — Files agents must not touch
+- **Learnings** — Stored separately in `.karimo/learnings.md`
 
-Run `/karimo:configure` to update configuration manually.
+CLAUDE.md contains only a minimal reference block (~8 lines).
 
 ---
 
