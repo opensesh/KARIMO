@@ -43,13 +43,13 @@ git clone https://github.com/opensesh/KARIMO.git
 bash KARIMO/.karimo/install.sh /path/to/your/project
 ```
 
-**Auto-Detection:** The installer automatically detects your project configuration:
+**Configuration:** After installation, run `/karimo:configure` to auto-detect your project:
 - Package manager (pnpm, yarn, npm, bun, poetry, etc.)
 - Runtime (Node.js, Bun, Deno, Python, Go, Rust)
 - Framework (Next.js, Nuxt, SvelteKit, Astro, etc.)
 - Build commands from package.json scripts
 
-If detection succeeds, CLAUDE.md is populated with actual values instead of `_pending_` placeholders.
+Configuration is written to `.karimo/config.yaml`.
 
 **Options:**
 - `--ci` — CI mode: non-interactive, installs all workflows, skips prompts
@@ -92,8 +92,9 @@ This installs:
 - Skills to `.claude/skills/`
 - Agent rules to `.claude/KARIMO_RULES.md`
 - Templates to `.karimo/templates/`
+- Learnings template to `.karimo/learnings.md`
 - GitHub Actions based on your tier selections
-- Reference block appended to `CLAUDE.md`
+- Minimal reference block appended to `CLAUDE.md` (~8 lines)
 
 ### 3. Verify Installation
 
@@ -117,7 +118,7 @@ bash KARIMO/.karimo/update.sh /path/to/your/project
 
 This shows a diff of what changed and asks for confirmation before applying updates.
 
-Your `CLAUDE.md` and `.gitignore` are never overwritten.
+Your existing `CLAUDE.md`, `.karimo/config.yaml`, `.karimo/learnings.md`, and `.gitignore` are never overwritten.
 
 ---
 
@@ -130,7 +131,7 @@ KARIMO works whether you're starting fresh or adding to an existing Claude Code 
 If your project doesn't have `.claude/` yet:
 
 1. Run `install.sh` as shown above
-2. New `CLAUDE.md` created with KARIMO reference block
+2. New `CLAUDE.md` created with minimal KARIMO reference block (~8 lines)
 3. All components installed to empty directories
 4. Ready to use immediately
 
@@ -149,9 +150,9 @@ If your project already has `.claude/` with custom agents, commands, or `CLAUDE.
 - 10 slash commands (prefixed `karimo:`)
 - 5 KARIMO skills
 - `.claude/KARIMO_RULES.md`
-- `.karimo/` directory with templates and manifest
+- `.karimo/` directory with templates, manifest, and learnings
 - GitHub Actions workflows
-- Reference block appended to `CLAUDE.md`
+- Minimal reference block appended to `CLAUDE.md` (~8 lines)
 
 **Naming conflicts:** KARIMO agents use the `karimo-` prefix and commands use the `karimo:` prefix to avoid conflicts with your existing configuration. If you happen to have agents named `karimo-interviewer`, `karimo-investigator`, etc., rename yours before installing.
 
@@ -312,49 +313,43 @@ If you notice agent patterns worth capturing:
 > "Always use the existing Button component"
 ```
 
-This appends rules to `CLAUDE.md` for future agents.
+This appends rules to `.karimo/learnings.md` for future agents.
 
 ---
 
 ## Configuration
 
-Configuration is stored in `CLAUDE.md` (single source of truth). The `## KARIMO Framework` section contains tables for project context, commands, and boundaries.
+Configuration is stored in `.karimo/config.yaml` (single source of truth). Learnings are stored separately in `.karimo/learnings.md`.
 
-### Auto-Detection During Install
+### Configure After Install
 
-When you run `install.sh`, it automatically detects:
+After running `install.sh`, configure your project:
+
+```
+/karimo:configure
+```
+
+This auto-detects and writes to `.karimo/config.yaml`:
 - **Runtime** — Node.js, Bun, Deno, Python, Go, Rust
 - **Framework** — Next.js, Nuxt, SvelteKit, Astro, Vue, etc.
 - **Package manager** — pnpm, yarn, npm, bun, poetry, pip
 - **Commands** — build, lint, test, typecheck from package.json
 - **Boundaries** — Default patterns for lock files, .env files, migrations, auth
-
-If detection succeeds, CLAUDE.md is populated with actual values instead of `_pending_` placeholders.
+- **GitHub** — Owner, repository, default branch
 
 ### Verify Configuration
 
-After installation, verify configuration is valid:
+After configuration, verify everything is valid:
 
 ```
 /karimo:doctor
 ```
 
 This checks for:
-- KARIMO Framework section exists in CLAUDE.md
-- No `_pending_` markers remaining
+- KARIMO section exists in CLAUDE.md
+- `.karimo/config.yaml` exists with valid structure
+- `.karimo/learnings.md` exists
 - Configuration drift (values vs actual project state)
-
-### Configure or Update
-
-If doctor reports issues, or you need to change configuration:
-
-```
-/karimo:configure
-```
-
-This walks you through 5 configuration sections (~5 min) and:
-- Updates CLAUDE.md tables with your values
-- Replaces any remaining `_pending_` markers
 
 ---
 
@@ -410,10 +405,6 @@ cp KARIMO/.github/workflows/karimo-ci-integration.yml .github/workflows/
 
 The CI Integration workflow only monitors external CI. If you don't have GitHub Actions, CircleCI, Jenkins, or similar, it will apply `ci-skipped`. This is expected — add CI workflows to your project and KARIMO will automatically detect them.
 
-### "CLAUDE.md too long"
-
-If your CLAUDE.md is already large, the appended KARIMO block adds ~65 lines. Consider reorganizing existing content or using include files.
-
 ---
 
 ## FAQ
@@ -424,7 +415,7 @@ No. KARIMO uses prefixed names (`karimo-` for agents, `karimo:` for commands) to
 
 ### How does KARIMO modify CLAUDE.md?
 
-KARIMO appends a small reference block (~65 lines) after your existing content, separated by `---`. Your existing CLAUDE.md content remains untouched above this separator.
+KARIMO appends a minimal reference block (~8 lines) after your existing content, separated by `---`. Your existing CLAUDE.md content remains untouched. All configuration is stored in `.karimo/config.yaml` and learnings in `.karimo/learnings.md`.
 
 ### What if I have agents with the same names?
 
@@ -443,7 +434,7 @@ rm .claude/KARIMO_RULES.md
 rm .github/workflows/karimo-*.yml
 ```
 
-Then remove the `## KARIMO Framework` section from `CLAUDE.md`.
+Then remove the `## KARIMO` section from `CLAUDE.md`.
 
 ### Do I need Greptile?
 
