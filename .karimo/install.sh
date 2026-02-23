@@ -437,12 +437,12 @@ fi
 # END AUTO-DETECTION
 # ==============================================================================
 
-# Add reference block to CLAUDE.md (concise ~20 lines instead of full rules)
+# Add minimal reference block to CLAUDE.md (~8 lines instead of ~65)
 echo "Updating CLAUDE.md..."
 CLAUDE_MD="$TARGET_DIR/CLAUDE.md"
 
 # Check if KARIMO section already exists
-if [ -f "$CLAUDE_MD" ] && grep -q "## KARIMO Framework" "$CLAUDE_MD"; then
+if [ -f "$CLAUDE_MD" ] && grep -q "## KARIMO" "$CLAUDE_MD"; then
     echo -e "${YELLOW}KARIMO section already in CLAUDE.md, skipping...${NC}"
 else
     # Append KARIMO reference block
@@ -452,94 +452,41 @@ else
         echo "" >> "$CLAUDE_MD"
     fi
 
-    cat >> "$CLAUDE_MD" << EOF
-## KARIMO Framework
+    cat >> "$CLAUDE_MD" << 'EOF'
+## KARIMO
 
-This project uses KARIMO for autonomous development.
+This project uses [KARIMO](https://github.com/opensesh/KARIMO) for PRD-driven autonomous development.
 
-### Project Context
-
-| Setting | Value |
-|---------|-------|
-| Runtime | ${DETECTED_RUNTIME} |
-| Framework | ${DETECTED_FRAMEWORK} |
-| Package Manager | ${DETECTED_PKG_MANAGER} |
-
-### Commands
-
-| Type | Command |
-|------|---------|
-| Build | ${DETECTED_BUILD} |
-| Lint | ${DETECTED_LINT} |
-| Test | ${DETECTED_TEST} |
-| Typecheck | ${DETECTED_TYPECHECK} |
-
-### Boundaries
-
-**Never Touch:**
-- ${DETECTED_NEVER_TOUCH}
-
-**Require Review:**
-- ${DETECTED_REQUIRE_REVIEW}
-
-### Slash Commands
-
-- `/karimo:plan` — Start PRD interview with interactive approval
-- `/karimo:overview` — Cross-PRD oversight: blocked tasks, revision loops
-- `/karimo:execute` — Run tasks from PRD (brief gen + execution)
-- `/karimo:modify` — Modify approved PRD before execution
-- `/karimo:status` — View execution state
-- `/karimo:configure` — Create or update configuration
-- `/karimo:feedback` — Quick capture of single learnings
-- `/karimo:learn` — Deep learning cycle with investigation
-- `/karimo:doctor` — Check installation health and diagnose issues
-- `/karimo:test` — Verify installation works end-to-end
-
-### Workflows
-
-| Workflow | Tier | Status |
-|----------|------|--------|
-| karimo-sync.yml | 1 (Required) | Installed |
-| karimo-dependency-watch.yml | 1 (Required) | Installed |
-| karimo-ci-integration.yml | 2 (CI) | WORKFLOW_CI_STATUS |
-| karimo-greptile-review.yml | 3 (Greptile) | WORKFLOW_GREPTILE_STATUS |
-
-**Rules:** See `.claude/KARIMO_RULES.md` for agent behavior rules
-
-## KARIMO Learnings
-
-_Rules learned from execution feedback._
-
-### Patterns to Follow
-
-_No patterns captured yet._
-
-### Anti-Patterns to Avoid
-
-_No anti-patterns captured yet._
+- **Agent rules:** `.claude/KARIMO_RULES.md`
+- **Config & PRDs:** `.karimo/`
+- **Learnings:** `.karimo/learnings.md`
+- **All commands prefixed** `karimo:` — type `/karimo:` to see available commands
 EOF
-
-    # Replace workflow status placeholders
-    if [ "$INSTALLED_CI" = "true" ]; then
-        sed -i.bak 's/WORKFLOW_CI_STATUS/Installed/' "$CLAUDE_MD"
-    else
-        sed -i.bak 's/WORKFLOW_CI_STATUS/Not installed/' "$CLAUDE_MD"
-    fi
-
-    if [ "$INSTALLED_GREPTILE" = "true" ]; then
-        sed -i.bak 's/WORKFLOW_GREPTILE_STATUS/Installed/' "$CLAUDE_MD"
-    else
-        sed -i.bak 's/WORKFLOW_GREPTILE_STATUS/Not installed/' "$CLAUDE_MD"
-    fi
-
-    # Clean up backup file created by sed
-    rm -f "${CLAUDE_MD}.bak"
 
     if [ -f "$CLAUDE_MD" ] && [ $(wc -c < "$CLAUDE_MD") -gt 100 ]; then
         echo "  Added KARIMO reference block to existing CLAUDE.md"
     else
         echo "  Created CLAUDE.md with KARIMO reference block"
     fi
+fi
+
+# Create learnings file if it doesn't exist
+LEARNINGS_FILE="$TARGET_DIR/.karimo/learnings.md"
+if [ ! -f "$LEARNINGS_FILE" ]; then
+    cat > "$LEARNINGS_FILE" << 'LEARNEOF'
+# KARIMO Learnings
+
+_Rules learned from execution feedback via `/karimo:feedback` and `/karimo:learn`._
+
+## Patterns to Follow
+
+_No patterns captured yet._
+
+## Anti-Patterns to Avoid
+
+_No anti-patterns captured yet._
+LEARNEOF
+    echo "  Created .karimo/learnings.md"
 fi
 
 # Update .gitignore
@@ -590,16 +537,16 @@ echo "  .github/ISSUE_TEMPLATE/   1 issue template"
 echo "  CLAUDE.md                 Updated with reference block"
 echo "  .gitignore                Updated with .worktrees/"
 echo
-echo "Configuration (stored in CLAUDE.md):"
+echo "Configuration:"
 if [ "$CONFIG_AUTODETECTED" = true ]; then
-    echo -e "  ${GREEN}✓${NC} Auto-detected and written to CLAUDE.md"
+    echo -e "  ${GREEN}✓${NC} Auto-detected project context"
     echo "    Runtime: ${DETECTED_RUNTIME}"
     echo "    Framework: ${DETECTED_FRAMEWORK}"
     echo "    Package manager: ${DETECTED_PKG_MANAGER}"
+    echo "    Run /karimo:configure to save to .karimo/config.yaml"
 else
     echo -e "  ${YELLOW}○${NC} Configuration pending"
-    echo "    CLAUDE.md has _pending_ markers"
-    echo "    Run /karimo:configure to complete configuration"
+    echo "    Run /karimo:configure to create config"
 fi
 echo
 echo "Workflows installed: ${WORKFLOW_COUNT}"
