@@ -7,6 +7,70 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [3.2.0] - 2026-02-22
+
+### Changed
+
+**Slim CLAUDE.md Architecture**
+
+KARIMO now follows Anthropic's best practice of keeping CLAUDE.md minimal. Configuration and learnings have been moved to dedicated files.
+
+**Before:**
+- CLAUDE.md contained ~65+ lines with full configuration tables, boundaries, commands, and learnings
+- All agents read from CLAUDE.md sections
+- `/karimo:configure` wrote directly to CLAUDE.md
+
+**After:**
+- CLAUDE.md receives only a minimal ~8 line reference block on install
+- Configuration stored in `.karimo/config.yaml` (YAML format, single source of truth)
+- Learnings stored in `.karimo/learnings.md` (dedicated file for compound learning)
+- Agents read from config.yaml and learnings.md
+
+**Why this matters:**
+- CLAUDE.md content is wrapped in a system reminder saying it "may or may not be relevant"
+- Anthropic recommends keeping CLAUDE.md under ~300-500 lines
+- Separating configuration from learnings enables cleaner updates
+- YAML format in config.yaml is easier to parse and validate
+
+**New file structure:**
+```
+.karimo/
+├── config.yaml      # Project configuration (runtime, commands, boundaries)
+├── learnings.md     # Compound learnings (patterns, anti-patterns, rules, gotchas)
+├── prds/            # PRD folders
+└── ...
+```
+
+**Minimal CLAUDE.md block (appended by install.sh):**
+```markdown
+## KARIMO
+
+This project uses KARIMO for PRD-driven autonomous development.
+
+- **Agent rules:** `.claude/KARIMO_RULES.md`
+- **Config & PRDs:** `.karimo/`
+- **Learnings:** `.karimo/learnings.md`
+- **All commands prefixed** `karimo:` — type `/karimo:` to see available commands
+```
+
+**Files updated (20+ files):**
+
+| Category | Files |
+|----------|-------|
+| Install/Update | `install.sh`, `update.sh` |
+| Commands | `configure.md`, `plan.md`, `execute.md`, `feedback.md`, `learn.md`, `doctor.md`, `test.md` |
+| Agents | `karimo-pm.md`, `karimo-investigator.md`, `karimo-implementer.md`, `karimo-implementer-opus.md`, `karimo-brief-writer.md`, `karimo-review-architect.md`, `karimo-learn-auditor.md` |
+| Skills | `karimo-code-standards.md` |
+| Templates | `LEARN_INTERVIEW_PROTOCOL.md` |
+| Documentation | `ARCHITECTURE.md`, `GETTING-STARTED.md`, `COMMANDS.md`, `COMPOUND-LEARNING.md`, `SAFEGUARDS.md`, `PHASES.md`, `README.md`, `CLAUDE.md`, `KARIMO_RULES.md` |
+
+**Migration notes:**
+- Existing installations: Run `/karimo:configure` to generate `.karimo/config.yaml`
+- Existing learnings in CLAUDE.md: Manually move to `.karimo/learnings.md`
+- `update.sh` now preserves `config.yaml` and `learnings.md` (never overwrites)
+
+---
+
 ## [3.1.2] - 2026-02-22
 
 ### Fixed
