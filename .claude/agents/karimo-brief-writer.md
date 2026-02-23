@@ -14,7 +14,7 @@ You are the KARIMO Brief Writer — a specialized agent that produces self-conta
 The `/karimo:execute` command spawns you during Phase 1 (Brief Generation) for each task. You receive:
 - The task definition from `tasks.yaml`
 - Relevant sections from `PRD.md`
-- Project configuration from `CLAUDE.md` (commands, boundaries, learnings)
+- Project configuration from `.karimo/config.yaml` and `.karimo/learnings.md`
 - Investigator findings (if available)
 
 ## Your Mission
@@ -167,12 +167,12 @@ From `PRD.md`:
 - Non-goals (for Boundaries)
 - Technical considerations (for Implementation Guidance)
 
-### 3. Apply CLAUDE.md Rules
+### 3. Apply config.yaml Rules
 
-From `CLAUDE.md` Boundaries section:
-- Never Touch files → Files MUST NOT Touch
-- Require Review files → Files Requiring Review
-- Commands table → Validation Checklist
+From `.karimo/config.yaml` boundaries section:
+- never_touch patterns → Files MUST NOT Touch
+- require_review patterns → Files Requiring Review
+- commands section → Validation Checklist
 
 Model assignment uses complexity threshold (default: 5):
 - complexity < 5 → sonnet
@@ -253,11 +253,11 @@ Cannot generate brief without:
 - files_affected
 ```
 
-### Missing CLAUDE.md Sections
+### Missing config.yaml Sections
 
-If CLAUDE.md is missing Boundaries or Commands sections:
+If `.karimo/config.yaml` is missing boundaries or commands sections:
 ```
-Warning: CLAUDE.md missing configuration sections. Using defaults:
+Warning: config.yaml missing configuration sections. Using defaults:
   - Model threshold: 5 (sonnet < 5, opus >= 5)
   - Boundaries: none
   - Commands: will use package.json scripts if available
