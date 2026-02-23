@@ -293,7 +293,7 @@ PRDs:
 
 ## /karimo:configure
 
-Create or update configuration in `CLAUDE.md` (single source of truth).
+Create or update configuration in `.karimo/config.yaml` (single source of truth).
 
 ### Usage
 
@@ -304,17 +304,17 @@ Create or update configuration in `CLAUDE.md` (single source of truth).
 
 ### What It Does
 
-Walks through 5 configuration sections:
+Walks through 6 configuration sections:
 
 1. **Project Identity** — Runtime, framework, package manager
 2. **Build Commands** — build, lint, test, typecheck commands
 3. **File Boundaries** — Never-touch and require-review patterns
-4. **Execution Settings** — Default model, parallelism, pre-PR checks
-5. **Cost Controls** — Model escalation, max attempts, Greptile
+4. **GitHub Configuration** — Owner, repository, default branch
+5. **Execution Settings** — Default model, parallelism, pre-PR checks
+6. **Cost Controls** — Model escalation, max attempts, Greptile
 
 On completion:
-- Updates CLAUDE.md tables with configuration values
-- Replaces any `_pending_` markers
+- Writes `.karimo/config.yaml` with all configuration values
 
 ### When to Use
 
@@ -323,7 +323,7 @@ On completion:
 | Doctor found config issues | Creating a PRD |
 | Changing config later | Config already in place |
 | ~5 minutes | ~30 minutes |
-| Updates CLAUDE.md | Produces PRD + tasks |
+| Writes config.yaml | Produces PRD + tasks |
 
 ### Output Example
 
@@ -345,34 +345,47 @@ Detected: Node.js project with Next.js
 Accept these values? [Y/n/edit]
 ```
 
-### CLAUDE.md Structure
+### config.yaml Structure
 
-Updates these sections in CLAUDE.md:
+Writes to `.karimo/config.yaml`:
 
-```markdown
-## KARIMO Framework
+```yaml
+project:
+  name: my-project
+  runtime: Node.js 20
+  framework: Next.js 14
+  package_manager: pnpm
 
-### Project Context
+commands:
+  build: pnpm build
+  lint: pnpm lint
+  test: pnpm test
+  typecheck: pnpm typecheck
 
-| Setting | Value |
-|---------|-------|
-| Runtime | Node.js 20 |
-| Framework | Next.js 14 |
-| Package Manager | pnpm |
+boundaries:
+  never_touch:
+    - ".env*"
+    - "*.lock"
+  require_review:
+    - "migrations/**"
+    - "auth/**"
 
-### Commands
+github:
+  owner_type: organization
+  owner: myorg
+  repository: my-project
 
-| Command | Script |
-|---------|--------|
-| Build | pnpm build |
-| Lint | pnpm lint |
-| Test | pnpm test |
-| Typecheck | pnpm typecheck |
+execution:
+  default_model: sonnet
+  max_parallel: 3
+  pre_pr_checks:
+    - build
+    - typecheck
 
-### Boundaries
-
-**Never Touch:** .env*, *.lock
-**Require Review:** migrations/**, auth/**
+cost:
+  escalate_after_failures: 1
+  max_attempts: 3
+  greptile_enabled: false
 ```
 
 ### Update Mode
@@ -404,7 +417,7 @@ Capture learnings to improve future agent execution.
 1. **Receives** your observation
 2. **Analyzes** and classifies
 3. **Generates** actionable rule
-4. **Appends** to CLAUDE.md
+4. **Appends** to `.karimo/learnings.md`
 
 ### Learning Categories
 
@@ -526,13 +539,13 @@ Runs 5 diagnostic checks (read-only, never modifies files):
 
 1. **Environment** — Claude Code, GitHub CLI, Git, Greptile
 2. **Installation** — All expected files present
-3. **Configuration** — CLAUDE.md has KARIMO section, no `_pending_` markers, no drift
+3. **Configuration** — CLAUDE.md has KARIMO section, config.yaml exists, learnings.md exists, no drift
 4. **Sanity** — Commands exist, boundary patterns match files
 5. **Phase Assessment** — Current adoption phase and PRD status
 
 Check 3 now includes **drift detection**:
-- Compares configured package manager vs actual lock files
-- Compares configured commands vs package.json scripts
+- Compares configured package manager in config.yaml vs actual lock files
+- Compares configured commands in config.yaml vs package.json scripts
 - Reports any mismatches with recommendations
 
 ### Output
@@ -555,8 +568,9 @@ Check 1: Environment
 Check 3: Configuration
 ──────────────────────
 
-  ✅ CLAUDE.md         KARIMO Framework section present
-  ✅ No placeholders   All configuration values set
+  ✅ CLAUDE.md         KARIMO section present
+  ✅ config.yaml       Present and valid
+  ✅ learnings.md      Present
   ✅ No drift          Config matches project state
 
 ...
@@ -604,7 +618,7 @@ Runs 5 read-only validation tests:
 | 2. Template Parsing | Templates have valid markdown structure |
 | 3. GitHub CLI | `gh auth status` succeeds |
 | 4. State Files | `.karimo/state.json` is valid JSON (if exists) |
-| 5. CLAUDE.md | KARIMO Framework section present |
+| 5. Integration | KARIMO section in CLAUDE.md, learnings.md exists, KARIMO_RULES.md exists |
 
 ### Output
 
