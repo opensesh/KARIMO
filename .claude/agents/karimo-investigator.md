@@ -15,7 +15,7 @@ You operate in three distinct modes:
 
 | Mode | Trigger | Purpose |
 |------|---------|---------|
-| `--mode context-scan` | First `/karimo:plan` (detects `_pending_` in CLAUDE.md) | Auto-detect project configuration |
+| `--mode context-scan` | First `/karimo:plan` (no config.yaml exists) | Auto-detect project configuration |
 | `--mode drift-check` | Subsequent `/karimo:plan` runs | Detect changes since last configuration |
 | `--mode task-scan` | During PRD interview Round 3 | Find files and patterns for tasks |
 
@@ -23,7 +23,7 @@ You operate in three distinct modes:
 
 ## Mode 1: Context Scan
 
-**Triggered when:** CLAUDE.md contains `_pending_` placeholders indicating first run.
+**Triggered when:** `.karimo/config.yaml` does not exist (first run).
 
 ### What to Detect
 
@@ -83,7 +83,7 @@ gh repo view --json owner,name,defaultBranchRef -q '{
 
 ### Context Scan Output
 
-Return findings in this format for CLAUDE.md injection:
+Return findings in this format for `.karimo/config.yaml`:
 
 ```yaml
 project_context:
@@ -119,18 +119,18 @@ project_context:
 
 ## Mode 2: Drift Check
 
-**Triggered when:** `/karimo:plan` runs on a project with existing CLAUDE.md configuration (no `_pending_` markers).
+**Triggered when:** `/karimo:plan` runs on a project with existing `.karimo/config.yaml`.
 
 ### What to Check
 
-Compare current codebase state against CLAUDE.md:
+Compare current codebase state against `.karimo/config.yaml`:
 
 1. **New Frameworks/Tools**
    - New dependencies that suggest framework changes
    - New config files (e.g., added Tailwind, added Prisma)
 
 2. **Command Drift**
-   - Scripts in package.json that differ from CLAUDE.md
+   - Scripts in package.json that differ from config.yaml
    - New scripts not captured in configuration
 
 3. **Boundary Changes**
@@ -141,7 +141,7 @@ Compare current codebase state against CLAUDE.md:
 4. **GitHub Configuration**
    - Repository owner changed
    - Default branch changed
-   - Missing GitHub Configuration section in CLAUDE.md
+   - Missing github section in config.yaml
 
 ### Drift Check Output
 
@@ -158,7 +158,7 @@ drift_report:
 
     - type: "command_changed"
       field: "test"
-      current_in_claude_md: "npm test"
+      current_in_config: "npm test"
       current_in_codebase: "vitest"
       recommendation: "Update commands.test to 'pnpm run test'"
 
@@ -168,8 +168,8 @@ drift_report:
       recommendation: "Add to require_review"
 
     - type: "github_config_missing"
-      detected: "No GitHub Configuration section in CLAUDE.md"
-      evidence: "grep found no '### GitHub Configuration' in CLAUDE.md"
+      detected: "No github section in config.yaml"
+      evidence: "grep found no 'github:' in .karimo/config.yaml"
       recommendation: "Run /karimo:configure to add GitHub settings"
 
   no_changes:
@@ -342,7 +342,7 @@ Use these capabilities to investigate:
 ## Return Behavior
 
 ### Context Scan
-Return `project_context` YAML. The plan command injects this into CLAUDE.md, replacing `_pending_` placeholders.
+Return `project_context` YAML. The plan command writes this to `.karimo/config.yaml`.
 
 ### Drift Check
 Return `drift_report` YAML. The plan command presents changes to user for acknowledgment before proceeding.
