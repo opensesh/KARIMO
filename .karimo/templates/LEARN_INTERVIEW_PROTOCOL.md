@@ -34,7 +34,7 @@ Before the first question, the interviewer:
    - Reads the most recent `interview.md` and `changes-applied.md`
    - Notes which issues were flagged before and whether applied changes resolved them
 2. **Scans PRD index** — counts completed PRDs in `.karimo/prds/`, reads their slugs and status (complete/active/failed), but does NOT deep-read status.json files yet (that's the audit's job)
-3. **Reads current CLAUDE.md** — notes learnings, boundaries, commands, and project context
+3. **Reads current config** — loads `.karimo/config.yaml` (boundaries, commands) and `.karimo/learnings.md` (patterns, anti-patterns)
 4. **Confirms with the developer:**
 
 > "I've loaded [N] previous learn cycles, [N] completed PRDs, and your current KARIMO configuration. Ready to start the learning interview?"
@@ -91,13 +91,13 @@ pain_points:
 
 ## Round 2: Configuration Health (~5 minutes)
 
-**Purpose:** Assess whether the current KARIMO configuration files (`CLAUDE.md`, `KARIMO_RULES.md`, agent definitions, templates) are accurate and serving the project well.
+**Purpose:** Assess whether the current KARIMO configuration files (`.karimo/config.yaml`, `.karimo/learnings.md`, `KARIMO_RULES.md`, agent definitions, templates) are accurate and serving the project well.
 
 **Output section:** `§2 Configuration Assessment`
 
 ### Core Questions
 
-1. **Are the KARIMO Learnings rules in CLAUDE.md still accurate?** Any rules that are outdated, too vague, or contradicting each other?
+1. **Are the KARIMO Learnings rules in `.karimo/learnings.md` still accurate?** Any rules that are outdated, too vague, or contradicting each other?
 2. **Is anything missing from the boundaries?** Files or directories that agents modify when they shouldn't, or files flagged for review that don't need it anymore.
 3. **How is the loop management working?** Are loop limits appropriate for the complexity of work, or are agents hitting limits on reasonable tasks?
 4. **Are there project conventions that agents don't know about?** Naming patterns, folder structures, import conventions, component hierarchies — anything not captured in config.
@@ -197,7 +197,7 @@ This round is **not scripted.** Based on what emerged in Rounds 1-3, the intervi
 | Issue Type | Deep Dive Approach |
 |------------|-------------------|
 | Agent behavior patterns | "Show me a specific example. What did the agent do? What should it have done? Is this documented anywhere?" |
-| Configuration gaps | "Let's walk through the ideal config for this. What would you change in CLAUDE.md right now?" |
+| Configuration gaps | "Let's walk through the ideal config for this. What would you change in config.yaml or learnings.md right now?" |
 | Workflow friction | "Walk me through the last time this happened step by step. Where exactly did it break down?" |
 | Quality issues | "What does 'good' look like for this? Can you point me to a task or PR that got it right?" |
 | Template issues | "Which template? What's missing or wrong? What would you add to it?" |

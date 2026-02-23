@@ -35,19 +35,19 @@ Then proceed to normal config check and interview flow.
 
 Before starting the interview, verify configuration is in place.
 
-**Step 0a: Check CLAUDE.md for configuration**
+**Step 0a: Check for config.yaml**
 
 ```bash
-grep "_pending_" CLAUDE.md | grep -E "(Runtime|Framework|Package Manager|Build|Lint|Test|Typecheck)" || echo "Configuration complete"
+[ -f ".karimo/config.yaml" ] && echo "Config exists" || echo "No config"
 ```
 
-**If no `_pending_` markers in key fields:**
-- Read configuration from CLAUDE.md tables
+**If `.karimo/config.yaml` exists:**
+- Read configuration from config.yaml
 - Proceed directly to Step 1 (interview)
 
-**If `_pending_` markers found:**
+**If config.yaml missing:**
 
-**Step 0b: Handle incomplete configuration**
+**Step 0b: Handle missing configuration**
 
 Present options to user:
 
@@ -56,7 +56,7 @@ Present options to user:
 │  Configuration Required                                       │
 ╰──────────────────────────────────────────────────────────────╯
 
-CLAUDE.md contains _pending_ configuration values.
+.karimo/config.yaml not found.
 
 Configuration defines your project's runtime, commands, and boundaries.
 Agents need this to execute tasks properly.
@@ -64,7 +64,7 @@ Agents need this to execute tasks properly.
 Options:
   1. Run /karimo:configure first (recommended)
      - Interactive 5-minute configuration wizard
-     - Populates CLAUDE.md tables
+     - Creates .karimo/config.yaml
      - Return here after to create PRD
 
   2. Quick auto-detect now (fallback)
@@ -109,17 +109,17 @@ Choose [1/2/3]:
    ```
 
 4. On acceptance:
-   - Update CLAUDE.md tables (replace `_pending_` markers)
+   - Write configuration to `.karimo/config.yaml`
    - Continue to Step 1
 
 5. On edit:
    - Allow user to modify values
-   - Apply modifications to CLAUDE.md
+   - Apply modifications to `.karimo/config.yaml`
    - Continue to Step 1
 
 **Step 0c: Drift check (if configuration exists but PRD is new)**
 
-When CLAUDE.md has valid configuration:
+When `.karimo/config.yaml` exists:
 
 1. Spawn investigator in drift-check mode:
    ```
@@ -136,7 +136,7 @@ When CLAUDE.md has valid configuration:
    Update configuration with these changes? [Y/n/skip]
    ```
 
-3. Apply acknowledged changes to CLAUDE.md
+3. Apply acknowledged changes to `.karimo/config.yaml`
 4. Continue to Step 1
 
 ---
@@ -144,14 +144,16 @@ When CLAUDE.md has valid configuration:
 ### Step 1: Load Project Context
 
 Read the following files:
-- `CLAUDE.md` — Project configuration, commands, boundaries, learnings
+- `.karimo/config.yaml` — Project configuration, commands, boundaries
+- `.karimo/learnings.md` — Patterns, anti-patterns, rules, gotchas
 - `.karimo/prds/*.md` — Previous PRDs for retrospective context
 - `.karimo/templates/PRD_TEMPLATE.md` — Output format
 - `.karimo/templates/INTERVIEW_PROTOCOL.md` — Interview flow
 
-Extract from CLAUDE.md:
-- `## KARIMO Configuration` section for boundaries, commands
-- `## KARIMO Learnings` section for patterns and anti-patterns
+Extract from config.yaml:
+- `project` section for runtime, framework
+- `commands` section for build, lint, test, typecheck
+- `boundaries` section for never_touch, require_review patterns
 
 ### Step 2: Spawn Interviewer Agent
 

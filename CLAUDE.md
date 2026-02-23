@@ -17,7 +17,7 @@ KARIMO is an autonomous development **methodology** delivered via Claude Code co
 | `/karimo:execute --prd {slug}` | Execute tasks from a PRD (brief gen + execution) |
 | `/karimo:modify --prd {slug}` | Modify an approved PRD before execution |
 | `/karimo:status` | View execution state and progress |
-| `/karimo:configure` | Create or update CLAUDE.md configuration (~5 min) |
+| `/karimo:configure` | Create or update project configuration (~5 min) |
 | `/karimo:feedback` | Quick capture of single learnings (~2 min) |
 | `/karimo:learn` | Deep learning cycle with investigation (~45 min) |
 | `/karimo:doctor` | Check installation health and diagnose issues |
@@ -56,12 +56,13 @@ Add automated code review to your workflow:
 
 ## Configuration
 
-KARIMO configuration lives in this file (CLAUDE.md). On first `/karimo:plan`, the investigator agent auto-detects project context and populates the sections below.
+KARIMO configuration lives in `.karimo/config.yaml`. On first `/karimo:plan` or `/karimo:configure`, the investigator agent auto-detects project context and populates the config file.
 
-Key settings (stored in sections above):
-- **Project Context** — Runtime, framework, package manager
+Key settings:
+- **Project** — Runtime, framework, package manager
 - **Commands** — Build, lint, test, typecheck commands
-- **Boundaries** — Files agents must not touch or must flag for review
+- **Boundaries** — Files agents must not touch (`never_touch`) or must flag for review (`require_review`)
+- **Learnings** — Patterns and anti-patterns stored in `.karimo/learnings.md`
 
 ---
 
@@ -116,14 +117,6 @@ When you run `install.sh`, these files are added:
 
 ---
 
-## KARIMO Learnings
+## Learnings
 
-_Rules learned from execution feedback. Populated by `/karimo:feedback`._
-
-### Patterns to Follow
-
-_No patterns captured yet._
-
-### Anti-Patterns to Avoid
-
-_No anti-patterns captured yet._
+Project-specific learnings are stored in `.karimo/learnings.md` and populated via `/karimo:feedback` or `/karimo:learn`. This keeps CLAUDE.md minimal while providing agents with accumulated knowledge._
