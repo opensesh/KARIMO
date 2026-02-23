@@ -141,7 +141,7 @@ Target Project/
 │   └── ISSUE_TEMPLATE/
 │       └── karimo-task.yml              # Task issue template
 │
-├── CLAUDE.md                        # Modified with reference block
+├── CLAUDE.md                        # Modified with minimal reference block (~8 lines)
 └── .gitignore                       # Updated with .worktrees/
 ```
 
@@ -152,44 +152,29 @@ bash KARIMO/.karimo/install.sh --ci /path/to/project
 
 ### How CLAUDE.md is Modified
 
-Instead of appending the full `KARIMO_RULES.md` content (~210 lines), `install.sh` uses a **modular reference approach**:
+KARIMO follows Anthropic's best practice of keeping CLAUDE.md minimal. `install.sh` uses a **modular approach**:
 
-1. **Copies** `KARIMO_RULES.md` to `.claude/KARIMO_RULES.md` (separate file)
-2. **Appends** a concise reference block (~65 lines) to `CLAUDE.md`:
+1. **Copies** `KARIMO_RULES.md` to `.claude/KARIMO_RULES.md` (agent behavior rules)
+2. **Creates** `.karimo/config.yaml` (project configuration — filled by `/karimo:configure`)
+3. **Creates** `.karimo/learnings.md` (compound learnings — filled by `/karimo:feedback`)
+4. **Appends** a minimal reference block (~8 lines) to `CLAUDE.md`:
 
 ```markdown
 ---
 
-## KARIMO Framework
+## KARIMO
 
-This project uses KARIMO for autonomous development.
+This project uses [KARIMO](https://github.com/opensesh/KARIMO) for PRD-driven autonomous development.
 
-**Commands:**
-- `/karimo:plan` — Start PRD interview
-- `/karimo:execute` — Run tasks from PRD
-- `/karimo:status` — View execution state
-- `/karimo:feedback` — Capture learnings
-
-**Rules:** See `.claude/KARIMO_RULES.md` for agent behavior rules
-
-**Learnings:** Captured below via `/karimo:feedback`
-
-## KARIMO Learnings
-
-_Rules learned from execution feedback._
-
-### Patterns to Follow
-
-_No patterns captured yet._
-
-### Anti-Patterns to Avoid
-
-_No anti-patterns captured yet._
+- **Agent rules:** `.claude/KARIMO_RULES.md`
+- **Config & PRDs:** `.karimo/`
+- **Learnings:** `.karimo/learnings.md`
+- **All commands prefixed** `karimo:` — type `/karimo:` to see available commands
 ```
 
 ### Conflict Handling
 
-If the user already has a `## KARIMO Framework` section in their `CLAUDE.md`, `install.sh` skips the append to avoid duplicates.
+If the user already has a `## KARIMO` section in their `CLAUDE.md`, `install.sh` skips the append to avoid duplicates.
 
 ---
 
@@ -510,40 +495,53 @@ PRs are created with KARIMO metadata:
 
 ## Configuration
 
-KARIMO configuration lives in `CLAUDE.md`. On first `/karimo:plan`, the investigator agent auto-detects your project and populates these sections:
+KARIMO configuration lives in `.karimo/config.yaml`. Run `/karimo:configure` to auto-detect your project and populate this file:
 
-### Project Context
+```yaml
+# Example .karimo/config.yaml
+project:
+  name: my-project
+  runtime: node
+  framework: next.js
+  package_manager: pnpm
 
-| Setting | Value |
-|---------|-------|
-| Runtime | node |
-| Framework | next.js |
-| Package Manager | pnpm |
+commands:
+  build: pnpm run build
+  lint: pnpm run lint
+  test: pnpm test
+  typecheck: pnpm run typecheck
 
-### Commands
+boundaries:
+  never_touch:
+    - "*.lock"
+    - ".env*"
+    - "migrations/"
+  require_review:
+    - "src/auth/*"
+    - "*.config.js"
 
-| Type | Command |
-|------|---------|
-| Build | `pnpm run build` |
-| Lint | `pnpm run lint` |
-| Test | `pnpm test` |
-| Typecheck | `pnpm run typecheck` |
+github:
+  owner_type: organization
+  owner: myorg
+  repository: my-project
 
-### Boundaries
+execution:
+  default_model: sonnet
+  max_parallel: 3
+  pre_pr_checks:
+    - build
+    - typecheck
+    - lint
 
-**Never Touch:**
-- `*.lock`
-- `.env*`
-- `migrations/`
-
-**Require Review:**
-- `src/auth/*`
-- `*.config.js`
+cost:
+  escalate_after_failures: 1
+  max_attempts: 3
+  greptile_enabled: false
+```
 
 ### Hardcoded Defaults
 
 Some values are not configurable:
-- **max_parallel:** 3 (concurrent tasks)
 - **model threshold:** 5 (complexity < 5 → sonnet, >= 5 → opus)
 
 ---
@@ -557,7 +555,7 @@ KARIMO uses a two-scope compound learning system:
 Immediate capture of single observations:
 - Developer describes pattern or mistake
 - Agent generates actionable rule
-- Rule appended to `CLAUDE.md`
+- Rule appended to `.karimo/learnings.md`
 - Time: ~2 minutes
 
 ### Scope 2: Deep Learning (`/karimo:learn`)
@@ -576,7 +574,7 @@ Key features:
 - Continuity across cycles ("Last time you flagged X...")
 - Time: ~45 minutes
 
-Learnings are stored in `CLAUDE.md` under `## KARIMO Learnings`, making them available to all future agent invocations.
+Learnings are stored in `.karimo/learnings.md`, making them available to all future agent invocations.
 
 See [COMPOUND-LEARNING.md](COMPOUND-LEARNING.md) for full documentation.
 
