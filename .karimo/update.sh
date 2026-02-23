@@ -79,6 +79,8 @@ usage() {
     echo ""
     echo "Files never updated:"
     echo "  - CLAUDE.md (user-customized)"
+    echo "  - .karimo/config.yaml (project configuration)"
+    echo "  - .karimo/learnings.md (compound learnings)"
     echo "  - .gitignore (already configured)"
 }
 
@@ -292,8 +294,10 @@ echo "  Files to update: $((${#MODIFIED_FILES[@]} + ${#NEW_FILES[@]}))"
 echo "  Files unchanged: ${#UNCHANGED_FILES[@]}"
 echo
 echo "  ${YELLOW}WILL NOT TOUCH:${NC}"
-echo "    CLAUDE.md           (user-customized)"
-echo "    .gitignore          (already configured)"
+echo "    CLAUDE.md               (user-customized)"
+echo "    .karimo/config.yaml     (project configuration)"
+echo "    .karimo/learnings.md    (compound learnings)"
+echo "    .gitignore              (already configured)"
 echo
 
 # Step 4: User confirmation
