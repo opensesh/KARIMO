@@ -47,7 +47,7 @@ You operate within **one PRD** which maps to **one GitHub Project**. Everything 
 ## When You're Spawned
 
 The `/karimo:execute` command spawns you with:
-- Project configuration from `CLAUDE.md` (commands, boundaries, learnings)
+- Project configuration from `.karimo/config.yaml` and `.karimo/learnings.md`
 - PRD content (tasks, execution plan, narrative)
 - Current status (for resume scenarios)
 - Execution mode (full PRD or single task via `--task {id}`)
@@ -63,8 +63,9 @@ The `/karimo:execute` command spawns you with:
 2. Load `execution_plan.yaml` — Wave-based execution plan
 3. Load `status.json` — Current execution state (for resume)
 4. Load `PRD.md` — Narrative context for task briefs
-5. Load `CLAUDE.md` — Project configuration (commands, boundaries, learnings)
-6. Load `findings.md` — Existing findings (if resuming)
+5. Load `.karimo/config.yaml` — Project configuration (commands, boundaries)
+6. Load `.karimo/learnings.md` — Compound learnings
+7. Load `findings.md` — Existing findings (if resuming)
 
 **execution_plan.yaml format:**
 - `waves` — Map of wave number to task IDs (wave 1 = no dependencies)
@@ -196,11 +197,12 @@ Wait for human confirmation before proceeding.
 
 #### Step 3a: Read GitHub Configuration
 
-Read owner settings from CLAUDE.md:
+Read owner settings from `.karimo/config.yaml`:
 
 ```bash
-OWNER=$(grep -A5 "### GitHub Configuration" CLAUDE.md | grep "Owner |" | head -1 | awk -F'|' '{print $3}' | tr -d ' ')
-OWNER_TYPE=$(grep -A5 "### GitHub Configuration" CLAUDE.md | grep "Owner Type |" | head -1 | awk -F'|' '{print $3}' | tr -d ' ')
+# Parse YAML config (simple grep-based, no external dependencies)
+OWNER=$(grep "^  owner:" .karimo/config.yaml | head -1 | awk '{print $2}')
+OWNER_TYPE=$(grep "^  owner_type:" .karimo/config.yaml | head -1 | awk '{print $2}')
 
 if [ "$OWNER_TYPE" = "personal" ]; then
   PROJECT_OWNER="@me"
@@ -212,7 +214,7 @@ fi
 **If GitHub Configuration is missing, STOP and report:**
 
 ```
-❌ GitHub Configuration not found in CLAUDE.md
+❌ GitHub Configuration not found in .karimo/config.yaml
 
 GitHub Projects require owner configuration.
 Run /karimo:configure to set up GitHub settings.
@@ -417,11 +419,11 @@ When a worker completes:
 ```bash
 cd .worktrees/{prd-slug}/{task-id}
 
-# Run project validation commands from CLAUDE.md
-{commands.build}      # from CLAUDE.md Commands table
-{commands.typecheck}  # if configured in CLAUDE.md
-{commands.lint}       # if configured in CLAUDE.md
-{commands.test}       # if configured in CLAUDE.md
+# Run project validation commands from .karimo/config.yaml
+{commands.build}      # from config.yaml commands section
+{commands.typecheck}  # if configured in config.yaml
+{commands.lint}       # if configured in config.yaml
+{commands.test}       # if configured in config.yaml
 ```
 
 **If validation fails:**
@@ -441,7 +443,7 @@ git rebase feature/{prd-slug}
 - Continue with other tasks — do not block
 
 **Check boundary violations:**
-- Scan changed files against `Never Touch` patterns from CLAUDE.md
+- Scan changed files against `never_touch` patterns from `.karimo/config.yaml`
 - If violation found: mark task `failed`, record reason, do NOT create PR
 
 #### 6c. Extract & Propagate Findings
