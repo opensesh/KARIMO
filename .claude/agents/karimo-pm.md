@@ -612,7 +612,7 @@ After PR creation and Review/Architect validation:
 
 ### Step 6f: Greptile Revision Loop Protocol (Phase 2 — Optional)
 
-**This step only applies if Greptile is configured** (i.e., `GREPTILE_API_KEY` exists in GitHub secrets and the `karimo-review.yml` workflow is active). If Greptile is not configured, PRs pass through to manual review.
+**This step only applies if Greptile is configured** (i.e., `GREPTILE_API_KEY` exists in GitHub secrets and the `karimo-greptile-review.yml` workflow is active). If Greptile is not configured, PRs pass through to manual review.
 
 When a task PR receives a Greptile score < 3 (on a 0–5 scale), enter the revision loop:
 

@@ -252,8 +252,8 @@ task-branch-1b ─┘         ▲                  ▲
 
 GitHub Actions automate review when Greptile is configured:
 
-1. **karimo-review.yml**: Triggers Greptile on PR open
-2. **karimo-integration.yml**: Runs validation on review pass
+1. **karimo-greptile-review.yml**: Triggers Greptile on PR open
+2. **karimo-ci-integration.yml**: Runs validation on review pass
 3. **karimo-sync.yml**: Updates status on merge
 
 ### Human Oversight (`/karimo:overview`)

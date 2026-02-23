@@ -320,7 +320,7 @@ Greptile integration is **optional but highly recommended**. It acts as a force 
 ### Review Flow
 
 ```
-PR Created → karimo-review.yml triggers
+PR Created → karimo-greptile-review.yml triggers
                     │
                     ▼
             Greptile analyzes PR

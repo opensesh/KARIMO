@@ -10,6 +10,8 @@ name: KARIMO Sync
 on:
   pull_request:
     types: [closed]
+    branches:
+      - 'feature/**'
 
 # Sync status when KARIMO PRs are merged
 jobs:

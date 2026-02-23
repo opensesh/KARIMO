@@ -118,8 +118,8 @@ Phase 2 adds Greptile integration for automated code review. This enables:
   - Hard gate after 3 failed attempts (needs-human-review)
 
 - **Review Workflow**
-  - `karimo-review.yml` triggers Greptile
-  - `karimo-integration.yml` runs on pass
+  - `karimo-greptile-review.yml` triggers Greptile
+  - `karimo-ci-integration.yml` runs on pass
   - Labels track review state
 
 ### Why Greptile is Highly Recommended
