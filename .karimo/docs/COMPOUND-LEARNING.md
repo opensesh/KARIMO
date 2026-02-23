@@ -16,7 +16,7 @@ KARIMO has a two-scope compound learning system that makes agents smarter over t
 │   │  Single observation → Single rule                            │   │
 │   │  Time: ~2 minutes                                            │   │
 │   │  Use: Immediate capture of patterns/anti-patterns            │   │
-│   │  Output: Appends rule to CLAUDE.md                           │   │
+│   │  Output: Appends rule to .karimo/learnings.md                 │   │
 │   └─────────────────────────────────────────────────────────────┘   │
 │                                                                     │
 │   Scope 2: Deep Learning (/karimo:learn)                            │
@@ -52,7 +52,7 @@ The `/karimo:feedback` command captures single observations immediately.
 2. **Runs `/karimo:feedback`** — Describes the observation
 3. **Agent analyzes** — Classifies as pattern, anti-pattern, rule, or gotcha
 4. **Generates rule** — Creates actionable instruction
-5. **Appends to CLAUDE.md** — Under `## KARIMO Learnings`
+5. **Appends to `.karimo/learnings.md`** — Under appropriate category
 6. **Future agents read** — Apply rule to subsequent tasks
 
 ### Example Usage
@@ -120,7 +120,7 @@ Interactive change approval:
 ╭─────────────────────────────────────────────────────────────╮
 │  Change 1 of 4                                              │
 ├─────────────────────────────────────────────────────────────┤
-│  Target: CLAUDE.md                                          │
+│  Target: .karimo/learnings.md                               │
 │  Type: Add rule to Anti-Patterns                            │
 │  Evidence: PR #42, #45, #51 all had inline styles reverted │
 │                                                              │
@@ -215,43 +215,44 @@ Both scopes use the same rule categories:
 
 ## Learning Storage
 
-### CLAUDE.md Section
+### .karimo/learnings.md
 
-Learnings are stored in `CLAUDE.md` under a dedicated section:
+Learnings are stored in a dedicated file:
 
 ```markdown
-## KARIMO Learnings
+# KARIMO Learnings
 
-_Rules learned from execution feedback._
+_Rules learned from execution feedback via `/karimo:feedback` and `/karimo:learn`._
 
-### Patterns to Follow
+## Patterns to Follow
 
 - Always use existing component patterns from `src/components/`
 - Reference established utility functions before creating new ones
 
-### Anti-Patterns to Avoid
+## Anti-Patterns to Avoid
 
 - Never use inline styles — use Tailwind utility classes
 - Don't create new button variants — use the Button component
 
-### Rules
+## Rules
 
 - Error handling must use structured error types from `src/utils/errors.ts`
 - All database queries must include proper error handling
 
-### Gotchas
+## Gotchas
 
 - Supabase auth requires server-side session refresh on route change
 - Environment variables need restart to take effect
 ```
 
-### Why CLAUDE.md?
+### Why a Separate File?
 
-Claude Code reads `CLAUDE.md` at the start of every session. By storing learnings here:
-- All agents see rules immediately
-- No separate configuration needed
+Storing learnings in `.karimo/learnings.md`:
+- Keeps CLAUDE.md minimal (Anthropic best practice)
+- All agents read learnings.md during task execution
 - Version controlled with the project
 - Human-readable and editable
+- Separate from configuration (which lives in config.yaml)
 
 ---
 
@@ -274,7 +275,7 @@ Learn Cycle 1 (Feb 1):
 Learn Cycle 2 (Feb 15):
   - Interview: "Has the inline styles issue improved?"
   - Developer: "Yes, but now they're using wrong Tailwind classes"
-  - Applied: Added specific Tailwind conventions to CLAUDE.md
+  - Applied: Added specific Tailwind conventions to learnings.md
 ```
 
 ---
@@ -297,7 +298,7 @@ Learn Cycle 2 (Feb 15):
 
 ### Boundaries
 
-Learnings can inform CLAUDE.md Boundaries section:
+Learnings can inform config.yaml boundaries section:
 - Repeated caution file triggers → add to Require Review
 - Critical failure patterns → add to Never Touch
 
