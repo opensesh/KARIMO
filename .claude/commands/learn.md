@@ -78,7 +78,7 @@ COMPLETE: Summary of applied vs rejected changes
 2. **Load context:**
    - Previous learn cycles from `.karimo/learn/`
    - PRD index from `.karimo/prds/`
-   - Current CLAUDE.md (Learnings, Boundaries, Commands sections)
+   - Current `.karimo/learnings.md` and `.karimo/config.yaml`
 
 3. **Check for interrupted cycles:**
    - If a recent learn folder exists without `changes-applied.md`, offer to resume
@@ -125,7 +125,7 @@ Generate and execute an action plan:
    ╭─────────────────────────────────────────────────────────────╮
    │  Change 1 of 4                                              │
    ├─────────────────────────────────────────────────────────────┤
-   │  Target: CLAUDE.md                                          │
+   │  Target: .karimo/learnings.md                               │
    │  Type: Add rule to Anti-Patterns                            │
    │  Evidence: PR #42, #45, #51 all had inline styles reverted │
    │                                                              │
@@ -145,7 +145,7 @@ Generate and execute an action plan:
 
 4. **Apply approved changes:**
    - Edit target files directly
-   - Changes target CLAUDE.md, templates, agent definitions — not application code
+   - Changes target `.karimo/learnings.md`, `.karimo/config.yaml`, templates, agent definitions — not application code
 
 5. **Commit changes:**
    ```bash
@@ -174,12 +174,12 @@ Cycle: 2024-02-19T14-30-00
 Duration: ~45 min
 
 Changes Applied: 3
-  ✓ CLAUDE.md: Added anti-pattern rule (inline styles)
-  ✓ CLAUDE.md: Added middleware.ts to Require Review
+  ✓ .karimo/learnings.md: Added anti-pattern rule (inline styles)
+  ✓ .karimo/config.yaml: Added middleware.ts to require_review
   ✓ KARIMO_RULES.md: Clarified task boundary enforcement
 
 Changes Rejected: 1
-  ✗ CLAUDE.md: Change complexity threshold (user prefers current)
+  ✗ .karimo/config.yaml: Change complexity threshold (user prefers current)
 
 Next Steps:
 - Changes take effect on next agent invocation
@@ -228,7 +228,7 @@ Each learn cycle builds on previous ones:
 |--------|------------------|---------------|
 | **Scope** | Single observation | Full system review |
 | **Time** | ~2 minutes | ~45 minutes |
-| **Output** | One rule in CLAUDE.md | Multiple config changes |
+| **Output** | One rule in learnings.md | Multiple config changes |
 | **Investigation** | None | Evidence-based audit |
 | **Use when** | Quick capture | Periodic deep dive |
 
