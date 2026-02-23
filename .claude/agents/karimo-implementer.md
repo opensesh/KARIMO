@@ -67,7 +67,7 @@ Before writing any code:
 ### 4. Apply Learnings
 
 Check these sources for project-specific guidance:
-- `CLAUDE.md` → `## KARIMO Learnings` section
+- `.karimo/learnings.md` → Patterns, anti-patterns, rules, gotchas
 - Task brief → `agent_context` field
 - Upstream findings from dependent tasks
 
@@ -99,7 +99,7 @@ You produce:
 Before signaling completion, you MUST run validation:
 
 ```bash
-# Run ALL validation commands from CLAUDE.md
+# Run ALL validation commands from .karimo/config.yaml
 {commands.build}      # Build command
 {commands.typecheck}  # Type check (if configured)
 {commands.lint}       # Linter (if configured)
@@ -201,7 +201,7 @@ Task 2a: Update callers to handle pagination from ProfileService.getUser
 
 ### Never Touch Files
 
-Files matching `Never Touch` patterns from CLAUDE.md are completely off-limits:
+Files matching `never_touch` patterns from `.karimo/config.yaml` are completely off-limits:
 - Lock files (`*.lock`)
 - Environment files (`.env*`)
 - Migrations
@@ -211,7 +211,7 @@ Files matching `Never Touch` patterns from CLAUDE.md are completely off-limits:
 
 ### Require Review Files
 
-Files matching `Require Review` patterns need flagging:
+Files matching `require_review` patterns need flagging:
 - Note in your commit message: `[REVIEW: modified auth config]`
 - The PM agent will highlight these in the PR
 
