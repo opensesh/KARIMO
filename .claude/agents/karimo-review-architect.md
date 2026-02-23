@@ -105,7 +105,7 @@ Every merge resolution must preserve intent from both tasks. If you must drop so
 Before preparing the feature PR to main, verify:
 
 - [ ] **All task PRs merged** into feature branch
-- [ ] **Full build passes** (`commands.build` from CLAUDE.md)
+- [ ] **Full build passes** (`commands.build` from config.yaml)
 - [ ] **Typecheck passes** (`commands.typecheck` if configured)
 - [ ] **Lint passes** (`commands.lint` if configured)
 - [ ] **Tests pass** (`commands.test` if configured)
@@ -199,7 +199,7 @@ git checkout feature/{prd-slug}
 git pull origin feature/{prd-slug}
 
 # Run validation suite
-{commands.build}      # from CLAUDE.md
+{commands.build}      # from config.yaml
 {commands.typecheck}  # if configured
 {commands.lint}       # if configured
 {commands.test}       # if configured
