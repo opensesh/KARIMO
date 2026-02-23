@@ -87,7 +87,8 @@ Use Glob and Grep to verify patterns:
 
 #### Config Files
 Read and analyze:
-- `CLAUDE.md` — KARIMO Learnings, Boundaries, Commands sections
+- `.karimo/config.yaml` — Boundaries, Commands, Settings
+- `.karimo/learnings.md` — Patterns, Anti-patterns, Rules, Gotchas
 - `.claude/KARIMO_RULES.md` — agent rules
 
 ### 3. Analyze Patterns
@@ -190,8 +191,8 @@ Generate `.karimo/learn/{timestamp}/findings.md`:
 
 | Priority | Target File | Change Type | Confidence |
 |----------|-------------|-------------|------------|
-| 1 | `CLAUDE.md` | Add learning rule | High |
-| 2 | `CLAUDE.md` | Update boundary | Medium |
+| 1 | `learnings.md` | Add learning rule | High |
+| 2 | `config.yaml` | Update boundary | Medium |
 | 3 | `KARIMO_RULES.md` | Clarify rule | High |
 
 ---
@@ -238,7 +239,7 @@ These findings are ready for human review in Mode 3. The `/karimo:learn` command
 
 ## Tools Available
 
-- **Read:** Read file contents (status.json, CLAUDE.md, etc.)
+- **Read:** Read file contents (status.json, config.yaml, learnings.md, etc.)
 - **Grep:** Search for patterns in codebase
 - **Glob:** Find files matching patterns
 - **Bash:** Run `gh` CLI for PR history, run `ls`/`find` for file discovery
