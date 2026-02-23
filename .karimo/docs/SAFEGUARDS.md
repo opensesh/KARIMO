@@ -22,7 +22,7 @@ KARIMO enforces code quality and security through multiple layers: file boundari
 
 ## File Boundaries
 
-KARIMO enforces file boundaries defined in `CLAUDE.md` to protect sensitive files.
+KARIMO enforces file boundaries defined in `.karimo/config.yaml` to protect sensitive files.
 
 ### Never-Touch Files
 
@@ -288,7 +288,7 @@ commands:
 ### What This Means
 
 - **KARIMO doesn't define quality** — your commands do
-- **Agents learn your patterns** — through CLAUDE.md learnings
+- **Agents learn your patterns** — through `.karimo/learnings.md`
 - **Your CI stays authoritative** — GitHub Actions run your checks
 - **Pre-PR validation uses your tools** — no KARIMO-specific tooling
 
@@ -302,7 +302,7 @@ Use `/karimo:feedback` to capture project-specific conventions:
 > "Always use the existing Button component from src/components/ui/"
 ```
 
-This appends rules to `CLAUDE.md` that all future agents read.
+This appends rules to `.karimo/learnings.md` that all future agents read.
 
 ---
 
@@ -521,7 +521,7 @@ Triggered on PR open/synchronize with `karimo` label:
 ### For Developers
 
 1. **Review boundaries** — Check `never_touch` and `require_review` before running agents
-2. **Audit learnings** — Review rules captured in CLAUDE.md
+2. **Audit learnings** — Review rules captured in `.karimo/learnings.md`
 3. **Rotate tokens** — Set short expiration on GitHub tokens
 4. **Monitor PRs** — Review agent-created PRs before merge
 
