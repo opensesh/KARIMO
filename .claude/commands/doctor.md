@@ -212,7 +212,8 @@ done
 
 **Other checks:**
 - `.claude/KARIMO_RULES.md` exists
-- `CLAUDE.md` contains `## KARIMO Framework` section
+- `CLAUDE.md` contains `## KARIMO` section
+- `.karimo/learnings.md` exists
 - `.gitignore` contains `.worktrees/`
 
 **Example output:**
@@ -226,9 +227,10 @@ Check 2: Installation Integrity
   ✅ Commands        10/10 present (from manifest)
   ✅ Skills          5/5 present (from manifest)
   ✅ Rules           KARIMO_RULES.md present
+  ✅ Learnings       .karimo/learnings.md present
   ✅ Templates       9/9 present (from manifest)
   ✅ Workflows       5/5 present (1 required, 4 optional)
-  ✅ CLAUDE.md       KARIMO Framework section present
+  ✅ CLAUDE.md       KARIMO section present
   ✅ .gitignore      .worktrees/ entry present
 
   Or if issues found:
@@ -241,12 +243,25 @@ Check 2: Installation Integrity
 
 ### Check 3: Configuration Validation
 
-Validate CLAUDE.md configuration and detect drift from actual project state.
+Validate KARIMO configuration files exist and detect drift from actual project state.
 
-**Step 3a: Check CLAUDE.md exists with KARIMO section**
+**Step 3a: Check CLAUDE.md has KARIMO section**
 
 ```bash
-grep -q "## KARIMO Framework" CLAUDE.md
+grep -q "## KARIMO" CLAUDE.md
+```
+
+**Step 3b: Check required config files exist**
+
+```bash
+# Check learnings file
+[ -f ".karimo/learnings.md" ] && echo "✅ learnings.md" || echo "❌ learnings.md missing"
+
+# Check rules file
+[ -f ".claude/KARIMO_RULES.md" ] && echo "✅ KARIMO_RULES.md" || echo "❌ KARIMO_RULES.md missing"
+
+# Check config file (created by /karimo:configure)
+[ -f ".karimo/config.yaml" ] && echo "✅ config.yaml" || echo "⚠️ config.yaml missing (run /karimo:configure)"
 ```
 
 **If no KARIMO section found:**
@@ -255,21 +270,20 @@ grep -q "## KARIMO Framework" CLAUDE.md
 Check 3: Configuration Validation
 ──────────────────────────────────
 
-  ❌ No KARIMO Framework section in CLAUDE.md
+  ❌ No KARIMO section in CLAUDE.md
 
-  CLAUDE.md is the source of truth for KARIMO configuration.
-  Without it, agents cannot execute tasks properly.
+  The KARIMO reference block is missing from CLAUDE.md.
 
   Recommendation:
-    Run /karimo:configure to create configuration
+    Re-run the installer or manually add the KARIMO section
 ```
 
-**Step 3b: Check for _pending_ markers**
+**Step 3c: Check for _pending_ markers in config.yaml**
 
 Look for unresolved configuration placeholders:
 
 ```bash
-grep "_pending_" CLAUDE.md | grep -E "(Runtime|Framework|Package Manager|Build|Lint|Test|Typecheck)"
+grep "_pending_" .karimo/config.yaml 2>/dev/null
 ```
 
 **If placeholders found:**
@@ -278,24 +292,24 @@ grep "_pending_" CLAUDE.md | grep -E "(Runtime|Framework|Package Manager|Build|L
 Check 3: Configuration Validation
 ──────────────────────────────────
 
-  ⚠️  Unresolved placeholders:
-      - Runtime: _pending_
-      - Build command: _pending_
+  ⚠️  Unresolved placeholders in config.yaml:
+      - runtime: _pending_
+      - build: _pending_
 
   Recommendation:
     Run /karimo:configure to complete configuration
 ```
 
-**Step 3c: Drift detection**
+**Step 3d: Drift detection**
 
-Compare CLAUDE.md values against actual project state:
+Compare `.karimo/config.yaml` values against actual project state:
 
 1. **Package manager drift** — Compare configured package_manager vs actual lock files:
    ```bash
    # Check for lock files
    ls pnpm-lock.yaml yarn.lock package-lock.json bun.lockb 2>/dev/null
-   # Parse configured value from CLAUDE.md
-   grep "Package Manager" CLAUDE.md | sed 's/.*| *\([^|]*\) *|$/\1/' | tr -d ' '
+   # Parse configured value from config.yaml
+   grep "package_manager:" .karimo/config.yaml | awk '{print $2}'
    ```
 
 2. **Command drift** — Compare configured commands vs `package.json` scripts:
@@ -312,7 +326,7 @@ Check 3: Configuration Validation
 
   ⚠️  Configuration drift detected
 
-    - Package manager: CLAUDE.md says "npm", found pnpm-lock.yaml
+    - Package manager: config.yaml says "npm", found pnpm-lock.yaml
     - Test command: "npm test" but package.json has no test script
     - New lock file: bun.lockb appeared (not in config)
 
@@ -326,11 +340,13 @@ Check 3: Configuration Validation
 Check 3: Configuration Validation
 ──────────────────────────────────
 
-  ✅ CLAUDE.md         KARIMO Framework section present
-  ✅ No placeholders   All configuration values set
+  ✅ CLAUDE.md         KARIMO section present
+  ✅ learnings.md      Present
+  ✅ KARIMO_RULES.md   Present
+  ✅ config.yaml       Present, no placeholders
   ✅ No drift          Config matches project state
 
-  Project Context:
+  Project Context (from config.yaml):
       Runtime: Node.js 20
       Framework: Next.js 14
       Package Manager: pnpm
@@ -676,18 +692,23 @@ for agent in $(manifest_list "agents"); do
   [ -f ".claude/agents/$agent" ] || echo "Missing: $agent"
 done
 
-# Check 3: Configuration (CLAUDE.md is source of truth)
-# 3a: Check KARIMO Framework section exists
-grep -q "## KARIMO Framework" CLAUDE.md
+# Check 3: Configuration
+# 3a: Check KARIMO section exists in CLAUDE.md
+grep -q "## KARIMO" CLAUDE.md
 
-# 3b: Check for _pending_ markers
-grep "_pending_" CLAUDE.md | grep -E "(Runtime|Framework|Package Manager|Build|Lint|Test|Typecheck)"
+# 3b: Check required config files exist
+[ -f ".karimo/learnings.md" ]
+[ -f ".claude/KARIMO_RULES.md" ]
+[ -f ".karimo/config.yaml" ]
 
-# 3c: Drift detection
+# 3c: Check for _pending_ markers in config.yaml
+grep "_pending_" .karimo/config.yaml 2>/dev/null
+
+# 3d: Drift detection
 # Compare configured package manager vs actual lock files
 ls pnpm-lock.yaml yarn.lock package-lock.json bun.lockb 2>/dev/null
-# Read configured package manager from CLAUDE.md
-grep "Package Manager" CLAUDE.md | sed 's/.*| *\([^|]*\) *|$/\1/'
+# Read configured package manager from config.yaml
+grep "package_manager:" .karimo/config.yaml | awk '{print $2}'
 # Check if configured commands exist in package.json
 cat package.json | grep -o '"[^"]*"[[:space:]]*:' | tr -d '":' | head -20
 
