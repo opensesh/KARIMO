@@ -4,7 +4,7 @@ Capture learnings from execution to improve future agent behavior.
 
 ## Purpose
 
-Simple compound learning: you describe what went wrong or what worked well, and KARIMO processes it into rules that are appended to CLAUDE.md under `## KARIMO Learnings`.
+Simple compound learning: you describe what went wrong or what worked well, and KARIMO processes it into rules that are appended to `.karimo/learnings.md`.
 
 ## Usage
 
@@ -62,7 +62,7 @@ Transform feedback into an actionable rule:
 
 Present the generated rule:
 
-> "I'll add this to CLAUDE.md:
+> "I'll add this to `.karimo/learnings.md`:
 >
 > ```
 > - **Anti-pattern:** Never use inline styles. Always use Tailwind utility classes.
@@ -75,28 +75,28 @@ Allow user to:
 - Edit the rule
 - Cancel
 
-### 5. Append to CLAUDE.md
+### 5. Append to .karimo/learnings.md
 
-Add the rule under the `## KARIMO Learnings` section:
+Add the rule under the appropriate section in `.karimo/learnings.md`:
 
 ```markdown
-## KARIMO Learnings
+# KARIMO Learnings
 
-Rules learned from execution feedback. These are applied to all agent tasks.
+_Rules learned from execution feedback via `/karimo:feedback` and `/karimo:learn`._
 
-### Patterns to Follow
+## Patterns to Follow
 
 - Always use existing component patterns from `src/components/`
 
-### Anti-Patterns to Avoid
+## Anti-Patterns to Avoid
 
 - **Never use inline styles.** Always use Tailwind utility classes. Reference existing components for class patterns.
 
-### Rules
+## Rules
 
 - All error handling must use structured error types from `src/utils/errors.ts`.
 
-### Gotchas
+## Gotchas
 
 - The auth middleware has a race condition on first load. Always check auth state before rendering protected routes.
 ```
@@ -107,10 +107,11 @@ If the feedback suggests a boundary change:
 
 **Input:** "Don't let agents touch the middleware file"
 
-**Action:** Add to CLAUDE.md Boundaries section:
-```markdown
-**Require Review:**
-- middleware.ts  # Added from feedback
+**Action:** Add to `.karimo/config.yaml` boundaries section:
+```yaml
+boundaries:
+  require_review:
+    - middleware.ts  # Added from feedback
 ```
 
 ### 7. Confirm
@@ -118,31 +119,31 @@ If the feedback suggests a boundary change:
 > "Learning captured. This will be applied to future agent tasks.
 >
 > Updated:
-> - CLAUDE.md (added anti-pattern rule)
-> - CLAUDE.md Boundaries (added middleware.ts to require_review)"
+> - `.karimo/learnings.md` (added anti-pattern rule)
+> - `.karimo/config.yaml` boundaries (added middleware.ts to require_review)"
 
 ## Output Format
 
-### CLAUDE.md Section
+### .karimo/learnings.md Structure
 
 ```markdown
-## KARIMO Learnings
+# KARIMO Learnings
 
-Rules learned from execution feedback. These are applied to all agent tasks.
+_Rules learned from execution feedback via `/karimo:feedback` and `/karimo:learn`._
 
-### Patterns to Follow
+## Patterns to Follow
 
 {positive patterns}
 
-### Anti-Patterns to Avoid
+## Anti-Patterns to Avoid
 
 {things to never do}
 
-### Rules
+## Rules
 
 {explicit rules}
 
-### Gotchas
+## Gotchas
 
 {project-specific quirks}
 
