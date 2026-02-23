@@ -255,7 +255,7 @@ Hand off to the PM agent for execution:
 ```
 
 Pass:
-- Project configuration from CLAUDE.md (commands, boundaries, learnings)
+- Project configuration from `.karimo/config.yaml` (commands, boundaries) and `.karimo/learnings.md`
 - PRD status (approved tasks, excluded tasks)
 - Brief file paths for each task
 - Execution plan from `execution_plan.yaml`

@@ -164,7 +164,7 @@ Use the karimo-interviewer agent to conduct the interview:
 ```
 
 Pass the following context to the interviewer:
-- Project configuration from CLAUDE.md
+- Project configuration from `.karimo/config.yaml` and `.karimo/learnings.md`
 - Previous PRD summaries (if any exist)
 - The PRD name argument (if provided)
 

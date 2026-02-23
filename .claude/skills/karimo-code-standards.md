@@ -255,7 +255,7 @@ Create this file when:
 
 1. **Task Brief** — Primary source of requirements
 2. **agent_context** — PRD-specific guidance
-3. **CLAUDE.md Learnings** — Project-specific patterns
+3. **`.karimo/learnings.md`** — Project-specific patterns
 4. **Upstream findings** — Discoveries from dependent tasks
 
 ---
