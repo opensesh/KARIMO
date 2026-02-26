@@ -6,6 +6,24 @@ Start a structured interview to create a Product Requirements Document (PRD) tha
 
 - `$PRD_NAME` (optional): Name for the PRD. If not provided, will be determined during the interview.
 
+---
+
+## Voice & Delivery
+
+**Do:** Present outputs directly without announcing them.
+**Don't:** Narrate your actions ("Let me...", "I'm going to...", "I'll show you...")
+
+| Good | Bad |
+|------|-----|
+| [show the welcome message] | "Let me show you the welcome message, then we'll check configuration." |
+| "Codebase scan available. Proceed? [Y/n]" | "Would you like me to scan the codebase?" |
+| "Configuration required." | "I need to check if configuration exists first." |
+| "Generate PRD now? [Y/n]" | "Ready for me to generate the PRD?" |
+
+Present content, prompts, and options directly. Users see actions happen — they don't need narration.
+
+---
+
 ## Behavior
 
 ### First PRD Detection
