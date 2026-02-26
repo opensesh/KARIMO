@@ -164,11 +164,15 @@ if [ -f "$TARGET_DIR/.github/ISSUE_TEMPLATE/karimo-task.yml" ]; then
 fi
 
 # Strip KARIMO section from CLAUDE.md
-# Check both possible locations for CLAUDE.md (like install.sh)
+# Check all possible locations for CLAUDE.md (case-insensitive, like install.sh)
 if [ -f "$TARGET_DIR/.claude/CLAUDE.md" ]; then
     CLAUDE_MD="$TARGET_DIR/.claude/CLAUDE.md"
+elif [ -f "$TARGET_DIR/.claude/claude.md" ]; then
+    CLAUDE_MD="$TARGET_DIR/.claude/claude.md"
 elif [ -f "$TARGET_DIR/CLAUDE.md" ]; then
     CLAUDE_MD="$TARGET_DIR/CLAUDE.md"
+elif [ -f "$TARGET_DIR/claude.md" ]; then
+    CLAUDE_MD="$TARGET_DIR/claude.md"
 else
     CLAUDE_MD=""
 fi
