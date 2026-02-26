@@ -225,6 +225,7 @@ Read owner settings from `.karimo/config.yaml`:
 # Parse YAML config (simple grep-based, no external dependencies)
 OWNER=$(grep "^  owner:" .karimo/config.yaml | head -1 | awk '{print $2}')
 OWNER_TYPE=$(grep "^  owner_type:" .karimo/config.yaml | head -1 | awk '{print $2}')
+REPO=$(grep "^  repository:" .karimo/config.yaml | head -1 | awk '{print $2}')
 
 if [ "$OWNER_TYPE" = "personal" ]; then
   PROJECT_OWNER="@me"
@@ -242,7 +243,54 @@ GitHub Projects require owner configuration.
 Run /karimo-configure to set up GitHub settings.
 ```
 
-#### Step 3b: Check if Project Exists (Idempotency)
+#### Step 3b: Create Feature Issue (Parent for Sub-Issues)
+
+**Create a feature-level issue first.** This becomes the parent for all task sub-issues, enabling hierarchical visibility.
+
+```typescript
+// Create feature issue via MCP
+const featureIssue = mcp__github__issue_write({
+  method: "create",
+  owner: "{owner}",
+  repo: "{repo}",
+  title: "[PRD] {prd_title}",
+  body: `## Feature: {prd_title}
+
+{executive_summary}
+
+### Scope
+- **Tasks:** {task_count} tasks across {wave_count} waves
+- **Complexity range:** {min_complexity}-{max_complexity}
+
+### Task Sub-Issues
+Task issues will be linked as sub-issues below.
+
+### Success Criteria
+{feature_level_success_criteria}
+
+---
+**PRD:** {prd_slug}
+**Project:** Will be linked after creation
+
+---
+*Created by [KARIMO](https://github.com/opensesh/KARIMO)*`,
+  labels: ["karimo", "karimo-feature"]
+})
+
+// Store feature issue number for sub-issue linking
+FEATURE_ISSUE_NUMBER = featureIssue.number
+FEATURE_ISSUE_ID = featureIssue.id  // Node ID needed for sub_issue_write
+```
+
+Store the `number` and `id` in `status.json`:
+```json
+{
+  "feature_issue_number": 42,
+  "feature_issue_id": "I_kwDOABC123..."
+}
+```
+
+#### Step 3c: Check if Project Exists (Idempotency)
 
 Before creating a project, check if one already exists for this PRD:
 
@@ -263,7 +311,7 @@ fi
 
 This ensures re-running `/karimo-execute` on the same PRD reuses the existing project rather than failing.
 
-#### Step 3c: Configure Project
+#### Step 3d: Configure Project
 
 **Add custom fields** (if not already present):
    - `complexity` (Number)
@@ -274,36 +322,131 @@ This ensures re-running `/karimo-execute` on the same PRD reuses the existing pr
    - `revision_count` (Number)
    - `model` (Text — "sonnet" or "opus")
    - `loop_count` (Number)
+   - `wave` (Single Select: Wave 1, Wave 2, Wave 3, Wave 4, Wave 5)
 
-3. **Create Issues via MCP** (one per task):
+**Create Wave field:**
+```bash
+gh project field-create {project-number} \
+  --owner "$PROJECT_OWNER" \
+  --name "Wave" \
+  --data-type "SINGLE_SELECT" \
+  --single-select-options "Wave 1,Wave 2,Wave 3,Wave 4,Wave 5"
+```
 
-   Use `mcp__github__issue_write` for issue creation:
+#### Step 3e: Create Task Issues & Link as Sub-Issues
 
-   ```typescript
-   mcp__github__issue_write({
-     method: "create",
-     owner: "{owner}",
-     repo: "{repo}",
-     title: "[{task_id}] {task_title}",
-     body: "{issue_body}",  // See template below
-     labels: ["karimo", "priority:{priority}"]
-   })
-   ```
+For each task, create an issue and link it as a sub-issue to the feature issue:
 
-   Store the returned `number` in `status.json` for PR linking.
+```typescript
+// 1. Create task issue via MCP
+const taskIssue = mcp__github__issue_write({
+  method: "create",
+  owner: "{owner}",
+  repo: "{repo}",
+  title: "[{task_id}] {task_title}",
+  body: "{issue_body}",  // See template below
+  labels: ["karimo", "priority:{priority}"]
+})
 
-   **Issue Body Template:**
-   - Task description + success criteria
-   - Complexity + model assignment
-   - Dependencies list
+// Store the returned number and ID in status.json for PR linking
+// IMPORTANT: sub_issue_write needs the issue ID, not the issue number
 
-4. **Create feature branch** (if not exists):
-   ```bash
-   git checkout -b feature/{prd-slug} main
-   git push -u origin feature/{prd-slug}
-   ```
+// 2. Link as sub-issue to feature issue via MCP
+mcp__github__sub_issue_write({
+  method: "add",
+  owner: "{owner}",
+  repo: "{repo}",
+  issue_number: {feature_issue_number},  // Parent feature issue
+  sub_issue_id: taskIssue.id             // Task issue ID (NOT number)
+})
+```
 
-5. **Update status.json** with GitHub Project URL and feature branch.
+**Issue Body Template (Enhanced):**
+```markdown
+## Task: {task_id}
+
+**Parent Feature:** #{feature_issue_number}
+**Wave:** {wave_number}
+
+{task_description}
+
+### Success Criteria
+
+- [ ] {criterion_1}
+- [ ] {criterion_2}
+- [ ] {criterion_3}
+
+### Files to Modify
+
+| File | Action |
+|------|--------|
+| `{path}` | {create/modify} |
+
+### Dependencies
+
+{depends_on or "None — can start immediately"}
+
+---
+**PRD:** {prd_slug}
+**Complexity:** {complexity}/10
+**Priority:** {priority}
+**Model:** {model}
+
+---
+*Created by [KARIMO](https://github.com/opensesh/KARIMO)*
+```
+
+#### Step 3f: Set Wave on Task Issues
+
+After adding task to project, set the Wave field:
+
+```bash
+# Get project item ID for the task issue
+ITEM_ID=$(gh project item-list {project-number} --owner "$PROJECT_OWNER" --format json \
+  --jq ".items[] | select(.content.number == {issue_number}) | .id")
+
+# Set Wave field (requires field ID from field-list)
+gh project item-edit \
+  --project-id {project-id} \
+  --id "$ITEM_ID" \
+  --field-id {wave-field-id} \
+  --single-select-option-id {wave-option-id}
+```
+
+Record wave assignment in status.json:
+```json
+{
+  "tasks": {
+    "1a": {
+      "wave": 1,
+      "issue_number": 43,
+      "issue_id": "I_kwDOABC124..."
+    }
+  }
+}
+```
+
+#### Step 3g: Create Feature Branch
+
+**Create feature branch** (if not exists):
+```bash
+git checkout -b feature/{prd-slug} main
+git push -u origin feature/{prd-slug}
+```
+
+#### Step 3h: Update Status
+
+**Update status.json** with GitHub Project URL, feature branch, and feature issue:
+
+```json
+{
+  "github_project_url": "https://github.com/orgs/{org}/projects/{number}",
+  "github_project_number": {number},
+  "feature_branch": "feature/{prd-slug}",
+  "feature_issue_number": 42,
+  "feature_issue_id": "I_kwDOABC123..."
+}
+```
 
 ---
 

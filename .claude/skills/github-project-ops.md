@@ -207,6 +207,208 @@ mcp__github__pull_request_read({
 
 Projects v2 requires gh CLI because GitHub MCP doesn't support the Projects GraphQL API.
 
+## Sub-Issues Hierarchy (Gap #4 Prevention)
+
+KARIMO uses GitHub's sub-issues feature to create a hierarchical view:
+
+```
+Feature Issue (Parent)
+├── Task 1a (Sub-issue)
+├── Task 1b (Sub-issue)
+├── Task 2a (Sub-issue)
+└── Task 2b (Sub-issue)
+```
+
+### Create Feature Issue First
+
+Before creating task issues, create a parent feature issue:
+
+```typescript
+// Create feature issue via MCP
+const featureIssue = mcp__github__issue_write({
+  method: "create",
+  owner: "{owner}",
+  repo: "{repo}",
+  title: "[PRD] {prd_title}",
+  body: `## Feature: {prd_title}
+
+{executive_summary}
+
+### Scope
+- **Tasks:** {task_count} tasks across {wave_count} waves
+
+### Task Sub-Issues
+Task issues will be linked as sub-issues below.
+
+---
+*Created by [KARIMO](https://github.com/opensesh/KARIMO)*`,
+  labels: ["karimo", "karimo-feature"]
+})
+
+// Store for sub-issue linking
+// IMPORTANT: sub_issue_write needs the issue ID, not the issue number
+FEATURE_ISSUE_NUMBER = featureIssue.number
+FEATURE_ISSUE_ID = featureIssue.id
+```
+
+### Link Task Issues as Sub-Issues
+
+After creating each task issue, link it as a sub-issue to the feature:
+
+```typescript
+// Create task issue
+const taskIssue = mcp__github__issue_write({
+  method: "create",
+  owner: "{owner}",
+  repo: "{repo}",
+  title: "[{task_id}] {task_title}",
+  body: "{issue_body}",
+  labels: ["karimo", "priority:{priority}"]
+})
+
+// Link as sub-issue (uses ID, not number)
+mcp__github__sub_issue_write({
+  method: "add",
+  owner: "{owner}",
+  repo: "{repo}",
+  issue_number: {feature_issue_number},  // Parent
+  sub_issue_id: taskIssue.id              // Child ID
+})
+```
+
+### Sub-Issue Management
+
+**Reorder sub-issues** (optional):
+```typescript
+mcp__github__sub_issue_write({
+  method: "reprioritize",
+  owner: "{owner}",
+  repo: "{repo}",
+  issue_number: {feature_issue_number},
+  sub_issue_id: {task_issue_id},
+  after_id: {other_task_issue_id}  // Position after this issue
+})
+```
+
+**Remove sub-issue** (if needed):
+```typescript
+mcp__github__sub_issue_write({
+  method: "remove",
+  owner: "{owner}",
+  repo: "{repo}",
+  issue_number: {feature_issue_number},
+  sub_issue_id: {task_issue_id}
+})
+```
+
+---
+
+## Wave Field Tracking (Gap #20 Prevention)
+
+The Wave field enables filtering and grouping tasks by execution wave.
+
+### Create Wave Field
+
+When creating the project, add a Wave single-select field:
+
+```bash
+gh project field-create {project-number} \
+  --owner "$PROJECT_OWNER" \
+  --name "Wave" \
+  --data-type "SINGLE_SELECT" \
+  --single-select-options "Wave 1,Wave 2,Wave 3,Wave 4,Wave 5"
+```
+
+### Set Wave on Task Issues
+
+After adding a task issue to the project:
+
+```bash
+# Get the Wave field ID
+WAVE_FIELD_ID=$(gh project field-list {project-number} --owner "$PROJECT_OWNER" --format json \
+  --jq '.fields[] | select(.name == "Wave") | .id')
+
+# Get the option ID for the specific wave
+WAVE_OPTION_ID=$(gh project field-list {project-number} --owner "$PROJECT_OWNER" --format json \
+  --jq '.fields[] | select(.name == "Wave") | .options[] | select(.name == "Wave {wave_number}") | .id')
+
+# Get the project item ID for the task issue
+ITEM_ID=$(gh project item-list {project-number} --owner "$PROJECT_OWNER" --format json \
+  --jq ".items[] | select(.content.number == {issue_number}) | .id")
+
+# Get the project ID (different from project number)
+PROJECT_ID=$(gh project view {project-number} --owner "$PROJECT_OWNER" --format json --jq '.id')
+
+# Set the Wave field
+gh project item-edit \
+  --project-id "$PROJECT_ID" \
+  --id "$ITEM_ID" \
+  --field-id "$WAVE_FIELD_ID" \
+  --single-select-option-id "$WAVE_OPTION_ID"
+```
+
+### Query by Wave
+
+Filter project items by wave:
+
+```bash
+gh project item-list {project-number} --owner "$PROJECT_OWNER" --format json \
+  --jq '.items[] | select(.fieldValues.Wave == "Wave 1")'
+```
+
+---
+
+## Board Automations (Gap #19 Prevention)
+
+GitHub Projects supports workflow automations that auto-move cards based on status changes.
+
+### Configure via GitHub UI
+
+Navigate to: `https://github.com/{org}/projects/{number}/settings/workflows`
+
+**Enable these automations:**
+
+1. **Auto-add to project** — Automatically add issues/PRs with 'karimo' label
+   - Trigger: Item labeled
+   - Filter: Label = "karimo"
+   - Action: Add to project
+
+2. **Item closed** — Move to Done when issue/PR closes
+   - Trigger: Item closed
+   - Action: Set Status to "Done"
+
+3. **Pull request merged** — Move to Done on merge
+   - Trigger: Pull request merged
+   - Action: Set Status to "Done"
+
+4. **Pull request opened** — Move to In Progress (optional)
+   - Trigger: Code changes requested / Pull request opened
+   - Action: Set Status to "In Progress"
+
+### Manual Status Update (Fallback)
+
+If automations are not configured, update status manually via CLI:
+
+```bash
+# Get project and item IDs
+PROJECT_ID=$(gh project view {project-number} --owner "$PROJECT_OWNER" --format json --jq '.id')
+ITEM_ID=$(gh project item-list {project-number} --owner "$PROJECT_OWNER" --format json \
+  --jq ".items[] | select(.content.number == {issue_number}) | .id")
+STATUS_FIELD_ID=$(gh project field-list {project-number} --owner "$PROJECT_OWNER" --format json \
+  --jq '.fields[] | select(.name == "Status") | .id')
+DONE_OPTION_ID=$(gh project field-list {project-number} --owner "$PROJECT_OWNER" --format json \
+  --jq '.fields[] | select(.name == "Status") | .options[] | select(.name == "Done") | .id')
+
+# Update status to Done
+gh project item-edit \
+  --project-id "$PROJECT_ID" \
+  --id "$ITEM_ID" \
+  --field-id "$STATUS_FIELD_ID" \
+  --single-select-option-id "$DONE_OPTION_ID"
+```
+
+---
+
 ## Project Setup
 
 ### Create Project (Idempotent)
