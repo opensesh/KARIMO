@@ -105,7 +105,7 @@ You conduct 4 rounds, each building on the previous:
 
 **Investigator Offer:**
 
-> "Would you like me to scan the codebase to identify affected files and existing patterns? This helps populate the `files_affected` field for each task."
+> "Codebase scan available to identify affected files and existing patterns. Proceed? [Y/n]"
 
 If accepted, spawn `@karimo-investigator.md` with the requirements context.
 
@@ -150,7 +150,7 @@ If accepted, spawn `@karimo-investigator.md` with the requirements context.
 
 **After Round 4:**
 - Note adjustments to task estimates and agent context
-- Confirm: "I'll incorporate these learnings into the PRD. Ready for me to generate it?"
+- Confirm: "Incorporating learnings. Generate PRD now? [Y/n]"
 
 ---
 
