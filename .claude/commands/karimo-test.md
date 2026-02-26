@@ -162,11 +162,29 @@ Or for new installations:
 
 ### Test 5: CLAUDE.md Integration
 
-Verify KARIMO section exists in CLAUDE.md and required config files are present.
+Verify KARIMO section exists in CLAUDE.md with markers and required config files are present.
 
 ```bash
-# Check for KARIMO section
-grep -q "## KARIMO" CLAUDE.md && echo "Section found" || echo "Section missing"
+# Check for KARIMO section (prefer marker-based format)
+if grep -q "<!-- KARIMO:START" CLAUDE.md; then
+  echo "KARIMO section found (with markers)"
+elif grep -q "## KARIMO" CLAUDE.md; then
+  echo "KARIMO section found (legacy format)"
+else
+  echo "KARIMO section missing"
+fi
+
+# Check for GitHub Configuration table
+if grep -q "### GitHub Configuration" CLAUDE.md; then
+  # Check for pending values
+  if grep -A5 "### GitHub Configuration" CLAUDE.md | grep -q "_pending_"; then
+    echo "GitHub Configuration has pending values"
+  else
+    echo "GitHub Configuration populated"
+  fi
+else
+  echo "GitHub Configuration table missing"
+fi
 
 # Check for required config files
 [ -f ".karimo/learnings.md" ] && echo "learnings.md found" || echo "learnings.md missing"
@@ -178,7 +196,19 @@ grep -q "## KARIMO" CLAUDE.md && echo "Section found" || echo "Section missing"
 Test 5: CLAUDE.md Integration
 ─────────────────────────────
 
-  ✅ KARIMO section        Present in CLAUDE.md
+  ✅ KARIMO section        Present in CLAUDE.md (with markers)
+  ⚠️  GitHub Configuration  Pending values (run /karimo-configure)
+  ✅ learnings.md          Present in .karimo/
+  ✅ KARIMO_RULES.md       Present in .claude/
+```
+
+Or after configuration:
+```
+Test 5: CLAUDE.md Integration
+─────────────────────────────
+
+  ✅ KARIMO section        Present in CLAUDE.md (with markers)
+  ✅ GitHub Configuration  Populated
   ✅ learnings.md          Present in .karimo/
   ✅ KARIMO_RULES.md       Present in .claude/
 ```
