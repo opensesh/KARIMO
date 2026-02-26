@@ -450,17 +450,32 @@ cost:
 
 After writing config.yaml, update the GitHub Configuration table in CLAUDE.md.
 
-**Step 8a: Check if KARIMO section exists with markers**
+**Step 8a: Detect CLAUDE.md path**
 
 ```bash
-if ! grep -q "<!-- KARIMO:START" CLAUDE.md; then
-  echo "⚠️  KARIMO section not found with markers"
+# Check both possible locations for CLAUDE.md
+if [ -f ".claude/CLAUDE.md" ]; then
+    CLAUDE_MD=".claude/CLAUDE.md"
+elif [ -f "CLAUDE.md" ]; then
+    CLAUDE_MD="CLAUDE.md"
+else
+    echo "⚠️  CLAUDE.md not found"
+    echo "   Skipping CLAUDE.md update"
+    exit 0
+fi
+```
+
+**Step 8b: Check if KARIMO section exists with markers**
+
+```bash
+if ! grep -q "<!-- KARIMO:START" "$CLAUDE_MD"; then
+  echo "⚠️  KARIMO section not found with markers in $CLAUDE_MD"
   echo "   CLAUDE.md not updated (re-run installer to add marker-based section)"
   exit 0
 fi
 ```
 
-**Step 8b: Update the GitHub Configuration table**
+**Step 8c: Update the GitHub Configuration table**
 
 Replace the `_pending_` values in the table with actual values:
 
@@ -477,9 +492,9 @@ sed -i '' \
     s/| Owner Type | _pending_ |/| Owner Type | $OWNER_TYPE |/
     s/| Owner | _pending_ |/| Owner | $OWNER |/
     s/| Repository | _pending_ |/| Repository | $REPO |/
-  }" CLAUDE.md
+  }" "$CLAUDE_MD"
 
-echo "✅ Updated GitHub Configuration in CLAUDE.md"
+echo "✅ Updated GitHub Configuration in $CLAUDE_MD"
 ```
 
 **Example output:**
@@ -488,6 +503,7 @@ echo "✅ Updated GitHub Configuration in CLAUDE.md"
 Section 8 of 8: Update CLAUDE.md
 ────────────────────────────────
 
+  ✅ Found CLAUDE.md at: .claude/CLAUDE.md
   ✅ Found KARIMO section with markers
   ✅ Updated GitHub Configuration table:
       Owner Type: organization
