@@ -18,11 +18,15 @@ KARIMO uses GitHub Projects (V2) to track task execution. Each PRD gets a Projec
 **Read owner from CLAUDE.md, with fallback to config.yaml:**
 
 ```bash
-# First detect CLAUDE.md path
+# First detect CLAUDE.md path (case-insensitive)
 if [ -f ".claude/CLAUDE.md" ]; then
     CLAUDE_MD=".claude/CLAUDE.md"
+elif [ -f ".claude/claude.md" ]; then
+    CLAUDE_MD=".claude/claude.md"
 elif [ -f "CLAUDE.md" ]; then
     CLAUDE_MD="CLAUDE.md"
+elif [ -f "claude.md" ]; then
+    CLAUDE_MD="claude.md"
 else
     CLAUDE_MD=""
 fi
