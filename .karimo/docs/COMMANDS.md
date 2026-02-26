@@ -13,7 +13,8 @@ Reference for all KARIMO slash commands available in Claude Code.
 | `/karimo-execute` | Execute tasks from PRD (brief gen + execution) |
 | `/karimo-modify` | Modify approved PRD before execution |
 | `/karimo-status` | View execution progress |
-| `/karimo-configure` | Create or update CLAUDE.md configuration |
+| `/karimo-configure` | Create or update project configuration |
+| `/karimo-update` | Check for and apply KARIMO updates |
 | `/karimo-feedback` | Quick capture of single learnings |
 | `/karimo-learn` | Deep learning cycle (3 modes) |
 | `/karimo-doctor` | Check installation health |
@@ -397,6 +398,104 @@ When config already exists, shows current vs new values:
     Current: pnpm build
     New: [pnpm build] (press Enter to keep)
 ```
+
+---
+
+## /karimo-update
+
+Check for and apply KARIMO updates from GitHub releases.
+
+### Usage
+
+```
+/karimo-update              # Check for updates and install if available
+/karimo-update --check      # Only check, don't install
+/karimo-update --force      # Update even if already on latest
+```
+
+### What It Does
+
+1. **Checks current version** from `.karimo/VERSION`
+2. **Fetches latest release** from GitHub (`opensesh/KARIMO`)
+3. **Compares versions** using semver
+4. **Shows what will change** (if update available)
+5. **Downloads and applies** after user confirmation
+
+### Options
+
+| Option | Description |
+|--------|-------------|
+| `--check` | Only check for updates, don't install |
+| `--force` | Update even if already on latest version |
+| `--ci` | Non-interactive mode (auto-confirm) |
+| `--local <source> <target>` | Update from local KARIMO source |
+
+### What Gets Updated
+
+| Category | Files |
+|----------|-------|
+| Commands | `.claude/commands/*.md` |
+| Agents | `.claude/agents/*.md` |
+| Skills | `.claude/skills/*.md` |
+| Templates | `.karimo/templates/*.md` |
+| Rules | `.claude/KARIMO_RULES.md` |
+| Workflows | `.github/workflows/karimo-*.yml` (existing only) |
+
+### What Is Preserved
+
+These files are **never modified** by updates:
+
+| File | Reason |
+|------|--------|
+| `.karimo/config.yaml` | Your project configuration |
+| `.karimo/learnings.md` | Your accumulated learnings |
+| `.karimo/prds/*` | Your PRD files |
+| `CLAUDE.md` | Your project instructions |
+
+### Output Example
+
+```
+╭──────────────────────────────────────────────────────────────╮
+│  KARIMO Update                                               │
+╰──────────────────────────────────────────────────────────────╯
+
+Mode: Remote update (GitHub)
+Project: /path/to/your/project
+
+Current version: 3.2.0
+Latest version:  3.3.0
+
+Update available: 3.2.0 → 3.3.0
+
+This update will:
+  • Replace KARIMO commands, agents, skills, and templates
+  • Update GitHub workflow files (existing ones only)
+
+These files are preserved (never modified):
+  • .karimo/config.yaml
+  • .karimo/learnings.md
+  • .karimo/prds/*
+  • CLAUDE.md
+
+Continue with update? (Y/n)
+```
+
+### Offline/Manual Updates
+
+If GitHub is unreachable:
+
+1. Download latest release from https://github.com/opensesh/KARIMO/releases
+2. Extract the release
+3. Run: `.karimo/update.sh --local <extracted-karimo> .`
+
+### When to Use
+
+| Scenario | Command |
+|----------|---------|
+| Check if updates available | `/karimo-update --check` |
+| Apply updates | `/karimo-update` |
+| Force reinstall | `/karimo-update --force` |
+| CI/automated pipelines | `bash .karimo/update.sh --ci` |
 
 ---
 

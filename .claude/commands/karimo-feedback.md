@@ -62,13 +62,13 @@ Transform feedback into an actionable rule:
 
 Present the generated rule:
 
-> "I'll add this to `.karimo/learnings.md`:
+> "Adding to `.karimo/learnings.md`:
 >
 > ```
 > - **Anti-pattern:** Never use inline styles. Always use Tailwind utility classes.
 > ```
 >
-> Does this capture your feedback correctly?"
+> Correct? [Y/n/edit]"
 
 Allow user to:
 - Confirm as-is
@@ -166,13 +166,13 @@ Users can provide multiple items:
 
 Process each item separately, confirm all at once:
 
-> "I'll add these learnings:
+> "Adding these learnings:
 >
 > 1. **Rule:** Add JSDoc comments to all exported functions
 > 2. **Anti-pattern:** Never use deprecated React lifecycle methods (componentWillMount, etc.)
 > 3. **Gotcha:** Database connection pool has a 10-second timeout — handle connection errors gracefully
 >
-> Confirm?"
+> Correct? [Y/n]"
 
 ## Undo
 

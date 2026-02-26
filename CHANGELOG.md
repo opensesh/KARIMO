@@ -7,6 +7,73 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [3.3.0] - 2026-02-25
+
+### Added
+
+**`/karimo-update` Command**
+
+New self-update command that fetches and applies KARIMO updates from GitHub releases.
+
+```
+/karimo-update              # Check for updates and install if available
+/karimo-update --check      # Only check for updates, don't install
+/karimo-update --force      # Update even if already on latest version
+```
+
+**Update Script (`.karimo/update.sh`)**
+- Fetches latest release from GitHub API (`opensesh/KARIMO`)
+- Compares semver versions between installed and latest
+- Downloads and extracts release tarball
+- Uses MANIFEST.json to update only KARIMO-managed files
+- Self-updates the update script itself
+- Supports local mode for development: `--local <source> <target>`
+- CI mode for automated pipelines: `--ci`
+
+**Files preserved during updates (never modified):**
+- `.karimo/config.yaml` — Your project configuration
+- `.karimo/learnings.md` — Your accumulated learnings
+- `.karimo/prds/*` — Your PRD files
+- `CLAUDE.md` — Your project instructions
+
+### Changed
+
+**Interactive Configuration Settings**
+
+`/karimo-configure` now uses interactive questions instead of passive acceptance:
+
+- **Execution Settings** (Section 5): Users actively choose model, parallelism, and pre-PR checks with tradeoff descriptions
+- **Cost Controls** (Section 6): Users actively choose escalation policy, max attempts, and Greptile toggle
+- Each option now shows "(Recommended)" label and describes implications
+- Added reminder that settings can be changed anytime via `/karimo-configure`
+
+**Command Naming Convention**
+
+All commands updated from `karimo:` to `karimo-` format for consistency:
+- `/karimo:plan` → `/karimo-plan`
+- `/karimo:execute` → `/karimo-execute`
+- etc.
+
+**First-Time Configuration UX**
+
+`/karimo-plan` now handles missing configuration inline instead of requiring a separate `/karimo-configure` step:
+
+1. Shows brief explanation of why configuration matters
+2. Spawns investigator agent to scan codebase
+3. Presents detected settings (runtime, framework, commands, boundaries)
+4. User can accept, edit, or reject detected config
+5. Interview continues automatically after config is set
+
+This replaces the previous 3-option menu that required users to exit and return.
+
+### Documentation
+
+- Added `/karimo-update` to CLAUDE.md slash commands table
+- Updated installed components count (10 → 11 commands)
+- Added `karimo-update.md` to MANIFEST.json
+
+---
+
 ## [3.2.0] - 2026-02-22
 
 ### Changed
