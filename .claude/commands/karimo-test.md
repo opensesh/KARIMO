@@ -165,11 +165,15 @@ Or for new installations:
 Verify KARIMO section exists in CLAUDE.md with markers and required config files are present.
 
 ```bash
-# Detect CLAUDE.md path
+# Detect CLAUDE.md path (case-insensitive)
 if [ -f ".claude/CLAUDE.md" ]; then
     CLAUDE_MD=".claude/CLAUDE.md"
+elif [ -f ".claude/claude.md" ]; then
+    CLAUDE_MD=".claude/claude.md"
 elif [ -f "CLAUDE.md" ]; then
     CLAUDE_MD="CLAUDE.md"
+elif [ -f "claude.md" ]; then
+    CLAUDE_MD="claude.md"
 else
     echo "CLAUDE.md not found"
     CLAUDE_MD=""
