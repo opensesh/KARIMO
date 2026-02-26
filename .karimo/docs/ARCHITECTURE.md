@@ -135,10 +135,10 @@ Target Project/
 ├── .github/
 │   ├── workflows/
 │   │   ├── karimo-ci.yml                # CI validation (validates manifest)
-│   │   ├── karimo-sync.yml              # Tier 1: Status sync on merge
-│   │   ├── karimo-dependency-watch.yml  # Tier 1: Runtime dependency alerts
-│   │   ├── karimo-ci-integration.yml    # Tier 2: Observes external CI (opt-in)
-│   │   └── karimo-greptile-review.yml   # Tier 3: Greptile review (opt-in)
+│   │   ├── karimo-sync.yml              # Phase 1: Status sync on merge
+│   │   ├── karimo-dependency-watch.yml  # Phase 1: Runtime dependency alerts
+│   │   ├── karimo-ci-integration.yml    # Phase 1+: Observes external CI (opt-in)
+│   │   └── karimo-greptile-review.yml   # Phase 2: Greptile review (opt-in)
 │   └── ISSUE_TEMPLATE/
 │       └── karimo-task.yml              # Task issue template
 │
@@ -439,16 +439,20 @@ Estimates assume shared dependency store. Without sharing, multiply by 3-5x.
 
 ## GitHub Integration
 
-### Three-Tier Workflow System
+### Workflows (Phase-Aligned)
 
-KARIMO uses a portable three-tier workflow architecture. The key principle: **KARIMO never runs your build commands** — workflows observe external CI instead of executing their own build/lint/test.
+KARIMO workflows align with adoption phases. The key principle: **KARIMO never runs your build commands** — workflows observe external CI instead of executing their own build/lint/test.
 
-| Tier | Workflow | Install | Purpose |
-|------|----------|---------|---------|
-| 1 | `karimo-sync.yml` | Always | Status sync on PR merge |
-| 1 | `karimo-dependency-watch.yml` | Always | Runtime dependency alerts |
-| 2 | `karimo-ci-integration.yml` | Opt-in (default Y) | Observes external CI, labels PRs |
-| 3 | `karimo-greptile-review.yml` | Opt-in (default N) | Greptile code review |
+| Phase | Workflow | Install | Purpose |
+|-------|----------|---------|---------|
+| Phase 1 | `karimo-sync.yml` | Always | Project status sync on merge |
+| Phase 1 | `karimo-dependency-watch.yml` | Always | Runtime dependency alerts |
+| Phase 1+ | `karimo-ci-integration.yml` | Opt-in (Y) | CI observation and labeling |
+| Phase 2 | `karimo-greptile-review.yml` | Opt-in (N) | Greptile code review gates |
+
+**Phase 1** workflows are required for execution tracking. **Phase 1+** adds CI awareness without running builds. **Phase 2** requires Greptile API key.
+
+See [PHASES.md](PHASES.md) for adoption guidance.
 
 ### Label System
 
