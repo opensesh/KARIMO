@@ -67,6 +67,16 @@ This is where everyone starts. Phase 1 provides everything needed to go from ide
   - Rules appended to `.karimo/learnings.md`
   - Future agents learn from feedback
 
+### Workflows Installed
+
+| Workflow | Purpose | Trigger |
+|----------|---------|---------|
+| `karimo-sync.yml` | Updates project item status on PR merge | PR merged with `karimo` label |
+| `karimo-dependency-watch.yml` | Alerts when runtime dependencies discovered | Issue labeled `karimo-dependency` |
+| `karimo-ci-integration.yml` *(optional)* | Observes external CI, labels PRs | PR opened/updated |
+
+The CI integration workflow is recommended but optional. It watches your existing CI (GitHub Actions, CircleCI, Jenkins, etc.) and labels PRs with `ci-passed`, `ci-failed`, or `ci-skipped`. It does NOT run build commands itself.
+
 ### Prerequisites
 
 - Claude Code installed
@@ -137,6 +147,18 @@ Greptile acts as a force multiplier — catching issues before human review and 
 2. Add `GREPTILE_API_KEY` to your GitHub repository secrets
 3. Ensure `karimo` label exists on your repository
 4. PRs with `karimo` label trigger automated review
+
+### Workflows Installed
+
+| Workflow | Purpose | Trigger |
+|----------|---------|---------|
+| `karimo-greptile-review.yml` | Automated code review via Greptile | PR opened with `karimo` label |
+
+This workflow:
+- Sends PR diff to Greptile for review
+- Posts review comments with 0-5 quality score
+- Labels PRs `greptile-passed` (score >= 3) or `greptile-needs-revision` (score < 3)
+- Triggers revision loops when score is below threshold
 
 ### How Revision Loops Work
 
