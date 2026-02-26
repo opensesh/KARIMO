@@ -65,8 +65,8 @@ Clear audit trail at both levels.
 
 ### 6. Monitor
 Real-time visibility into what's happening.
-- `/karimo:status` shows live execution progress
-- `/karimo:overview` provides cross-PRD dashboard
+- `/karimo-status` shows live execution progress
+- `/karimo-overview` provides cross-PRD dashboard
 - GitHub Projects + PRs for persistent tracking
 
 ---
@@ -98,13 +98,13 @@ bash KARIMO/.karimo/install.sh /path/to/your/project
 
 ```bash
 cd your-project && claude
-/karimo:doctor   # Check installation health
+/karimo-doctor   # Check installation health
 ```
 
 ### Create Your First PRD
 
 ```
-/karimo:plan
+/karimo-plan
 ```
 
 The interview takes ~10 minutes. See [Getting Started](.karimo/docs/GETTING-STARTED.md) for the full walkthrough.
@@ -129,14 +129,14 @@ bash KARIMO/.karimo/update.sh /path/to/your/project
 
 | Command | What it does |
 |---------|--------------|
-| `/karimo:plan` | Interactive PRD creation (~10 min) |
-| `/karimo:execute --prd {slug}` | Run tasks from a PRD |
-| `/karimo:status` | View execution progress |
-| `/karimo:overview` | Dashboard across all PRDs |
-| `/karimo:modify --prd {slug}` | Edit an approved PRD |
-| `/karimo:doctor` | Diagnose installation issues |
-| `/karimo:feedback` | Capture a single learning (~2 min) |
-| `/karimo:learn` | Deep learning cycle (~45 min) |
+| `/karimo-plan` | Interactive PRD creation (~10 min) |
+| `/karimo-execute --prd {slug}` | Run tasks from a PRD |
+| `/karimo-status` | View execution progress |
+| `/karimo-overview` | Dashboard across all PRDs |
+| `/karimo-modify --prd {slug}` | Edit an approved PRD |
+| `/karimo-doctor` | Diagnose installation issues |
+| `/karimo-feedback` | Capture a single learning (~2 min) |
+| `/karimo-learn` | Deep learning cycle (~45 min) |
 
 Full reference: [COMMANDS.md](.karimo/docs/COMMANDS.md)
 
@@ -195,7 +195,7 @@ Behavior rules: [`KARIMO_RULES.md`](.claude/KARIMO_RULES.md)
 
 ## Configuration
 
-Configuration lives in `.karimo/config.yaml` (run `/karimo:configure` after install):
+Configuration lives in `.karimo/config.yaml` (run `/karimo-configure` after install):
 
 - **Runtime** — Node.js, Bun, Deno, Python, etc.
 - **Framework** — Next.js, React, Vue, FastAPI, etc.
@@ -230,7 +230,7 @@ That's it. The `karimo-greptile-review.yml` workflow handles the rest — scorin
 
 ### Having issues?
 
-Run `/karimo:doctor` to diagnose installation problems. If that doesn't help, reach out to us at [hello@opensession.co](mailto:hello@opensession.co).
+Run `/karimo-doctor` to diagnose installation problems. If that doesn't help, reach out to us at [hello@opensession.co](mailto:hello@opensession.co).
 
 ---
 

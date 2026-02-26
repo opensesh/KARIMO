@@ -34,13 +34,13 @@ This is where everyone starts. Phase 1 provides everything needed to go from ide
 
 ### What You Get
 
-- **PRD Interview** (`/karimo:plan`)
+- **PRD Interview** (`/karimo-plan`)
   - 5-round structured conversation
   - Codebase investigation
   - Task decomposition with dependencies
   - Automated DAG generation
 
-- **Task Execution** (`/karimo:execute`)
+- **Task Execution** (`/karimo-execute`)
   - PM Agent coordinates task work
   - Git worktrees for isolation
   - Feature branches per task
@@ -62,7 +62,7 @@ This is where everyone starts. Phase 1 provides everything needed to go from ide
   - GitHub Projects tracking
   - Labels for status (ready, running, done)
 
-- **Compound Learning** (`/karimo:feedback`)
+- **Compound Learning** (`/karimo-feedback`)
   - Capture patterns and anti-patterns
   - Rules appended to `.karimo/learnings.md`
   - Future agents learn from feedback
@@ -84,10 +84,10 @@ cd your-project
 claude
 
 # Create your first PRD
-/karimo:plan
+/karimo-plan
 
 # Execute tasks
-/karimo:execute --prd {slug}
+/karimo-execute --prd {slug}
 ```
 
 ---
@@ -177,7 +177,7 @@ Task Complete → PR Created → Greptile Review
 
 **Coming soon.** Dashboard for team-wide visibility and oversight.
 
-Phase 3 will provide a web-based dashboard for reviewing PRDs, visualizing dependencies, and tracking team metrics. Until then, GitHub Projects Kanban + `/karimo:status` serve the same purpose.
+Phase 3 will provide a web-based dashboard for reviewing PRDs, visualizing dependencies, and tracking team metrics. Until then, GitHub Projects Kanban + `/karimo-status` serve the same purpose.
 
 See [DASHBOARD.md](DASHBOARD.md) for the planned specification.
 

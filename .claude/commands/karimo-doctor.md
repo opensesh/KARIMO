@@ -1,11 +1,11 @@
-# /karimo:doctor — Diagnostic Command
+# /karimo-doctor — Diagnostic Command
 
 Check the health of a KARIMO installation, identify issues, and provide actionable recommendations.
 
 ## Usage
 
 ```
-/karimo:doctor
+/karimo-doctor
 ```
 
 **This command is read-only and never modifies files.**
@@ -79,7 +79,7 @@ fi
 ```
 
 If Git version is < 2.5, show warning with upgrade recommendation:
-- `⚠️ Git 2.4.0 — Worktrees require Git 2.5+. Upgrade before running /karimo:execute.`
+- `⚠️ Git 2.4.0 — Worktrees require Git 2.5+. Upgrade before running /karimo-execute.`
 
 **Example output:**
 
@@ -140,7 +140,7 @@ Check 1.5: GitHub Project Access
 ────────────────────────────────
 
   ❌ GitHub Configuration not found in CLAUDE.md
-      Run /karimo:configure to add GitHub settings
+      Run /karimo-configure to add GitHub settings
 ```
 
 **Example output (access denied):**
@@ -260,8 +260,8 @@ grep -q "## KARIMO" CLAUDE.md
 # Check rules file
 [ -f ".claude/KARIMO_RULES.md" ] && echo "✅ KARIMO_RULES.md" || echo "❌ KARIMO_RULES.md missing"
 
-# Check config file (created by /karimo:configure)
-[ -f ".karimo/config.yaml" ] && echo "✅ config.yaml" || echo "⚠️ config.yaml missing (run /karimo:configure)"
+# Check config file (created by /karimo-configure)
+[ -f ".karimo/config.yaml" ] && echo "✅ config.yaml" || echo "⚠️ config.yaml missing (run /karimo-configure)"
 ```
 
 **If no KARIMO section found:**
@@ -297,7 +297,7 @@ Check 3: Configuration Validation
       - build: _pending_
 
   Recommendation:
-    Run /karimo:configure to complete configuration
+    Run /karimo-configure to complete configuration
 ```
 
 **Step 3d: Drift detection**
@@ -331,7 +331,7 @@ Check 3: Configuration Validation
     - New lock file: bun.lockb appeared (not in config)
 
   Recommendation:
-    Run /karimo:configure to update configuration
+    Run /karimo-configure to update configuration
 ```
 
 **Example output (healthy):**
@@ -518,8 +518,8 @@ Check 6: Execution Health
   ✅ No status-PR mismatches
 
   Recovery:
-    /karimo:execute --prd user-profiles
-    /karimo:execute --prd token-studio
+    /karimo-execute --prd user-profiles
+    /karimo-execute --prd token-studio
 ```
 
 **Example output (healthy):**
@@ -569,7 +569,7 @@ Summary
   ❌ 0 errors
 
   Recommendations:
-    1. Run /karimo:configure to resolve _pending_ placeholders
+    1. Run /karimo-configure to resolve _pending_ placeholders
 ```
 
 **Recommendation mapping:**
@@ -577,18 +577,18 @@ Summary
 | Issue Type | Recommendation |
 |------------|----------------|
 | Version drift | Run `update.sh` from KARIMO source |
-| Missing KARIMO section | `/karimo:configure` |
-| Configuration drift | `/karimo:configure` |
-| Placeholder values | `/karimo:configure` |
-| Missing GitHub config | `/karimo:configure` |
+| Missing KARIMO section | `/karimo-configure` |
+| Configuration drift | `/karimo-configure` |
+| Placeholder values | `/karimo-configure` |
+| Missing GitHub config | `/karimo-configure` |
 | Project access denied | `gh auth refresh -s project` |
 | Missing files | Re-run installer |
-| PRD creation | `/karimo:plan` |
-| Stale running tasks | Re-run `/karimo:execute --prd {slug}` |
+| PRD creation | `/karimo-plan` |
+| Stale running tasks | Re-run `/karimo-execute --prd {slug}` |
 | Orphaned worktrees | `git worktree remove <path>` |
-| Ghost branches | Re-run `/karimo:execute --prd {slug}` |
-| Status-PR mismatch | Re-run `/karimo:execute --prd {slug}` |
-| Pending cleanup | Re-run `/karimo:execute --prd {slug}` |
+| Ghost branches | Re-run `/karimo-execute --prd {slug}` |
+| Status-PR mismatch | Re-run `/karimo-execute --prd {slug}` |
+| Pending cleanup | Re-run `/karimo-execute --prd {slug}` |
 
 Or if all checks pass:
 
@@ -732,7 +732,7 @@ ls .karimo/prds/*/status.json
 
 | Command | Purpose |
 |---------|---------|
-| `/karimo:configure` | Create or update project configuration |
-| `/karimo:plan` | Create PRD (configuration should be ready first) |
-| `/karimo:status` | View execution progress |
-| `/karimo:feedback` | Capture learnings |
+| `/karimo-configure` | Create or update project configuration |
+| `/karimo-plan` | Create PRD (configuration should be ready first) |
+| `/karimo-status` | View execution progress |
+| `/karimo-feedback` | Capture learnings |

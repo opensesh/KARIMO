@@ -15,7 +15,7 @@ The KARIMO v2 interview system uses Claude Code agents to conduct structured int
 
 | Agent | Role | When Spawned |
 |-------|------|--------------|
-| `karimo-interviewer` | Conducts 4-round interview | `/karimo:plan` command |
+| `karimo-interviewer` | Conducts 4-round interview | `/karimo-plan` command |
 | `karimo-investigator` | Scans codebase for patterns/files | Step 0 (auto) + Round 3 (opt-in) |
 | `karimo-reviewer` | Validates PRD before saving | After Round 4 |
 
@@ -35,7 +35,7 @@ The KARIMO v2 interview system uses Claude Code agents to conduct structured int
 
 ## Step 0: Auto-Detection (First Run)
 
-Before the interview starts, `/karimo:plan` checks CLAUDE.md for `_pending_` markers:
+Before the interview starts, `/karimo-plan` checks CLAUDE.md for `_pending_` markers:
 
 **If first run (markers found):**
 1. Spawns investigator in `--mode context-scan`
@@ -246,7 +246,7 @@ The interviewer confirms and transitions to the next round.
 
 If the interview is interrupted:
 - Claude Code maintains conversation context
-- Re-running `/karimo:plan` continues from where you left off
+- Re-running `/karimo-plan` continues from where you left off
 - PRD progress is preserved in the conversation
 
 ---

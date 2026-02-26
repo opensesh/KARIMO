@@ -1,6 +1,6 @@
 ---
 name: karimo-interviewer
-description: Conducts structured PRD interviews to capture product requirements. Use when the user runs /karimo:plan.
+description: Conducts structured PRD interviews to capture product requirements. Use when the user runs /karimo-plan.
 model: sonnet
 tools: Read, Grep, Glob
 ---

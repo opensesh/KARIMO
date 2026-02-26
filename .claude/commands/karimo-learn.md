@@ -1,10 +1,10 @@
-# /karimo:learn — Deep Learning Cycle
+# /karimo-learn — Deep Learning Cycle
 
 Conduct a comprehensive learning cycle to improve KARIMO configuration based on pain points, usage patterns, and execution history.
 
 ## Purpose
 
-Unlike `/karimo:feedback` (quick, single-rule capture), `/karimo:learn` is a deep, three-mode investigation cycle:
+Unlike `/karimo-feedback` (quick, single-rule capture), `/karimo-learn` is a deep, three-mode investigation cycle:
 
 1. **Mode 1: Interview** — Opus-guided conversation to surface pain points and create audit directives
 2. **Mode 2: Audit** — Agent investigates directives using status.json, PR history, and codebase patterns
@@ -13,7 +13,7 @@ Unlike `/karimo:feedback` (quick, single-rule capture), `/karimo:learn` is a dee
 ## Usage
 
 ```
-/karimo:learn
+/karimo-learn
 ```
 
 No arguments required. The command guides you through all three modes sequentially.
@@ -29,7 +29,7 @@ No arguments required. The command guides you through all three modes sequential
 ## Learn Cycle Flow
 
 ```
-/karimo:learn
+/karimo-learn
     │
     ▼
 INIT: Create .karimo/learn/{timestamp}/, load context
@@ -183,8 +183,8 @@ Changes Rejected: 1
 
 Next Steps:
 - Changes take effect on next agent invocation
-- Run /karimo:learn again in 2-4 weeks
-- Use /karimo:feedback for quick single-rule captures
+- Run /karimo-learn again in 2-4 weeks
+- Use /karimo-feedback for quick single-rule captures
 
 Artifacts saved to: .karimo/learn/2024-02-19T14-30-00/
 ```
@@ -201,7 +201,7 @@ Artifacts saved to: .karimo/learn/2024-02-19T14-30-00/
 
 ## Resuming Interrupted Cycles
 
-If `/karimo:learn` detects an incomplete cycle:
+If `/karimo-learn` detects an incomplete cycle:
 
 ```
 Found incomplete learn cycle from 2024-02-19.
@@ -222,9 +222,9 @@ Each learn cycle builds on previous ones:
 - **Changes-applied.md** tracks what was fixed and when
 - **Patterns emerge** over multiple cycles
 
-## Comparison: /karimo:feedback vs /karimo:learn
+## Comparison: /karimo-feedback vs /karimo-learn
 
-| Aspect | /karimo:feedback | /karimo:learn |
+| Aspect | /karimo-feedback | /karimo-learn |
 |--------|------------------|---------------|
 | **Scope** | Single observation | Full system review |
 | **Time** | ~2 minutes | ~45 minutes |

@@ -11,8 +11,8 @@
 Each PRD folder contains a `status.json` file that tracks execution state. This file is:
 - Created by the reviewer agent when the PRD is finalized
 - Updated continuously by the PM agent during execution
-- Read by `/karimo:execute` to resume or report status
-- Read by `/karimo:status` to display progress
+- Read by `/karimo-execute` to resume or report status
+- Read by `/karimo-status` to display progress
 
 ---
 
@@ -167,8 +167,8 @@ Each PRD folder contains a `status.json` file that tracks execution state. This 
 
 | Status | Meaning |
 |--------|---------|
-| `draft` | PRD in progress via /karimo:plan |
-| `ready` | PRD approved via /karimo:plan interactive review |
+| `draft` | PRD in progress via /karimo-plan |
+| `ready` | PRD approved via /karimo-plan interactive review |
 | `active` | Execution in progress |
 | `paused` | Execution paused (manual stop) |
 | `complete` | All tasks finished successfully |
@@ -237,7 +237,7 @@ Each PRD folder contains a `status.json` file that tracks execution state. This 
 | `failed` | Execution failed (see error field) |
 | `needs-human-rebase` | Merge conflicts require manual resolution |
 | `skipped` | Task was skipped (user request during execution) |
-| `excluded` | Task excluded by user during /karimo:execute Phase 1 |
+| `excluded` | Task excluded by user during /karimo-execute Phase 1 |
 
 **Backward Compatibility:** The `approved` task status is treated as equivalent to `queued` for tasks from PRDs created before v3.0.0.
 
@@ -254,7 +254,7 @@ KARIMO commands use these thresholds to detect potentially stale state that may 
 
 #### Recovery
 
-When stale state is detected, re-running `/karimo:execute --prd {slug}` triggers the PM agent's Step 2 reconciliation, which:
+When stale state is detected, re-running `/karimo-execute --prd {slug}` triggers the PM agent's Step 2 reconciliation, which:
 
 1. Compares status.json to git/GitHub state
 2. Resets stale "running" tasks to "queued"
@@ -263,8 +263,8 @@ When stale state is detected, re-running `/karimo:execute --prd {slug}` triggers
 
 #### Detection Locations
 
-- `/karimo:status` — Shows ⏰ indicator for stale tasks, suggests recovery
-- `/karimo:doctor` — Check 6 performs comprehensive staleness detection
+- `/karimo-status` — Shows ⏰ indicator for stale tasks, suggests recovery
+- `/karimo-doctor` — Check 6 performs comprehensive staleness detection
 
 ### Summary Fields (Completion Only)
 
@@ -289,7 +289,7 @@ draft ──► ready ──► active ──► complete
              │         │
              │         └──► partial
              │
-             └─ (/karimo:plan interactive review)
+             └─ (/karimo-plan interactive review)
 ```
 
 ### Task State Transitions
@@ -308,7 +308,7 @@ queued ──► blocked ──► running ──► in-review ──► done
   │            │
   │            └──► skipped
   │
-  └──► excluded (user chose to exclude during /karimo:execute Phase 1)
+  └──► excluded (user chose to exclude during /karimo-execute Phase 1)
 ```
 
 ---

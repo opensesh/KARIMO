@@ -8,27 +8,27 @@ Reference for all KARIMO slash commands available in Claude Code.
 
 | Command | Purpose |
 |---------|---------|
-| `/karimo:plan` | Start PRD interview with interactive approval |
-| `/karimo:overview` | Cross-PRD oversight dashboard |
-| `/karimo:execute` | Execute tasks from PRD (brief gen + execution) |
-| `/karimo:modify` | Modify approved PRD before execution |
-| `/karimo:status` | View execution progress |
-| `/karimo:configure` | Create or update CLAUDE.md configuration |
-| `/karimo:feedback` | Quick capture of single learnings |
-| `/karimo:learn` | Deep learning cycle (3 modes) |
-| `/karimo:doctor` | Check installation health |
-| `/karimo:test` | Installation smoke test |
+| `/karimo-plan` | Start PRD interview with interactive approval |
+| `/karimo-overview` | Cross-PRD oversight dashboard |
+| `/karimo-execute` | Execute tasks from PRD (brief gen + execution) |
+| `/karimo-modify` | Modify approved PRD before execution |
+| `/karimo-status` | View execution progress |
+| `/karimo-configure` | Create or update CLAUDE.md configuration |
+| `/karimo-feedback` | Quick capture of single learnings |
+| `/karimo-learn` | Deep learning cycle (3 modes) |
+| `/karimo-doctor` | Check installation health |
+| `/karimo-test` | Installation smoke test |
 
 ---
 
-## /karimo:plan
+## /karimo-plan
 
 Start a structured PRD interview to define a new feature, with interactive approval.
 
 ### Usage
 
 ```
-/karimo:plan
+/karimo-plan
 ```
 
 ### What It Does
@@ -55,7 +55,7 @@ Start a structured PRD interview to define a new feature, with interactive appro
 After the review round, you'll see a summary with options:
 - **Approve** — Marks PRD as `ready` for execution
 - **Modify** — Make changes and re-run the reviewer
-- **Save as draft** — Come back later with `/karimo:plan --resume {slug}`
+- **Save as draft** — Come back later with `/karimo-plan --resume {slug}`
 
 ### Output
 
@@ -68,7 +68,7 @@ Creates `.karimo/prds/{slug}/`:
 ### Example
 
 ```
-/karimo:plan
+/karimo-plan
 
 > I want to add user profile pages where users can edit their
 > name, avatar, and notification preferences.
@@ -76,16 +76,16 @@ Creates `.karimo/prds/{slug}/`:
 
 ---
 
-## /karimo:overview
+## /karimo-overview
 
 Surface all tasks needing human attention and recently completed work across all active PRDs.
 
 ### Usage
 
 ```
-/karimo:overview              # Full dashboard view
-/karimo:overview --blocked    # Show only blocked tasks
-/karimo:overview --active     # Show only active PRDs with progress
+/karimo-overview              # Full dashboard view
+/karimo-overview --blocked    # Show only blocked tasks
+/karimo-overview --active     # Show only active PRDs with progress
 ```
 
 ### What It Shows
@@ -137,14 +137,14 @@ Check this each morning or after a run completes.
 
 ---
 
-## /karimo:execute
+## /karimo-execute
 
 Execute tasks from a finalized PRD. Two-phase flow: brief generation, then execution.
 
 ### Usage
 
 ```
-/karimo:execute --prd {slug}
+/karimo-execute --prd {slug}
 ```
 
 ### Options
@@ -178,7 +178,7 @@ Generate Briefs → User Review → Create Worktrees → Execute Tasks → Creat
 ### Example
 
 ```
-/karimo:execute --prd user-profiles
+/karimo-execute --prd user-profiles
 ```
 
 ### Dry Run
@@ -186,19 +186,19 @@ Generate Briefs → User Review → Create Worktrees → Execute Tasks → Creat
 Preview what would happen without executing:
 
 ```
-/karimo:execute --prd user-profiles --dry-run
+/karimo-execute --prd user-profiles --dry-run
 ```
 
 ---
 
-## /karimo:modify
+## /karimo-modify
 
 Modify an approved PRD before execution — add, remove, or change tasks with automatic execution plan regeneration.
 
 ### Usage
 
 ```
-/karimo:modify --prd {slug}
+/karimo-modify --prd {slug}
 ```
 
 ### What It Does
@@ -233,20 +233,20 @@ Modify an approved PRD before execution — add, remove, or change tasks with au
 
 | Scenario | Command |
 |----------|---------|
-| PRD in draft, needs changes | `/karimo:plan --resume {slug}` |
-| PRD approved, needs structural changes | `/karimo:modify --prd {slug}` |
+| PRD in draft, needs changes | `/karimo-plan --resume {slug}` |
+| PRD approved, needs structural changes | `/karimo-modify --prd {slug}` |
 | PRD executing, needs task adjustments | Adjust briefs in execute, or pause and modify |
 
 ---
 
-## /karimo:status
+## /karimo-status
 
 View execution progress across all PRDs.
 
 ### Usage
 
 ```
-/karimo:status
+/karimo-status
 ```
 
 ### Options
@@ -291,15 +291,15 @@ PRDs:
 
 ---
 
-## /karimo:configure
+## /karimo-configure
 
 Create or update configuration in `.karimo/config.yaml` (single source of truth).
 
 ### Usage
 
 ```
-/karimo:configure              # Create new config or update existing
-/karimo:configure --reset      # Start fresh, ignore existing config
+/karimo-configure              # Create new config or update existing
+/karimo-configure --reset      # Start fresh, ignore existing config
 ```
 
 ### What It Does
@@ -318,7 +318,7 @@ On completion:
 
 ### When to Use
 
-| Use `/karimo:configure` | Use `/karimo:plan` |
+| Use `/karimo-configure` | Use `/karimo-plan` |
 |-------------------------|-------------------|
 | Doctor found config issues | Creating a PRD |
 | Changing config later | Config already in place |
@@ -400,14 +400,14 @@ When config already exists, shows current vs new values:
 
 ---
 
-## /karimo:feedback
+## /karimo-feedback
 
 Capture learnings to improve future agent execution.
 
 ### Usage
 
 ```
-/karimo:feedback
+/karimo-feedback
 
 > {your observation}
 ```
@@ -431,7 +431,7 @@ Capture learnings to improve future agent execution.
 ### Example
 
 ```
-/karimo:feedback
+/karimo-feedback
 
 > "The agent kept using inline styles instead of Tailwind classes"
 ```
@@ -453,19 +453,19 @@ Generates:
 
 ---
 
-## /karimo:learn
+## /karimo-learn
 
 Conduct a comprehensive three-mode learning cycle.
 
 ### Usage
 
 ```
-/karimo:learn
+/karimo-learn
 ```
 
 ### What It Does
 
-Unlike `/karimo:feedback` (quick, single-rule capture), `/karimo:learn` is a deep investigation:
+Unlike `/karimo-feedback` (quick, single-rule capture), `/karimo-learn` is a deep investigation:
 
 1. **Mode 1: Interview** (~25 min) — Opus-guided conversation
 2. **Mode 2: Audit** (~10 min) — Agent investigates with evidence
@@ -498,7 +498,7 @@ Creates `.karimo/learn/{timestamp}/`:
 
 ### When to Use
 
-| Use `/karimo:feedback` | Use `/karimo:learn` |
+| Use `/karimo-feedback` | Use `/karimo-learn` |
 |------------------------|---------------------|
 | Single observation | Multiple issues |
 | Immediate capture | Periodic review |
@@ -508,7 +508,7 @@ Creates `.karimo/learn/{timestamp}/`:
 ### Example
 
 ```
-/karimo:learn
+/karimo-learn
 
 # Mode 1 Interview begins...
 # 5 rounds of structured questions
@@ -523,14 +523,14 @@ Creates `.karimo/learn/{timestamp}/`:
 
 ---
 
-## /karimo:doctor
+## /karimo-doctor
 
 Check the health of a KARIMO installation and detect configuration drift.
 
 ### Usage
 
 ```
-/karimo:doctor
+/karimo-doctor
 ```
 
 ### What It Does
@@ -584,9 +584,9 @@ Summary
 ```
 
 **Recommendations mapping:**
-- Missing KARIMO section → `/karimo:configure`
-- Configuration drift → `/karimo:configure`
-- `_pending_` placeholders → `/karimo:configure`
+- Missing KARIMO section → `/karimo-configure`
+- Configuration drift → `/karimo-configure`
+- `_pending_` placeholders → `/karimo-configure`
 - Missing files → Re-run installer
 
 ### When to Use
@@ -598,14 +598,14 @@ Summary
 
 ---
 
-## /karimo:test
+## /karimo-test
 
 Installation smoke test — verify KARIMO installation works without creating PRDs or spawning agents.
 
 ### Usage
 
 ```
-/karimo:test
+/karimo-test
 ```
 
 ### What It Does
@@ -647,9 +647,9 @@ Summary
 
 | Scenario | Command |
 |----------|---------|
-| After fresh install | `/karimo:test` |
-| Diagnose broken install | `/karimo:doctor` |
-| Verify before first PRD | `/karimo:test` then `/karimo:plan` |
+| After fresh install | `/karimo-test` |
+| Diagnose broken install | `/karimo-doctor` |
+| Verify before first PRD | `/karimo-test` then `/karimo-plan` |
 
 ---
 
@@ -659,16 +659,16 @@ Commands are defined in `.claude/commands/`:
 
 | File | Command |
 |------|---------|
-| `plan.md` | `/karimo:plan` |
-| `overview.md` | `/karimo:overview` |
-| `execute.md` | `/karimo:execute` |
-| `modify.md` | `/karimo:modify` |
-| `status.md` | `/karimo:status` |
-| `configure.md` | `/karimo:configure` |
-| `feedback.md` | `/karimo:feedback` |
-| `learn.md` | `/karimo:learn` |
-| `doctor.md` | `/karimo:doctor` |
-| `test.md` | `/karimo:test` |
+| `plan.md` | `/karimo-plan` |
+| `overview.md` | `/karimo-overview` |
+| `execute.md` | `/karimo-execute` |
+| `modify.md` | `/karimo-modify` |
+| `status.md` | `/karimo-status` |
+| `configure.md` | `/karimo-configure` |
+| `feedback.md` | `/karimo-feedback` |
+| `learn.md` | `/karimo-learn` |
+| `doctor.md` | `/karimo-doctor` |
+| `test.md` | `/karimo-test` |
 
 ---
 

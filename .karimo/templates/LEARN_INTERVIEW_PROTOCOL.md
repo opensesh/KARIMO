@@ -2,7 +2,7 @@
 
 **Version:** 1.0
 **Purpose:** Conduct structured learning interviews that produce targeted audit briefs for KARIMO configuration improvement
-**Trigger:** `/karimo:learn` command
+**Trigger:** `/karimo-learn` command
 **Model:** Opus (recommended — this interview benefits from deep reasoning and nuanced follow-up)
 **Output:** `interview.md` saved to `.karimo/learn/{timestamp}/`
 
@@ -10,7 +10,7 @@
 
 ## Overview
 
-The Learn Interview is Mode 1 of the `/karimo:learn` compound learning cycle. Unlike the PRD Interview (which captures what to build), the Learn Interview captures what to improve about how KARIMO operates in this project. The output scopes and prioritizes the subsequent Learning Audit (Mode 2), ensuring subagents investigate only what matters — not every PRD ever created.
+The Learn Interview is Mode 1 of the `/karimo-learn` compound learning cycle. Unlike the PRD Interview (which captures what to build), the Learn Interview captures what to improve about how KARIMO operates in this project. The output scopes and prioritizes the subsequent Learning Audit (Mode 2), ensuring subagents investigate only what matters — not every PRD ever created.
 
 ### How It Fits in the Learn Cycle
 
@@ -147,7 +147,7 @@ configuration_assessment:
 
 | Trigger | Follow-Up |
 |---------|-----------|
-| Interview gaps | "What information do you find yourself adding in `/karimo:feedback` that should have been captured in the interview?" |
+| Interview gaps | "What information do you find yourself adding in `/karimo-feedback` that should have been captured in the interview?" |
 | Task sizing issues | "Are they typically too large (agents get lost) or too small (overhead of many small PRs)?" |
 | Execution friction | "Is this a git/worktree issue, a coordination issue, or an agent capability issue?" |
 | Review noise | "Can you give me an example of unhelpful Greptile feedback? This helps tune the review prompts." |
@@ -334,7 +334,7 @@ Users signal readiness to proceed with:
 ### If the Interview is Interrupted
 
 - Claude Code maintains conversation context
-- Re-running `/karimo:learn` should detect an in-progress interview in the learn folder
+- Re-running `/karimo-learn` should detect an in-progress interview in the learn folder
 - Resume from the last completed round
 
 ### Time Estimates
@@ -363,4 +363,4 @@ The subagents receive:
 
 ---
 
-*Part of the [KARIMO Learn Cycle](.karimo/docs/COMPOUND-LEARNING.md) — `/karimo:learn` command.*
+*Part of the [KARIMO Learn Cycle](.karimo/docs/COMPOUND-LEARNING.md) — `/karimo-learn` command.*

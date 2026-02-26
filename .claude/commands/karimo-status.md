@@ -1,13 +1,13 @@
-# /karimo:status — Execution Status Command
+# /karimo-status — Execution Status Command
 
 Display the current status of KARIMO PRDs and task execution.
 
 ## Usage
 
 ```
-/karimo:status                  # Show all PRDs
-/karimo:status --prd {slug}     # Show specific PRD details
-/karimo:status --active         # Show only active PRDs
+/karimo-status                  # Show all PRDs
+/karimo-status --prd {slug}     # Show specific PRD details
+/karimo-status --active         # Show only active PRDs
 ```
 
 ## Staleness Thresholds
@@ -53,7 +53,7 @@ PRDs:
     Models: 5 sonnet, 1 opus • Loops: 14
     Completed: 3 days ago
 
-Run /karimo:status --prd {slug} for details.
+Run /karimo-status --prd {slug} for details.
 ```
 
 ### 3. Detailed PRD Display (--prd {slug})
@@ -87,7 +87,7 @@ Tasks:
 
   ⏰ [2c] Implement settings panel             running (STALE: 6h 23m)
     Branch created • opus • loop 1
-    ⚠ Agent may have crashed — re-run /karimo:execute
+    ⚠ Agent may have crashed — re-run /karimo-execute
 
   ✓ [2b] Add avatar upload                     done
     PR #45 merged • sonnet • 2 loops
@@ -191,7 +191,7 @@ Surface issues that need attention:
 
   ⏰ Stale Tasks:
     [2a] Running for 6h 23m — agent may have crashed
-         Suggestion: Re-run /karimo:execute --prd user-profiles
+         Suggestion: Re-run /karimo-execute --prd user-profiles
 
     [1c] In-review for 3 days — PR may need attention
 
@@ -215,7 +215,7 @@ Or if there are blockers:
        Run: cd .worktrees/user-profiles/2c && git rebase feature/user-profiles
 
   [3b] failed — Build error after 5 loops (Type mismatch in ProfileForm.tsx)
-       Retry: /karimo:execute --prd user-profiles --task 3b
+       Retry: /karimo-execute --prd user-profiles --task 3b
 ```
 
 ### 9. Next Actions
@@ -226,21 +226,21 @@ Suggest what to do, prioritizing stale task recovery:
 Next Actions:
 
   1. ⏰ RECOVERY: Re-run execution to reconcile stale tasks
-     Command: /karimo:execute --prd user-profiles
+     Command: /karimo-execute --prd user-profiles
 
   2. Review PR #46 for task [3a]
   3. Resolve conflicts in task [2c] (needs-human-rebase)
-  4. Retry failed task [3b]: /karimo:execute --prd user-profiles --task 3b
+  4. Retry failed task [3b]: /karimo-execute --prd user-profiles --task 3b
 ```
 
-**Note:** When stale tasks are detected, re-running `/karimo:execute` triggers the PM agent's Step 2 reconciliation, which automatically resets stale "running" tasks to "queued".
+**Note:** When stale tasks are detected, re-running `/karimo-execute` triggers the PM agent's Step 2 reconciliation, which automatically resets stale "running" tasks to "queued".
 
 ### 10. JSON Output (--json)
 
 For programmatic access:
 
 ```
-/karimo:status --json
+/karimo-status --json
 ```
 
 Returns:
@@ -278,7 +278,7 @@ Returns:
 ```
 No PRDs found.
 
-Create one with: /karimo:plan
+Create one with: /karimo-plan
 ```
 
 ### Config Missing
@@ -286,7 +286,7 @@ Create one with: /karimo:plan
 ```
 ⚠ CLAUDE.md missing configuration sections.
 
-Run /karimo:plan to auto-detect project configuration.
+Run /karimo-plan to auto-detect project configuration.
 ```
 
 ### GitHub Not Authenticated
@@ -301,8 +301,8 @@ PR status unavailable. Run: gh auth login
 
 | Command | Purpose |
 |---------|---------|
-| `/karimo:overview` | Cross-PRD oversight: blocked tasks, revision loops, completions |
-| `/karimo:plan` | Create PRD with interactive approval |
-| `/karimo:execute` | Execute PRD (brief gen + task execution) |
+| `/karimo-overview` | Cross-PRD oversight: blocked tasks, revision loops, completions |
+| `/karimo-plan` | Create PRD with interactive approval |
+| `/karimo-execute` | Execute PRD (brief gen + task execution) |
 
-For cross-PRD oversight (blocked tasks needing human review, revision loops, rebase conflicts), use `/karimo:overview`.
+For cross-PRD oversight (blocked tasks needing human review, revision loops, rebase conflicts), use `/karimo-overview`.

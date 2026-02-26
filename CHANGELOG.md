@@ -18,7 +18,7 @@ KARIMO now follows Anthropic's best practice of keeping CLAUDE.md minimal. Confi
 **Before:**
 - CLAUDE.md contained ~65+ lines with full configuration tables, boundaries, commands, and learnings
 - All agents read from CLAUDE.md sections
-- `/karimo:configure` wrote directly to CLAUDE.md
+- `/karimo-configure` wrote directly to CLAUDE.md
 
 **After:**
 - CLAUDE.md receives only a minimal ~8 line reference block on install
@@ -50,7 +50,7 @@ This project uses KARIMO for PRD-driven autonomous development.
 - **Agent rules:** `.claude/KARIMO_RULES.md`
 - **Config & PRDs:** `.karimo/`
 - **Learnings:** `.karimo/learnings.md`
-- **All commands prefixed** `karimo:` — type `/karimo:` to see available commands
+- **All commands prefixed** `karimo:` — type `/karimo-` to see available commands
 ```
 
 **Files updated (20+ files):**
@@ -65,7 +65,7 @@ This project uses KARIMO for PRD-driven autonomous development.
 | Documentation | `ARCHITECTURE.md`, `GETTING-STARTED.md`, `COMMANDS.md`, `COMPOUND-LEARNING.md`, `SAFEGUARDS.md`, `PHASES.md`, `README.md`, `CLAUDE.md`, `KARIMO_RULES.md` |
 
 **Migration notes:**
-- Existing installations: Run `/karimo:configure` to generate `.karimo/config.yaml`
+- Existing installations: Run `/karimo-configure` to generate `.karimo/config.yaml`
 - Existing learnings in CLAUDE.md: Manually move to `.karimo/learnings.md`
 - `update.sh` now preserves `config.yaml` and `learnings.md` (never overwrites)
 
@@ -104,18 +104,18 @@ Eliminated external `jq` dependency from all KARIMO agent and skill instructions
 
 **Documentation Sync**
 
-Synced all documentation to reflect `/karimo:modify` command introduced in v3.1.0.
+Synced all documentation to reflect `/karimo-modify` command introduced in v3.1.0.
 
 - **MANIFEST.json**: Added `modify.md` to commands array (now 10 commands)
-- **COMMANDS.md**: Added full sections for `/karimo:modify` and `/karimo:test`, updated summary table (10 rows)
-- **install.sh**: Added `/karimo:modify` to CLAUDE.md template slash commands list
+- **COMMANDS.md**: Added full sections for `/karimo-modify` and `/karimo-test`, updated summary table (10 rows)
+- **install.sh**: Added `/karimo-modify` to CLAUDE.md template slash commands list
 
 ### Added
 
-**Integration Points for `/karimo:modify`**
+**Integration Points for `/karimo-modify`**
 
-- **plan.md**: Added tip after approval mentioning `/karimo:modify` for later adjustments
-- **execute.md**: Added note about using `/karimo:modify` for structural changes before execution
+- **plan.md**: Added tip after approval mentioning `/karimo-modify` for later adjustments
+- **execute.md**: Added note about using `/karimo-modify` for structural changes before execution
 - **status.md**: Added `modified_at` and `modification_count` to PRD details and JSON output
 - **overview.md**: Added `(modified Nx)` annotation to PRD rows in dashboard
 
@@ -134,7 +134,7 @@ Replaced complex DAG algorithms (BFS/DFS) with simple wave-based task grouping. 
 - Self-validation ensures dependencies are in earlier waves
 - Complexity warning for PRDs with 10+ tasks
 
-**`/karimo:modify` Command**
+**`/karimo-modify` Command**
 
 New command to modify approved PRDs before execution:
 - Add, remove, or change tasks
@@ -190,14 +190,14 @@ summary:
 
 Detect stale state that indicates crashed or disconnected agents, guiding users to recovery.
 
-**`/karimo:status` — Staleness Detection**
+**`/karimo-status` — Staleness Detection**
 - New "Staleness Thresholds" section defining detection intervals
 - Step 7b: Staleness Detection logic for running, cleanup, and review states
 - `⏰` icon for stale tasks in status icons table
 - Warnings section shows stale tasks and worktrees with recovery suggestions
 - Next actions prioritize recovery command when stale state detected
 
-**`/karimo:doctor` — Check 6: Execution Health**
+**`/karimo-doctor` — Check 6: Execution Health**
 - 6a: Stale running tasks (> 4 hours since `started_at`)
 - 6b: Orphaned worktrees (in filesystem but not in status.json)
 - 6c: Ghost branches (in status.json but deleted from git)
@@ -313,13 +313,13 @@ Detect stale state that indicates crashed or disconnected agents, guiding users 
 
 ### Changed
 
-- **Plan/Execute Flow Redesign** — Consolidated `/karimo:review` into `/karimo:plan` and `/karimo:execute`
-  - Old flow: `/karimo:plan` → `/karimo:review` → `/karimo:execute`
-  - New flow: `/karimo:plan` (with interactive review) → `/karimo:execute` (with brief generation)
-- `/karimo:plan` now includes Step 7: Interactive Review & Feedback Loop
+- **Plan/Execute Flow Redesign** — Consolidated `/karimo-review` into `/karimo-plan` and `/karimo-execute`
+  - Old flow: `/karimo-plan` → `/karimo-review` → `/karimo-execute`
+  - New flow: `/karimo-plan` (with interactive review) → `/karimo-execute` (with brief generation)
+- `/karimo-plan` now includes Step 7: Interactive Review & Feedback Loop
   - Options: Approve (→ ready), Modify (→ re-run reviewer), Save as draft
   - PRD summary displayed after generation for approval
-- `/karimo:execute` now has two-phase structure
+- `/karimo-execute` now has two-phase structure
   - Phase 1: Brief Generation — spawns brief-writer, presents briefs for review
   - Phase 2: Execution — PM agent reads briefs from disk, runs workers
 - `karimo-pm.md` reads existing briefs from disk instead of generating them
@@ -329,7 +329,7 @@ Detect stale state that indicates crashed or disconnected agents, guiding users 
 
 ### Removed
 
-- `/karimo:review` command — functionality absorbed by plan.md and execute.md
+- `/karimo-review` command — functionality absorbed by plan.md and execute.md
 - `approved` status from STATUS_SCHEMA.md (backward compat maintained)
 
 ### Documentation
@@ -350,9 +350,9 @@ Detect stale state that indicates crashed or disconnected agents, guiding users 
 ### Changed
 
 - **CLAUDE.md as single source of truth** — Eliminated config.yaml entirely
-- `/karimo:configure` writes directly to CLAUDE.md tables
-- `/karimo:plan` checks CLAUDE.md for `_pending_` markers instead of config.yaml
-- `/karimo:doctor` Check 3 validates CLAUDE.md configuration
+- `/karimo-configure` writes directly to CLAUDE.md tables
+- `/karimo-plan` checks CLAUDE.md for `_pending_` markers instead of config.yaml
+- `/karimo-doctor` Check 3 validates CLAUDE.md configuration
 - **Removed jq dependency** — All scripts use grep/sed/awk/Node.js
 - `uninstall.sh` reads file lists from MANIFEST.json dynamically
 
@@ -455,13 +455,13 @@ Detect stale state that indicates crashed or disconnected agents, guiding users 
 ### Added
 
 **Brief Count Validation**
-- `/karimo:review` now validates brief count after generation
+- `/karimo-review` now validates brief count after generation
 - Shows expected vs generated count with clear pass/fail status
 - Offers retry, exclude, or cancel options if briefs are missing
 - Prevents PRD approval with incomplete brief generation
 
 **First-Run Welcome Message**
-- `/karimo:plan` displays welcome message on first use (when no PRDs exist)
+- `/karimo-plan` displays welcome message on first use (when no PRDs exist)
 - Explains the 5-round interview process before proceeding
 - Improves onboarding by setting expectations for new users
 
@@ -472,7 +472,7 @@ Detect stale state that indicates crashed or disconnected agents, guiding users 
 - Checks KARIMO_RULES.md and VERSION file existence
 
 **Documentation**
-- README.md: Added `/karimo:test` to slash commands table
+- README.md: Added `/karimo-test` to slash commands table
 - README.md: Added `overview.md` and `test.md` to directory listing
 - README.md: Added CHANGELOG.md link to documentation section
 
@@ -483,7 +483,7 @@ Detect stale state that indicates crashed or disconnected agents, guiding users 
 - Directs users to `update.sh` to preview changes first
 
 **Configure Command**
-- Added `/karimo:doctor` reference in Greptile configuration section
+- Added `/karimo-doctor` reference in Greptile configuration section
 - Helps users verify repository secrets are properly configured
 
 ### Fixed
@@ -516,7 +516,7 @@ Detect stale state that indicates crashed or disconnected agents, guiding users 
 - Compares `.karimo/VERSION` against `KARIMO_SOURCE_PATH/VERSION` environment variable
 - Graceful degradation when source path unknown
 
-**`/karimo:test` Command**
+**`/karimo-test` Command**
 - New smoke test command for installation verification
 - 5 lightweight validation tests (no agent spawning or PR simulation):
   - File presence: agents, commands, skills, templates
@@ -539,9 +539,9 @@ Detect stale state that indicates crashed or disconnected agents, guiding users 
 **Configuration Workflow**
 - `config.yaml` is now the source of truth for KARIMO configuration
 - CLAUDE.md mirrors config.yaml for human readability
-- `/karimo:configure` now syncs both files on completion
-- `/karimo:plan` checks for config.yaml first, offers choice if missing
-- `/karimo:doctor` recommends `/karimo:configure` for config issues (not `/karimo:plan`)
+- `/karimo-configure` now syncs both files on completion
+- `/karimo-plan` checks for config.yaml first, offers choice if missing
+- `/karimo-doctor` recommends `/karimo-configure` for config issues (not `/karimo-plan`)
 
 **Documentation Updates**
 - GETTING-STARTED.md: Documented auto-detection, `--skip-config` flag, new workflow
@@ -556,7 +556,7 @@ Detect stale state that indicates crashed or disconnected agents, guiding users 
 
 ### Added
 
-**`/karimo:overview` Command**
+**`/karimo-overview` Command**
 - New cross-PRD oversight dashboard command
 - Shows blocked tasks, revision loops, rebase needs, and recent completions
 - Primary daily oversight touchpoint — check each morning or after execution runs
@@ -565,23 +565,23 @@ Detect stale state that indicates crashed or disconnected agents, guiding users 
 
 ### Changed
 
-**`/karimo:review` Refocused**
+**`/karimo-review` Refocused**
 - Now focuses solely on PRD approval workflow
-- Removed cross-PRD dashboard (moved to `/karimo:overview`)
+- Removed cross-PRD dashboard (moved to `/karimo-overview`)
 - Default behavior changed from dashboard to `--pending` mode (lists PRDs awaiting approval)
 - Updated command description and documentation throughout
 
 **Install Script Updates**
 - Added `overview.md` to commands copy section
 - Updated command count from 8 to 9
-- Updated CLAUDE.md template with `/karimo:overview` reference
+- Updated CLAUDE.md template with `/karimo-overview` reference
 
 **Documentation Updates**
 - README.md: Updated slash commands table with overview/review split
 - CLAUDE.md: Updated slash commands table and installed components count
-- COMMANDS.md: Added /karimo:overview section, updated /karimo:review section
+- COMMANDS.md: Added /karimo-overview section, updated /karimo-review section
 - ARCHITECTURE.md: Updated directory structure and Human Oversight section
-- status.md: Added cross-reference to /karimo:overview for oversight visibility
+- status.md: Added cross-reference to /karimo-overview for oversight visibility
 
 ---
 
@@ -589,7 +589,7 @@ Detect stale state that indicates crashed or disconnected agents, guiding users 
 
 ### Added
 
-**`/karimo:configure` Command**
+**`/karimo-configure` Command**
 - New standalone configuration command for creating or updating `.karimo/config.yaml`
 - 5 configuration sections:
   - Project Identity: runtime, framework, package manager
@@ -617,7 +617,7 @@ Detect stale state that indicates crashed or disconnected agents, guiding users 
 
 ### Added
 
-**`/karimo:doctor` Command**
+**`/karimo-doctor` Command**
 - New diagnostic command to check KARIMO installation health
 - 5 diagnostic checks (read-only, never modifies files):
   - Environment: Claude Code, GitHub CLI, Git version, Greptile API key
@@ -632,7 +632,7 @@ Detect stale state that indicates crashed or disconnected agents, guiding users 
 **Install Script Updates**
 - Copies `doctor.md` command during installation
 - Updated command count from 6 to 7
-- Added `/karimo:doctor` to CLAUDE.md template slash commands
+- Added `/karimo-doctor` to CLAUDE.md template slash commands
 - Updated next steps to recommend running doctor first after install
 
 **Documentation**
@@ -768,7 +768,7 @@ Detect stale state that indicates crashed or disconnected agents, guiding users 
 - Missing `karimo-review-architect.md` agent copy
 - Missing `review.md` command copy
 - Summary showed "5 agents" but 7 existed (now correctly shows 10)
-- Missing `/karimo:review` in CLAUDE.md template slash commands section
+- Missing `/karimo-review` in CLAUDE.md template slash commands section
 
 ---
 
@@ -795,7 +795,7 @@ Detect stale state that indicates crashed or disconnected agents, guiding users 
 - Feature PR targets main (human gate)
 - Single human approval gate per feature
 
-**Cross-PRD Review Dashboard (`/karimo:review`)**
+**Cross-PRD Review Dashboard (`/karimo-review`)**
 - Default mode shows cross-PRD visibility dashboard
 - Blocked tasks (failed 3 Greptile attempts)
 - Tasks in active revision loops
@@ -865,7 +865,7 @@ Detect stale state that indicates crashed or disconnected agents, guiding users 
 - Updated ARCHITECTURE.md with design principles (single-PRD scope, sequential execution)
 - Updated SAFEGUARDS.md with correct Greptile scale and revision loop protocol
 - Updated PHASES.md with correct scale and model escalation
-- Updated COMMANDS.md with /karimo:review documentation
+- Updated COMMANDS.md with /karimo-review documentation
 - Updated README.md with philosophy and design principles
 - Updated CLAUDE.md with review dashboard command
 - Updated CONTRIBUTING.md with full templates list
@@ -906,8 +906,8 @@ Detect stale state that indicates crashed or disconnected agents, guiding users 
 
 **Dual Configuration Storage**
 - Configuration stored in both `CLAUDE.md` sections and `.karimo/config.yaml`
-- `/karimo:configure` writes to config.yaml and updates CLAUDE.md
-- `/karimo:plan` auto-detects and populates CLAUDE.md sections
+- `/karimo-configure` writes to config.yaml and updates CLAUDE.md
+- `/karimo-plan` auto-detects and populates CLAUDE.md sections
 - Investigator agent context-scan mode for auto-detection on first run
 - Investigator agent drift-check mode for subsequent runs
 
@@ -1046,7 +1046,7 @@ The v1 changelog entries below document the TypeScript CLI implementation, which
 ### [0.1.0] - 2026-02-17
 
 #### Added
-- **Commands**: `/karimo:plan`, `/karimo:execute`, `/karimo:status`, `/karimo:feedback`
+- **Commands**: `/karimo-plan`, `/karimo-execute`, `/karimo-status`, `/karimo-feedback`
 - **Workflows**: karimo-integration GitHub Action
 - **Skills**: git-worktree-ops skill
 - **Agents**: karimo-investigator agent
@@ -1066,7 +1066,7 @@ If upgrading from v1 TypeScript CLI:
 
 1. **Stop using the CLI** — `karimo` command is no longer used
 2. **Run install.sh** — Installs v2 configuration into your project
-3. **Use slash commands** — `/karimo:plan`, `/karimo:execute`, etc.
+3. **Use slash commands** — `/karimo-plan`, `/karimo-execute`, etc.
 4. **Review PHASES.md** — Understand the new adoption system
 
 The v1 codebase is archived at `/archive/v1/` for reference.

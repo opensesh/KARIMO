@@ -1,4 +1,4 @@
-# /karimo:feedback — Compound Learning Command
+# /karimo-feedback — Compound Learning Command
 
 Capture learnings from execution to improve future agent behavior.
 
@@ -9,7 +9,7 @@ Simple compound learning: you describe what went wrong or what worked well, and 
 ## Usage
 
 ```
-/karimo:feedback
+/karimo-feedback
 
 > "The agent kept using inline styles instead of Tailwind classes"
 ```
@@ -82,7 +82,7 @@ Add the rule under the appropriate section in `.karimo/learnings.md`:
 ```markdown
 # KARIMO Learnings
 
-_Rules learned from execution feedback via `/karimo:feedback` and `/karimo:learn`._
+_Rules learned from execution feedback via `/karimo-feedback` and `/karimo-learn`._
 
 ## Patterns to Follow
 
@@ -129,7 +129,7 @@ boundaries:
 ```markdown
 # KARIMO Learnings
 
-_Rules learned from execution feedback via `/karimo:feedback` and `/karimo:learn`._
+_Rules learned from execution feedback via `/karimo-feedback` and `/karimo-learn`._
 
 ## Patterns to Follow
 
@@ -156,7 +156,7 @@ _Rules learned from execution feedback via `/karimo:feedback` and `/karimo:learn
 Users can provide multiple items:
 
 ```
-/karimo:feedback
+/karimo-feedback
 
 > "Several things:
 > 1. Agents should always add JSDoc comments to exported functions
@@ -179,7 +179,7 @@ Process each item separately, confirm all at once:
 If a rule was added incorrectly:
 
 ```
-/karimo:feedback --undo
+/karimo-feedback --undo
 ```
 
 Shows recent learnings and allows removal:

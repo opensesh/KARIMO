@@ -4,8 +4,8 @@
 
 KARIMO uses GitHub-native tooling for project oversight:
 - **GitHub Projects** — Kanban board for task status visualization
-- **`/karimo:status`** — Detailed execution state per PRD
-- **`/karimo:overview`** — Cross-PRD oversight dashboard
+- **`/karimo-status`** — Detailed execution state per PRD
+- **`/karimo-overview`** — Cross-PRD oversight dashboard
 
 ## Why GitHub-Native?
 
@@ -22,14 +22,14 @@ KARIMO uses GitHub-native tooling for project oversight:
 - Tasks as issues with status columns
 - Dependencies visible via linked issues
 
-### /karimo:overview
+### /karimo-overview
 
 - Blocked tasks needing attention
 - Revision loops in progress
 - Recent completions
 - Stale task detection
 
-### /karimo:status --prd {slug}
+### /karimo-status --prd {slug}
 
 - Per-task breakdown
 - PR status integration

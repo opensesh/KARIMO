@@ -58,7 +58,7 @@ Boundaries and limitations.
 2. Follow the existing command structure:
 
 ```markdown
-# /karimo:{command-name}
+# /karimo-{command-name}
 
 ## Purpose
 
@@ -66,7 +66,7 @@ What this command does.
 
 ## Usage
 
-/karimo:{command-name} [--option value]
+/karimo-{command-name} [--option value]
 
 ## Workflow
 
@@ -103,7 +103,7 @@ Templates live in `.karimo/templates/`:
 | `TASK_SCHEMA.md` | Task definition format |
 | `STATUS_SCHEMA.md` | Status tracking format |
 | `DEPENDENCIES_TEMPLATE.md` | Runtime dependency tracking |
-| `LEARN_INTERVIEW_PROTOCOL.md` | /karimo:learn interview flow |
+| `LEARN_INTERVIEW_PROTOCOL.md` | /karimo-learn interview flow |
 | `FINDINGS_TEMPLATE.md` | Cross-task discoveries |
 | `TASK_BRIEF_TEMPLATE.md` | Self-contained task briefs |
 
@@ -128,19 +128,19 @@ Before submitting a PR:
 2. **Run doctor:**
    ```bash
    # In Claude Code
-   /karimo:doctor
+   /karimo-doctor
    ```
    All checks should pass.
 
 3. **Test your specific change:**
-   - Agent changes: Run `/karimo:plan` and verify agent behavior
+   - Agent changes: Run `/karimo-plan` and verify agent behavior
    - Command changes: Execute the command with various inputs
    - Template changes: Create a PRD using the template
    - Workflow changes: Trigger workflow in test repo
 
 4. **Run smoke test:**
    ```bash
-   /karimo:test
+   /karimo-test
    ```
 
 ### Validation Checks

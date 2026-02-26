@@ -98,16 +98,16 @@ Target Project/
 │   │   ├── karimo-documenter.md     # Task agent: docs (Sonnet)
 │   │   └── karimo-documenter-opus.md # Task agent: docs (Opus)
 │   ├── commands/                    # 10 commands from manifest
-│   │   ├── plan.md                  # /karimo:plan (with interactive review)
-│   │   ├── overview.md              # /karimo:overview (cross-PRD oversight)
-│   │   ├── execute.md               # /karimo:execute (brief gen + execution)
-│   │   ├── modify.md                # /karimo:modify (modify PRD before execution)
-│   │   ├── status.md                # /karimo:status
-│   │   ├── configure.md             # /karimo:configure
-│   │   ├── feedback.md              # /karimo:feedback
-│   │   ├── learn.md                 # /karimo:learn
-│   │   ├── doctor.md                # /karimo:doctor
-│   │   └── test.md                  # /karimo:test
+│   │   ├── plan.md                  # /karimo-plan (with interactive review)
+│   │   ├── overview.md              # /karimo-overview (cross-PRD oversight)
+│   │   ├── execute.md               # /karimo-execute (brief gen + execution)
+│   │   ├── modify.md                # /karimo-modify (modify PRD before execution)
+│   │   ├── status.md                # /karimo-status
+│   │   ├── configure.md             # /karimo-configure
+│   │   ├── feedback.md              # /karimo-feedback
+│   │   ├── learn.md                 # /karimo-learn
+│   │   ├── doctor.md                # /karimo-doctor
+│   │   └── test.md                  # /karimo-test
 │   ├── skills/                      # 5 skills from manifest
 │   │   ├── git-worktree-ops.md      # Worktree management
 │   │   ├── github-project-ops.md    # GitHub Projects via gh CLI
@@ -155,8 +155,8 @@ bash KARIMO/.karimo/install.sh --ci /path/to/project
 KARIMO follows Anthropic's best practice of keeping CLAUDE.md minimal. `install.sh` uses a **modular approach**:
 
 1. **Copies** `KARIMO_RULES.md` to `.claude/KARIMO_RULES.md` (agent behavior rules)
-2. **Creates** `.karimo/config.yaml` (project configuration — filled by `/karimo:configure`)
-3. **Creates** `.karimo/learnings.md` (compound learnings — filled by `/karimo:feedback`)
+2. **Creates** `.karimo/config.yaml` (project configuration — filled by `/karimo-configure`)
+3. **Creates** `.karimo/learnings.md` (compound learnings — filled by `/karimo-feedback`)
 4. **Appends** a minimal reference block (~8 lines) to `CLAUDE.md`:
 
 ```markdown
@@ -169,7 +169,7 @@ This project uses [KARIMO](https://github.com/opensesh/KARIMO) for PRD-driven au
 - **Agent rules:** `.claude/KARIMO_RULES.md`
 - **Config & PRDs:** `.karimo/`
 - **Learnings:** `.karimo/learnings.md`
-- **All commands prefixed** `karimo:` — type `/karimo:` to see available commands
+- **All commands prefixed** `karimo:` — type `/karimo-` to see available commands
 ```
 
 ### Conflict Handling
@@ -182,7 +182,7 @@ If the user already has a `## KARIMO` section in their `CLAUDE.md`, `install.sh`
 
 ```
 ┌─────────────────────────────────────────┐    ┌─────────────────────────────────────────┐    ┌────────────┐    ┌─────────────┐    ┌───────────┐
-│            /karimo:plan                 │    │           /karimo:execute               │    │   Review   │    │ Reconcile   │    │   Merge   │
+│            /karimo-plan                 │    │           /karimo-execute               │    │   Review   │    │ Reconcile   │    │   Merge   │
 │  Interview → PRD → Review → Approve     │ →  │  Brief Gen → Agent Execution → PRs     │ →  │ (Greptile) │ →  │ (Architect) │ →  │   (PR)    │
 └─────────────────────────────────────────┘    └─────────────────────────────────────────┘    └────────────┘    └─────────────┘    └───────────┘
 ```
@@ -215,7 +215,7 @@ task-branch-1b ─┘         ▲                  ▲
 - Human reviews and approves final merge
 - This is the single human approval gate per feature
 
-### Interview Phase (`/karimo:plan`)
+### Interview Phase (`/karimo-plan`)
 
 1. **Intake**: User provides initial context
 2. **Investigator**: Scans codebase for patterns
@@ -230,7 +230,7 @@ task-branch-1b ─┘         ▲                  ▲
 - `status.json` — Execution tracking (status: `ready` when approved)
 - `findings.md` — Cross-task discoveries (populated during execution)
 
-### Execution Phase (`/karimo:execute`)
+### Execution Phase (`/karimo-execute`)
 
 **Phase 1: Brief Generation**
 1. Brief Writer generates self-contained briefs per task
@@ -256,9 +256,9 @@ GitHub Actions automate review when Greptile is configured:
 2. **karimo-ci-integration.yml**: Runs validation on review pass
 3. **karimo-sync.yml**: Updates status on merge
 
-### Human Oversight (`/karimo:overview`)
+### Human Oversight (`/karimo-overview`)
 
-After execution completes (or during long runs), use `/karimo:overview` to surface:
+After execution completes (or during long runs), use `/karimo-overview` to surface:
 - Tasks blocked by Greptile review failures (needs human intervention)
 - Tasks in active revision loops
 - Tasks with merge conflicts (needs human rebase)
@@ -495,7 +495,7 @@ PRs are created with KARIMO metadata:
 
 ## Configuration
 
-KARIMO configuration lives in `.karimo/config.yaml`. Run `/karimo:configure` to auto-detect your project and populate this file:
+KARIMO configuration lives in `.karimo/config.yaml`. Run `/karimo-configure` to auto-detect your project and populate this file:
 
 ```yaml
 # Example .karimo/config.yaml
@@ -550,7 +550,7 @@ Some values are not configurable:
 
 KARIMO uses a two-scope compound learning system:
 
-### Scope 1: Quick Capture (`/karimo:feedback`)
+### Scope 1: Quick Capture (`/karimo-feedback`)
 
 Immediate capture of single observations:
 - Developer describes pattern or mistake
@@ -558,7 +558,7 @@ Immediate capture of single observations:
 - Rule appended to `.karimo/learnings.md`
 - Time: ~2 minutes
 
-### Scope 2: Deep Learning (`/karimo:learn`)
+### Scope 2: Deep Learning (`/karimo-learn`)
 
 Comprehensive three-mode investigation cycle:
 

@@ -429,7 +429,7 @@ if [ "$CI_MODE" = false ]; then
         fi
     else
         echo -e "  ${YELLOW}Could not auto-detect project configuration${NC}"
-        echo -e "  ${YELLOW}Run /karimo:configure after installation to set up${NC}"
+        echo -e "  ${YELLOW}Run /karimo-configure after installation to set up${NC}"
     fi
 fi
 
@@ -460,7 +460,7 @@ This project uses [KARIMO](https://github.com/opensesh/KARIMO) for PRD-driven au
 - **Agent rules:** `.claude/KARIMO_RULES.md`
 - **Config & PRDs:** `.karimo/`
 - **Learnings:** `.karimo/learnings.md`
-- **All commands prefixed** `karimo:` — type `/karimo:` to see available commands
+- **All commands prefixed** `karimo:` — type `/karimo-` to see available commands
 EOF
 
     if [ -f "$CLAUDE_MD" ] && [ $(wc -c < "$CLAUDE_MD") -gt 100 ]; then
@@ -476,7 +476,7 @@ if [ ! -f "$LEARNINGS_FILE" ]; then
     cat > "$LEARNINGS_FILE" << 'LEARNEOF'
 # KARIMO Learnings
 
-_Rules learned from execution feedback via `/karimo:feedback` and `/karimo:learn`._
+_Rules learned from execution feedback via `/karimo-feedback` and `/karimo-learn`._
 
 ## Patterns to Follow
 
@@ -543,10 +543,10 @@ if [ "$CONFIG_AUTODETECTED" = true ]; then
     echo "    Runtime: ${DETECTED_RUNTIME}"
     echo "    Framework: ${DETECTED_FRAMEWORK}"
     echo "    Package manager: ${DETECTED_PKG_MANAGER}"
-    echo "    Run /karimo:configure to save to .karimo/config.yaml"
+    echo "    Run /karimo-configure to save to .karimo/config.yaml"
 else
     echo -e "  ${YELLOW}○${NC} Configuration pending"
-    echo "    Run /karimo:configure to create config"
+    echo "    Run /karimo-configure to create config"
 fi
 echo
 echo "Workflows installed: ${WORKFLOW_COUNT}"
@@ -563,16 +563,16 @@ if [ "$INSTALLED_GREPTILE" = "true" ]; then
 fi
 echo
 echo "Next steps:"
-echo "  1. Run '/karimo:doctor' to verify installation health"
+echo "  1. Run '/karimo-doctor' to verify installation health"
 if [ "$CONFIG_AUTODETECTED" = true ]; then
-    echo "  2. Run '/karimo:plan' to create your first PRD"
-    echo "  3. Run '/karimo:execute --prd {slug}' to start execution"
+    echo "  2. Run '/karimo-plan' to create your first PRD"
+    echo "  3. Run '/karimo-execute --prd {slug}' to start execution"
 else
-    echo "  2. Run '/karimo:configure' to complete configuration"
-    echo "  3. Run '/karimo:plan' to create your first PRD"
+    echo "  2. Run '/karimo-configure' to complete configuration"
+    echo "  3. Run '/karimo-plan' to create your first PRD"
 fi
-echo "  4. Run '/karimo:feedback' for quick single-rule capture"
-echo "  5. Run '/karimo:learn' for periodic deep learning cycles"
+echo "  4. Run '/karimo-feedback' for quick single-rule capture"
+echo "  5. Run '/karimo-learn' for periodic deep learning cycles"
 if [ "$INSTALLED_GREPTILE" = "true" ]; then
     echo ""
     echo -e "${YELLOW}Note: Add GREPTILE_API_KEY to your repository secrets for Greptile review.${NC}"

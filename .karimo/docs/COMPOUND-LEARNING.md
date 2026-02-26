@@ -11,7 +11,7 @@ KARIMO has a two-scope compound learning system that makes agents smarter over t
 │                      COMPOUND LEARNING                               │
 ├─────────────────────────────────────────────────────────────────────┤
 │                                                                     │
-│   Scope 1: Quick Capture (/karimo:feedback)                         │
+│   Scope 1: Quick Capture (/karimo-feedback)                         │
 │   ┌─────────────────────────────────────────────────────────────┐   │
 │   │  Single observation → Single rule                            │   │
 │   │  Time: ~2 minutes                                            │   │
@@ -19,7 +19,7 @@ KARIMO has a two-scope compound learning system that makes agents smarter over t
 │   │  Output: Appends rule to .karimo/learnings.md                 │   │
 │   └─────────────────────────────────────────────────────────────┘   │
 │                                                                     │
-│   Scope 2: Deep Learning (/karimo:learn)                            │
+│   Scope 2: Deep Learning (/karimo-learn)                            │
 │   ┌─────────────────────────────────────────────────────────────┐   │
 │   │  Three-mode investigation cycle                              │   │
 │   │  Time: ~45 minutes                                           │   │
@@ -44,12 +44,12 @@ KARIMO has a two-scope compound learning system that makes agents smarter over t
 
 ## Scope 1: Quick Capture
 
-The `/karimo:feedback` command captures single observations immediately.
+The `/karimo-feedback` command captures single observations immediately.
 
 ### How It Works
 
 1. **Developer observes** — Notices an agent pattern or mistake
-2. **Runs `/karimo:feedback`** — Describes the observation
+2. **Runs `/karimo-feedback`** — Describes the observation
 3. **Agent analyzes** — Classifies as pattern, anti-pattern, rule, or gotcha
 4. **Generates rule** — Creates actionable instruction
 5. **Appends to `.karimo/learnings.md`** — Under appropriate category
@@ -58,7 +58,7 @@ The `/karimo:feedback` command captures single observations immediately.
 ### Example Usage
 
 ```
-/karimo:feedback
+/karimo-feedback
 
 > "The agent kept using inline styles instead of Tailwind classes"
 ```
@@ -83,7 +83,7 @@ Generates:
 
 ## Scope 2: Deep Learning
 
-The `/karimo:learn` command conducts a comprehensive three-mode investigation.
+The `/karimo-learn` command conducts a comprehensive three-mode investigation.
 
 ### The Three Modes
 
@@ -150,7 +150,7 @@ Interactive change approval:
 ## Learn Cycle Flow
 
 ```
-/karimo:learn
+/karimo-learn
     │
     ▼
 INIT: Create .karimo/learn/{timestamp}/, load context
@@ -222,7 +222,7 @@ Learnings are stored in a dedicated file:
 ```markdown
 # KARIMO Learnings
 
-_Rules learned from execution feedback via `/karimo:feedback` and `/karimo:learn`._
+_Rules learned from execution feedback via `/karimo-feedback` and `/karimo-learn`._
 
 ## Patterns to Follow
 
@@ -282,7 +282,7 @@ Learn Cycle 2 (Feb 15):
 
 ## Scope Comparison
 
-| Aspect | Scope 1: /karimo:feedback | Scope 2: /karimo:learn |
+| Aspect | Scope 1: /karimo-feedback | Scope 2: /karimo-learn |
 |--------|---------------------------|------------------------|
 | **Time** | ~2 minutes | ~45 minutes |
 | **Trigger** | Single observation | Periodic review |
@@ -320,14 +320,14 @@ The investigator agent surfaces relevant learnings when scanning:
 
 ## Best Practices
 
-### For Scope 1 (/karimo:feedback)
+### For Scope 1 (/karimo-feedback)
 
 - Be specific about what went wrong
 - Include file paths when relevant
 - Mention the desired behavior
 - Capture immediately after observation
 
-### For Scope 2 (/karimo:learn)
+### For Scope 2 (/karimo-learn)
 
 - Run every 2-4 weeks
 - Come prepared with specific examples

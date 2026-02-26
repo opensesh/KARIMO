@@ -294,10 +294,10 @@ commands:
 
 ### Teaching Agents Your Patterns
 
-Use `/karimo:feedback` to capture project-specific conventions:
+Use `/karimo-feedback` to capture project-specific conventions:
 
 ```
-/karimo:feedback
+/karimo-feedback
 
 > "Always use the existing Button component from src/components/ui/"
 ```

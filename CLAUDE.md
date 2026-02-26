@@ -12,16 +12,17 @@ KARIMO is an autonomous development **methodology** delivered via Claude Code co
 
 | Command | Purpose |
 |---------|---------|
-| `/karimo:plan` | Start PRD interview with interactive approval |
-| `/karimo:overview` | Cross-PRD oversight dashboard |
-| `/karimo:execute --prd {slug}` | Execute tasks from a PRD (brief gen + execution) |
-| `/karimo:modify --prd {slug}` | Modify an approved PRD before execution |
-| `/karimo:status` | View execution state and progress |
-| `/karimo:configure` | Create or update project configuration (~5 min) |
-| `/karimo:feedback` | Quick capture of single learnings (~2 min) |
-| `/karimo:learn` | Deep learning cycle with investigation (~45 min) |
-| `/karimo:doctor` | Check installation health and diagnose issues |
-| `/karimo:test` | Verify installation works end-to-end |
+| `/karimo-plan` | Start PRD interview with interactive approval |
+| `/karimo-overview` | Cross-PRD oversight dashboard |
+| `/karimo-execute --prd {slug}` | Execute tasks from a PRD (brief gen + execution) |
+| `/karimo-modify --prd {slug}` | Modify an approved PRD before execution |
+| `/karimo-status` | View execution state and progress |
+| `/karimo-configure` | Create or update project configuration (~5 min) |
+| `/karimo-update` | Check for and apply KARIMO updates from GitHub |
+| `/karimo-feedback` | Quick capture of single learnings (~2 min) |
+| `/karimo-learn` | Deep learning cycle with investigation (~45 min) |
+| `/karimo-doctor` | Check installation health and diagnose issues |
+| `/karimo-test` | Verify installation works end-to-end |
 
 ---
 
@@ -31,7 +32,7 @@ KARIMO uses three optional adoption phases:
 
 ### Phase 1: Execute PRD
 Your first planning process with KARIMO:
-- Run `/karimo:plan` to create PRD through agent interviews
+- Run `/karimo-plan` to create PRD through agent interviews
 - Agent teams coordinate task execution
 - GitHub Projects integration for tracking
 - Git worktrees and feature branches by default
@@ -56,7 +57,7 @@ Add automated code review to your workflow:
 
 ## Configuration
 
-KARIMO configuration lives in `.karimo/config.yaml`. On first `/karimo:plan` or `/karimo:configure`, the investigator agent auto-detects project context and populates the config file.
+KARIMO configuration lives in `.karimo/config.yaml`. On first `/karimo-plan` or `/karimo-configure`, the investigator agent auto-detects project context and populates the config file.
 
 Key settings:
 - **Project** — Runtime, framework, package manager
@@ -83,7 +84,7 @@ When you run `install.sh`, these files are added:
 | Location | Contents |
 |----------|----------|
 | `.claude/agents/` | 13 agent definitions (7 coordination + 6 task agents) |
-| `.claude/commands/` | 10 slash commands (plan, overview, execute, modify, status, configure, feedback, learn, doctor, test) |
+| `.claude/commands/` | 11 slash commands (plan, overview, execute, modify, status, configure, update, feedback, learn, doctor, test) |
 | `.claude/skills/` | 5 skills (2 coordination + 3 task agent skills) |
 | `.claude/KARIMO_RULES.md` | Agent behavior rules |
 | `.karimo/templates/` | 9 templates (PRD, interview, task, status, dependencies, DAG, learn-interview, findings, task-brief) |
@@ -119,4 +120,4 @@ When you run `install.sh`, these files are added:
 
 ## Learnings
 
-Project-specific learnings are stored in `.karimo/learnings.md` and populated via `/karimo:feedback` or `/karimo:learn`. This keeps CLAUDE.md minimal while providing agents with accumulated knowledge._
+Project-specific learnings are stored in `.karimo/learnings.md` and populated via `/karimo-feedback` or `/karimo-learn`. This keeps CLAUDE.md minimal while providing agents with accumulated knowledge._

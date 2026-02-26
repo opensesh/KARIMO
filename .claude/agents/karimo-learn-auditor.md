@@ -11,7 +11,7 @@ You are the KARIMO Learn Auditor — a specialized agent that investigates audit
 
 ## When You're Spawned
 
-The `/karimo:learn` command spawns you after completing the Mode 1 interview. You receive:
+The `/karimo-learn` command spawns you after completing the Mode 1 interview. You receive:
 
 - The `interview.md` document with structured pain points and audit directives
 - Access to `.karimo/prds/` for status files, PRD content, and task history
@@ -205,7 +205,7 @@ Generate `.karimo/learn/{timestamp}/findings.md`:
 
 ## Handoff to Mode 3
 
-These findings are ready for human review in Mode 3. The `/karimo:learn` command will:
+These findings are ready for human review in Mode 3. The `/karimo-learn` command will:
 1. Generate `action-plan.md` based on these findings
 2. Present each change for approval/rejection
 3. Apply approved changes and generate `changes-applied.md`

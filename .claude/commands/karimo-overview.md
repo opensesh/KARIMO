@@ -1,13 +1,13 @@
-# /karimo:overview — Cross-PRD Oversight Dashboard
+# /karimo-overview — Cross-PRD Oversight Dashboard
 
 Surface all tasks needing human attention and recently completed work across all active PRDs.
 
 ## Usage
 
 ```
-/karimo:overview              # Full dashboard view
-/karimo:overview --blocked    # Show only blocked tasks (needs human review)
-/karimo:overview --active     # Show only active PRDs with progress
+/karimo-overview              # Full dashboard view
+/karimo-overview --blocked    # Show only blocked tasks (needs human review)
+/karimo-overview --active     # Show only active PRDs with progress
 ```
 
 ## Purpose
@@ -142,7 +142,7 @@ Show only PRDs with in-progress work:
 Summary: 2 active PRDs
 ```
 
-Note: The `(modified Nx)` annotation appears when a PRD has been modified via `/karimo:modify`.
+Note: The `(modified Nx)` annotation appears when a PRD has been modified via `/karimo-modify`.
 
 ---
 
@@ -152,7 +152,7 @@ If no items in a category, omit that section entirely.
 
 If no active PRDs exist:
 ```
-No active PRDs found. Run /karimo:plan to create one, or /karimo:execute to start one.
+No active PRDs found. Run /karimo-plan to create one, or /karimo-execute to start one.
 ```
 
 ---
@@ -161,6 +161,6 @@ No active PRDs found. Run /karimo:plan to create one, or /karimo:execute to star
 
 | Command | Purpose |
 |---------|---------|
-| `/karimo:plan` | Create PRD with interactive approval |
-| `/karimo:execute` | Execute PRD (brief gen + task execution) |
-| `/karimo:status` | View execution status for specific PRD |
+| `/karimo-plan` | Create PRD with interactive approval |
+| `/karimo-execute` | Execute PRD (brief gen + task execution) |
+| `/karimo-status` | View execution status for specific PRD |

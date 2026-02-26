@@ -1,4 +1,4 @@
-# /karimo:modify — PRD Modification Command
+# /karimo-modify — PRD Modification Command
 
 Modify an approved PRD before execution. Add, remove, or change tasks, then regenerate the execution plan.
 
@@ -11,7 +11,7 @@ Modify an approved PRD before execution. Add, remove, or change tasks, then rege
 The PRD must have status `ready` (approved but not yet executing).
 
 **Cannot modify if:**
-- Status is `draft` → Use `/karimo:plan --resume {slug}` instead
+- Status is `draft` → Use `/karimo-plan --resume {slug}` instead
 - Status is `active` or `complete` → PRD is already executing or done
 
 ## Behavior
@@ -40,7 +40,7 @@ Current status: {status}
 Modification is only allowed for PRDs with status "ready" (approved but not executing).
 
 Options:
-  - draft: Run /karimo:plan --resume {slug}
+  - draft: Run /karimo-plan --resume {slug}
   - active: Wait for execution to complete or cancel first
   - complete: Create a new PRD instead
 ```
@@ -224,7 +224,7 @@ Your choice:
    PRD modified: {slug}
 
    Changes saved. Ready for execution:
-     /karimo:execute --prd {slug}
+     /karimo-execute --prd {slug}
    ```
 
 **Option 2 — Continue editing:**
@@ -273,7 +273,7 @@ Cannot save changes. Fix these issues first.
 ```
 draft → ready → active → complete
           ↑
-          └── (modify via /karimo:modify, stays "ready")
+          └── (modify via /karimo-modify, stays "ready")
 ```
 
 Modification keeps the PRD in `ready` state. The only change is the `modified_at` timestamp.
@@ -312,7 +312,7 @@ Execution Plan:
   Tasks: 7 (was 6)
   Ready for execution
 
-Run: /karimo:execute --prd {slug}
+Run: /karimo-execute --prd {slug}
 ```
 
 ### On Validation Error

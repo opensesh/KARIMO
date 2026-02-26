@@ -43,7 +43,7 @@ git clone https://github.com/opensesh/KARIMO.git
 bash KARIMO/.karimo/install.sh /path/to/your/project
 ```
 
-**Configuration:** After installation, run `/karimo:configure` to auto-detect your project:
+**Configuration:** After installation, run `/karimo-configure` to auto-detect your project:
 - Package manager (pnpm, yarn, npm, bun, poetry, etc.)
 - Runtime (Node.js, Bun, Deno, Python, Go, Rust)
 - Framework (Next.js, Nuxt, SvelteKit, Astro, etc.)
@@ -172,15 +172,15 @@ claude
 If install.sh auto-detected your project, configuration is ready. To verify:
 
 ```
-/karimo:doctor
+/karimo-doctor
 ```
 
-This confirms your configuration is valid. If issues are found, run `/karimo:configure` to fix them.
+This confirms your configuration is valid. If issues are found, run `/karimo-configure` to fix them.
 
 ### 3. Run the Plan Command
 
 ```
-/karimo:plan
+/karimo-plan
 ```
 
 Since configuration is already in place, the interview starts immediately.
@@ -203,7 +203,7 @@ The interviewer agent guides you through 6 rounds:
 After review, you'll see a summary with options:
 - **Approve** — Marks PRD as `ready` for execution
 - **Modify** — Make changes and re-run the reviewer
-- **Save as draft** — Come back later with `/karimo:plan --resume {slug}`
+- **Save as draft** — Come back later with `/karimo-plan --resume {slug}`
 
 ### 6. Check the Generated PRD
 
@@ -221,7 +221,7 @@ cat .karimo/prds/{slug}/tasks.yaml
 ├── prd.md              # Full PRD document
 ├── tasks.yaml          # Task definitions with dependencies
 ├── execution_plan.yaml # DAG for parallel execution
-└── status.json         # Execution state (created during /karimo:execute)
+└── status.json         # Execution state (created during /karimo-execute)
 ```
 
 The `tasks.yaml` contains entries like:
@@ -247,7 +247,7 @@ tasks:
 ### 1. Run the Execute Command
 
 ```
-/karimo:execute --prd {slug}
+/karimo-execute --prd {slug}
 ```
 
 Replace `{slug}` with your PRD slug (e.g., `user-profiles`).
@@ -279,7 +279,7 @@ Example worktree structure during execution:
 The PM Agent coordinates execution in real-time. Check status:
 
 ```
-/karimo:status
+/karimo-status
 ```
 
 Shows progress across all PRDs:
@@ -308,7 +308,7 @@ Agent-created PRs appear in your repository. Review and merge as normal.
 If you notice agent patterns worth capturing:
 
 ```
-/karimo:feedback
+/karimo-feedback
 
 > "Always use the existing Button component"
 ```
@@ -326,7 +326,7 @@ Configuration is stored in `.karimo/config.yaml` (single source of truth). Learn
 After running `install.sh`, configure your project:
 
 ```
-/karimo:configure
+/karimo-configure
 ```
 
 This auto-detects and writes to `.karimo/config.yaml`:
@@ -342,7 +342,7 @@ This auto-detects and writes to `.karimo/config.yaml`:
 After configuration, verify everything is valid:
 
 ```
-/karimo:doctor
+/karimo-doctor
 ```
 
 This checks for:

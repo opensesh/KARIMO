@@ -11,7 +11,7 @@ KARIMO uses GitHub Projects (V2) to track task execution. Each PRD gets a Projec
 - `gh` CLI installed and authenticated
 - Repository write access
 - Projects enabled for the repository/organization
-- GitHub Configuration present in CLAUDE.md (run `/karimo:configure` if missing)
+- GitHub Configuration present in CLAUDE.md (run `/karimo-configure` if missing)
 
 ## Resolve Project Owner
 
@@ -32,7 +32,7 @@ PROJECT_OWNER=$([[ "$OWNER_TYPE" == "personal" ]] && echo "@me" || echo "$OWNER"
 # Check if GitHub Configuration exists
 if ! grep -q "### GitHub Configuration" CLAUDE.md; then
   echo "❌ GitHub Configuration not found in CLAUDE.md"
-  echo "   Run /karimo:configure to set up GitHub settings"
+  echo "   Run /karimo-configure to set up GitHub settings"
   exit 1
 fi
 

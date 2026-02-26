@@ -1,11 +1,11 @@
-# /karimo:test — Installation Smoke Test
+# /karimo-test — Installation Smoke Test
 
 Verify KARIMO installation works end-to-end without creating real PRDs or spawning agents.
 
 ## Usage
 
 ```
-/karimo:test
+/karimo-test
 ```
 
 **This command is read-only and never modifies files.**
@@ -231,9 +231,9 @@ Summary
     1. Run `gh auth login` to authenticate
 ```
 
-## Difference from /karimo:doctor
+## Difference from /karimo-doctor
 
-| Aspect | `/karimo:doctor` | `/karimo:test` |
+| Aspect | `/karimo-doctor` | `/karimo-test` |
 |--------|------------------|----------------|
 | Purpose | Diagnose issues, check health | Verify installation works |
 | Scope | Configuration, environment, PRD status | File presence, structure validity |
@@ -262,6 +262,6 @@ This command does not:
 
 | Command | Purpose |
 |---------|---------|
-| `/karimo:doctor` | Detailed health check with recommendations |
-| `/karimo:configure` | Create or update configuration |
-| `/karimo:plan` | Create first PRD (after tests pass) |
+| `/karimo-doctor` | Detailed health check with recommendations |
+| `/karimo-configure` | Create or update configuration |
+| `/karimo-plan` | Create first PRD (after tests pass) |

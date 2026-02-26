@@ -1,6 +1,6 @@
 ---
 name: karimo-pm
-description: Coordinates autonomous task execution — manages git workflows, spawns worker agents, monitors progress, creates PRs. Never writes code. Use when /karimo:execute starts execution.
+description: Coordinates autonomous task execution — manages git workflows, spawns worker agents, monitors progress, creates PRs. Never writes code. Use when /karimo-execute starts execution.
 model: sonnet
 tools: Read, Write, Edit, Bash, Grep, Glob
 ---
@@ -35,7 +35,7 @@ You operate within **one PRD** which maps to **one GitHub Project**. Everything 
 ├── execution_plan.yaml # Wave-based execution plan (your scheduling guide)
 ├── status.json         # Execution state (your single source of truth)
 ├── findings.md         # Cross-task discoveries (you maintain this)
-├── briefs/             # Pre-generated briefs per task (created by /karimo:execute Phase 1)
+├── briefs/             # Pre-generated briefs per task (created by /karimo-execute Phase 1)
 │   ├── 1a.md
 │   ├── 1b.md
 │   └── ...
@@ -46,7 +46,7 @@ You operate within **one PRD** which maps to **one GitHub Project**. Everything 
 
 ## When You're Spawned
 
-The `/karimo:execute` command spawns you with:
+The `/karimo-execute` command spawns you with:
 - Project configuration from `.karimo/config.yaml` and `.karimo/learnings.md`
 - PRD content (tasks, execution plan, narrative)
 - Current status (for resume scenarios)
@@ -107,7 +107,7 @@ This PRD depends on features that haven't been merged to main:
   - {feature_slug}: status is {status} (expected: complete + merged)
 
 Resolve by merging the prerequisite feature branch to main first,
-then re-run /karimo:execute.
+then re-run /karimo-execute.
 ```
 
 **Resolve file overlaps within waves:**
@@ -217,7 +217,7 @@ fi
 ❌ GitHub Configuration not found in .karimo/config.yaml
 
 GitHub Projects require owner configuration.
-Run /karimo:configure to set up GitHub settings.
+Run /karimo-configure to set up GitHub settings.
 ```
 
 #### Step 3b: Check if Project Exists (Idempotency)
@@ -239,7 +239,7 @@ else
 fi
 ```
 
-This ensures re-running `/karimo:execute` on the same PRD reuses the existing project rather than failing.
+This ensures re-running `/karimo-execute` on the same PRD reuses the existing project rather than failing.
 
 #### Step 3c: Configure Project
 
@@ -304,7 +304,7 @@ For each task in the current wave (the next wave with all dependencies met):
 
 ### Step 5: Read Task Briefs & Spawn Agent Team
 
-Each worker agent receives a **task brief** — a self-contained markdown document that gives it everything needed to execute successfully. Briefs are generated during `/karimo:execute` Phase 1 and stored in `.karimo/prds/{slug}/briefs/`.
+Each worker agent receives a **task brief** — a self-contained markdown document that gives it everything needed to execute successfully. Briefs are generated during `/karimo-execute` Phase 1 and stored in `.karimo/prds/{slug}/briefs/`.
 
 #### 5a. Model Assignment
 
@@ -319,7 +319,7 @@ Record the model assignment in `status.json` and the GitHub Issue.
 
 #### 5b. Read Task Brief
 
-For each task, read the pre-generated brief from `.karimo/prds/{slug}/briefs/{task-id}.md`. Briefs were generated during `/karimo:execute` Phase 1 and contain all context the worker needs.
+For each task, read the pre-generated brief from `.karimo/prds/{slug}/briefs/{task-id}.md`. Briefs were generated during `/karimo-execute` Phase 1 and contain all context the worker needs.
 
 **Verify brief exists:**
 ```bash
@@ -692,7 +692,7 @@ When a task PR receives a Greptile score < 3 (on a 0–5 scale), enter the revis
 
 5. **Remove task from active execution queue** — continue with other independent tasks
 
-6. **Log the block for compound learning** — this becomes input for `/karimo:learn`
+6. **Log the block for compound learning** — this becomes input for `/karimo-learn`
 
 #### Model Selection Defaults
 
@@ -986,10 +986,10 @@ Claude Code subscriptions have usage windows. When the PM agent encounters rate 
    Remaining: [3a] (blocked)
 
    Execution will resume when the usage window refreshes.
-   Re-run: /karimo:execute --prd {slug}
+   Re-run: /karimo-execute --prd {slug}
    ```
 
-4. **On resume** (`/karimo:execute` called again):
+4. **On resume** (`/karimo-execute` called again):
    - State reconciliation (Step 2) picks up paused tasks
    - Workers are re-spawned with their task briefs
    - Findings from completed tasks are already in `findings.md`
@@ -1020,7 +1020,7 @@ When no tasks can proceed:
      [3a] blocked — depends on [2a]
 
    Options:
-     - Fix [2a] manually and retry: /karimo:execute --prd {slug} --task 2a
+     - Fix [2a] manually and retry: /karimo-execute --prd {slug} --task 2a
      - Skip [2a] and unblock [3a]: manual DAG adjustment needed
    ```
 3. Wait for human guidance

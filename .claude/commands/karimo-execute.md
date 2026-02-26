@@ -1,4 +1,4 @@
-# /karimo:execute — PRD Execution Command
+# /karimo-execute — PRD Execution Command
 
 Start autonomous execution of an approved PRD using the PM agent and worker team.
 
@@ -11,7 +11,7 @@ Start autonomous execution of an approved PRD using the PM agent and worker team
 ## Prerequisites
 
 Before execution, the PRD must be:
-1. **Approved** via `/karimo:plan` (status: `ready`)
+1. **Approved** via `/karimo-plan` (status: `ready`)
 
 Note: For backward compatibility, `approved` status is treated as equivalent to `ready`.
 
@@ -31,12 +31,12 @@ Available PRDs:
     Ready to execute
 
   002_token-studio      draft     — Not yet approved
-    Resume: /karimo:plan --resume token-studio
+    Resume: /karimo-plan --resume token-studio
 
   003_auth-refactor     active    3/8 tasks complete
-    Resume: /karimo:execute --prd auth-refactor
+    Resume: /karimo-execute --prd auth-refactor
 
-Run: /karimo:execute --prd user-profiles
+Run: /karimo-execute --prd user-profiles
 ```
 
 **If `--prd` provided:**
@@ -118,7 +118,7 @@ Pre-flight checks:
   ❌ GitHub Configuration not found
 
 GitHub Configuration is required for GitHub Project creation.
-Run /karimo:configure to set up GitHub settings.
+Run /karimo-configure to set up GitHub settings.
 ```
 
 **If GitHub Project access is denied:**
@@ -211,7 +211,7 @@ Proceed with 4 tasks?
 - Briefs remain on disk for later execution
 
 > **Note:** To add, remove, or restructure tasks (not just adjust briefs),
-> use `/karimo:modify --prd {slug}` first, then re-run execute.
+> use `/karimo-modify --prd {slug}` first, then re-run execute.
 
 ---
 
@@ -389,8 +389,8 @@ Execution updates these files:
 | Error | Action |
 |-------|--------|
 | PRD not found | List available PRDs |
-| PRD not ready | "Run /karimo:plan to approve first" |
-| GitHub config missing | "Run /karimo:configure to set up GitHub settings" |
+| PRD not ready | "Run /karimo-plan to approve first" |
+| GitHub config missing | "Run /karimo-configure to set up GitHub settings" |
 | GitHub project access denied | "Run `gh auth refresh -s project` to add project scope" |
 | Task failed | Mark as failed, continue with independent tasks |
 | All tasks blocked | Report blockers, suggest intervention |
@@ -402,9 +402,9 @@ Execution updates these files:
 ```
 draft → ready → active → complete
           │        │
-          │        └─► /karimo:execute (running)
+          │        └─► /karimo-execute (running)
           │
-          └─► /karimo:plan (approval via interactive review)
+          └─► /karimo-plan (approval via interactive review)
 ```
 
 Note: For backward compatibility, `approved` status is treated as equivalent to `ready`.
