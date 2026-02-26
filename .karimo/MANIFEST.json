@@ -16,16 +16,17 @@
     "karimo-tester-opus.md"
   ],
   "commands": [
-    "configure.md",
-    "doctor.md",
-    "execute.md",
-    "feedback.md",
-    "learn.md",
-    "modify.md",
-    "overview.md",
-    "plan.md",
-    "status.md",
-    "test.md"
+    "karimo-configure.md",
+    "karimo-doctor.md",
+    "karimo-execute.md",
+    "karimo-feedback.md",
+    "karimo-learn.md",
+    "karimo-modify.md",
+    "karimo-overview.md",
+    "karimo-plan.md",
+    "karimo-status.md",
+    "karimo-test.md",
+    "karimo-update.md"
   ],
   "skills": [
     "git-worktree-ops.md",
