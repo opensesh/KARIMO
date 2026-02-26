@@ -396,25 +396,31 @@ Co-Authored-By: Claude <noreply@anthropic.com>
 
 ---
 
-## findings.json for Test Discoveries
+## findings.md for Test Discoveries
 
 Create when you find coverage gaps or test infrastructure issues:
 
-```json
-{
-  "task_id": "1a-tests",
-  "completed_at": "2026-02-21T10:00:00Z",
-  "findings": [
-    {
-      "type": "discovery",
-      "severity": "warning",
-      "description": "No existing tests for error boundaries",
-      "affected_tasks": [],
-      "files": ["src/components/ErrorBoundary.tsx"],
-      "action_required": "Consider adding error boundary tests"
-    }
-  ]
-}
+```markdown
+# Findings: 1a-tests
+
+## Metadata
+- **Task:** 1a-tests - Add error boundary tests
+- **Completed:** 2026-02-21T10:00:00Z
+- **Type:** discovery
+
+## Severity: warning
+
+## Description
+No existing tests for error boundaries
+
+## Affected Tasks
+- (none)
+
+## Files
+- src/components/ErrorBoundary.tsx
+
+## Action Required
+Consider adding error boundary tests
 ```
 
 ---
@@ -429,4 +435,4 @@ Create when you find coverage gaps or test infrastructure issues:
 - [ ] Edge case tests implemented
 - [ ] All tests passing (including existing)
 - [ ] Commits use `test(scope):` format
-- [ ] findings.json written if gaps discovered
+- [ ] findings.md written if gaps discovered
