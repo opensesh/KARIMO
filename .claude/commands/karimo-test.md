@@ -165,19 +165,31 @@ Or for new installations:
 Verify KARIMO section exists in CLAUDE.md with markers and required config files are present.
 
 ```bash
+# Detect CLAUDE.md path
+if [ -f ".claude/CLAUDE.md" ]; then
+    CLAUDE_MD=".claude/CLAUDE.md"
+elif [ -f "CLAUDE.md" ]; then
+    CLAUDE_MD="CLAUDE.md"
+else
+    echo "CLAUDE.md not found"
+    CLAUDE_MD=""
+fi
+
 # Check for KARIMO section (prefer marker-based format)
-if grep -q "<!-- KARIMO:START" CLAUDE.md; then
-  echo "KARIMO section found (with markers)"
-elif grep -q "## KARIMO" CLAUDE.md; then
-  echo "KARIMO section found (legacy format)"
+if [ -z "$CLAUDE_MD" ]; then
+  echo "KARIMO section missing (no CLAUDE.md)"
+elif grep -q "<!-- KARIMO:START" "$CLAUDE_MD"; then
+  echo "KARIMO section found (with markers) in $CLAUDE_MD"
+elif grep -q "## KARIMO" "$CLAUDE_MD"; then
+  echo "KARIMO section found (legacy format) in $CLAUDE_MD"
 else
   echo "KARIMO section missing"
 fi
 
 # Check for GitHub Configuration table
-if grep -q "### GitHub Configuration" CLAUDE.md; then
+if [ -n "$CLAUDE_MD" ] && grep -q "### GitHub Configuration" "$CLAUDE_MD"; then
   # Check for pending values
-  if grep -A5 "### GitHub Configuration" CLAUDE.md | grep -q "_pending_"; then
+  if grep -A5 "### GitHub Configuration" "$CLAUDE_MD" | grep -q "_pending_"; then
     echo "GitHub Configuration has pending values"
   else
     echo "GitHub Configuration populated"
