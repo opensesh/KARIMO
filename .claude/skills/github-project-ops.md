@@ -18,9 +18,23 @@ KARIMO uses GitHub Projects (V2) to track task execution. Each PRD gets a Projec
 **Read owner from CLAUDE.md, with fallback to config.yaml:**
 
 ```bash
-# First try CLAUDE.md GitHub Configuration
-OWNER_TYPE=$(grep -A5 "### GitHub Configuration" CLAUDE.md | grep "Owner Type |" | head -1 | awk -F'|' '{print $3}' | tr -d ' ')
-OWNER=$(grep -A5 "### GitHub Configuration" CLAUDE.md | grep "Owner |" | head -1 | awk -F'|' '{print $3}' | tr -d ' ')
+# First detect CLAUDE.md path
+if [ -f ".claude/CLAUDE.md" ]; then
+    CLAUDE_MD=".claude/CLAUDE.md"
+elif [ -f "CLAUDE.md" ]; then
+    CLAUDE_MD="CLAUDE.md"
+else
+    CLAUDE_MD=""
+fi
+
+# Try CLAUDE.md GitHub Configuration (if CLAUDE.md exists)
+if [ -n "$CLAUDE_MD" ]; then
+  OWNER_TYPE=$(grep -A5 "### GitHub Configuration" "$CLAUDE_MD" | grep "Owner Type |" | head -1 | awk -F'|' '{print $3}' | tr -d ' ')
+  OWNER=$(grep -A5 "### GitHub Configuration" "$CLAUDE_MD" | grep "Owner |" | head -1 | awk -F'|' '{print $3}' | tr -d ' ')
+else
+  OWNER_TYPE=""
+  OWNER=""
+fi
 
 # Fall back to config.yaml if CLAUDE.md has _pending_ or is missing
 if [ -z "$OWNER" ] || [ "$OWNER" = "_pending_" ]; then
@@ -40,8 +54,13 @@ PROJECT_OWNER=$([[ "$OWNER_TYPE" == "personal" ]] && echo "@me" || echo "$OWNER"
 ```bash
 # Check if we have valid owner information from either source
 if [ -z "$OWNER" ] || [ "$OWNER" = "_pending_" ]; then
-  echo "❌ GitHub Configuration not found"
-  echo "   Not in CLAUDE.md and not in .karimo/config.yaml"
+  if [ -n "$CLAUDE_MD" ]; then
+    echo "❌ GitHub Configuration not found"
+    echo "   Not in $CLAUDE_MD and not in .karimo/config.yaml"
+  else
+    echo "❌ GitHub Configuration not found"
+    echo "   CLAUDE.md not found and .karimo/config.yaml missing github section"
+  fi
   echo "   Run /karimo-configure to set up GitHub settings"
   exit 1
 fi
