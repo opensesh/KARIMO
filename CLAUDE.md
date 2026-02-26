@@ -55,14 +55,54 @@ Add automated code review to your workflow:
 
 ---
 
+## Execution Mode
+
+KARIMO offers two execution modes to accommodate different team needs:
+
+### Full Mode (Recommended)
+
+Full GitHub integration with issues, PRs, and Projects.
+
+**Requirements:**
+- GitHub MCP server configured in Claude Code
+- gh CLI authenticated with `project` scope
+
+**Benefits:**
+- Complete traceability (task → issue → PR → merge)
+- GitHub Projects visualization
+- PR-based code review workflow
+- Greptile integration for automated review
+- Multi-feature management
+
+### Fast Track Mode
+
+Commit-only workflow without GitHub integration.
+
+**Requirements:**
+- git repository initialized
+- No GitHub configuration needed
+
+**Workflow:**
+- Tasks become structured commits to main
+- Commit format: `[{prd-slug}][{task-id}] {task-name}: {description}`
+- No issues, PRs, or Projects
+
+**Best for:** Small teams, rapid prototyping, solo developers
+
+> **Note:** Fast Track trades traceability for speed. Use Full Mode for production projects where auditability matters.
+
+---
+
 ## Configuration
 
 KARIMO configuration lives in `.karimo/config.yaml`. On first `/karimo-plan` or `/karimo-configure`, the investigator agent auto-detects project context and populates the config file.
 
 Key settings:
+- **Mode** — `full` or `fast-track` execution mode
 - **Project** — Runtime, framework, package manager
 - **Commands** — Build, lint, test, typecheck commands
 - **Boundaries** — Files agents must not touch (`never_touch`) or must flag for review (`require_review`)
+- **GitHub** — Owner, repository, merge strategy (Full Mode only)
 - **Learnings** — Patterns and anti-patterns stored in `.karimo/learnings.md`
 
 ---
