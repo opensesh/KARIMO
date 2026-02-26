@@ -11,6 +11,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+**Install/Update Scripts: CLAUDE.md Location and .gitignore Handling**
+
+Fixed two issues that caused incomplete installations when updating projects with non-standard CLAUDE.md locations.
+
+**Problem 1:** `install.sh` hardcoded `CLAUDE.md` at project root, but some Claude Code projects (like BOS-3.0) use `.claude/CLAUDE.md`. The KARIMO section was never added.
+
+**Problem 2:** `update.sh` didn't handle `.gitignore` or CLAUDE.md at all. If the original install was incomplete, updates never fixed it.
+
+**Solution:**
+- `install.sh`: Check both `CLAUDE.md` and `.claude/CLAUDE.md` locations
+- `update.sh`: Verify and fix `.gitignore` (.worktrees/) and CLAUDE.md KARIMO section if missing
+
+**Changes:**
+
+| File | Change |
+|------|--------|
+| `install.sh` | Check both CLAUDE.md locations (root and `.claude/`) |
+| `update.sh` | Add .gitignore verification/fix for `.worktrees/` |
+| `update.sh` | Add CLAUDE.md KARIMO section verification/fix |
+
+**Documentation Fixes**
+
+Fixed incorrect update command syntax in README and GETTING-STARTED docs.
+
+| File | Change |
+|------|--------|
+| `README.md` | Fix update section with correct two-mode syntax |
+| `GETTING-STARTED.md` | Fix update section, document all flags, list preserved files |
+
 **`/karimo-execute` Pre-flight GitHub Config Fallback**
 
 Added config.yaml fallback logic to `/karimo-execute` pre-flight checks, completing the fix started in v3.3.1.
