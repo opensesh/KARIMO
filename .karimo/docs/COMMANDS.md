@@ -758,16 +758,17 @@ Commands are defined in `.claude/commands/`:
 
 | File | Command |
 |------|---------|
-| `plan.md` | `/karimo-plan` |
-| `overview.md` | `/karimo-overview` |
-| `execute.md` | `/karimo-execute` |
-| `modify.md` | `/karimo-modify` |
-| `status.md` | `/karimo-status` |
-| `configure.md` | `/karimo-configure` |
-| `feedback.md` | `/karimo-feedback` |
-| `learn.md` | `/karimo-learn` |
-| `doctor.md` | `/karimo-doctor` |
-| `test.md` | `/karimo-test` |
+| `karimo-plan.md` | `/karimo-plan` |
+| `karimo-overview.md` | `/karimo-overview` |
+| `karimo-execute.md` | `/karimo-execute` |
+| `karimo-modify.md` | `/karimo-modify` |
+| `karimo-status.md` | `/karimo-status` |
+| `karimo-configure.md` | `/karimo-configure` |
+| `karimo-update.md` | `/karimo-update` |
+| `karimo-feedback.md` | `/karimo-feedback` |
+| `karimo-learn.md` | `/karimo-learn` |
+| `karimo-doctor.md` | `/karimo-doctor` |
+| `karimo-test.md` | `/karimo-test` |
 
 ---
 
