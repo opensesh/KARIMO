@@ -12,6 +12,84 @@ KARIMO agents execute tasks defined in PRDs. The human architect designs the fea
 
 ---
 
+## Execution Modes
+
+KARIMO supports two execution modes. Check `.karimo/config.yaml` for the configured mode.
+
+### Full Mode (Default)
+
+Full GitHub integration with complete traceability.
+
+**Tool Selection:**
+| Operation | Tool | Rationale |
+|-----------|------|-----------|
+| Issue create/update | GitHub MCP | Better error handling, typed params |
+| Issue comments | GitHub MCP | Native support |
+| PR create/update | GitHub MCP | `Closes #X` linking built-in |
+| PR review comments | GitHub MCP | Pending review support |
+| Sub-issues | GitHub MCP | `sub_issue_write` for hierarchy |
+| Projects v2 | gh CLI | MCP doesn't support Projects |
+| Labels | gh CLI | MCP is read-only for labels |
+| Branch-issue linking | gh CLI | `gh issue develop` |
+
+**Workflow:**
+1. Feature issue created (parent)
+2. Task issues linked as sub-issues
+3. Branches linked to issues via `gh issue develop`
+4. Worktrees created from linked branches
+5. PRs use `Closes #{issue_number}` for auto-close
+6. Project board tracks wave and status
+
+**Required:**
+- GitHub MCP server configured in Claude Code
+- gh CLI authenticated with `project` scope
+- GitHub owner/repo configured in `.karimo/config.yaml`
+
+### Fast Track Mode
+
+Commit-only workflow without GitHub integration.
+
+**Workflow:**
+1. Tasks execute sequentially on main branch
+2. Structured commits replace issues/PRs:
+   ```
+   [{prd_slug}][{task_id}] {task_name}: {description}
+   ```
+3. No issues, PRs, or Projects created
+4. Status tracked only in `status.json`
+
+**When to Use:**
+- Rapid prototyping
+- Solo development
+- Projects without GitHub
+- Teams preferring simple git workflows
+
+**Trade-offs:**
+- ❌ No GitHub UI visibility
+- ❌ No PR review workflow
+- ❌ No sub-issue hierarchy
+- ❌ No Greptile integration
+- ✓ Faster execution
+- ✓ No GitHub configuration needed
+- ✓ Works offline
+
+### Mode-Specific Agent Behavior
+
+**In Full Mode, agents must:**
+- Create issues before starting work
+- Link branches to issues
+- Create PRs (never push directly to feature branch)
+- Update GitHub Issues with status comments
+- Use MCP for issues/PRs, CLI for Projects
+
+**In Fast Track Mode, agents must:**
+- Commit directly to main (or optionally a feature branch)
+- Use structured commit format with PRD/task context
+- Skip all GitHub operations
+- Update only `status.json` for state tracking
+
+---
+
 ## Agent Behavior Rules
 
 ### 1. Task Boundaries
