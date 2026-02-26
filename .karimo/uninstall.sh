@@ -164,10 +164,17 @@ if [ -f "$TARGET_DIR/.github/ISSUE_TEMPLATE/karimo-task.yml" ]; then
 fi
 
 # Strip KARIMO section from CLAUDE.md
-CLAUDE_MD="$TARGET_DIR/CLAUDE.md"
+# Check both possible locations for CLAUDE.md (like install.sh)
+if [ -f "$TARGET_DIR/.claude/CLAUDE.md" ]; then
+    CLAUDE_MD="$TARGET_DIR/.claude/CLAUDE.md"
+elif [ -f "$TARGET_DIR/CLAUDE.md" ]; then
+    CLAUDE_MD="$TARGET_DIR/CLAUDE.md"
+else
+    CLAUDE_MD=""
+fi
 
 # Check for marker-based section first (new format)
-if [ -f "$CLAUDE_MD" ] && grep -q "<!-- KARIMO:START" "$CLAUDE_MD"; then
+if [ -n "$CLAUDE_MD" ] && grep -q "<!-- KARIMO:START" "$CLAUDE_MD"; then
     echo "Removing KARIMO section from CLAUDE.md (marker-based)..."
 
     # Create a temporary file
@@ -193,7 +200,7 @@ if [ -f "$CLAUDE_MD" ] && grep -q "<!-- KARIMO:START" "$CLAUDE_MD"; then
     REMOVED_COUNT=$((REMOVED_COUNT + 1))
 
 # Fall back to legacy format (## KARIMO header without markers)
-elif [ -f "$CLAUDE_MD" ] && grep -q "## KARIMO" "$CLAUDE_MD"; then
+elif [ -n "$CLAUDE_MD" ] && grep -q "## KARIMO" "$CLAUDE_MD"; then
     echo "Removing KARIMO section from CLAUDE.md (legacy format)..."
 
     # Create a temporary file
