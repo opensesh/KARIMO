@@ -7,6 +7,49 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [3.3.4] - 2026-02-26
+
+### Fixed
+
+**Case-Insensitive CLAUDE.md Path Detection**
+
+Fixed CLAUDE.md detection to handle both uppercase and lowercase file names. Some projects (like BOS-3.0) use lowercase `claude.md`, which works on macOS (case-insensitive filesystem) but would fail on Linux/CI (case-sensitive filesystem).
+
+**Problem:** KARIMO checked for `CLAUDE.md` and `.claude/CLAUDE.md` but not lowercase variants. This worked on macOS but would fail on Linux CI environments.
+
+**Solution:** Added 4-path case-insensitive detection to all files that read CLAUDE.md:
+
+```bash
+# Check all possible locations for CLAUDE.md (case-insensitive)
+if [ -f ".claude/CLAUDE.md" ]; then
+    CLAUDE_MD=".claude/CLAUDE.md"
+elif [ -f ".claude/claude.md" ]; then
+    CLAUDE_MD=".claude/claude.md"
+elif [ -f "CLAUDE.md" ]; then
+    CLAUDE_MD="CLAUDE.md"
+elif [ -f "claude.md" ]; then
+    CLAUDE_MD="claude.md"
+else
+    echo "❌ CLAUDE.md not found"
+    exit 1
+fi
+```
+
+**Files updated:**
+
+| File | Change |
+|------|--------|
+| `karimo-configure.md` | Add lowercase checks after uppercase |
+| `karimo-doctor.md` | Add lowercase checks in 4 locations |
+| `karimo-execute.md` | Add lowercase checks after uppercase |
+| `karimo-test.md` | Add lowercase checks after uppercase |
+| `github-project-ops.md` | Add lowercase checks after uppercase |
+| `install.sh` | Add lowercase checks after uppercase |
+| `update.sh` | Add lowercase checks after uppercase |
+| `uninstall.sh` | Add lowercase checks after uppercase |
+
+---
+
 ## [3.3.3] - 2026-02-26
 
 ### Fixed
