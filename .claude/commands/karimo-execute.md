@@ -71,6 +71,15 @@ Ready to begin execution?
 Run these checks before spawning the PM agent:
 
 ```bash
+# 0. Detect CLAUDE.md path
+if [ -f ".claude/CLAUDE.md" ]; then
+    CLAUDE_MD=".claude/CLAUDE.md"
+elif [ -f "CLAUDE.md" ]; then
+    CLAUDE_MD="CLAUDE.md"
+else
+    CLAUDE_MD=""
+fi
+
 # 1. Check git is clean
 if [ -n "$(git status --porcelain)" ]; then
   echo "❌ Uncommitted changes detected"
@@ -81,18 +90,26 @@ fi
 gh auth status 2>/dev/null || { echo "❌ GitHub CLI not authenticated"; exit 1; }
 
 # 3. Check GitHub Configuration exists
-if ! grep -q "### GitHub Configuration" CLAUDE.md && [ ! -f ".karimo/config.yaml" ]; then
-  echo "❌ GitHub Configuration not found"
-  echo "   Not in CLAUDE.md and .karimo/config.yaml doesn't exist"
-  echo "   Run /karimo-configure to set up GitHub settings"
-  exit 1
+if [ -z "$CLAUDE_MD" ] || ! grep -q "### GitHub Configuration" "$CLAUDE_MD"; then
+  if [ ! -f ".karimo/config.yaml" ]; then
+    echo "❌ GitHub Configuration not found"
+    echo "   Not in CLAUDE.md and .karimo/config.yaml doesn't exist"
+    echo "   Run /karimo-configure to set up GitHub settings"
+    exit 1
+  fi
 fi
 
 # 4. Parse and validate project scope (with fallback)
 # First try CLAUDE.md
-OWNER_TYPE=$(grep -A5 "### GitHub Configuration" CLAUDE.md 2>/dev/null | grep "Owner Type |" | head -1 | awk -F'|' '{print $3}' | tr -d ' ')
-OWNER=$(grep -A5 "### GitHub Configuration" CLAUDE.md 2>/dev/null | grep "Owner |" | head -1 | awk -F'|' '{print $3}' | tr -d ' ')
-CONFIG_SOURCE="CLAUDE.md"
+if [ -n "$CLAUDE_MD" ]; then
+  OWNER_TYPE=$(grep -A5 "### GitHub Configuration" "$CLAUDE_MD" 2>/dev/null | grep "Owner Type |" | head -1 | awk -F'|' '{print $3}' | tr -d ' ')
+  OWNER=$(grep -A5 "### GitHub Configuration" "$CLAUDE_MD" 2>/dev/null | grep "Owner |" | head -1 | awk -F'|' '{print $3}' | tr -d ' ')
+  CONFIG_SOURCE="$CLAUDE_MD"
+else
+  OWNER_TYPE=""
+  OWNER=""
+  CONFIG_SOURCE=""
+fi
 
 # Fall back to config.yaml if CLAUDE.md has _pending_ or is missing
 if [ -z "$OWNER" ] || [ "$OWNER" = "_pending_" ]; then
@@ -127,8 +144,10 @@ else
   }
 fi
 
-# 5. Verify CLAUDE.md has commands and boundaries
-grep -q "### Commands" CLAUDE.md || { echo "❌ Commands section missing"; exit 1; }
+# 5. Verify CLAUDE.md has commands and boundaries (if CLAUDE.md exists)
+if [ -n "$CLAUDE_MD" ]; then
+  grep -q "### Commands" "$CLAUDE_MD" || { echo "⚠️  Commands section missing from $CLAUDE_MD"; }
+fi
 ```
 
 **If GitHub Configuration is missing (neither CLAUDE.md nor config.yaml):**
