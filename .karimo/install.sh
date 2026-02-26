@@ -442,7 +442,15 @@ fi
 
 # Add marker-delimited KARIMO section to CLAUDE.md
 echo "Updating CLAUDE.md..."
-CLAUDE_MD="$TARGET_DIR/CLAUDE.md"
+
+# Check both possible locations for CLAUDE.md
+# Claude Code projects may use either root CLAUDE.md or .claude/CLAUDE.md
+if [ -f "$TARGET_DIR/.claude/CLAUDE.md" ]; then
+    CLAUDE_MD="$TARGET_DIR/.claude/CLAUDE.md"
+    echo "  Found CLAUDE.md at .claude/CLAUDE.md"
+else
+    CLAUDE_MD="$TARGET_DIR/CLAUDE.md"
+fi
 
 # Check if KARIMO section already exists (using markers or legacy header)
 if [ -f "$CLAUDE_MD" ] && grep -q "<!-- KARIMO:START" "$CLAUDE_MD"; then

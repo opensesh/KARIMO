@@ -438,6 +438,70 @@ if [ -f "$KARIMO_SOURCE/.karimo/update.sh" ]; then
 fi
 
 # ==============================================================================
+# VERIFY/FIX GITIGNORE (handles incomplete prior installs)
+# ==============================================================================
+
+GITIGNORE="$PROJECT_ROOT/.gitignore"
+if [ -f "$GITIGNORE" ]; then
+    if ! grep -q ".worktrees" "$GITIGNORE"; then
+        echo "  Adding .worktrees/ to .gitignore..."
+        echo "" >> "$GITIGNORE"
+        echo "# KARIMO worktrees" >> "$GITIGNORE"
+        echo ".worktrees/" >> "$GITIGNORE"
+    fi
+else
+    echo "  Creating .gitignore with .worktrees/..."
+    echo "# KARIMO worktrees" > "$GITIGNORE"
+    echo ".worktrees/" >> "$GITIGNORE"
+fi
+
+# ==============================================================================
+# VERIFY/FIX CLAUDE.MD KARIMO SECTION (handles incomplete prior installs)
+# ==============================================================================
+
+# Check both possible locations for CLAUDE.md
+if [ -f "$PROJECT_ROOT/.claude/CLAUDE.md" ]; then
+    CLAUDE_MD="$PROJECT_ROOT/.claude/CLAUDE.md"
+elif [ -f "$PROJECT_ROOT/CLAUDE.md" ]; then
+    CLAUDE_MD="$PROJECT_ROOT/CLAUDE.md"
+else
+    CLAUDE_MD=""
+fi
+
+if [ -n "$CLAUDE_MD" ]; then
+    if ! grep -q "<!-- KARIMO:START" "$CLAUDE_MD" && ! grep -q "## KARIMO" "$CLAUDE_MD"; then
+        echo "  Adding KARIMO section to CLAUDE.md..."
+        echo "" >> "$CLAUDE_MD"
+        echo "---" >> "$CLAUDE_MD"
+        echo "" >> "$CLAUDE_MD"
+        cat >> "$CLAUDE_MD" << 'CLAUDEEOF'
+<!-- KARIMO:START - Do not edit between markers -->
+## KARIMO
+
+This project uses [KARIMO](https://github.com/opensesh/KARIMO) for PRD-driven autonomous development.
+
+### Quick Reference
+
+- **Commands:** Type `/karimo-` to see all commands
+- **Agent rules:** `.claude/KARIMO_RULES.md`
+- **Configuration:** `.karimo/config.yaml`
+- **Learnings:** `.karimo/learnings.md`
+
+### GitHub Configuration
+
+| Setting | Value |
+|---------|-------|
+| Owner Type | _pending_ |
+| Owner | _pending_ |
+| Repository | _pending_ |
+
+_Run `/karimo-configure` to detect and populate these values._
+<!-- KARIMO:END -->
+CLAUDEEOF
+    fi
+fi
+
+# ==============================================================================
 # COMPLETE
 # ==============================================================================
 
