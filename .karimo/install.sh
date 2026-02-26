@@ -443,11 +443,21 @@ fi
 # Add marker-delimited KARIMO section to CLAUDE.md
 echo "Updating CLAUDE.md..."
 
-# Check both possible locations for CLAUDE.md
-# Claude Code projects may use either root CLAUDE.md or .claude/CLAUDE.md
+# Check all possible locations for CLAUDE.md (case-insensitive)
+# Claude Code projects may use either root or .claude/ directory
+# Some projects use lowercase claude.md
 if [ -f "$TARGET_DIR/.claude/CLAUDE.md" ]; then
     CLAUDE_MD="$TARGET_DIR/.claude/CLAUDE.md"
     echo "  Found CLAUDE.md at .claude/CLAUDE.md"
+elif [ -f "$TARGET_DIR/.claude/claude.md" ]; then
+    CLAUDE_MD="$TARGET_DIR/.claude/claude.md"
+    echo "  Found claude.md at .claude/claude.md"
+elif [ -f "$TARGET_DIR/CLAUDE.md" ]; then
+    CLAUDE_MD="$TARGET_DIR/CLAUDE.md"
+    echo "  Found CLAUDE.md at root"
+elif [ -f "$TARGET_DIR/claude.md" ]; then
+    CLAUDE_MD="$TARGET_DIR/claude.md"
+    echo "  Found claude.md at root"
 else
     CLAUDE_MD="$TARGET_DIR/CLAUDE.md"
 fi
