@@ -59,7 +59,7 @@ Tasks: 5 tasks
 Pre-flight checks:
   ✓ Git repository clean
   ✓ GitHub CLI authenticated
-  ✓ GitHub owner: opensesh (organization)
+  ✓ GitHub owner: opensesh (organization) [from CLAUDE.md]
   ✓ GitHub Project permissions verified
   ✓ CLAUDE.md loaded (commands, boundaries)
 
@@ -80,15 +80,37 @@ fi
 # 2. Check GitHub CLI authenticated
 gh auth status 2>/dev/null || { echo "❌ GitHub CLI not authenticated"; exit 1; }
 
-# 3. Check GitHub Configuration exists in CLAUDE.md
-if ! grep -q "### GitHub Configuration" CLAUDE.md; then
+# 3. Check GitHub Configuration exists
+if ! grep -q "### GitHub Configuration" CLAUDE.md && [ ! -f ".karimo/config.yaml" ]; then
   echo "❌ GitHub Configuration not found"
+  echo "   Not in CLAUDE.md and .karimo/config.yaml doesn't exist"
+  echo "   Run /karimo-configure to set up GitHub settings"
   exit 1
 fi
 
-# 4. Parse and validate project scope
-OWNER=$(grep -A5 "### GitHub Configuration" CLAUDE.md | grep "Owner |" | head -1 | awk -F'|' '{print $3}' | tr -d ' ')
-OWNER_TYPE=$(grep -A5 "### GitHub Configuration" CLAUDE.md | grep "Owner Type |" | head -1 | awk -F'|' '{print $3}' | tr -d ' ')
+# 4. Parse and validate project scope (with fallback)
+# First try CLAUDE.md
+OWNER_TYPE=$(grep -A5 "### GitHub Configuration" CLAUDE.md 2>/dev/null | grep "Owner Type |" | head -1 | awk -F'|' '{print $3}' | tr -d ' ')
+OWNER=$(grep -A5 "### GitHub Configuration" CLAUDE.md 2>/dev/null | grep "Owner |" | head -1 | awk -F'|' '{print $3}' | tr -d ' ')
+CONFIG_SOURCE="CLAUDE.md"
+
+# Fall back to config.yaml if CLAUDE.md has _pending_ or is missing
+if [ -z "$OWNER" ] || [ "$OWNER" = "_pending_" ]; then
+  if [ -f .karimo/config.yaml ]; then
+    OWNER_TYPE=$(grep "owner_type:" .karimo/config.yaml | head -1 | awk '{print $2}')
+    OWNER=$(grep "owner:" .karimo/config.yaml | head -1 | awk '{print $2}')
+    CONFIG_SOURCE="config.yaml"
+    echo "ℹ️  Using GitHub config from .karimo/config.yaml"
+  fi
+fi
+
+# Final validation
+if [ -z "$OWNER" ] || [ "$OWNER" = "_pending_" ]; then
+  echo "❌ GitHub owner not configured"
+  echo "   CLAUDE.md has placeholder values and config.yaml is missing github section"
+  echo "   Run /karimo-configure to set up GitHub settings"
+  exit 1
+fi
 
 if [ "$OWNER_TYPE" = "personal" ]; then
   gh project list --owner @me --limit 1 2>/dev/null || {
@@ -109,16 +131,37 @@ fi
 grep -q "### Commands" CLAUDE.md || { echo "❌ Commands section missing"; exit 1; }
 ```
 
-**If GitHub Configuration is missing:**
+**If GitHub Configuration is missing (neither CLAUDE.md nor config.yaml):**
 
 ```
 Pre-flight checks:
   ✓ Git repository clean
   ✓ GitHub CLI authenticated
   ❌ GitHub Configuration not found
+     Not in CLAUDE.md and .karimo/config.yaml doesn't exist
+     Run /karimo-configure to set up GitHub settings
+```
 
-GitHub Configuration is required for GitHub Project creation.
-Run /karimo-configure to set up GitHub settings.
+**If GitHub owner not configured (CLAUDE.md has _pending_ and config.yaml missing):**
+
+```
+Pre-flight checks:
+  ✓ Git repository clean
+  ✓ GitHub CLI authenticated
+  ❌ GitHub owner not configured
+     CLAUDE.md has placeholder values and config.yaml is missing github section
+     Run /karimo-configure to set up GitHub settings
+```
+
+**If using fallback to config.yaml:**
+
+```
+Pre-flight checks:
+  ✓ Git repository clean
+  ✓ GitHub CLI authenticated
+  ℹ️  Using GitHub config from .karimo/config.yaml
+  ✓ GitHub owner: opensesh (organization) [from config.yaml]
+  ✓ GitHub Project permissions verified
 ```
 
 **If GitHub Project access is denied:**
@@ -127,7 +170,7 @@ Run /karimo-configure to set up GitHub settings.
 Pre-flight checks:
   ✓ Git repository clean
   ✓ GitHub CLI authenticated
-  ✓ GitHub owner: opensesh (organization)
+  ✓ GitHub owner: opensesh (organization) [from CLAUDE.md]
   ❌ GitHub Project permissions denied
 
 Cannot access projects for 'opensesh'.
