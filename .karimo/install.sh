@@ -157,7 +157,7 @@ if [ -d "$TARGET_DIR/.karimo" ] && [ -d "$TARGET_DIR/.claude/commands" ]; then
         echo "  • .karimo/config.yaml"
         echo "  • .karimo/learnings.md"
         echo "  • .karimo/prds/*"
-        echo "  • CLAUDE.md"
+        echo "  • CLAUDE.md (your content outside KARIMO markers)"
         echo ""
         echo -e "\033[2m💡 Tip: Use update.sh for routine updates (shows diff preview).\033[0m"
         echo -e "\033[2m   Use install.sh for full reinstall.\033[0m"
