@@ -218,50 +218,133 @@ github:
 
 ### Step 5: Execution Settings
 
-Configure agent execution behavior:
+Configure agent execution behavior. **All settings are customizable.**
+
+Use AskUserQuestion to let the user configure each setting:
+
+**Question 1: Default Model**
+```
+header: "Model"
+question: "Which model should agents use by default?"
+options:
+  - label: "Sonnet (Recommended)"
+    description: "Fast and cost-effective for most tasks. Opus auto-escalates for complex work."
+  - label: "Opus"
+    description: "Most capable model. Higher cost but better for complex codebases."
+```
+
+**Question 2: Parallel Tasks**
+```
+header: "Parallelism"
+question: "How many tasks can run simultaneously?"
+options:
+  - label: "3 tasks (Recommended)"
+    description: "Good balance of speed and resource usage for most projects."
+  - label: "1 task"
+    description: "Sequential execution. Safer but slower."
+  - label: "5 tasks"
+    description: "Faster execution. Requires more context awareness."
+```
+
+**Question 3: Pre-PR Checks**
+```
+header: "PR Checks"
+question: "Which commands must pass before creating a PR?"
+multiSelect: true
+options:
+  - label: "Build"
+    description: "Run build command to verify compilation"
+  - label: "Typecheck"
+    description: "Run typecheck command to verify types"
+  - label: "Lint"
+    description: "Run lint command to check code style"
+  - label: "Test"
+    description: "Run test command to verify functionality"
+```
+
+**Display confirmation after selection:**
 
 ```
 Section 5 of 6: Execution Settings
 ──────────────────────────────────
 
-These settings control how agents execute tasks:
+Your selections:
 
-  Default model: [sonnet]
-    Options: sonnet, opus
+  Default model: sonnet
+    (Used for most tasks; opus for complex work)
 
-  Max parallel tasks: [3]
+  Max parallel tasks: 3
     How many tasks can run simultaneously
 
-  Pre-PR checks: [build, typecheck, lint]
+  Pre-PR checks: build, typecheck, lint
     Commands that must pass before creating a PR
-    (comma-separated, or 'none')
 
-Accept these values? [Y/n/edit]
+These settings can be changed anytime by running /karimo:configure
 ```
 
 ---
 
 ### Step 6: Cost Controls
 
-Configure model escalation and attempt limits:
+Configure model escalation and attempt limits. **All settings are customizable.**
+
+Use AskUserQuestion to let the user configure each setting:
+
+**Question 1: Model Escalation**
+```
+header: "Escalation"
+question: "When should agents escalate from Sonnet to Opus?"
+options:
+  - label: "After 1 failed attempt (Recommended)"
+    description: "Balance of cost and quality. Escalates quickly when needed."
+  - label: "Never escalate"
+    description: "Always use default model. Lower cost but may struggle on complex tasks."
+  - label: "After 2 failed attempts"
+    description: "More attempts before escalating. Saves cost but may delay completion."
+```
+
+**Question 2: Max Attempts**
+```
+header: "Attempts"
+question: "How many attempts before requiring human review?"
+options:
+  - label: "3 attempts (Recommended)"
+    description: "Good balance. Allows retries but doesn't spin endlessly."
+  - label: "2 attempts"
+    description: "Fail faster. Requires more human intervention."
+  - label: "5 attempts"
+    description: "More autonomous. May spend more on difficult tasks."
+```
+
+**Question 3: Greptile Integration**
+```
+header: "Greptile"
+question: "Enable Greptile for automated code review?"
+options:
+  - label: "No (default)"
+    description: "Skip Greptile integration. Can enable later."
+  - label: "Yes"
+    description: "Enable automated code review. Requires GREPTILE_API_KEY secret."
+```
+
+**Display confirmation after selection:**
 
 ```
 Section 6 of 6: Cost Controls
 ─────────────────────────────
 
-These settings control cost and quality tradeoffs:
+Your selections:
 
-  Escalate to Opus after: [1] failed attempt(s)
+  Escalate to Opus after: 1 failed attempt(s)
     (0 = never escalate, always use default model)
 
-  Max attempts before human review: [3]
+  Max attempts before human review: 3
     After this many failures, task marked needs-human-review
 
-  Greptile enabled: [no]
+  Greptile enabled: no
     Requires GREPTILE_API_KEY secret in repository
-    Run /karimo:doctor to verify secrets are configured
 
-Accept these values? [Y/n/edit]
+These settings can be changed anytime by running /karimo:configure
 ```
 
 ---
