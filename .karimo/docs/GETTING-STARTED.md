@@ -398,7 +398,7 @@ Check GitHub Actions tab for errors. KARIMO workflows use unique names (`karimo-
 
 ```bash
 # Copy missing workflow from KARIMO source
-cp KARIMO/.github/workflows/karimo-ci-integration.yml .github/workflows/
+cp KARIMO/.karimo/workflow-templates/karimo-ci-integration.yml .github/workflows/
 ```
 
 ### "CI always shows skipped"

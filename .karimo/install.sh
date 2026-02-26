@@ -241,8 +241,11 @@ if [ "$CI_MODE" = true ]; then
     done
 
     # Copy optional workflows (all in CI mode)
+    # Note: Some workflows live in .karimo/workflow-templates/ to avoid running on the source repo
     for workflow in $(manifest_nested_list "workflows.optional"); do
-        if [ -f "$KARIMO_ROOT/.github/workflows/$workflow" ]; then
+        if [ -f "$KARIMO_ROOT/.karimo/workflow-templates/$workflow" ]; then
+            cp "$KARIMO_ROOT/.karimo/workflow-templates/$workflow" "$TARGET_DIR/.github/workflows/"
+        elif [ -f "$KARIMO_ROOT/.github/workflows/$workflow" ]; then
             cp "$KARIMO_ROOT/.github/workflows/$workflow" "$TARGET_DIR/.github/workflows/"
         fi
     done
@@ -272,7 +275,7 @@ else
     read -p "Install CI integration workflow? (Y/n) " -n 1 -r CI_RESPONSE
     echo ""
     if [[ ! $CI_RESPONSE =~ ^[Nn]$ ]]; then
-        cp "$KARIMO_ROOT/.github/workflows/karimo-ci-integration.yml" "$TARGET_DIR/.github/workflows/"
+        cp "$KARIMO_ROOT/.karimo/workflow-templates/karimo-ci-integration.yml" "$TARGET_DIR/.github/workflows/"
         INSTALLED_CI="true"
         echo -e "  ${GREEN}Installed${NC}"
     else
@@ -288,7 +291,7 @@ else
     read -p "Install Greptile review workflow? (y/N) " -n 1 -r GREPTILE_RESPONSE
     echo ""
     if [[ $GREPTILE_RESPONSE =~ ^[Yy]$ ]]; then
-        cp "$KARIMO_ROOT/.github/workflows/karimo-greptile-review.yml" "$TARGET_DIR/.github/workflows/"
+        cp "$KARIMO_ROOT/.karimo/workflow-templates/karimo-greptile-review.yml" "$TARGET_DIR/.github/workflows/"
         INSTALLED_GREPTILE="true"
         echo -e "  ${GREEN}Installed${NC}"
     else
