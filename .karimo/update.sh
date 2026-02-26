@@ -459,11 +459,15 @@ fi
 # VERIFY/FIX CLAUDE.MD KARIMO SECTION (handles incomplete prior installs)
 # ==============================================================================
 
-# Check both possible locations for CLAUDE.md
+# Check all possible locations for CLAUDE.md (case-insensitive)
 if [ -f "$PROJECT_ROOT/.claude/CLAUDE.md" ]; then
     CLAUDE_MD="$PROJECT_ROOT/.claude/CLAUDE.md"
+elif [ -f "$PROJECT_ROOT/.claude/claude.md" ]; then
+    CLAUDE_MD="$PROJECT_ROOT/.claude/claude.md"
 elif [ -f "$PROJECT_ROOT/CLAUDE.md" ]; then
     CLAUDE_MD="$PROJECT_ROOT/CLAUDE.md"
+elif [ -f "$PROJECT_ROOT/claude.md" ]; then
+    CLAUDE_MD="$PROJECT_ROOT/claude.md"
 else
     CLAUDE_MD=""
 fi
