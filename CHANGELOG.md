@@ -7,6 +7,64 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [3.3.1] - 2026-02-25
+
+### Fixed
+
+**CLAUDE.md Integration UX**
+
+Improved user experience when KARIMO is installed into a repository with an existing CLAUDE.md.
+
+**Problem:** Users couldn't distinguish what KARIMO added vs what was already in CLAUDE.md. The uninstaller couldn't find the section to remove due to a name mismatch.
+
+**Solution:** Marker-delimited KARIMO section with clear boundaries.
+
+**Changes:**
+
+| File | Change |
+|------|--------|
+| `install.sh` | Replace 8-line block with marker-delimited section (~20 lines) |
+| `uninstall.sh` | Fix section name (`## KARIMO` not `## KARIMO Framework`) + marker-based removal |
+| `karimo-doctor.md` | Update checks to look for `<!-- KARIMO:START` markers |
+| `karimo-test.md` | Update verification to check for markers and GitHub Configuration |
+| `karimo-configure.md` | Add Step 8 to update CLAUDE.md GitHub Configuration table |
+| `github-project-ops.md` | Add config.yaml fallback when CLAUDE.md has `_pending_` values |
+| `GETTING-STARTED.md` | Document marker system |
+
+**New CLAUDE.md format:**
+
+```markdown
+<!-- KARIMO:START - Do not edit between markers -->
+## KARIMO
+
+This project uses [KARIMO](https://github.com/opensesh/KARIMO) for PRD-driven autonomous development.
+
+### Quick Reference
+- **Commands:** Type `/karimo-` to see all commands
+- **Agent rules:** `.claude/KARIMO_RULES.md`
+- **Configuration:** `.karimo/config.yaml`
+- **Learnings:** `.karimo/learnings.md`
+
+### GitHub Configuration
+
+| Setting | Value |
+|---------|-------|
+| Owner Type | _pending_ |
+| Owner | _pending_ |
+| Repository | _pending_ |
+
+_Run `/karimo-configure` to detect and populate these values._
+<!-- KARIMO:END -->
+```
+
+**Benefits:**
+- Clear start/end boundaries users can see
+- Programmatic detection for updates/uninstall
+- Placeholder GitHub Configuration table that `/karimo-configure` populates
+- Backward compatibility with legacy `## KARIMO` format
+
+---
+
 ## [3.3.0] - 2026-02-25
 
 ### Added
