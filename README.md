@@ -202,6 +202,25 @@ Full details: [PHASES.md](.karimo/docs/PHASES.md)
 
 ---
 
+## Workflows
+
+KARIMO installs GitHub workflows that align with adoption phases:
+
+| Phase | Workflow | Purpose |
+|-------|----------|---------|
+| **Phase 1** | `karimo-sync.yml` | Updates project status when PRs merge |
+| **Phase 1** | `karimo-dependency-watch.yml` | Alerts on runtime dependency changes |
+| **Phase 1+** | `karimo-ci-integration.yml` | Observes your existing CI, labels PRs |
+| **Phase 2** | `karimo-greptile-review.yml` | Automated Greptile code review gates |
+
+- **Phase 1 workflows** are always installed — they're required for execution tracking
+- **Phase 1+ (CI Awareness)** is recommended — observes external CI without running builds
+- **Phase 2 workflows** require `GREPTILE_API_KEY` secret in your repository
+
+See [PHASES.md](.karimo/docs/PHASES.md) for detailed adoption guidance.
+
+---
+
 ## Agents
 
 KARIMO includes 13 specialized agents in two categories:
