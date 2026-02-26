@@ -54,6 +54,26 @@ The `/karimo-execute` command spawns you with:
 
 ---
 
+## Execution Mode
+
+**Read `mode` from `.karimo/config.yaml` immediately upon spawn.**
+
+```bash
+MODE=$(grep "^mode:" .karimo/config.yaml 2>/dev/null | awk '{print $2}')
+if [ -z "$MODE" ]; then
+  MODE="full"  # Default to full mode
+fi
+```
+
+| Mode | Behavior |
+|------|----------|
+| `full` | Full GitHub workflow: issues → PRs → Projects. Use MCP for issues/PRs, CLI for Projects. |
+| `fast-track` | Commit-only workflow: skip issue creation, PR creation, and Projects. Structured commits directly. |
+
+The mode determines which steps to execute in the 7-Step Execution Flow.
+
+---
+
 ## 7-Step Execution Flow
 
 ### Step 1: Parse, Validate & Plan
@@ -191,7 +211,9 @@ Wait for human confirmation before proceeding.
 
 ---
 
-### Step 3: GitHub Project Setup
+### Step 3: GitHub Project Setup (Full Mode Only)
+
+**Skip this step entirely if `mode: fast-track`.**
 
 **Use the `github-project-ops` skill.**
 
@@ -253,11 +275,27 @@ This ensures re-running `/karimo-execute` on the same PRD reuses the existing pr
    - `model` (Text — "sonnet" or "opus")
    - `loop_count` (Number)
 
-3. **Create Issues** (one per task):
-   - Title: `[{task_id}] {task_title}`
-   - Body: Task description + success criteria + complexity + model assignment
-   - Labels: `karimo`, priority label (`priority:must`, `priority:should`, `priority:could`)
-   - Custom fields populated from task definition
+3. **Create Issues via MCP** (one per task):
+
+   Use `mcp__github__issue_write` for issue creation:
+
+   ```typescript
+   mcp__github__issue_write({
+     method: "create",
+     owner: "{owner}",
+     repo: "{repo}",
+     title: "[{task_id}] {task_title}",
+     body: "{issue_body}",  // See template below
+     labels: ["karimo", "priority:{priority}"]
+   })
+   ```
+
+   Store the returned `number` in `status.json` for PR linking.
+
+   **Issue Body Template:**
+   - Task description + success criteria
+   - Complexity + model assignment
+   - Dependencies list
 
 4. **Create feature branch** (if not exists):
    ```bash
@@ -269,9 +307,12 @@ This ensures re-running `/karimo-execute` on the same PRD reuses the existing pr
 
 ---
 
-### Step 4: Git Worktree Setup
+### Step 4: Git Worktree Setup (Full Mode) / Branch Setup (Fast Track)
 
-**Use the `git-worktree-ops` skill.**
+**Full Mode:** Use the `git-worktree-ops` skill to create worktrees.
+**Fast Track:** Work directly on main branch or optionally create a feature branch.
+
+#### Full Mode: Worktree Creation
 
 For each task in the current wave (the next wave with all dependencies met):
 
@@ -295,6 +336,30 @@ For each task in the current wave (the next wave with all dependencies met):
          "status": "queued",
          "worktree": ".worktrees/{prd-slug}/1a",
          "branch": "feature/{prd-slug}/1a"
+       }
+     }
+   }
+   ```
+
+#### Fast Track Mode: Direct Execution
+
+In Fast Track mode, skip worktree creation. Tasks execute sequentially on main branch:
+
+1. **Ensure clean main branch:**
+   ```bash
+   git checkout main
+   git pull origin main
+   ```
+
+2. **Execute tasks one at a time** (no parallelism in Fast Track)
+
+3. **Record in status.json** (no worktree field):
+   ```json
+   {
+     "tasks": {
+       "1a": {
+         "status": "queued",
+         "branch": "main"
        }
      }
    }
@@ -363,9 +428,21 @@ For **complexity 5+** tasks, use the Opus variant:
 For **complexity 3+** tasks, prepend:
 > Before implementing, create an implementation plan. Review it, then execute.
 
-**After spawning:**
+**After spawning (Full Mode):**
 - Update `status.json`: task status → `running`, record `started_at`, `model`, `agent_type`, `loop_count: 1`
-- Update GitHub Issue: `agent_status` → `running`
+- Update GitHub Issue via MCP:
+  ```typescript
+  mcp__github__add_issue_comment({
+    owner: "{owner}",
+    repo: "{repo}",
+    issue_number: {task.issue_number},
+    body: "## Agent Update\n\n**Status:** Running\n**Model:** {model}\n**Started:** {timestamp}"
+  })
+  ```
+
+**After spawning (Fast Track):**
+- Update `status.json`: task status → `running`, record `started_at`, `model`, `agent_type`, `loop_count: 1`
+- No GitHub updates (no issues in Fast Track mode)
 
 **Parallelism limits:** Maximum 3 concurrent agents. Queue remaining tasks
 
@@ -502,18 +579,61 @@ For each finding with `affected_tasks`:
 }
 ```
 
-#### 6d. Create PR & Spawn Review/Architect
+#### 6d. Create PR & Spawn Review/Architect (Full Mode) / Commit (Fast Track)
 
-```bash
-gh pr create \
-  --base feature/{prd-slug} \
-  --head feature/{prd-slug}/{task-id} \
-  --title "[KARIMO] [{task_id}] {task_title}" \
-  --body "{pr_body}" \
-  --label "karimo"
+**Full Mode: Create PR via MCP**
+
+Use `mcp__github__create_pull_request` for PR creation:
+
+```typescript
+mcp__github__create_pull_request({
+  owner: "{owner}",
+  repo: "{repo}",
+  title: "feat({task_id}): {task_title}",
+  body: "Closes #{issue_number}\n\n{pr_body}",  // CRITICAL: Closes keyword auto-closes issue
+  head: "feature/{prd-slug}/{task-id}",
+  base: "feature/{prd-slug}"
+})
 ```
 
-**After PR creation, spawn the Review/Architect Agent:**
+**CRITICAL:** The `Closes #{issue_number}` at the start of the PR body ensures GitHub automatically closes the linked issue when the PR merges. This fixes the issue lifecycle.
+
+**Fast Track Mode: Structured Commit**
+
+Skip PR creation. Instead, commit with structured format:
+
+```bash
+git add -A
+git commit -m "[{prd_slug}][{task_id}] {task_name}: {brief_description}
+
+{detailed_description}
+
+- PRD: {prd_name}
+- Wave: {wave_number}
+- Complexity: {complexity}
+- Priority: {priority}
+
+Acceptance Criteria:
+- {criterion_1}
+- {criterion_2}
+
+Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>"
+```
+
+Update status.json with commit SHA instead of PR number:
+```json
+{
+  "tasks": {
+    "1a": {
+      "status": "done",
+      "commit_sha": "abc123...",
+      "completed_at": "ISO timestamp"
+    }
+  }
+}
+```
+
+**Full Mode: After PR creation, spawn the Review/Architect Agent:**
 
 The Review/Architect validates that this task PR integrates cleanly with the feature branch:
 
@@ -533,9 +653,11 @@ The Review/Architect validates that this task PR integrates cleanly with the fea
 
 4. **On conflict/failure:** Review/Architect attempts resolution or escalates to PM
 
-**PR Body Template:**
+**PR Body Template (Full Mode):**
 
 ```markdown
+Closes #{issue_number}
+
 ## 🤖 KARIMO Automated PR
 
 **Task:** {task_id} — {task_title}
@@ -570,15 +692,16 @@ The Review/Architect validates that this task PR integrates cleanly with the fea
 - [x] Rebased on feature branch
 
 ---
-**Issue:** #{issue_number}
 **Project:** {project_url}
 ---
 *Generated by [KARIMO](https://github.com/opensesh/KARIMO)*
 ```
 
+> **Note:** The `Closes #{issue_number}` at the top ensures the linked issue is automatically closed when the PR merges.
+
 #### 6e. Update Status & Unblock Dependents
 
-After PR creation and Review/Architect validation:
+**Full Mode:** After PR creation and Review/Architect validation:
 
 1. **Update status.json:**
    ```json
@@ -596,7 +719,34 @@ After PR creation and Review/Architect validation:
    }
    ```
 
-2. **Update GitHub Issue:** `agent_status` → `in-review`, set `pr_number`
+2. **Update GitHub Issue via MCP:**
+   ```typescript
+   mcp__github__add_issue_comment({
+     owner: "{owner}",
+     repo: "{repo}",
+     issue_number: {task.issue_number},
+     body: "## Agent Update\n\n**Status:** In Review\n**PR:** #{pr_number}\n**Completed:** {timestamp}"
+   })
+   ```
+
+**Fast Track Mode:** After commit:
+
+1. **Update status.json** (no PR, use commit SHA):
+   ```json
+   {
+     "tasks": {
+       "1a": {
+         "status": "done",
+         "commit_sha": "abc123...",
+         "completed_at": "ISO timestamp",
+         "model": "sonnet",
+         "loop_count": 1
+       }
+     }
+   }
+   ```
+
+2. No GitHub updates (no issues in Fast Track mode)
 
 3. **Keep worktree active:** Do NOT cleanup the worktree yet. It persists through the review cycle for potential revisions.
 
@@ -705,11 +855,12 @@ The PM Agent makes model escalation decisions autonomously. Since users are on C
 
 ---
 
-### Step 7: Per-Merge Cleanup & Completion
+### Step 7: Completion (Mode-Dependent)
 
-**Worktree cleanup happens per-merge, not at end-of-execution.**
+**Full Mode:** Worktree cleanup happens per-merge, not at end-of-execution.
+**Fast Track:** Tasks complete immediately after commit, no cleanup needed.
 
-#### 7a. Per-Merge Cleanup
+#### 7a. Per-Merge Cleanup (Full Mode Only)
 
 When a task PR is merged (detected via webhook or polling):
 
@@ -743,9 +894,11 @@ When a task PR is merged (detected via webhook or polling):
    { "worktree_status": "cleaned" }
    ```
 
-#### 7b. Feature Reconciliation
+#### 7b. Feature Reconciliation (Full Mode Only)
 
-When all tasks reach `done` status:
+**Skip this step in Fast Track mode.** All commits are already on main.
+
+When all tasks reach `done` status (Full Mode):
 
 1. **Spawn Review/Architect** for feature reconciliation:
    - Full reconciliation checklist
@@ -772,7 +925,10 @@ When all tasks reach `done` status:
 
 #### 7c. Final Completion
 
-**When feature PR is merged to main:**
+**Full Mode:** When feature PR is merged to main.
+**Fast Track:** When all tasks have been committed.
+
+**Full Mode:**
 
 1. **Cleanup remaining artifacts:**
    ```bash
@@ -814,6 +970,42 @@ When all tasks reach `done` status:
    Runtime Dependencies: {dependency_count} discovered
 
    Feature PR #{feature_pr} merged to main.
+   ```
+
+**Fast Track Mode:**
+
+1. **Update final status.json:**
+   ```json
+   {
+     "status": "complete",
+     "mode": "fast-track",
+     "completed_at": "ISO timestamp",
+     "summary": {
+       "total_tasks": 6,
+       "successful": 5,
+       "failed": 1,
+       "total_loops": 12,
+       "commits": ["abc123", "def456", "..."]
+     }
+   }
+   ```
+
+2. **Post summary:**
+   ```
+   Execution Complete: {prd_slug} (Fast Track)
+
+   Tasks: {done}/{total} complete
+   Commits: {commit_count}
+     - {sha} [{task_id}] {title} ✓
+     - {sha} [{task_id}] {title} ✓
+
+   Model Usage:
+     Sonnet: {count} tasks
+     Opus:   {count} tasks
+
+   Findings: {finding_count} cross-task discoveries logged
+
+   All tasks committed directly to main.
    ```
 
 ---
