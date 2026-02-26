@@ -104,11 +104,15 @@ Verify GitHub Project permissions are configured and accessible.
 **Step 0: Detect CLAUDE.md path**
 
 ```bash
-# Check both possible locations for CLAUDE.md
+# Check all possible locations for CLAUDE.md (case-insensitive)
 if [ -f ".claude/CLAUDE.md" ]; then
     CLAUDE_MD=".claude/CLAUDE.md"
+elif [ -f ".claude/claude.md" ]; then
+    CLAUDE_MD=".claude/claude.md"
 elif [ -f "CLAUDE.md" ]; then
     CLAUDE_MD="CLAUDE.md"
+elif [ -f "claude.md" ]; then
+    CLAUDE_MD="claude.md"
 else
     echo "❌ CLAUDE.md not found"
     CLAUDE_MD=""
@@ -292,11 +296,15 @@ Validate KARIMO configuration files exist and detect drift from actual project s
 **Step 3a: Check CLAUDE.md has KARIMO section with markers**
 
 ```bash
-# First detect CLAUDE.md path
+# First detect CLAUDE.md path (case-insensitive)
 if [ -f ".claude/CLAUDE.md" ]; then
     CLAUDE_MD=".claude/CLAUDE.md"
+elif [ -f ".claude/claude.md" ]; then
+    CLAUDE_MD=".claude/claude.md"
 elif [ -f "CLAUDE.md" ]; then
     CLAUDE_MD="CLAUDE.md"
+elif [ -f "claude.md" ]; then
+    CLAUDE_MD="claude.md"
 else
     echo "CLAUDE.md not found"
     CLAUDE_MD=""
@@ -715,8 +723,8 @@ gh auth status
 git --version
 
 # Check 1.5: GitHub Project Access
-# First detect CLAUDE.md path
-if [ -f ".claude/CLAUDE.md" ]; then CLAUDE_MD=".claude/CLAUDE.md"; elif [ -f "CLAUDE.md" ]; then CLAUDE_MD="CLAUDE.md"; else CLAUDE_MD=""; fi
+# First detect CLAUDE.md path (case-insensitive)
+if [ -f ".claude/CLAUDE.md" ]; then CLAUDE_MD=".claude/CLAUDE.md"; elif [ -f ".claude/claude.md" ]; then CLAUDE_MD=".claude/claude.md"; elif [ -f "CLAUDE.md" ]; then CLAUDE_MD="CLAUDE.md"; elif [ -f "claude.md" ]; then CLAUDE_MD="claude.md"; else CLAUDE_MD=""; fi
 grep -q "### GitHub Configuration" "$CLAUDE_MD"
 # Parse owner from CLAUDE.md
 OWNER=$(grep -A5 "### GitHub Configuration" "$CLAUDE_MD" | grep "Owner |" | head -1 | awk -F'|' '{print $3}' | tr -d ' ')
@@ -757,8 +765,8 @@ for agent in $(manifest_list "agents"); do
 done
 
 # Check 3: Configuration
-# 3a: Detect CLAUDE.md path and check KARIMO section exists (prefer markers)
-if [ -f ".claude/CLAUDE.md" ]; then CLAUDE_MD=".claude/CLAUDE.md"; elif [ -f "CLAUDE.md" ]; then CLAUDE_MD="CLAUDE.md"; else CLAUDE_MD=""; fi
+# 3a: Detect CLAUDE.md path and check KARIMO section exists (prefer markers, case-insensitive)
+if [ -f ".claude/CLAUDE.md" ]; then CLAUDE_MD=".claude/CLAUDE.md"; elif [ -f ".claude/claude.md" ]; then CLAUDE_MD=".claude/claude.md"; elif [ -f "CLAUDE.md" ]; then CLAUDE_MD="CLAUDE.md"; elif [ -f "claude.md" ]; then CLAUDE_MD="claude.md"; else CLAUDE_MD=""; fi
 [ -n "$CLAUDE_MD" ] && { grep -q "<!-- KARIMO:START" "$CLAUDE_MD" || grep -q "## KARIMO" "$CLAUDE_MD"; }
 
 # 3b: Check required config files exist
