@@ -94,7 +94,7 @@ This installs:
 - Templates to `.karimo/templates/`
 - Learnings template to `.karimo/learnings.md`
 - GitHub Actions based on your tier selections
-- Minimal reference block appended to `CLAUDE.md` (~8 lines)
+- Marker-delimited KARIMO section appended to `CLAUDE.md` (~20 lines)
 
 ### 3. Verify Installation
 
@@ -152,7 +152,7 @@ If your project already has `.claude/` with custom agents, commands, or `CLAUDE.
 - `.claude/KARIMO_RULES.md`
 - `.karimo/` directory with templates, manifest, and learnings
 - GitHub Actions workflows
-- Minimal reference block appended to `CLAUDE.md` (~8 lines)
+- Marker-delimited KARIMO section appended to `CLAUDE.md` (~20 lines)
 
 **Naming conflicts:** KARIMO agents and commands both use the `karimo-` prefix to avoid conflicts with your existing configuration. If you happen to have agents or commands with `karimo-` prefix, rename yours before installing.
 
@@ -415,7 +415,22 @@ No. KARIMO uses the `karimo-` prefix for both agents and commands to avoid confl
 
 ### How does KARIMO modify CLAUDE.md?
 
-KARIMO appends a minimal reference block (~8 lines) after your existing content, separated by `---`. Your existing CLAUDE.md content remains untouched. All configuration is stored in `.karimo/config.yaml` and learnings in `.karimo/learnings.md`.
+KARIMO appends a marker-delimited section (~20 lines) after your existing content, separated by `---`. Your existing CLAUDE.md content remains untouched.
+
+The KARIMO section uses HTML comment markers for clear boundaries:
+```markdown
+<!-- KARIMO:START - Do not edit between markers -->
+## KARIMO
+... quick reference and GitHub Configuration table ...
+<!-- KARIMO:END -->
+```
+
+Benefits of marker-based format:
+- Clear visual boundaries for users
+- Programmatic detection for updates and uninstall
+- GitHub Configuration table auto-populated by `/karimo-configure`
+
+All detailed configuration is stored in `.karimo/config.yaml` and learnings in `.karimo/learnings.md`.
 
 ### What if I have agents with the same names?
 
@@ -423,7 +438,13 @@ KARIMO agents are named `karimo-interviewer`, `karimo-investigator`, `karimo-rev
 
 ### Can I uninstall KARIMO?
 
-Yes. Remove these files:
+Yes. The recommended way is to run the uninstall script:
+
+```bash
+bash /path/to/KARIMO/.karimo/uninstall.sh /path/to/your/project
+```
+
+Or manually remove these files:
 
 ```bash
 rm -rf .karimo/
@@ -434,7 +455,7 @@ rm .claude/KARIMO_RULES.md
 rm .github/workflows/karimo-*.yml
 ```
 
-Then remove the `## KARIMO` section from `CLAUDE.md`.
+Then remove the KARIMO section from `CLAUDE.md`. For marker-based installations, remove everything between `<!-- KARIMO:START -->` and `<!-- KARIMO:END -->` (inclusive). For legacy installations, remove from `## KARIMO` to the end of the file or the next `---` separator.
 
 ### Do I need Greptile?
 
