@@ -227,8 +227,14 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+      repository-projects: write
 
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.base.ref }}
+
       - name: Update GitHub Project
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -237,8 +243,96 @@ jobs:
         run: |
           echo "Updating GitHub Project for task ${TASK_ID} in ${PRD_SLUG}"
 
-          # Note: Full project update requires GitHub Project permissions
-          # This is a placeholder for gh project item-edit commands
-          # The actual implementation depends on project structure
+          STATUS_FILE=".karimo/prds/${PRD_SLUG}/status.json"
 
+          # Check if status file exists and has project info
+          if [ ! -f "$STATUS_FILE" ]; then
+            echo "Status file not found: $STATUS_FILE"
+            echo "Skipping project update"
+            exit 0
+          fi
+
+          # Extract project info from status.json using Node.js
+          PROJECT_INFO=$(node -e "
+          const fs = require('fs');
+          const s = JSON.parse(fs.readFileSync('$STATUS_FILE', 'utf8'));
+          if (s.project && s.project.number && s.project.owner) {
+            console.log(s.project.number + '|' + s.project.owner + '|' + (s.project.owner_type || 'organization'));
+          } else {
+            console.log('');
+          }
+          ")
+
+          if [ -z "$PROJECT_INFO" ]; then
+            echo "No project info in status.json"
+            echo "Skipping project update"
+            exit 0
+          fi
+
+          PROJECT_NUMBER=$(echo "$PROJECT_INFO" | cut -d'|' -f1)
+          PROJECT_OWNER=$(echo "$PROJECT_INFO" | cut -d'|' -f2)
+          OWNER_TYPE=$(echo "$PROJECT_INFO" | cut -d'|' -f3)
+
+          echo "Project: #${PROJECT_NUMBER} owned by ${PROJECT_OWNER} (${OWNER_TYPE})"
+
+          # Set the owner flag based on type
+          if [ "$OWNER_TYPE" = "personal" ]; then
+            OWNER_FLAG="@me"
+          else
+            OWNER_FLAG="$PROJECT_OWNER"
+          fi
+
+          # Find project item by task ID pattern in title
+          # Task issues are titled "[{task_id}] {task_title}"
+          ITEM_ID=$(gh project item-list "$PROJECT_NUMBER" --owner "$OWNER_FLAG" --format json \
+            --jq ".items[] | select(.content.title | contains(\"[$TASK_ID]\")) | .id" 2>/dev/null || echo "")
+
+          if [ -z "$ITEM_ID" ]; then
+            echo "Could not find project item for task [$TASK_ID]"
+            echo "Skipping project update"
+            exit 0
+          fi
+
+          echo "Found project item: $ITEM_ID"
+
+          # Get project ID (needed for item-edit)
+          PROJECT_ID=$(gh project view "$PROJECT_NUMBER" --owner "$OWNER_FLAG" --format json --jq '.id' 2>/dev/null || echo "")
+
+          if [ -z "$PROJECT_ID" ]; then
+            echo "Could not get project ID"
+            echo "Skipping project update"
+            exit 0
+          fi
+
+          # Get agent_status field ID
+          STATUS_FIELD_ID=$(gh project field-list "$PROJECT_NUMBER" --owner "$OWNER_FLAG" --format json \
+            --jq '.fields[] | select(.name == "agent_status") | .id' 2>/dev/null || echo "")
+
+          if [ -z "$STATUS_FIELD_ID" ]; then
+            echo "agent_status field not found in project"
+            echo "Skipping status update"
+            exit 0
+          fi
+
+          # Get the "done" option ID for agent_status field
+          DONE_OPTION_ID=$(gh project field-list "$PROJECT_NUMBER" --owner "$OWNER_FLAG" --format json \
+            --jq '.fields[] | select(.name == "agent_status") | .options[] | select(.name == "done") | .id' 2>/dev/null || echo "")
+
+          if [ -z "$DONE_OPTION_ID" ]; then
+            echo "done option not found in agent_status field"
+            echo "Skipping status update"
+            exit 0
+          fi
+
+          # Update the project item status to "done"
+          gh project item-edit \
+            --project-id "$PROJECT_ID" \
+            --id "$ITEM_ID" \
+            --field-id "$STATUS_FIELD_ID" \
+            --single-select-option-id "$DONE_OPTION_ID" 2>/dev/null || {
+              echo "Failed to update project item status"
+              exit 0
+            }
+
+          echo "✅ Updated project item status to 'done'"
           echo "GitHub Project update complete"
