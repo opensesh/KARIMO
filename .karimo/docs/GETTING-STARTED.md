@@ -411,7 +411,7 @@ The CI Integration workflow only monitors external CI. If you don't have GitHub 
 
 ### Will KARIMO disrupt my existing configuration?
 
-No. KARIMO uses prefixed names (`karimo-` for agents, `karimo:` for commands) to avoid conflicts. Your existing agents, commands, and skills remain unchanged.
+No. KARIMO uses the `karimo-` prefix for both agents and commands to avoid conflicts. Your existing agents, commands, and skills remain unchanged.
 
 ### How does KARIMO modify CLAUDE.md?
 
@@ -428,7 +428,7 @@ Yes. Remove these files:
 ```bash
 rm -rf .karimo/
 rm .claude/agents/karimo-*.md
-rm .claude/commands/{plan,execute,status,configure,feedback,learn,doctor,overview,test}.md
+rm .claude/commands/karimo-*.md
 rm .claude/skills/{git-worktree-ops,github-project-ops,karimo-code-standards,karimo-testing-standards,karimo-doc-standards}.md
 rm .claude/KARIMO_RULES.md
 rm .github/workflows/karimo-*.yml
