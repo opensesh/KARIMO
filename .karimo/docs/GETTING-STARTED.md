@@ -143,7 +143,7 @@ These files are never modified by updates:
 - `.karimo/config.yaml` — Your project configuration
 - `.karimo/learnings.md` — Your accumulated learnings
 - `.karimo/prds/*` — Your PRD files
-- `CLAUDE.md` — Your project instructions (KARIMO section only updated if needed)
+- `CLAUDE.md` — Your content is preserved; KARIMO section (marker-delimited) may be updated
 
 ---
 
