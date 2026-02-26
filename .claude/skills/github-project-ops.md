@@ -6,12 +6,32 @@ Patterns and commands for managing GitHub Projects and Issues in KARIMO executio
 
 KARIMO uses GitHub Projects (V2) to track task execution. Each PRD gets a Project with Issues for each task, custom fields for tracking, and automated status updates.
 
+## Tool Selection Guide
+
+KARIMO uses a hybrid approach: **GitHub MCP** for issues/PRs and **gh CLI** for Projects v2.
+
+| Operation | Tool | Rationale |
+|-----------|------|-----------|
+| Issue create/update | GitHub MCP | Better error handling, typed params |
+| Issue comments | GitHub MCP | Native support |
+| PR create/update | GitHub MCP | `Closes #X` linking built-in |
+| PR review comments | GitHub MCP | Pending review support |
+| Projects v2 | gh CLI | MCP doesn't support Projects |
+| Labels | gh CLI | MCP is read-only for labels |
+| CI/CD context | gh CLI | GitHub Actions requirement |
+
+**Why this split:**
+- GitHub MCP provides typed parameters, better error handling, and richer responses
+- Projects v2 GraphQL API is only accessible via gh CLI (MCP doesn't support it)
+- Labels require write access that MCP doesn't provide
+
 ## Prerequisites
 
+- GitHub MCP server configured in Claude Code (for Full Mode)
 - `gh` CLI installed and authenticated
 - Repository write access
 - Projects enabled for the repository/organization
-- GitHub Configuration present in CLAUDE.md (run `/karimo-configure` if missing)
+- GitHub Configuration present in `.karimo/config.yaml` (run `/karimo-configure` if missing)
 
 ## Resolve Project Owner
 
@@ -76,6 +96,116 @@ if ! gh project list --owner "$PROJECT_OWNER" --limit 1 &>/dev/null; then
   exit 1
 fi
 ```
+
+---
+
+## MCP Operations (Issues & PRs)
+
+### Issue Creation via MCP
+
+Use `mcp__github__issue_write` for creating issues:
+
+```typescript
+mcp__github__issue_write({
+  method: "create",
+  owner: "{owner}",
+  repo: "{repo}",
+  title: "[{task_id}] {task_title}",
+  body: "## Task\n{description}\n\n## Acceptance Criteria\n{criteria}",
+  labels: ["karimo", "priority:{priority}"]
+})
+```
+
+**Response includes:** `{ number, url, id }`
+
+Store the returned `number` in status.json for PR linking.
+
+### Issue Update via MCP
+
+```typescript
+mcp__github__issue_write({
+  method: "update",
+  owner: "{owner}",
+  repo: "{repo}",
+  issue_number: {number},
+  state: "closed",
+  state_reason: "completed"  // or "not_planned"
+})
+```
+
+### Issue Comments via MCP
+
+```typescript
+mcp__github__add_issue_comment({
+  owner: "{owner}",
+  repo: "{repo}",
+  issue_number: {number},
+  body: "## Status Update\n\n**Status:** Running\n**Model:** {model}"
+})
+```
+
+### PR Creation via MCP
+
+**CRITICAL:** Include `Closes #{issue_number}` in the body to auto-close the linked issue on merge.
+
+```typescript
+mcp__github__create_pull_request({
+  owner: "{owner}",
+  repo: "{repo}",
+  title: "feat({task_id}): {task_title}",
+  body: "Closes #{issue_number}\n\n## Summary\n{description}\n\n## Task\n{task_id}: {task_title}",
+  head: "feature/{prd-slug}/{task-id}",
+  base: "feature/{prd-slug}"
+})
+```
+
+**Response includes:** `{ number, url, id, html_url }`
+
+### PR Update via MCP
+
+```typescript
+mcp__github__update_pull_request({
+  owner: "{owner}",
+  repo: "{repo}",
+  pullNumber: {number},
+  body: "Updated description...",
+  reviewers: ["{reviewer}"]
+})
+```
+
+### PR Read via MCP
+
+```typescript
+// Get PR details
+mcp__github__pull_request_read({
+  method: "get",
+  owner: "{owner}",
+  repo: "{repo}",
+  pullNumber: {number}
+})
+
+// Get PR status (checks, mergeable)
+mcp__github__pull_request_read({
+  method: "get_status",
+  owner: "{owner}",
+  repo: "{repo}",
+  pullNumber: {number}
+})
+
+// Get PR review comments
+mcp__github__pull_request_read({
+  method: "get_review_comments",
+  owner: "{owner}",
+  repo: "{repo}",
+  pullNumber: {number}
+})
+```
+
+---
+
+## CLI Operations (Projects v2)
+
+Projects v2 requires gh CLI because GitHub MCP doesn't support the Projects GraphQL API.
 
 ## Project Setup
 
@@ -178,7 +308,11 @@ gh project field-create {project-number} \
 
 ## Issue Management
 
-### Create Task Issue
+**Primary method: Use MCP** (see MCP Operations section above)
+
+### Create Task Issue (CLI Fallback)
+
+Use this only if MCP is unavailable:
 
 ```bash
 gh issue create \
@@ -295,7 +429,11 @@ The agent encountered an error. Manual intervention may be required.
 
 ## Pull Request Management
 
-### Create PR
+**Primary method: Use MCP** (see MCP Operations section above)
+
+### Create PR (CLI Fallback)
+
+Use this only if MCP is unavailable:
 
 ```bash
 gh pr create \
@@ -390,46 +528,128 @@ gh pr edit {pr_number} \
 
 ## Labels
 
-Create these labels for KARIMO tracking:
+KARIMO uses labels for tracking. Labels are created via gh CLI (MCP is read-only for labels).
+
+### Label Initialization (Idempotent)
+
+Run this at project setup to ensure all required labels exist. Uses `2>/dev/null || true` to ignore "already exists" errors:
+
+```bash
+# Read repo from config.yaml
+OWNER=$(grep "owner:" .karimo/config.yaml | head -1 | awk '{print $2}')
+REPO=$(grep "repository:" .karimo/config.yaml | head -1 | awk '{print $2}')
+
+# KARIMO primary label
+gh label create "karimo" \
+  --repo "$OWNER/$REPO" \
+  --description "KARIMO automated task" \
+  --color "FE5102" 2>/dev/null || true
+
+# Priority labels
+gh label create "priority:must" \
+  --repo "$OWNER/$REPO" \
+  --description "Must-have requirement" \
+  --color "B60205" 2>/dev/null || true
+
+gh label create "priority:should" \
+  --repo "$OWNER/$REPO" \
+  --description "Should-have requirement" \
+  --color "D93F0B" 2>/dev/null || true
+
+gh label create "priority:could" \
+  --repo "$OWNER/$REPO" \
+  --description "Could-have requirement" \
+  --color "FBCA04" 2>/dev/null || true
+
+# Status labels
+gh label create "needs-revision" \
+  --repo "$OWNER/$REPO" \
+  --description "Changes requested by review" \
+  --color "0052CC" 2>/dev/null || true
+
+gh label create "ready-for-review" \
+  --repo "$OWNER/$REPO" \
+  --description "Ready for code review" \
+  --color "0E8A16" 2>/dev/null || true
+
+gh label create "needs-human-rebase" \
+  --repo "$OWNER/$REPO" \
+  --description "Merge conflicts need resolution" \
+  --color "D93F0B" 2>/dev/null || true
+
+gh label create "needs-human-review" \
+  --repo "$OWNER/$REPO" \
+  --description "Requires human intervention" \
+  --color "B60205" 2>/dev/null || true
+
+gh label create "karimo-feature" \
+  --repo "$OWNER/$REPO" \
+  --description "KARIMO feature branch PR" \
+  --color "FE5102" 2>/dev/null || true
+```
+
+### Compact Label Initialization
+
+For use in scripts:
+
+```bash
+# Create KARIMO labels if missing (idempotent)
+OWNER=$(grep "owner:" .karimo/config.yaml | head -1 | awk '{print $2}')
+REPO=$(grep "repository:" .karimo/config.yaml | head -1 | awk '{print $2}')
+
+for label in "karimo:FE5102" "priority:must:B60205" "priority:should:D93F0B" "priority:could:FBCA04" "needs-revision:0052CC" "ready-for-review:0E8A16" "needs-human-rebase:D93F0B" "needs-human-review:B60205" "karimo-feature:FE5102"; do
+  name="${label%%:*}"
+  rest="${label#*:}"
+  if [[ "$rest" == *":"* ]]; then
+    name="$name:${rest%%:*}"
+    color="${rest#*:}"
+  else
+    color="$rest"
+  fi
+  gh label create "$name" --repo "$OWNER/$REPO" --color "$color" 2>/dev/null || true
+done
+```
+
+### Individual Label Commands
 
 ```bash
 # Create karimo label
 gh label create "karimo" \
   --repo {owner}/{repo} \
   --description "KARIMO automated task" \
-  --color "7057ff"
+  --color "FE5102"
 
 # Priority labels
 gh label create "priority:must" \
   --repo {owner}/{repo} \
   --description "Must-have requirement" \
-  --color "d73a4a"
+  --color "B60205"
 
 gh label create "priority:should" \
   --repo {owner}/{repo} \
   --description "Should-have requirement" \
-  --color "fbca04"
+  --color "D93F0B"
 
 gh label create "priority:could" \
   --repo {owner}/{repo} \
   --description "Could-have requirement" \
-  --color "0e8a16"
+  --color "FBCA04"
 
 # Status labels
 gh label create "needs-revision" \
   --repo {owner}/{repo} \
   --description "Changes requested" \
-  --color "e4e669"
+  --color "0052CC"
 
 gh label create "ready-for-review" \
   --repo {owner}/{repo} \
   --description "Ready for code review" \
-  --color "0052cc"
+  --color "0E8A16"
 
 gh label create "needs-human-rebase" \
   --repo {owner}/{repo} \
   --description "Merge conflicts need resolution" \
-  --color "d93f0b"
+  --color "D93F0B"
 ```
 
 ## Querying Project Data
