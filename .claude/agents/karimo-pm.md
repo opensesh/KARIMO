@@ -309,33 +309,60 @@ This ensures re-running `/karimo-execute` on the same PRD reuses the existing pr
 
 ### Step 4: Git Worktree Setup (Full Mode) / Branch Setup (Fast Track)
 
-**Full Mode:** Use the `git-worktree-ops` skill to create worktrees.
+**Full Mode:** Use the `git-worktree-ops` skill to create worktrees with branch-issue linking.
 **Fast Track:** Work directly on main branch or optionally create a feature branch.
 
-#### Full Mode: Worktree Creation
+#### Full Mode: Branch-Issue Linking & Worktree Creation
 
 For each task in the current wave (the next wave with all dependencies met):
 
-1. **Create worktree:**
+**CRITICAL: Link branch to issue BEFORE creating worktree.** This ensures GitHub UI shows the "Development" section with linked branches.
+
+1. **Link branch to issue via `gh issue develop`:**
    ```bash
-   git worktree add .worktrees/{prd-slug}/{task-id} \
-     -b feature/{prd-slug}/{task-id} \
-     feature/{prd-slug}
+   # Create branch linked to the task issue
+   gh issue develop {issue_number} \
+     --repo "{owner}/{repo}" \
+     --name "feature/{prd-slug}/{task-id}" \
+     --base "feature/{prd-slug}"
    ```
 
-2. **Verify worktree:**
+   **Fallback if `gh issue develop` fails** (e.g., issue already has a branch):
+   ```bash
+   # Create branch manually if linking fails
+   git checkout feature/{prd-slug}
+   git checkout -b feature/{prd-slug}/{task-id}
+   git push -u origin feature/{prd-slug}/{task-id}
+   git checkout -  # Return to previous branch
+   ```
+
+2. **Create worktree from the linked branch:**
+   ```bash
+   # Fetch to ensure branch is available locally
+   git fetch origin
+
+   # Create worktree from the already-created branch
+   git worktree add .worktrees/{prd-slug}/{task-id} \
+     feature/{prd-slug}/{task-id}
+   ```
+
+   **Note:** We do NOT use `-b` flag here because the branch was already created by `gh issue develop`.
+
+3. **Verify worktree:**
    - Directory exists
    - Branch created correctly
    - Clean working state
+   - Issue shows linked branch in GitHub UI
 
-3. **Record in status.json:**
+4. **Record in status.json:**
    ```json
    {
      "tasks": {
        "1a": {
          "status": "queued",
          "worktree": ".worktrees/{prd-slug}/1a",
-         "branch": "feature/{prd-slug}/1a"
+         "branch": "feature/{prd-slug}/1a",
+         "branch_linked": true
        }
      }
    }

@@ -48,10 +48,63 @@ git push -u origin feature/{prd-slug}
 git checkout main
 ```
 
-### Create Task Worktree
+### Branch-Issue Linking (Gap #2 Prevention)
+
+**CRITICAL:** Always link branches to issues BEFORE creating worktrees. This ensures:
+- GitHub UI shows the "Development" section with linked branches
+- Issue lifecycle is connected to branch/PR lifecycle
+- Full traceability from issue → branch → PR → merge
+
+#### Step 1: Link Branch to Issue
+
+Use `gh issue develop` to create a branch linked to the task issue:
 
 ```bash
-# Pattern:
+# Create branch linked to the task issue
+gh issue develop {issue_number} \
+  --repo "{owner}/{repo}" \
+  --name "feature/{prd-slug}/{task-id}" \
+  --base "feature/{prd-slug}"
+```
+
+This creates the branch on the remote AND links it to the issue in GitHub's "Development" section.
+
+#### Step 2: Create Worktree from Linked Branch
+
+```bash
+# Fetch to ensure branch is available locally
+git fetch origin
+
+# Create worktree from the already-created branch (NO -b flag)
+git worktree add .worktrees/{prd-slug}/{task-id} \
+  feature/{prd-slug}/{task-id}
+```
+
+**Important:** Do NOT use `-b` flag since the branch was already created by `gh issue develop`.
+
+#### Fallback: Manual Branch Creation
+
+If `gh issue develop` fails (e.g., branch already exists):
+
+```bash
+# Create branch manually
+git checkout feature/{prd-slug}
+git checkout -b feature/{prd-slug}/{task-id}
+git push -u origin feature/{prd-slug}/{task-id}
+git checkout -  # Return to previous branch
+
+# Then create worktree
+git fetch origin
+git worktree add .worktrees/{prd-slug}/{task-id} \
+  feature/{prd-slug}/{task-id}
+```
+
+### Create Task Worktree (Legacy Method)
+
+**Note:** This method does NOT link branches to issues. Use the Branch-Issue Linking method above for Full Mode.
+
+```bash
+# Pattern (creates unlinked branch):
 git worktree add .worktrees/{prd-slug}/{task-id} \
   -b feature/{prd-slug}/{task-id} \
   feature/{prd-slug}
