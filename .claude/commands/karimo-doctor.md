@@ -101,29 +101,43 @@ Check 1: Environment
 
 Verify GitHub Project permissions are configured and accessible.
 
+**Step 0: Detect CLAUDE.md path**
+
+```bash
+# Check both possible locations for CLAUDE.md
+if [ -f ".claude/CLAUDE.md" ]; then
+    CLAUDE_MD=".claude/CLAUDE.md"
+elif [ -f "CLAUDE.md" ]; then
+    CLAUDE_MD="CLAUDE.md"
+else
+    echo "❌ CLAUDE.md not found"
+    CLAUDE_MD=""
+fi
+```
+
 **Step 1: Check KARIMO section exists with markers**
 
 ```bash
 # Check for marker-based KARIMO section (preferred)
-grep -q "<!-- KARIMO:START" CLAUDE.md
+grep -q "<!-- KARIMO:START" "$CLAUDE_MD"
 
 # Or fall back to legacy ## KARIMO header
-grep -q "## KARIMO" CLAUDE.md
+grep -q "## KARIMO" "$CLAUDE_MD"
 ```
 
 **Step 2: Check GitHub Configuration exists**
 
 ```bash
 # Check for GitHub Configuration table (within KARIMO section)
-grep -q "### GitHub Configuration" CLAUDE.md
+grep -q "### GitHub Configuration" "$CLAUDE_MD"
 ```
 
 **Step 3: Read configuration and test project access**
 
 ```bash
 # Parse owner from CLAUDE.md (or fall back to config.yaml)
-OWNER=$(grep -A5 "### GitHub Configuration" CLAUDE.md | grep "Owner |" | head -1 | awk -F'|' '{print $3}' | tr -d ' ')
-OWNER_TYPE=$(grep -A5 "### GitHub Configuration" CLAUDE.md | grep "Owner Type |" | head -1 | awk -F'|' '{print $3}' | tr -d ' ')
+OWNER=$(grep -A5 "### GitHub Configuration" "$CLAUDE_MD" | grep "Owner |" | head -1 | awk -F'|' '{print $3}' | tr -d ' ')
+OWNER_TYPE=$(grep -A5 "### GitHub Configuration" "$CLAUDE_MD" | grep "Owner Type |" | head -1 | awk -F'|' '{print $3}' | tr -d ' ')
 
 # If CLAUDE.md values are _pending_, try config.yaml
 if [ "$OWNER" = "_pending_" ] && [ -f .karimo/config.yaml ]; then
@@ -278,11 +292,21 @@ Validate KARIMO configuration files exist and detect drift from actual project s
 **Step 3a: Check CLAUDE.md has KARIMO section with markers**
 
 ```bash
+# First detect CLAUDE.md path
+if [ -f ".claude/CLAUDE.md" ]; then
+    CLAUDE_MD=".claude/CLAUDE.md"
+elif [ -f "CLAUDE.md" ]; then
+    CLAUDE_MD="CLAUDE.md"
+else
+    echo "CLAUDE.md not found"
+    CLAUDE_MD=""
+fi
+
 # Prefer marker-based detection
-if grep -q "<!-- KARIMO:START" CLAUDE.md; then
-  echo "KARIMO section found (with markers)"
-elif grep -q "## KARIMO" CLAUDE.md; then
-  echo "KARIMO section found (legacy format without markers)"
+if [ -n "$CLAUDE_MD" ] && grep -q "<!-- KARIMO:START" "$CLAUDE_MD"; then
+  echo "KARIMO section found (with markers) in $CLAUDE_MD"
+elif [ -n "$CLAUDE_MD" ] && grep -q "## KARIMO" "$CLAUDE_MD"; then
+  echo "KARIMO section found (legacy format without markers) in $CLAUDE_MD"
   echo "⚠️  Consider reinstalling to use new marker format"
 else
   echo "KARIMO section not found"
@@ -691,10 +715,12 @@ gh auth status
 git --version
 
 # Check 1.5: GitHub Project Access
-grep -q "### GitHub Configuration" CLAUDE.md
+# First detect CLAUDE.md path
+if [ -f ".claude/CLAUDE.md" ]; then CLAUDE_MD=".claude/CLAUDE.md"; elif [ -f "CLAUDE.md" ]; then CLAUDE_MD="CLAUDE.md"; else CLAUDE_MD=""; fi
+grep -q "### GitHub Configuration" "$CLAUDE_MD"
 # Parse owner from CLAUDE.md
-OWNER=$(grep -A5 "### GitHub Configuration" CLAUDE.md | grep "Owner |" | head -1 | awk -F'|' '{print $3}' | tr -d ' ')
-OWNER_TYPE=$(grep -A5 "### GitHub Configuration" CLAUDE.md | grep "Owner Type |" | head -1 | awk -F'|' '{print $3}' | tr -d ' ')
+OWNER=$(grep -A5 "### GitHub Configuration" "$CLAUDE_MD" | grep "Owner |" | head -1 | awk -F'|' '{print $3}' | tr -d ' ')
+OWNER_TYPE=$(grep -A5 "### GitHub Configuration" "$CLAUDE_MD" | grep "Owner Type |" | head -1 | awk -F'|' '{print $3}' | tr -d ' ')
 # Test project access
 if [ "$OWNER_TYPE" = "personal" ]; then
   gh project list --owner @me --limit 1
@@ -731,8 +757,9 @@ for agent in $(manifest_list "agents"); do
 done
 
 # Check 3: Configuration
-# 3a: Check KARIMO section exists in CLAUDE.md (prefer markers)
-grep -q "<!-- KARIMO:START" CLAUDE.md || grep -q "## KARIMO" CLAUDE.md
+# 3a: Detect CLAUDE.md path and check KARIMO section exists (prefer markers)
+if [ -f ".claude/CLAUDE.md" ]; then CLAUDE_MD=".claude/CLAUDE.md"; elif [ -f "CLAUDE.md" ]; then CLAUDE_MD="CLAUDE.md"; else CLAUDE_MD=""; fi
+[ -n "$CLAUDE_MD" ] && { grep -q "<!-- KARIMO:START" "$CLAUDE_MD" || grep -q "## KARIMO" "$CLAUDE_MD"; }
 
 # 3b: Check required config files exist
 [ -f ".karimo/learnings.md" ]
