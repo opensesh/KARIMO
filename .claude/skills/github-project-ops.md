@@ -15,12 +15,21 @@ KARIMO uses GitHub Projects (V2) to track task execution. Each PRD gets a Projec
 
 ## Resolve Project Owner
 
-**Read owner from CLAUDE.md before any project operations:**
+**Read owner from CLAUDE.md, with fallback to config.yaml:**
 
 ```bash
-# Parse GitHub Configuration from CLAUDE.md
+# First try CLAUDE.md GitHub Configuration
 OWNER_TYPE=$(grep -A5 "### GitHub Configuration" CLAUDE.md | grep "Owner Type |" | head -1 | awk -F'|' '{print $3}' | tr -d ' ')
 OWNER=$(grep -A5 "### GitHub Configuration" CLAUDE.md | grep "Owner |" | head -1 | awk -F'|' '{print $3}' | tr -d ' ')
+
+# Fall back to config.yaml if CLAUDE.md has _pending_ or is missing
+if [ -z "$OWNER" ] || [ "$OWNER" = "_pending_" ]; then
+  if [ -f .karimo/config.yaml ]; then
+    OWNER_TYPE=$(grep "owner_type:" .karimo/config.yaml | head -1 | awk '{print $2}')
+    OWNER=$(grep "owner:" .karimo/config.yaml | head -1 | awk '{print $2}')
+    echo "ℹ️  Using GitHub config from .karimo/config.yaml"
+  fi
+fi
 
 # Set PROJECT_OWNER based on owner type
 PROJECT_OWNER=$([[ "$OWNER_TYPE" == "personal" ]] && echo "@me" || echo "$OWNER")
@@ -29,9 +38,10 @@ PROJECT_OWNER=$([[ "$OWNER_TYPE" == "personal" ]] && echo "@me" || echo "$OWNER"
 **Validation:**
 
 ```bash
-# Check if GitHub Configuration exists
-if ! grep -q "### GitHub Configuration" CLAUDE.md; then
-  echo "❌ GitHub Configuration not found in CLAUDE.md"
+# Check if we have valid owner information from either source
+if [ -z "$OWNER" ] || [ "$OWNER" = "_pending_" ]; then
+  echo "❌ GitHub Configuration not found"
+  echo "   Not in CLAUDE.md and not in .karimo/config.yaml"
   echo "   Run /karimo-configure to set up GitHub settings"
   exit 1
 fi
