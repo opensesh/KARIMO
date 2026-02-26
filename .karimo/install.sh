@@ -131,10 +131,38 @@ if [ -d "$TARGET_DIR/.karimo" ] && [ -d "$TARGET_DIR/.claude/commands" ]; then
     if [ "$CI_MODE" = true ]; then
         echo "CI mode: overwriting existing installation"
     else
-        echo -e "${YELLOW}KARIMO appears to already be installed.${NC}"
-        echo -e "${YELLOW}This will overwrite all KARIMO command and agent files.${NC}"
-        echo -e "${YELLOW}Use update.sh to preview changes first.${NC}"
-        read -p "Reinstall anyway? (y/n) " -n 1 -r
+        # Get current and new versions
+        CURRENT_VERSION=$(cat "$TARGET_DIR/.karimo/VERSION" 2>/dev/null | tr -d '[:space:]')
+        NEW_VERSION=$(cat "$KARIMO_ROOT/.karimo/VERSION" | tr -d '[:space:]')
+
+        # Get counts from manifest
+        AGENT_CNT=$(manifest_count "agents")
+        CMD_CNT=$(manifest_count "commands")
+        SKILL_CNT=$(manifest_count "skills")
+        TMPL_CNT=$(manifest_count "templates")
+
+        echo -e "${YELLOW}KARIMO is already installed.${NC}"
+        echo ""
+        echo -e "Current version: ${GREEN}${CURRENT_VERSION:-unknown}${NC}"
+        echo -e "New version:     ${GREEN}${NEW_VERSION}${NC}"
+        echo ""
+        echo "This will update:"
+        echo "  • ${AGENT_CNT} agents"
+        echo "  • ${CMD_CNT} commands"
+        echo "  • ${SKILL_CNT} skills"
+        echo "  • ${TMPL_CNT} templates"
+        echo "  • KARIMO_RULES.md"
+        echo ""
+        echo "Preserved (not modified):"
+        echo "  • .karimo/config.yaml"
+        echo "  • .karimo/learnings.md"
+        echo "  • .karimo/prds/*"
+        echo "  • CLAUDE.md"
+        echo ""
+        echo -e "\033[2m💡 Tip: Use update.sh for routine updates (shows diff preview).\033[0m"
+        echo -e "\033[2m   Use install.sh for full reinstall.\033[0m"
+        echo ""
+        read -p "Continue with reinstall? (y/n) " -n 1 -r
         echo
         if [[ ! $REPLY =~ ^[Yy]$ ]]; then
             exit 0
