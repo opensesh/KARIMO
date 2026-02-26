@@ -7,6 +7,65 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [3.3.3] - 2026-02-26
+
+### Fixed
+
+**CLAUDE.md Dual-Path Support in Commands and Skills**
+
+Fixed hardcoded `CLAUDE.md` path references that prevented commands from working when CLAUDE.md is located at `.claude/CLAUDE.md` (common in Claude Code projects like BOS-3.0).
+
+**Problem:** Commands used hardcoded `CLAUDE.md` path, but some projects use `.claude/CLAUDE.md`. This caused:
+- `/karimo-configure` failing to update GitHub Configuration table
+- `/karimo-doctor` reporting false "KARIMO section missing" errors
+- `/karimo-execute` pre-flight checks failing
+- `/karimo-test` smoke tests failing
+
+**Solution:** Added path detection to check both locations before any CLAUDE.md operation.
+
+**Files updated:**
+
+| File | Change |
+|------|--------|
+| `karimo-configure.md` | Add Step 8a path detection, use `$CLAUDE_MD` variable in sed commands |
+| `karimo-doctor.md` | Add path detection in Check 1.5 and Check 3, update all grep references |
+| `karimo-execute.md` | Add path detection in pre-flight checks |
+| `karimo-test.md` | Add path detection in Test 5 |
+| `github-project-ops.md` | Add path detection to owner resolution section |
+| `uninstall.sh` | Add dual-path detection matching install.sh behavior |
+
+**Standard detection pattern:**
+```bash
+# Check both possible locations for CLAUDE.md
+if [ -f ".claude/CLAUDE.md" ]; then
+    CLAUDE_MD=".claude/CLAUDE.md"
+elif [ -f "CLAUDE.md" ]; then
+    CLAUDE_MD="CLAUDE.md"
+else
+    CLAUDE_MD=""
+fi
+```
+
+**GitHub Projects Workflow: Implement Status Updates**
+
+Replaced placeholder code in `karimo-sync.yml` with actual `gh project item-edit` commands that update project item status when task PRs are merged.
+
+**Problem:** The `update-project` job in `karimo-sync.yml` was a placeholder that logged messages but never actually updated the GitHub Project.
+
+**Solution:** Implemented full project item update logic:
+1. Read project info (number, owner) from `status.json`
+2. Find project item by task ID pattern `[{task_id}]` in title
+3. Get `agent_status` field and "done" option IDs
+4. Update item status via `gh project item-edit`
+
+**Graceful fallbacks:** The workflow skips without failing if:
+- Status file missing or has no project info
+- Project item not found for task
+- `agent_status` field not configured in project
+- Any `gh` command fails
+
+---
+
 ## [3.3.2] - 2026-02-25
 
 ### Fixed
