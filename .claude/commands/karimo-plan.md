@@ -65,40 +65,29 @@ Before starting the interview, verify configuration is in place.
 
 **If config.yaml missing:**
 
-**Step 0b: Handle missing configuration**
+**Step 0b: Inline First-Time Setup**
 
-Present options to user:
+Display explanation and prompt:
 
 ```
 ╭──────────────────────────────────────────────────────────────╮
-│  Configuration Required                                       │
+│  First-Time Setup                                            │
 ╰──────────────────────────────────────────────────────────────╯
 
-.karimo/config.yaml not found.
+To maximize context efficiency, we create a configuration of your
+codebase to give agents context about your architecture — reducing
+token usage and improving accuracy throughout development.
 
-Configuration defines your project's runtime, commands, and boundaries.
-Agents need this to execute tasks properly.
+Here's what happens:
 
-Options:
-  1. Run /karimo-configure first (recommended)
-     - Interactive 5-minute configuration wizard
-     - Creates .karimo/config.yaml
-     - Return here after to create PRD
+  1. An investigator agent scans your codebase and presents findings
+  2. You can edit, accept, or reject and complete manually
+  3. We kick off your first PRD and start building features
 
-  2. Quick auto-detect now (fallback)
-     - Scan project for smart defaults
-     - Confirm detected values inline
-     - May be less thorough than /karimo-configure
-
-  3. Cancel
-
-Choose [1/2/3]:
+Ready? [Y/n]
 ```
 
-**If user chooses 1 (recommended):**
-- Exit with message: "Run `/karimo-configure` then return to `/karimo-plan`"
-
-**If user chooses 2 (fallback auto-detect):**
+**If user confirms (Y or Enter):**
 
 1. Spawn investigator in context-scan mode:
    ```
@@ -109,7 +98,7 @@ Choose [1/2/3]:
 
 3. Present findings to user:
    ```
-   Detected project configuration:
+   Detected configuration:
 
    - Runtime: {{runtime}}
    - Framework: {{framework}}
@@ -119,21 +108,27 @@ Choose [1/2/3]:
    - Test: {{test_command}}
    - Typecheck: {{typecheck_command}}
 
-   Suggested boundaries:
+   Boundaries:
    - Never touch: {{never_touch_list}}
    - Require review: {{require_review_list}}
 
-   Accept this configuration? [Y/n/edit]
+   Accept? [Y/n/edit]
    ```
 
-4. On acceptance:
+4. On accept (Y or Enter):
    - Write configuration to `.karimo/config.yaml`
-   - Continue to Step 1
+   - Continue directly to Step 1 (interview)
 
 5. On edit:
-   - Allow user to modify values
+   - Allow user to modify values inline
    - Apply modifications to `.karimo/config.yaml`
-   - Continue to Step 1
+   - Continue directly to Step 1 (interview)
+
+6. On reject (n):
+   - Exit with message: "Run `/karimo-configure` for manual configuration, then return to `/karimo-plan`"
+
+**If user declines initial prompt (n):**
+- Exit with message: "Run `/karimo-configure` when ready, then return to `/karimo-plan`"
 
 **Step 0c: Drift check (if configuration exists but PRD is new)**
 
