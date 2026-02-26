@@ -28,7 +28,7 @@ Present content, prompts, and options directly. Users see actions happen — the
 
 ### First PRD Detection
 
-If no PRDs exist (`.karimo/prds/` is empty), display welcome message:
+If `.karimo/prds/` is empty or contains no PRD folders, show:
 
 ```
 ╭──────────────────────────────────────────────────────────────╮
@@ -47,7 +47,7 @@ This is your first PRD. The interview process has 6 rounds:
 Ready to begin?
 ```
 
-Then proceed to normal config check and interview flow.
+Do not announce this output. After user confirms, proceed directly to Step 0.
 
 ### Step 0: Configuration Check
 
