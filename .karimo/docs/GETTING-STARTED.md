@@ -110,15 +110,40 @@ You should see the KARIMO components in both directories.
 
 ## Updating KARIMO (~1 min)
 
-To update KARIMO in a project that already has it installed:
+Two ways to update, depending on your setup:
+
+### From within your project (recommended)
 
 ```bash
-bash KARIMO/.karimo/update.sh /path/to/your/project
+cd /path/to/your/project
+.karimo/update.sh
 ```
 
-This shows a diff of what changed and asks for confirmation before applying updates.
+This fetches the latest release from GitHub, shows a diff, and asks for confirmation.
 
-Your existing `CLAUDE.md`, `.karimo/config.yaml`, `.karimo/learnings.md`, and `.gitignore` are never overwritten.
+### From a local KARIMO clone
+
+If you have KARIMO cloned locally (e.g., for development or offline use):
+
+```bash
+bash KARIMO/.karimo/update.sh --local KARIMO /path/to/your/project
+```
+
+### Update flags
+
+| Flag | Description |
+|------|-------------|
+| `--check` | Check for updates without installing |
+| `--force` | Update even if already on latest version |
+| `--ci` | Non-interactive mode (auto-confirm) |
+
+### Files preserved during updates
+
+These files are never modified by updates:
+- `.karimo/config.yaml` — Your project configuration
+- `.karimo/learnings.md` — Your accumulated learnings
+- `.karimo/prds/*` — Your PRD files
+- `CLAUDE.md` — Your project instructions (KARIMO section only updated if needed)
 
 ---
 

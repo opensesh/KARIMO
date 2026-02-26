@@ -113,15 +113,23 @@ The interview takes ~10 minutes. See [Getting Started](.karimo/docs/GETTING-STAR
 
 ## Keeping KARIMO Updated
 
-Updates never overwrite your configuration or break your environment:
+Updates preserve your configuration, learnings, and PRDs.
 
+**From within your project** (fetches latest from GitHub):
 ```bash
-bash KARIMO/.karimo/update.sh /path/to/your/project
+cd /path/to/your/project
+.karimo/update.sh
 ```
 
-- Your `CLAUDE.md`, custom agents, `config.yaml`, and `learnings.md` are preserved
-- Shows diff before applying changes
-- KARIMO agents use `karimo-*` prefix to avoid conflicts
+**From a local KARIMO clone** (for testing or offline use):
+```bash
+bash KARIMO/.karimo/update.sh --local KARIMO /path/to/your/project
+```
+
+**Flags:**
+- `--check` — Check for updates without installing
+- `--force` — Update even if already on latest version
+- `--ci` — Non-interactive mode (auto-confirm)
 
 ---
 
