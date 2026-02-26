@@ -66,6 +66,21 @@ All commands updated from `karimo:` to `karimo-` format for consistency:
 
 This replaces the previous 3-option menu that required users to exit and return.
 
+**Agent Voice & Delivery Guidelines**
+
+Added "Voice & Delivery" sections to command and agent files to prevent narrator-style output where agents announce what they're about to do instead of just doing it.
+
+Files updated:
+- `.claude/commands/karimo-plan.md` — Voice guidelines with good/bad examples
+- `.claude/agents/karimo-interviewer.md` — Voice guidelines for interview context
+
+Language changes:
+- "Would you like me to scan the codebase..." → "Codebase scan available. Proceed? [Y/n]"
+- "I'll incorporate these learnings... Ready for me to generate it?" → "Incorporating learnings. Generate PRD now? [Y/n]"
+- "I'll add this to..." → "Adding to..."
+
+This addresses the UX friction where agents would say things like "Let me show you the welcome message, and then we'll get configuration set up" instead of simply presenting the content.
+
 ### Documentation
 
 - Added `/karimo-update` to CLAUDE.md slash commands table
