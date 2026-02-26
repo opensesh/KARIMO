@@ -1,6 +1,6 @@
 # KARIMO Architecture
 
-**Version:** 3.1
+**Version:** 3.3
 **Status:** Active
 
 ---
@@ -61,7 +61,7 @@ This catches drift between manifest and actual files, preventing installation fa
 
 ## What KARIMO Is
 
-KARIMO v2 is a **configuration framework**, not a compiled application:
+KARIMO is a **configuration framework**, not a compiled application:
 
 - **Agents**: Markdown files defining specialized agent roles
 - **Commands**: Slash command definitions for Claude Code
@@ -97,13 +97,14 @@ Target Project/
 │   │   ├── karimo-tester-opus.md    # Task agent: tests (Opus)
 │   │   ├── karimo-documenter.md     # Task agent: docs (Sonnet)
 │   │   └── karimo-documenter-opus.md # Task agent: docs (Opus)
-│   ├── commands/                    # 10 commands from manifest
+│   ├── commands/                    # 11 commands from manifest
 │   │   ├── plan.md                  # /karimo-plan (with interactive review)
 │   │   ├── overview.md              # /karimo-overview (cross-PRD oversight)
 │   │   ├── execute.md               # /karimo-execute (brief gen + execution)
 │   │   ├── modify.md                # /karimo-modify (modify PRD before execution)
 │   │   ├── status.md                # /karimo-status
 │   │   ├── configure.md             # /karimo-configure
+│   │   ├── update.md                # /karimo-update
 │   │   ├── feedback.md              # /karimo-feedback
 │   │   ├── learn.md                 # /karimo-learn
 │   │   ├── doctor.md                # /karimo-doctor
