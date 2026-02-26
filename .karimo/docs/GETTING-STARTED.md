@@ -147,14 +147,14 @@ If your project already has `.claude/` with custom agents, commands, or `CLAUDE.
 
 **What gets added (from MANIFEST.json):**
 - 13 KARIMO agents (prefixed `karimo-*`)
-- 10 slash commands (prefixed `karimo:`)
+- 11 slash commands (prefixed `karimo-*`)
 - 5 KARIMO skills
 - `.claude/KARIMO_RULES.md`
 - `.karimo/` directory with templates, manifest, and learnings
 - GitHub Actions workflows
 - Minimal reference block appended to `CLAUDE.md` (~8 lines)
 
-**Naming conflicts:** KARIMO agents use the `karimo-` prefix and commands use the `karimo:` prefix to avoid conflicts with your existing configuration. If you happen to have agents named `karimo-interviewer`, `karimo-investigator`, etc., rename yours before installing.
+**Naming conflicts:** KARIMO agents and commands both use the `karimo-` prefix to avoid conflicts with your existing configuration. If you happen to have agents or commands with `karimo-` prefix, rename yours before installing.
 
 ---
 
@@ -167,23 +167,23 @@ cd your-project
 claude
 ```
 
-### 2. Verify Configuration (Optional)
-
-If install.sh auto-detected your project, configuration is ready. To verify:
-
-```
-/karimo-doctor
-```
-
-This confirms your configuration is valid. If issues are found, run `/karimo-configure` to fix them.
-
-### 3. Run the Plan Command
+### 2. Run the Plan Command
 
 ```
 /karimo-plan
 ```
 
-Since configuration is already in place, the interview starts immediately.
+**First-time setup:** If this is your first time, `/karimo-plan` detects missing configuration and guides you through inline setup:
+
+1. Shows a brief explanation of why configuration matters
+2. Spawns an investigator agent to scan your codebase
+3. Presents detected settings (runtime, framework, commands, boundaries)
+4. You can accept, edit, or reject the detected config
+5. After config is set, the interview continues automatically
+
+This replaces the need to run `/karimo-configure` separately — everything happens inline.
+
+**Returning users:** If configuration already exists, the interview starts immediately.
 
 ### 4. Follow the Interview (~8 min)
 

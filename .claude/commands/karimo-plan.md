@@ -156,17 +156,12 @@ When `.karimo/config.yaml` exists:
 
 ### Step 1: Load Project Context
 
-Read the following files:
-- `.karimo/config.yaml` — Project configuration, commands, boundaries
-- `.karimo/learnings.md` — Patterns, anti-patterns, rules, gotchas
-- `.karimo/prds/*.md` — Previous PRDs for retrospective context
-- `.karimo/templates/PRD_TEMPLATE.md` — Output format
-- `.karimo/templates/INTERVIEW_PROTOCOL.md` — Interview flow
-
-Extract from config.yaml:
+Read `.karimo/config.yaml` to extract:
 - `project` section for runtime, framework
 - `commands` section for build, lint, test, typecheck
 - `boundaries` section for never_touch, require_review patterns
+
+**Note:** Other files (learnings.md, previous PRDs, templates) are loaded on-demand during later steps to keep startup fast.
 
 ### Step 2: Spawn Interviewer Agent
 
@@ -177,8 +172,7 @@ Use the karimo-interviewer agent to conduct the interview:
 ```
 
 Pass the following context to the interviewer:
-- Project configuration from `.karimo/config.yaml` and `.karimo/learnings.md`
-- Previous PRD summaries (if any exist)
+- Project configuration from `.karimo/config.yaml`
 - The PRD name argument (if provided)
 
 ### Step 3: Interview Flow
@@ -191,6 +185,14 @@ The interviewer conducts 4 rounds:
 | 2 | Requirements | ~10 min | Break feature into prioritized requirements |
 | 3 | Dependencies | ~5 min | Task ordering, file overlaps, external blockers |
 | 4 | Retrospective | ~3 min | Learnings from previous PRDs |
+
+### Round 4 Preparation (Automatic)
+
+Before the interviewer begins Round 4 (Retrospective), load:
+- `.karimo/learnings.md` — If exists, contains accumulated patterns and anti-patterns
+- `.karimo/prds/*/PRD.md` — If previous PRDs exist, summarize key outcomes for retrospective questions
+
+If these files don't exist, the interviewer proceeds with first-PRD flow (no retrospective data).
 
 ### Step 4: Round Completion Signals
 
@@ -215,13 +217,14 @@ If accepted:
 ### Step 6: PRD Generation
 
 After Round 4:
-1. Generate the PRD following `.karimo/templates/PRD_TEMPLATE.md`
-2. Spawn the reviewer agent:
+1. Load `.karimo/templates/PRD_TEMPLATE.md` for output format
+2. Generate the PRD following the template structure
+3. Spawn the reviewer agent:
    ```
    @karimo-reviewer.md
    ```
-3. Address any issues flagged by the reviewer
-4. Save artifacts to `.karimo/prds/{NNN}_{slug}/`
+4. Address any issues flagged by the reviewer
+5. Save artifacts to `.karimo/prds/{NNN}_{slug}/`
 
 ### Step 7: Interactive Review & Approval
 
