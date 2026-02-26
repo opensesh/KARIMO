@@ -101,18 +101,35 @@ Check 1: Environment
 
 Verify GitHub Project permissions are configured and accessible.
 
-**Step 1: Check GitHub Configuration exists in CLAUDE.md**
+**Step 1: Check KARIMO section exists with markers**
 
 ```bash
+# Check for marker-based KARIMO section (preferred)
+grep -q "<!-- KARIMO:START" CLAUDE.md
+
+# Or fall back to legacy ## KARIMO header
+grep -q "## KARIMO" CLAUDE.md
+```
+
+**Step 2: Check GitHub Configuration exists**
+
+```bash
+# Check for GitHub Configuration table (within KARIMO section)
 grep -q "### GitHub Configuration" CLAUDE.md
 ```
 
-**Step 2: Read configuration and test project access**
+**Step 3: Read configuration and test project access**
 
 ```bash
-# Parse owner from CLAUDE.md
+# Parse owner from CLAUDE.md (or fall back to config.yaml)
 OWNER=$(grep -A5 "### GitHub Configuration" CLAUDE.md | grep "Owner |" | head -1 | awk -F'|' '{print $3}' | tr -d ' ')
-OWNER_TYPE=$(grep -A5 "### GitHub Configuration" CLAUDE.md | grep "Owner Type |" | awk -F'|' '{print $3}' | tr -d ' ')
+OWNER_TYPE=$(grep -A5 "### GitHub Configuration" CLAUDE.md | grep "Owner Type |" | head -1 | awk -F'|' '{print $3}' | tr -d ' ')
+
+# If CLAUDE.md values are _pending_, try config.yaml
+if [ "$OWNER" = "_pending_" ] && [ -f .karimo/config.yaml ]; then
+  OWNER=$(grep "owner:" .karimo/config.yaml | head -1 | awk '{print $2}')
+  OWNER_TYPE=$(grep "owner_type:" .karimo/config.yaml | head -1 | awk '{print $2}')
+fi
 
 # Test project access
 if [ "$OWNER_TYPE" = "personal" ]; then
@@ -128,9 +145,21 @@ fi
 Check 1.5: GitHub Project Access
 ────────────────────────────────
 
+  ✅ KARIMO section present (with markers)
   ✅ GitHub Configuration present
       Owner: opensesh (organization)
   ✅ Project access verified
+```
+
+**Example output (pending configuration):**
+
+```
+Check 1.5: GitHub Project Access
+────────────────────────────────
+
+  ✅ KARIMO section present (with markers)
+  ⚠️  GitHub Configuration has pending values
+      Run /karimo-configure to detect and populate
 ```
 
 **Example output (configuration missing):**
@@ -149,6 +178,7 @@ Check 1.5: GitHub Project Access
 Check 1.5: GitHub Project Access
 ────────────────────────────────
 
+  ✅ KARIMO section present (with markers)
   ✅ GitHub Configuration present
       Owner: opensesh (organization)
   ❌ Project access denied
@@ -212,7 +242,7 @@ done
 
 **Other checks:**
 - `.claude/KARIMO_RULES.md` exists
-- `CLAUDE.md` contains `## KARIMO` section
+- `CLAUDE.md` contains KARIMO section (check for `<!-- KARIMO:START` markers, fall back to `## KARIMO`)
 - `.karimo/learnings.md` exists
 - `.gitignore` contains `.worktrees/`
 
@@ -230,7 +260,7 @@ Check 2: Installation Integrity
   ✅ Learnings       .karimo/learnings.md present
   ✅ Templates       9/9 present (from manifest)
   ✅ Workflows       5/5 present (1 required, 4 optional)
-  ✅ CLAUDE.md       KARIMO section present
+  ✅ CLAUDE.md       KARIMO section present (with markers)
   ✅ .gitignore      .worktrees/ entry present
 
   Or if issues found:
@@ -245,10 +275,18 @@ Check 2: Installation Integrity
 
 Validate KARIMO configuration files exist and detect drift from actual project state.
 
-**Step 3a: Check CLAUDE.md has KARIMO section**
+**Step 3a: Check CLAUDE.md has KARIMO section with markers**
 
 ```bash
-grep -q "## KARIMO" CLAUDE.md
+# Prefer marker-based detection
+if grep -q "<!-- KARIMO:START" CLAUDE.md; then
+  echo "KARIMO section found (with markers)"
+elif grep -q "## KARIMO" CLAUDE.md; then
+  echo "KARIMO section found (legacy format without markers)"
+  echo "⚠️  Consider reinstalling to use new marker format"
+else
+  echo "KARIMO section not found"
+fi
 ```
 
 **Step 3b: Check required config files exist**
@@ -340,7 +378,7 @@ Check 3: Configuration Validation
 Check 3: Configuration Validation
 ──────────────────────────────────
 
-  ✅ CLAUDE.md         KARIMO section present
+  ✅ CLAUDE.md         KARIMO section present (with markers)
   ✅ learnings.md      Present
   ✅ KARIMO_RULES.md   Present
   ✅ config.yaml       Present, no placeholders
@@ -693,8 +731,8 @@ for agent in $(manifest_list "agents"); do
 done
 
 # Check 3: Configuration
-# 3a: Check KARIMO section exists in CLAUDE.md
-grep -q "## KARIMO" CLAUDE.md
+# 3a: Check KARIMO section exists in CLAUDE.md (prefer markers)
+grep -q "<!-- KARIMO:START" CLAUDE.md || grep -q "## KARIMO" CLAUDE.md
 
 # 3b: Check required config files exist
 [ -f ".karimo/learnings.md" ]
