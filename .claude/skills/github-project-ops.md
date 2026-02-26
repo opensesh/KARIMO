@@ -505,6 +505,28 @@ gh pr view {pr_number} \
 }
 ```
 
+### Merge PR
+
+Merge strategy is configured in `.karimo/config.yaml` under `github.merge_strategy`:
+
+```bash
+# Read merge strategy from config
+MERGE_STRATEGY=$(grep "merge_strategy:" .karimo/config.yaml | awk '{print $2}')
+if [ -z "$MERGE_STRATEGY" ]; then
+  MERGE_STRATEGY="squash"  # Default to squash
+fi
+
+# Merge using MCP
+mcp__github__merge_pull_request({
+  owner: "{owner}",
+  repo: "{repo}",
+  pullNumber: {pr_number},
+  merge_method: "{MERGE_STRATEGY}"  # squash | merge | rebase
+})
+```
+
+**Note:** In typical KARIMO workflows, PRs are merged manually or via CI automation after review. The merge_strategy setting documents the team's preference and is used when KARIMO performs automatic merges.
+
 ### Add Labels
 
 ```bash
