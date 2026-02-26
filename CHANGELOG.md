@@ -52,6 +52,65 @@ fi
 
 ## [3.3.3] - 2026-02-26
 
+### Added
+
+**GitHub Integration Improvements**
+
+Major improvements to GitHub integration addressing gaps from BOS-3.0 testing.
+
+**Branch-Issue Linking (Gap #2)**
+- Branches now link to issues in GitHub UI via `gh issue develop`
+- PM agent creates branch-to-issue link BEFORE creating worktree
+- Visible in GitHub issue's "Development" sidebar
+- Fallback documented for manual branch creation
+
+**Sub-Issues Hierarchy (Gap #4)**
+- Feature issue created first as parent
+- Task issues linked as sub-issues via GitHub MCP `sub_issue_write`
+- Clear hierarchy: Feature → Task issues in GitHub UI
+
+**Wave Field Tracking (Gap #20)**
+- New single-select "Wave" field in GitHub Projects
+- Tasks tagged with wave number for filtering
+- Enables wave-based progress tracking
+
+**Board Automations Documentation (Gap #19)**
+- Documentation for GitHub Projects workflow automations
+- Auto-add, item-closed, PR-merged automations
+- CLI fallback for repositories without UI access
+
+**MCP-Based PR Review Comments**
+- Review/Architect agent uses MCP for structured PR reviews
+- Line-specific, multi-line, and file-level comments
+- Pending review workflow with batch submission
+
+**Enhanced Brief and Issue Templates**
+- Brief template includes Wave, Feature Issue, GitHub Context sections
+- Issue body template includes parent link, wave, success criteria, execution context
+
+### Changed
+
+**Execution Modes Documentation**
+- `KARIMO_RULES.md` updated with Full Mode vs Fast Track Mode
+- Tool selection guide (MCP vs CLI) documented
+- Mode-specific agent behavior rules added
+
+**SAFEGUARDS.md**
+- Execution modes section with tradeability chains
+- Mode selection guide with trade-offs
+
+**Files Updated:**
+
+| File | Changes |
+|------|---------|
+| `karimo-pm.md` | Branch-issue linking (Step 4), sub-issues (Step 3), wave field |
+| `git-worktree-ops.md` | Branch-Issue Linking section |
+| `github-project-ops.md` | Sub-issues, wave field, board automations, merge strategy |
+| `karimo-review-architect.md` | MCP-based PR review comments |
+| `karimo-brief-writer.md` | Enhanced brief and issue body templates |
+| `KARIMO_RULES.md` | Execution modes, tool selection guide |
+| `SAFEGUARDS.md` | Execution modes documentation |
+
 ### Fixed
 
 **CLAUDE.md Dual-Path Support in Commands and Skills**
