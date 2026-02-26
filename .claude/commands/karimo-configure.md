@@ -453,11 +453,15 @@ After writing config.yaml, update the GitHub Configuration table in CLAUDE.md.
 **Step 8a: Detect CLAUDE.md path**
 
 ```bash
-# Check both possible locations for CLAUDE.md
+# Check all possible locations for CLAUDE.md (case-insensitive)
 if [ -f ".claude/CLAUDE.md" ]; then
     CLAUDE_MD=".claude/CLAUDE.md"
+elif [ -f ".claude/claude.md" ]; then
+    CLAUDE_MD=".claude/claude.md"
 elif [ -f "CLAUDE.md" ]; then
     CLAUDE_MD="CLAUDE.md"
+elif [ -f "claude.md" ]; then
+    CLAUDE_MD="claude.md"
 else
     echo "⚠️  CLAUDE.md not found"
     echo "   Skipping CLAUDE.md update"
