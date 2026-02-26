@@ -8,7 +8,7 @@
 ```
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
-[![Status](https://img.shields.io/badge/Status-v2-green.svg)]()
+[![Status](https://img.shields.io/badge/Status-v3-green.svg)]()
 [![Claude Code](https://img.shields.io/badge/Claude%20Code-Framework-blueviolet.svg)]()
 
 ---
@@ -145,6 +145,9 @@ bash KARIMO/.karimo/update.sh --local KARIMO /path/to/your/project
 | `/karimo-doctor` | Diagnose installation issues |
 | `/karimo-feedback` | Capture a single learning (~2 min) |
 | `/karimo-learn` | Deep learning cycle (~45 min) |
+| `/karimo-configure` | Create or update project configuration |
+| `/karimo-update` | Update KARIMO to latest version |
+| `/karimo-test` | Verify installation works end-to-end |
 
 Full reference: [COMMANDS.md](.karimo/docs/COMMANDS.md)
 
