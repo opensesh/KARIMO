@@ -81,6 +81,20 @@ Language changes:
 
 This addresses the UX friction where agents would say things like "Let me show you the welcome message, and then we'll get configuration set up" instead of simply presenting the content.
 
+**Lazy File Loading for `/karimo-plan`**
+
+Optimized startup performance by deferring file reads to when they're actually needed:
+
+| File | Before | After | Reason |
+|------|--------|-------|--------|
+| `config.yaml` | Step 1 | Step 1 | Needed immediately ✓ |
+| `learnings.md` | Step 1 | Round 4 | Only used in Retrospective |
+| `prds/*.md` | Step 1 | Round 4 | Only used in Retrospective |
+| `PRD_TEMPLATE.md` | Step 1 | Step 6 | Only used during PRD generation |
+| `INTERVIEW_PROTOCOL.md` | Step 1 | Removed | Already embedded in interviewer agent |
+
+This eliminates the noticeable delay at startup from reading 5 files that won't be used for 15+ minutes.
+
 ### Documentation
 
 - Added `/karimo-update` to CLAUDE.md slash commands table
