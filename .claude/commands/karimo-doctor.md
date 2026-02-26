@@ -472,7 +472,116 @@ Check 4: Configuration Sanity
       Consider removing or updating pattern
 ```
 
-### Check 5: Phase Assessment
+### Check 5: Execution Mode Validation
+
+Validate that the execution mode is properly configured and required tools are available.
+
+**Step 5a: Read mode from config.yaml**
+
+```bash
+MODE=$(grep "^mode:" .karimo/config.yaml 2>/dev/null | awk '{print $2}')
+if [ -z "$MODE" ]; then
+  MODE="full"  # Default to full mode if not specified
+  echo "ℹ️  Mode not specified in config.yaml, defaulting to: full"
+fi
+```
+
+**If `mode: full`:**
+
+1. **Validate GitHub MCP is configured:**
+
+   Use `mcp__github__get_me` to test MCP connectivity:
+   - If succeeds: ✅ "GitHub MCP configured"
+   - If fails: ❌ "GitHub MCP not configured. Required for Full Mode."
+
+   ```
+   ❌ GitHub MCP not configured. Required for Full Mode.
+
+   To configure GitHub MCP:
+   1. Add the GitHub MCP server to your Claude Code settings
+   2. Configure with your GitHub token
+   3. See: https://github.com/modelcontextprotocol/servers/tree/main/src/github
+
+   Alternatively, switch to Fast Track mode in .karimo/config.yaml:
+     mode: fast-track
+   ```
+
+2. **Validate gh CLI authenticated:**
+   ```bash
+   gh auth status 2>/dev/null || { echo "❌ gh CLI not authenticated. Run: gh auth login"; }
+   ```
+
+3. **Validate project scope:**
+   ```bash
+   SCOPES=$(gh auth status 2>&1)
+   if ! echo "$SCOPES" | grep -q "project"; then
+     echo "❌ Missing 'project' scope. Run: gh auth refresh -s project"
+   fi
+   ```
+
+4. **If all pass:**
+   ```
+   ✅ Full Mode ready
+      GitHub MCP: configured
+      gh CLI: authenticated as @username
+      Project scope: available
+   ```
+
+**If `mode: fast-track`:**
+
+1. **Validate git repository:**
+   ```bash
+   [ -d .git ] || { echo "❌ Not a git repository. Run: git init"; }
+   ```
+
+2. **If passes:**
+   ```
+   ✅ Fast Track Mode ready
+      Git repository: initialized
+
+   ⚠️  Fast Track Mode: No GitHub integration
+      - Tasks will be committed directly (no issues/PRs)
+      - No GitHub Projects visualization
+      - Limited traceability and auditability
+      - Consider Full Mode for production projects
+   ```
+
+**Example output (Full Mode ready):**
+
+```
+Check 5: Execution Mode Validation
+──────────────────────────────────
+
+  Mode: full
+
+  ✅ GitHub MCP       Configured (authenticated as @username)
+  ✅ gh CLI           Authenticated as @username
+  ✅ Project scope    Available
+
+  ✅ Full Mode ready. GitHub MCP + CLI configured.
+```
+
+**Example output (Fast Track Mode ready):**
+
+```
+Check 5: Execution Mode Validation
+──────────────────────────────────
+
+  Mode: fast-track
+
+  ✅ Git repository   Initialized
+
+  ✅ Fast Track Mode ready. Commits will go directly to main.
+
+  ⚠️  Fast Track Mode: No GitHub integration
+      - Tasks will be committed directly (no issues/PRs)
+      - No GitHub Projects visualization
+      - Limited traceability and auditability
+```
+
+---
+
+### Check 6: Phase Assessment
 
 Assess current adoption phase and PRD status.
 
@@ -503,7 +612,7 @@ Check 5: Phase Assessment
       ○ auth-refactor     ready (for execution)
 ```
 
-### Check 6: Execution Health
+### Check 7: Execution Health
 
 **Purpose:** Detect inconsistencies between status.json, git state, and GitHub that indicate interrupted execution.
 
@@ -634,7 +743,7 @@ End with a summary of findings:
 Summary
 ───────
 
-  ✅ 7 checks passed
+  ✅ 8 checks passed
   ⚠️  1 warning (placeholder in config)
   ❌ 0 errors
 
@@ -651,7 +760,9 @@ Summary
 | Configuration drift | `/karimo-configure` |
 | Placeholder values | `/karimo-configure` |
 | Missing GitHub config | `/karimo-configure` |
+| GitHub MCP not configured | Configure GitHub MCP server or switch to fast-track mode |
 | Project access denied | `gh auth refresh -s project` |
+| Missing project scope | `gh auth refresh -s project` |
 | Missing files | Re-run installer |
 | PRD creation | `/karimo-plan` |
 | Stale running tasks | Re-run `/karimo-execute --prd {slug}` |
@@ -666,7 +777,7 @@ Or if all checks pass:
 Summary
 ───────
 
-  ✅ All 7 checks passed
+  ✅ All 8 checks passed
 
   KARIMO installation is healthy.
 ```
