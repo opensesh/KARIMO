@@ -33,41 +33,42 @@ A product design framework based on the development cycle inside most big tech c
                                                    └───────────┘
 ```
 
-### 1. Plan
-Structured PRD interview captures requirements.
-- 5-round interview with customizable template
-- Investigator scans codebase for patterns and context
-- PRD optimized for agent comprehension
+| Step | What Happens | Key Details |
+|------|--------------|-------------|
+| **Plan** | Structured PRD interview captures requirements | 5-round interview, codebase investigation, agent-optimized output |
+| **Tasks** | PRD decomposed into isolated task briefs | Self-contained briefs, dependency graph, parallel-ready |
+| **Execute** | Agents work in parallel isolation | Git worktrees, feature branches, findings propagation |
+| **Review** | Greptile provides objective code review | 0-5 scoring, revision loops, model escalation (optional) |
+| **Merge** | Clear audit trail at both levels | Task PRs → feature branch, feature PR → main (human gate) |
+| **Monitor** | Real-time visibility into progress | `/karimo-status`, `/karimo-overview`, GitHub Projects |
 
-### 2. Tasks
-PRD decomposed into isolated task briefs.
-- One holistic PRD → many focused briefs
-- Each brief is self-contained with full context
-- Dependency graph ensures correct execution order
+---
 
-### 3. Execute
-Agents work in parallel isolation.
-- Each task runs in its own git worktree
-- Feature branches prevent agents from conflicting
-- Findings propagate between related tasks
+## Key Differentiators
 
-### 4. Review
-Greptile provides objective code review.
-- Vector embedding of your codebase enables deep understanding
-- 0-5 quality score with automatic revision loops
-- Model escalation (Sonnet → Opus) on failures
+| Feature | What It Means |
+|---------|---------------|
+| **GitHub Projects** | Tasks as sub-issues, auto-board movement, wave-based execution |
+| **Markdown PRDs** | Agent-optimized format with structured interviews |
+| **Full auditability** | Every change traceable: task → issue → branch → PR → merge |
+| **Compound learning** | `/karimo-feedback` and `/karimo-learn` capture patterns |
+| **Worktree isolation** | Parallel task execution without conflicts |
+| **Two-tier merge** | Task PRs merge to feature branch (auto), feature to main (human gate) |
 
-### 5. Merge
-Clear audit trail at both levels.
-- Task PRs merge to feature branch (agent-driven)
-- Feature PR merges to main (human gate)
-- Full markdown + code diff for each change
+---
 
-### 6. Monitor
-Real-time visibility into what's happening.
-- `/karimo-status` shows live execution progress
-- `/karimo-overview` provides cross-PRD dashboard
-- GitHub Projects + PRs for persistent tracking
+## Execution Modes
+
+| Mode | Traceability | Requirements | Best For |
+|------|--------------|--------------|----------|
+| **Full** (default) | Issue → Branch → PR → Merge | GitHub CLI + `project` scope | Production, teams, audit trails |
+| **Fast Track** | Commits only | Git repository | Prototyping, solo developers |
+
+**Full Mode:** GitHub Projects integration, PR-based review, Greptile support.
+
+**Fast Track:** Skips GitHub for speed. Commits use format: `[{prd-slug}][{task-id}] {title}`.
+
+See [SAFEGUARDS.md](.karimo/docs/SAFEGUARDS.md#execution-modes) for detailed comparison.
 
 ---
 
@@ -132,10 +133,13 @@ bash KARIMO/.karimo/update.sh --local KARIMO /path/to/project
 | Workflows (`.github/workflows/`) | ✓ | |
 | `KARIMO_RULES.md` | ✓ | |
 | `VERSION`, `MANIFEST.json` | ✓ | |
+| `CLAUDE.md` (KARIMO section) | ✓ | |
+| `CLAUDE.md` (YOUR content) | | ✓ |
 | `config.yaml` | | ✓ |
 | `learnings.md` | | ✓ |
 | `prds/*` | | ✓ |
-| `CLAUDE.md` (your content) | | ✓ |
+
+> The KARIMO section uses markers (`<!-- KARIMO:START -->` to `<!-- KARIMO:END -->`). Content between markers may be updated; everything else in CLAUDE.md is preserved.
 
 ### Command Reference
 
