@@ -354,7 +354,7 @@ These settings can be changed anytime by running /karimo-configure
 Present final configuration for confirmation:
 
 ```
-Section 7 of 7: Confirm and Write
+Section 7 of 8: Confirm and Write
 ─────────────────────────────────
 
 Configuration Summary:
@@ -446,6 +446,58 @@ cost:
 
 ---
 
+### Step 8: Update CLAUDE.md GitHub Configuration
+
+After writing config.yaml, update the GitHub Configuration table in CLAUDE.md.
+
+**Step 8a: Check if KARIMO section exists with markers**
+
+```bash
+if ! grep -q "<!-- KARIMO:START" CLAUDE.md; then
+  echo "⚠️  KARIMO section not found with markers"
+  echo "   CLAUDE.md not updated (re-run installer to add marker-based section)"
+  exit 0
+fi
+```
+
+**Step 8b: Update the GitHub Configuration table**
+
+Replace the `_pending_` values in the table with actual values:
+
+```bash
+# Read values from just-written config.yaml
+OWNER_TYPE=$(grep "owner_type:" .karimo/config.yaml | head -1 | awk '{print $2}')
+OWNER=$(grep "owner:" .karimo/config.yaml | head -1 | awk '{print $2}')
+REPO=$(grep "repository:" .karimo/config.yaml | head -1 | awk '{print $2}')
+
+# Update CLAUDE.md GitHub Configuration table in-place
+# Uses sed to replace _pending_ values within the KARIMO section
+sed -i '' \
+  -e "/<!-- KARIMO:START/,/KARIMO:END -->/ {
+    s/| Owner Type | _pending_ |/| Owner Type | $OWNER_TYPE |/
+    s/| Owner | _pending_ |/| Owner | $OWNER |/
+    s/| Repository | _pending_ |/| Repository | $REPO |/
+  }" CLAUDE.md
+
+echo "✅ Updated GitHub Configuration in CLAUDE.md"
+```
+
+**Example output:**
+
+```
+Section 8 of 8: Update CLAUDE.md
+────────────────────────────────
+
+  ✅ Found KARIMO section with markers
+  ✅ Updated GitHub Configuration table:
+      Owner Type: organization
+      Owner: opensesh
+      Repository: my-project
+
+```
+
+---
+
 ## config.yaml Structure
 
 The command writes to `.karimo/config.yaml`. See the YAML structure in Step 7 above.
@@ -475,6 +527,11 @@ On completion:
    - Boundaries: 3 never_touch, 3 require_review
    - GitHub: opensesh/my-project
    - Execution: sonnet, max 3 parallel
+
+✅ Updated CLAUDE.md GitHub Configuration
+   - Owner Type: organization
+   - Owner: opensesh
+   - Repository: my-project
 
 Next steps:
   • Run /karimo-plan to create your first PRD
