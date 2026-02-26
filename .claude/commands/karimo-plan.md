@@ -210,7 +210,7 @@ Users signal readiness to proceed with phrases like:
 
 During Round 3, offer to spawn the investigator agent for codebase scanning:
 
-> "Would you like me to scan the codebase to identify affected files and existing patterns?"
+> "Codebase scan available to identify affected files and existing patterns. Proceed? [Y/n]"
 
 If accepted:
 ```
