@@ -207,6 +207,159 @@ git pull origin feature/{prd-slug}
 
 ---
 
+## MCP-Based PR Review Comments
+
+When providing feedback on task PRs, use GitHub MCP for structured reviews instead of ad-hoc comments.
+
+### Creating a Pending Review
+
+Start a pending review to batch multiple comments:
+
+```typescript
+// Create pending review (no event = pending)
+mcp__github__pull_request_review_write({
+  method: "create",
+  owner: "{owner}",
+  repo: "{repo}",
+  pullNumber: {pr_number},
+  commitID: "{head_sha}",  // Get from PR details
+  body: "## Review/Architect Integration Review\n\n{summary}"
+  // Note: omitting 'event' creates a pending review
+})
+```
+
+### Adding Line-Specific Comments
+
+Add comments to specific lines in the diff:
+
+```typescript
+mcp__github__add_comment_to_pending_review({
+  owner: "{owner}",
+  repo: "{repo}",
+  pullNumber: {pr_number},
+  path: "{file_path}",         // e.g., "src/components/Button.tsx"
+  line: {line_number},         // Line in the new version
+  side: "RIGHT",               // RIGHT = new code, LEFT = old code
+  subjectType: "LINE",         // LINE or FILE
+  body: "**Integration Issue:** {description}\n\n{suggested_fix}"
+})
+```
+
+**Multi-line comments:**
+```typescript
+mcp__github__add_comment_to_pending_review({
+  owner: "{owner}",
+  repo: "{repo}",
+  pullNumber: {pr_number},
+  path: "{file_path}",
+  line: {end_line},           // End of range
+  startLine: {start_line},    // Start of range
+  side: "RIGHT",
+  startSide: "RIGHT",
+  subjectType: "LINE",
+  body: "**Multi-line Issue:** This block has an integration problem..."
+})
+```
+
+**File-level comments:**
+```typescript
+mcp__github__add_comment_to_pending_review({
+  owner: "{owner}",
+  repo: "{repo}",
+  pullNumber: {pr_number},
+  path: "{file_path}",
+  subjectType: "FILE",
+  body: "**File-Level Note:** This file conflicts with changes in task 1b..."
+})
+```
+
+### Submitting the Review
+
+After adding all comments, submit the review:
+
+```typescript
+// Submit with approval
+mcp__github__pull_request_review_write({
+  method: "submit_pending",
+  owner: "{owner}",
+  repo: "{repo}",
+  pullNumber: {pr_number},
+  body: "## Integration Validated ✓\n\nAll checks passed. Ready for merge.",
+  event: "APPROVE"
+})
+
+// Submit with change requests
+mcp__github__pull_request_review_write({
+  method: "submit_pending",
+  owner: "{owner}",
+  repo: "{repo}",
+  pullNumber: {pr_number},
+  body: "## Integration Issues Found\n\n{summary_of_issues}",
+  event: "REQUEST_CHANGES"
+})
+
+// Submit as comment (neither approve nor request changes)
+mcp__github__pull_request_review_write({
+  method: "submit_pending",
+  owner: "{owner}",
+  repo: "{repo}",
+  pullNumber: {pr_number},
+  body: "## Integration Notes\n\n{notes}",
+  event: "COMMENT"
+})
+```
+
+### Deleting a Pending Review
+
+If you need to start over:
+
+```typescript
+mcp__github__pull_request_review_write({
+  method: "delete_pending",
+  owner: "{owner}",
+  repo: "{repo}",
+  pullNumber: {pr_number}
+})
+```
+
+### Reading Existing Reviews
+
+To check existing review comments before adding more:
+
+```typescript
+// Get review threads (grouped comments)
+mcp__github__pull_request_read({
+  method: "get_review_comments",
+  owner: "{owner}",
+  repo: "{repo}",
+  pullNumber: {pr_number}
+})
+
+// Get reviews (summaries)
+mcp__github__pull_request_read({
+  method: "get_reviews",
+  owner: "{owner}",
+  repo: "{repo}",
+  pullNumber: {pr_number}
+})
+```
+
+### Reply to Existing Comment
+
+If a task agent or reviewer left a comment that needs response:
+
+```typescript
+mcp__github__add_reply_to_pull_request_comment({
+  owner: "{owner}",
+  repo: "{repo}",
+  pullNumber: {pr_number},
+  commentId: {comment_id},  // From get_review_comments
+  body: "**Resolution:** {how_it_was_fixed}"
+})
+```
+
+---
+
 ## Feature PR Body Template
 
 When preparing the feature PR to main:
