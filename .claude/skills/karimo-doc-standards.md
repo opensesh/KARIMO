@@ -385,25 +385,31 @@ For each link:
 
 ---
 
-## findings.json for Documentation Gaps
+## findings.md for Documentation Gaps
 
 Report missing or inconsistent documentation:
 
-```json
-{
-  "task_id": "1a-docs",
-  "completed_at": "2026-02-21T10:00:00Z",
-  "findings": [
-    {
-      "type": "discovery",
-      "severity": "warning",
-      "description": "No documentation exists for error codes",
-      "affected_tasks": [],
-      "files": ["src/errors.ts"],
-      "action_required": "Consider adding error code reference"
-    }
-  ]
-}
+```markdown
+# Findings: 1a-docs
+
+## Metadata
+- **Task:** 1a-docs - Document error handling
+- **Completed:** 2026-02-21T10:00:00Z
+- **Type:** discovery
+
+## Severity: warning
+
+## Description
+No documentation exists for error codes
+
+## Affected Tasks
+- (none)
+
+## Files
+- src/errors.ts
+
+## Action Required
+Consider adding error code reference
 ```
 
 ---
@@ -454,4 +460,4 @@ Co-Authored-By: Claude <noreply@anthropic.com>
 - [ ] Documentation is concise
 - [ ] No redundant explanations
 - [ ] Commits follow `docs(scope):` format
-- [ ] findings.json written if gaps found
+- [ ] findings.md written if gaps found
