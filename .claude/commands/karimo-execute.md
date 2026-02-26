@@ -71,11 +71,15 @@ Ready to begin execution?
 Run these checks before spawning the PM agent:
 
 ```bash
-# 0. Detect CLAUDE.md path
+# 0. Detect CLAUDE.md path (case-insensitive)
 if [ -f ".claude/CLAUDE.md" ]; then
     CLAUDE_MD=".claude/CLAUDE.md"
+elif [ -f ".claude/claude.md" ]; then
+    CLAUDE_MD=".claude/claude.md"
 elif [ -f "CLAUDE.md" ]; then
     CLAUDE_MD="CLAUDE.md"
+elif [ -f "claude.md" ]; then
+    CLAUDE_MD="claude.md"
 else
     CLAUDE_MD=""
 fi
