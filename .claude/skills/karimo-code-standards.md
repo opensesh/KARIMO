@@ -10,7 +10,7 @@ Coding patterns and validation protocols for the karimo-implementer agent.
 
 - Stay within the `files_affected` list from your task brief
 - Do not modify code outside your scope unless absolutely necessary
-- If you need to touch additional files, document in findings.json
+- If you need to touch additional files, document in findings.md
 
 ### Never Touch Files
 
@@ -24,7 +24,7 @@ From CLAUDE.md Boundaries → Never Touch:
 
 **If your task requires modifying a never-touch file:**
 1. STOP immediately
-2. Document as a blocker in findings.json
+2. Document as a blocker in findings.md
 3. Do not proceed with the task
 
 ### Require Review Files
@@ -171,38 +171,46 @@ Before signaling task completion, run ALL validation commands.
 1. Check if the failure is from your changes
 2. Fix tests you broke
 3. Don't modify tests to make them pass artificially
-4. If pre-existing failure, document in findings.json
+4. If pre-existing failure, document in findings.md
 
 ### Failure After Maximum Attempts
 
 If any command fails after 2 fix attempts:
-1. Document the failure in findings.json as a blocker
+1. Document the failure in findings.md as a blocker
 2. Do NOT signal task completion
 3. The PM agent will handle escalation
 
 ---
 
-## findings.json Contract
+## findings.md Contract
 
 Create this file in your worktree root when you have discoveries for downstream tasks.
 
-### Schema
+### Template
 
-```json
-{
-  "task_id": "string",
-  "completed_at": "ISO 8601 timestamp",
-  "findings": [
-    {
-      "type": "discovery | blocker | api_change | pattern",
-      "severity": "info | warning | blocker",
-      "description": "What was discovered",
-      "affected_tasks": ["task IDs that need to know"],
-      "files": ["paths to relevant files"],
-      "action_required": "Optional: what needs to happen"
-    }
-  ]
-}
+```markdown
+# Findings: {task_id}
+
+## Metadata
+- **Task:** {task_id} - {task_title}
+- **Completed:** {ISO timestamp}
+- **Type:** discovery | pattern | api_change | blocker
+
+## Severity: info | warning | blocker
+
+## Description
+{What was discovered or changed}
+
+## Affected Tasks
+- {task_id_1}
+- {task_id_2}
+
+## Files
+- {file_path_1}
+- {file_path_2}
+
+## Action Required
+{None | Specific action for downstream tasks}
 ```
 
 ### Finding Types
@@ -222,7 +230,7 @@ Create this file in your worktree root when you have discoveries for downstream 
 | `warning` | Important for downstream tasks | Append to downstream agent_context |
 | `blocker` | Blocks dependent tasks | Halt dependent tasks, report immediately |
 
-### When to Create findings.json
+### When to Create findings.md
 
 Create this file when:
 - You created new types/interfaces other tasks will consume
@@ -270,7 +278,7 @@ Before signaling done:
 - [ ] All commits have Co-Authored-By footer
 - [ ] No `never_touch` files modified
 - [ ] `require_review` files flagged in commits
-- [ ] findings.json written if discoveries exist
+- [ ] findings.md written if discoveries exist
 - [ ] No `any` types in TypeScript
 - [ ] Errors handled with structured types
 - [ ] JSDoc added for new exported functions
