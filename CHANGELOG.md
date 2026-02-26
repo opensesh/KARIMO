@@ -7,6 +7,45 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [3.3.2] - 2026-02-25
+
+### Fixed
+
+**`/karimo-execute` Pre-flight GitHub Config Fallback**
+
+Added config.yaml fallback logic to `/karimo-execute` pre-flight checks, completing the fix started in v3.3.1.
+
+**Problem:** `/karimo-execute` only read GitHub configuration from CLAUDE.md. When CLAUDE.md had `_pending_` placeholder values (before running `/karimo-configure`), execution would fail with a misleading error about not being able to access projects for `_pending_`.
+
+**Solution:** Apply the same fallback logic from `github-project-ops` to the execute pre-flight checks.
+
+**Changes:**
+
+| File | Change |
+|------|--------|
+| `karimo-execute.md` | Add config.yaml fallback when CLAUDE.md has `_pending_` values |
+
+**New behavior:**
+1. Try reading GitHub owner from CLAUDE.md first
+2. If empty or `_pending_`, fall back to `.karimo/config.yaml`
+3. Show source indicator: `[from CLAUDE.md]` or `[from config.yaml]`
+4. Display informational message when using fallback
+5. Better error messages explaining configuration state
+
+**Before:**
+```
+❌ GitHub Project permissions denied
+Cannot access projects for '_pending_'
+```
+
+**After:**
+```
+ℹ️  Using GitHub config from .karimo/config.yaml
+✓ GitHub owner: opensesh (organization) [from config.yaml]
+```
+
+---
+
 ## [3.3.1] - 2026-02-25
 
 ### Fixed
