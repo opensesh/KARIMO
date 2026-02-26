@@ -71,7 +71,7 @@ Real-time visibility into what's happening.
 
 ---
 
-## Get Started in 5 Minutes
+## Installation & Updates
 
 ### Prerequisites
 
@@ -81,24 +81,77 @@ Real-time visibility into what's happening.
 | GitHub CLI | `gh auth status` | `brew install gh && gh auth login` |
 | Git 2.5+ | `git --version` | Included on macOS/Linux |
 
-### Install
+### Quick Start (Recommended)
 
-**Option A: One-liner** (fastest)
+**Install KARIMO:**
 ```bash
-curl -sL https://raw.githubusercontent.com/opensesh/KARIMO/main/.karimo/remote-install.sh | bash -s /path/to/your/project
+curl -sL https://raw.githubusercontent.com/opensesh/KARIMO/main/.karimo/remote-install.sh | bash -s /path/to/project
 ```
 
-**Option B: Clone first** (inspect before running)
+**Update existing installation:**
+```bash
+cd your-project && .karimo/update.sh
+```
+
+That's it. The update script fetches the latest release, shows a diff preview, and applies changes with your confirmation.
+
+### Local Installation (For Inspection/Offline)
+
+If you want to inspect the source code before running, or need offline installation:
+
+**Install from cloned repository:**
 ```bash
 git clone https://github.com/opensesh/KARIMO.git
-bash KARIMO/.karimo/install.sh /path/to/your/project
+bash KARIMO/.karimo/install.sh /path/to/project
 ```
 
-### Verify
+**Update from local source:**
+```bash
+bash KARIMO/.karimo/update.sh --local KARIMO /path/to/project
+```
+
+### When to Use What
+
+| Scenario | Command |
+|----------|---------|
+| First time setup | Remote one-liner or `install.sh` |
+| Routine updates | `update.sh` (shows diff preview) |
+| Full reinstall | `install.sh` (overwrites all KARIMO files) |
+| Inspect before installing | Clone first, then `install.sh` |
+| Offline/air-gapped | Clone, then `--local` mode |
+| CI/CD pipelines | Add `--ci` flag for non-interactive |
+
+### What Gets Updated vs Preserved
+
+| Category | Updated | Preserved |
+|----------|:-------:|:---------:|
+| Agents (`.claude/agents/`) | ✓ | |
+| Commands (`.claude/commands/`) | ✓ | |
+| Skills (`.claude/skills/`) | ✓ | |
+| Templates (`.karimo/templates/`) | ✓ | |
+| Workflows (`.github/workflows/`) | ✓ | |
+| `KARIMO_RULES.md` | ✓ | |
+| `VERSION`, `MANIFEST.json` | ✓ | |
+| `config.yaml` | | ✓ |
+| `learnings.md` | | ✓ |
+| `prds/*` | | ✓ |
+| `CLAUDE.md` (your content) | | ✓ |
+
+### Command Reference
+
+| Flag | install.sh | update.sh | Description |
+|------|:----------:|:---------:|-------------|
+| `--ci` | ✓ | ✓ | Non-interactive mode |
+| `--check` | | ✓ | Check for updates only |
+| `--force` | | ✓ | Update even if current |
+| `--local <src> <dst>` | | ✓ | Update from local source |
+
+### Verify Installation
 
 ```bash
 cd your-project && claude
 /karimo-doctor   # Check installation health
+/karimo-test     # Run smoke tests
 ```
 
 ### Create Your First PRD
@@ -108,28 +161,6 @@ cd your-project && claude
 ```
 
 The interview takes ~10 minutes. See [Getting Started](.karimo/docs/GETTING-STARTED.md) for the full walkthrough.
-
----
-
-## Keeping KARIMO Updated
-
-Updates preserve your configuration, learnings, and PRDs.
-
-**From within your project** (fetches latest from GitHub):
-```bash
-cd /path/to/your/project
-.karimo/update.sh
-```
-
-**From a local KARIMO clone** (for testing or offline use):
-```bash
-bash KARIMO/.karimo/update.sh --local KARIMO /path/to/your/project
-```
-
-**Flags:**
-- `--check` — Check for updates without installing
-- `--force` — Update even if already on latest version
-- `--ci` — Non-interactive mode (auto-confirm)
 
 ---
 
