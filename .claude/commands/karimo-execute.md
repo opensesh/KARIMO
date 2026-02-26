@@ -48,20 +48,106 @@ Validate the PRD:
 
 ### 2. Pre-Execution Checks
 
+#### 2a. Execution Mode Validation
+
+Read `mode` from `.karimo/config.yaml` and validate accordingly:
+
+```bash
+MODE=$(grep "^mode:" .karimo/config.yaml 2>/dev/null | awk '{print $2}')
+if [ -z "$MODE" ]; then
+  MODE="full"  # Default to full mode if not specified
+fi
+```
+
+**If `mode: full`:**
+
+1. **Validate GitHub MCP:**
+   Use `mcp__github__get_me` to test connectivity.
+   - If fails:
+     ```
+     ❌ GitHub MCP required for Full Mode but not available.
+
+     GitHub MCP is not configured or not responding.
+     Full Mode requires GitHub MCP for issues and PRs.
+
+     Options:
+       1. Configure GitHub MCP server and retry
+       2. Run /karimo-configure to switch to fast-track mode
+     ```
+     **Exit execution.**
+
+2. **Validate gh CLI:**
+   ```bash
+   gh auth status 2>/dev/null || { echo "❌ gh CLI authentication required."; exit 1; }
+   ```
+
+3. **Validate project scope:**
+   ```bash
+   SCOPES=$(gh auth status 2>&1)
+   if ! echo "$SCOPES" | grep -q "project"; then
+     echo "❌ Missing 'project' scope. Run: gh auth refresh -s project"
+     exit 1
+   fi
+   ```
+
+4. If all pass, proceed with GitHub-integrated execution
+
+**If `mode: fast-track`:**
+
+1. **Validate git repository:**
+   ```bash
+   [ -d .git ] || { echo "❌ Not a git repository."; exit 1; }
+   ```
+
+2. **Display reminder:**
+   ```
+   ℹ️  Fast Track Mode: Tasks will be committed directly.
+       No issues, PRs, or GitHub Projects will be created.
+   ```
+
+3. Proceed with commit-based execution
+
+#### 2b. Standard Pre-flight Checks
+
 ```
 ╭──────────────────────────────────────────────────────────────╮
 │  Execute: user-profiles                                      │
 ╰──────────────────────────────────────────────────────────────╯
 
+Mode: full
 Status: ready
 Tasks: 5 tasks
 
 Pre-flight checks:
+  ✓ Execution mode validated (full)
+  ✓ GitHub MCP connected
   ✓ Git repository clean
   ✓ GitHub CLI authenticated
-  ✓ GitHub owner: opensesh (organization) [from CLAUDE.md]
+  ✓ GitHub owner: opensesh (organization) [from config.yaml]
   ✓ GitHub Project permissions verified
-  ✓ CLAUDE.md loaded (commands, boundaries)
+  ✓ config.yaml loaded (commands, boundaries)
+
+Ready to begin execution?
+```
+
+**Or for Fast Track Mode:**
+
+```
+╭──────────────────────────────────────────────────────────────╮
+│  Execute: user-profiles                                      │
+╰──────────────────────────────────────────────────────────────╯
+
+Mode: fast-track
+Status: ready
+Tasks: 5 tasks
+
+Pre-flight checks:
+  ✓ Execution mode validated (fast-track)
+  ✓ Git repository clean
+  ✓ config.yaml loaded (commands, boundaries)
+
+ℹ️  Fast Track Mode: No GitHub integration
+    Tasks will be committed directly with structured messages.
 
 Ready to begin execution?
 ```
@@ -71,7 +157,13 @@ Ready to begin execution?
 Run these checks before spawning the PM agent:
 
 ```bash
-# 0. Detect CLAUDE.md path (case-insensitive)
+# 0. Read execution mode from config.yaml
+MODE=$(grep "^mode:" .karimo/config.yaml 2>/dev/null | awk '{print $2}')
+if [ -z "$MODE" ]; then
+  MODE="full"  # Default to full mode
+fi
+
+# 1. Detect CLAUDE.md path (case-insensitive)
 if [ -f ".claude/CLAUDE.md" ]; then
     CLAUDE_MD=".claude/CLAUDE.md"
 elif [ -f ".claude/claude.md" ]; then
@@ -84,74 +176,70 @@ else
     CLAUDE_MD=""
 fi
 
-# 1. Check git is clean
+# 2. Check git is clean
 if [ -n "$(git status --porcelain)" ]; then
   echo "❌ Uncommitted changes detected"
   exit 1
 fi
 
-# 2. Check GitHub CLI authenticated
-gh auth status 2>/dev/null || { echo "❌ GitHub CLI not authenticated"; exit 1; }
+# 3. Mode-specific validation
+if [ "$MODE" = "full" ]; then
+  # 3a. For Full Mode: Validate GitHub MCP (done via mcp__github__get_me call)
+  # 3b. Check GitHub CLI authenticated
+  gh auth status 2>/dev/null || { echo "❌ GitHub CLI not authenticated"; exit 1; }
 
-# 3. Check GitHub Configuration exists
-if [ -z "$CLAUDE_MD" ] || ! grep -q "### GitHub Configuration" "$CLAUDE_MD"; then
+  # 3c. Check project scope
+  SCOPES=$(gh auth status 2>&1)
+  if ! echo "$SCOPES" | grep -q "project"; then
+    echo "❌ Missing 'project' scope. Run: gh auth refresh -s project"
+    exit 1
+  fi
+
+  # 3d. Check GitHub Configuration exists
   if [ ! -f ".karimo/config.yaml" ]; then
     echo "❌ GitHub Configuration not found"
-    echo "   Not in CLAUDE.md and .karimo/config.yaml doesn't exist"
+    echo "   .karimo/config.yaml doesn't exist"
     echo "   Run /karimo-configure to set up GitHub settings"
     exit 1
   fi
-fi
 
-# 4. Parse and validate project scope (with fallback)
-# First try CLAUDE.md
-if [ -n "$CLAUDE_MD" ]; then
-  OWNER_TYPE=$(grep -A5 "### GitHub Configuration" "$CLAUDE_MD" 2>/dev/null | grep "Owner Type |" | head -1 | awk -F'|' '{print $3}' | tr -d ' ')
-  OWNER=$(grep -A5 "### GitHub Configuration" "$CLAUDE_MD" 2>/dev/null | grep "Owner |" | head -1 | awk -F'|' '{print $3}' | tr -d ' ')
-  CONFIG_SOURCE="$CLAUDE_MD"
-else
-  OWNER_TYPE=""
-  OWNER=""
-  CONFIG_SOURCE=""
-fi
+  # 3e. Parse GitHub config from config.yaml
+  OWNER_TYPE=$(grep "owner_type:" .karimo/config.yaml | head -1 | awk '{print $2}')
+  OWNER=$(grep "owner:" .karimo/config.yaml | head -1 | awk '{print $2}')
 
-# Fall back to config.yaml if CLAUDE.md has _pending_ or is missing
-if [ -z "$OWNER" ] || [ "$OWNER" = "_pending_" ]; then
-  if [ -f .karimo/config.yaml ]; then
-    OWNER_TYPE=$(grep "owner_type:" .karimo/config.yaml | head -1 | awk '{print $2}')
-    OWNER=$(grep "owner:" .karimo/config.yaml | head -1 | awk '{print $2}')
-    CONFIG_SOURCE="config.yaml"
-    echo "ℹ️  Using GitHub config from .karimo/config.yaml"
+  # Final validation
+  if [ -z "$OWNER" ] || [ "$OWNER" = "_pending_" ]; then
+    echo "❌ GitHub owner not configured"
+    echo "   config.yaml is missing github section"
+    echo "   Run /karimo-configure to set up GitHub settings"
+    exit 1
   fi
+
+  if [ "$OWNER_TYPE" = "personal" ]; then
+    gh project list --owner @me --limit 1 2>/dev/null || {
+      echo "❌ GitHub Project permissions denied"
+      echo "Fix: gh auth refresh -s project"
+      exit 1
+    }
+  else
+    gh project list --owner "$OWNER" --limit 1 2>/dev/null || {
+      echo "❌ GitHub Project permissions denied"
+      echo "Cannot access projects for '$OWNER'"
+      echo "Fix: gh auth refresh -s project"
+      exit 1
+    }
+  fi
+
+  echo "✓ Full Mode: GitHub MCP + CLI validated"
+
+elif [ "$MODE" = "fast-track" ]; then
+  # For Fast Track Mode: Just verify git is initialized
+  [ -d .git ] || { echo "❌ Not a git repository"; exit 1; }
+  echo "ℹ️  Fast Track Mode: Tasks will be committed directly."
 fi
 
-# Final validation
-if [ -z "$OWNER" ] || [ "$OWNER" = "_pending_" ]; then
-  echo "❌ GitHub owner not configured"
-  echo "   CLAUDE.md has placeholder values and config.yaml is missing github section"
-  echo "   Run /karimo-configure to set up GitHub settings"
-  exit 1
-fi
-
-if [ "$OWNER_TYPE" = "personal" ]; then
-  gh project list --owner @me --limit 1 2>/dev/null || {
-    echo "❌ GitHub Project permissions denied"
-    echo "Fix: gh auth refresh -s project"
-    exit 1
-  }
-else
-  gh project list --owner "$OWNER" --limit 1 2>/dev/null || {
-    echo "❌ GitHub Project permissions denied"
-    echo "Cannot access projects for '$OWNER'"
-    echo "Fix: gh auth refresh -s project"
-    exit 1
-  }
-fi
-
-# 5. Verify CLAUDE.md has commands and boundaries (if CLAUDE.md exists)
-if [ -n "$CLAUDE_MD" ]; then
-  grep -q "### Commands" "$CLAUDE_MD" || { echo "⚠️  Commands section missing from $CLAUDE_MD"; }
-fi
+# 4. Verify config.yaml has commands
+[ -f ".karimo/config.yaml" ] || { echo "❌ config.yaml missing"; exit 1; }
 ```
 
 **If GitHub Configuration is missing (neither CLAUDE.md nor config.yaml):**
