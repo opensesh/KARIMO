@@ -20,6 +20,98 @@ KARIMO enforces code quality and security through multiple layers: file boundari
 
 ---
 
+## Execution Modes
+
+KARIMO supports two execution modes with different safeguard profiles.
+
+### Full Mode (Recommended)
+
+Full GitHub integration with maximum traceability and safeguards.
+
+**Traceability Chain:**
+```
+Feature Issue (Parent)
+    └── Task Issue (Sub-issue)
+        └── Linked Branch (via gh issue develop)
+            └── Worktree (isolated execution)
+                └── PR (Closes #issue_number)
+                    └── Greptile Review (if configured)
+                        └── Merge (auto-closes issue)
+```
+
+**Safeguards Enabled:**
+- ✓ Sub-issue hierarchy (feature → tasks)
+- ✓ Branch-issue linking (visible in GitHub UI)
+- ✓ PR-based review workflow
+- ✓ Automated board movement (via Projects automation)
+- ✓ Wave field tracking
+- ✓ Greptile code review (if configured)
+- ✓ Revision loops with model escalation
+
+**Configuration Required:**
+```yaml
+# .karimo/config.yaml
+mode: full  # or omit (full is default)
+
+github:
+  owner: your-org-or-username
+  owner_type: organization  # or personal
+  repository: your-repo
+  merge_strategy: squash    # squash | merge | rebase
+```
+
+### Fast Track Mode
+
+Commit-only workflow for rapid development.
+
+**Traceability Chain:**
+```
+status.json tracking
+    └── Structured commit on main
+        └── Format: [{prd-slug}][{task-id}] {title}
+```
+
+**Safeguards Enabled:**
+- ✓ File boundaries (never_touch, require_review)
+- ✓ Pre-commit validation (build, typecheck)
+- ✓ Worktree isolation (optional)
+- ✓ Commit format enforcement
+- ✓ status.json state tracking
+
+**Safeguards NOT Available:**
+- ✗ GitHub Issues/PRs
+- ✗ Sub-issue hierarchy
+- ✗ Branch-issue linking
+- ✗ Project board tracking
+- ✗ Greptile review
+- ✗ PR-based revision loops
+
+**Configuration:**
+```yaml
+# .karimo/config.yaml
+mode: fast-track
+
+# github section optional/omitted
+```
+
+### Mode Selection Guide
+
+| Factor | Full Mode | Fast Track |
+|--------|-----------|------------|
+| Team size | 2+ developers | Solo |
+| Auditability needs | High | Low |
+| GitHub integration | Required | Optional |
+| Review workflow | PR-based | None |
+| Execution speed | Slower (more overhead) | Faster |
+| Setup complexity | Higher | Lower |
+| Greptile available | Yes | No |
+
+**Recommended for:**
+- **Full Mode:** Production projects, team collaboration, projects requiring audit trails
+- **Fast Track:** Prototyping, personal projects, projects without GitHub
+
+---
+
 ## File Boundaries
 
 KARIMO enforces file boundaries defined in `.karimo/config.yaml` to protect sensitive files.
