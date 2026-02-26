@@ -56,7 +56,7 @@ echo "  - .claude/skills/*.md (skills from manifest)"
 echo "  - .claude/KARIMO_RULES.md"
 echo "  - .github/workflows/karimo-*.yml"
 echo "  - .github/ISSUE_TEMPLATE/karimo-task.yml"
-echo "  - KARIMO Framework section from CLAUDE.md"
+echo "  - KARIMO section from CLAUDE.md"
 echo "  - .worktrees/ entry from .gitignore"
 echo
 echo -e "${RED}Warning: This action cannot be undone.${NC}"
@@ -163,18 +163,46 @@ if [ -f "$TARGET_DIR/.github/ISSUE_TEMPLATE/karimo-task.yml" ]; then
     REMOVED_COUNT=$((REMOVED_COUNT + 1))
 fi
 
-# Strip KARIMO Framework section from CLAUDE.md
+# Strip KARIMO section from CLAUDE.md
 CLAUDE_MD="$TARGET_DIR/CLAUDE.md"
-if [ -f "$CLAUDE_MD" ] && grep -q "## KARIMO Framework" "$CLAUDE_MD"; then
-    echo "Removing KARIMO section from CLAUDE.md..."
+
+# Check for marker-based section first (new format)
+if [ -f "$CLAUDE_MD" ] && grep -q "<!-- KARIMO:START" "$CLAUDE_MD"; then
+    echo "Removing KARIMO section from CLAUDE.md (marker-based)..."
 
     # Create a temporary file
     TEMP_FILE=$(mktemp)
 
-    # Use awk to remove everything from "## KARIMO Framework" to end of file
+    # Use sed to remove everything between markers (inclusive)
+    sed '/<!-- KARIMO:START/,/KARIMO:END -->/d' "$CLAUDE_MD" > "$TEMP_FILE"
+
+    # Also remove the --- separator if it precedes empty space at end of file
+    # Remove trailing blank lines
+    sed -i.bak -e :a -e '/^\n*$/{ $d; N; ba' -e '}' "$TEMP_FILE" 2>/dev/null || \
+    sed -i '' -e :a -e '/^\n*$/{ $d; N; ba' -e '}' "$TEMP_FILE"
+
+    # Remove trailing --- if present at end of file
+    if tail -1 "$TEMP_FILE" | grep -q "^---$"; then
+        head -n -1 "$TEMP_FILE" > "${TEMP_FILE}.tmp" && mv "${TEMP_FILE}.tmp" "$TEMP_FILE"
+    fi
+
+    # Replace original file
+    mv "$TEMP_FILE" "$CLAUDE_MD"
+    rm -f "${TEMP_FILE}.bak" "${CLAUDE_MD}.bak"
+
+    REMOVED_COUNT=$((REMOVED_COUNT + 1))
+
+# Fall back to legacy format (## KARIMO header without markers)
+elif [ -f "$CLAUDE_MD" ] && grep -q "## KARIMO" "$CLAUDE_MD"; then
+    echo "Removing KARIMO section from CLAUDE.md (legacy format)..."
+
+    # Create a temporary file
+    TEMP_FILE=$(mktemp)
+
+    # Use awk to remove everything from "## KARIMO" to end of file
     # or to the next "---" separator (whichever comes first)
     awk '
-    /^## KARIMO Framework/ { skip = 1; next }
+    /^## KARIMO/ { skip = 1; next }
     skip && /^---$/ { skip = 0; next }
     !skip { print }
     ' "$CLAUDE_MD" > "$TEMP_FILE"
