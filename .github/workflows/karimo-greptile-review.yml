@@ -16,7 +16,25 @@ on:
     types: [opened, synchronize, reopened]
 
 jobs:
+  # Skip workflow on KARIMO source repo - this workflow is for user projects
+  check-repo:
+    runs-on: ubuntu-latest
+    outputs:
+      is-source-repo: ${{ steps.check.outputs.is-source-repo }}
+    steps:
+      - name: Check if KARIMO source repo
+        id: check
+        run: |
+          if [[ "${{ github.repository }}" == "opensesh/KARIMO" ]]; then
+            echo "is-source-repo=true" >> $GITHUB_OUTPUT
+            echo "Skipping: This workflow is for user projects, not the KARIMO source repo"
+          else
+            echo "is-source-repo=false" >> $GITHUB_OUTPUT
+          fi
+
   check-label:
+    needs: check-repo
+    if: needs.check-repo.outputs.is-source-repo != 'true'
     runs-on: ubuntu-latest
     outputs:
       is-karimo: ${{ steps.check.outputs.is-karimo }}
