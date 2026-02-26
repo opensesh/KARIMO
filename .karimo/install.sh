@@ -440,15 +440,18 @@ fi
 # END AUTO-DETECTION
 # ==============================================================================
 
-# Add minimal reference block to CLAUDE.md (~8 lines instead of ~65)
+# Add marker-delimited KARIMO section to CLAUDE.md
 echo "Updating CLAUDE.md..."
 CLAUDE_MD="$TARGET_DIR/CLAUDE.md"
 
-# Check if KARIMO section already exists
-if [ -f "$CLAUDE_MD" ] && grep -q "## KARIMO" "$CLAUDE_MD"; then
-    echo -e "${YELLOW}KARIMO section already in CLAUDE.md, skipping...${NC}"
+# Check if KARIMO section already exists (using markers or legacy header)
+if [ -f "$CLAUDE_MD" ] && grep -q "<!-- KARIMO:START" "$CLAUDE_MD"; then
+    echo -e "${YELLOW}KARIMO section already in CLAUDE.md (with markers), skipping...${NC}"
+elif [ -f "$CLAUDE_MD" ] && grep -q "## KARIMO" "$CLAUDE_MD"; then
+    echo -e "${YELLOW}Legacy KARIMO section found in CLAUDE.md${NC}"
+    echo "  Consider running uninstall.sh and reinstalling to use new marker format"
 else
-    # Append KARIMO reference block
+    # Append marker-delimited KARIMO section
     if [ -f "$CLAUDE_MD" ]; then
         echo "" >> "$CLAUDE_MD"
         echo "---" >> "$CLAUDE_MD"
@@ -456,20 +459,39 @@ else
     fi
 
     cat >> "$CLAUDE_MD" << 'EOF'
+<!-- KARIMO:START - Do not edit between markers -->
 ## KARIMO
 
 This project uses [KARIMO](https://github.com/opensesh/KARIMO) for PRD-driven autonomous development.
 
+### Quick Reference
+
+- **Commands:** Type `/karimo-` to see all commands
 - **Agent rules:** `.claude/KARIMO_RULES.md`
-- **Config & PRDs:** `.karimo/`
+- **Configuration:** `.karimo/config.yaml`
 - **Learnings:** `.karimo/learnings.md`
-- **All commands prefixed** `karimo:` — type `/karimo-` to see available commands
+
+### GitHub Configuration
+
+| Setting | Value |
+|---------|-------|
+| Owner Type | _pending_ |
+| Owner | _pending_ |
+| Repository | _pending_ |
+
+_Run `/karimo-configure` to detect and populate these values._
+<!-- KARIMO:END -->
 EOF
 
     if [ -f "$CLAUDE_MD" ] && [ $(wc -c < "$CLAUDE_MD") -gt 100 ]; then
-        echo "  Added KARIMO reference block to existing CLAUDE.md"
+        echo "  Added KARIMO section to existing CLAUDE.md (with markers)"
+        echo "  ────────────────────────────────────────────────────────"
+        echo "  Added between <!-- KARIMO:START --> and <!-- KARIMO:END --> markers:"
+        echo "    - Quick reference links"
+        echo "    - GitHub Configuration table (pending values)"
+        echo "  Total: ~20 lines"
     else
-        echo "  Created CLAUDE.md with KARIMO reference block"
+        echo "  Created CLAUDE.md with KARIMO section (with markers)"
     fi
 fi
 
