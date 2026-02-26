@@ -290,7 +290,7 @@ echo "These files are ${GREEN}preserved${NC} (never modified):"
 echo "  • .karimo/config.yaml"
 echo "  • .karimo/learnings.md"
 echo "  • .karimo/prds/*"
-echo "  • CLAUDE.md"
+echo "  • CLAUDE.md (your content outside KARIMO markers)"
 echo
 
 if [ "$CI_MODE" = false ]; then
@@ -529,6 +529,6 @@ echo "Preserved (not modified):"
 echo "  • .karimo/config.yaml"
 echo "  • .karimo/learnings.md"
 echo "  • .karimo/prds/*"
-echo "  • CLAUDE.md"
+echo "  • CLAUDE.md (your content outside KARIMO markers)"
 echo
 echo -e "${DIM}Run /karimo-doctor to verify the updated installation.${NC}"
