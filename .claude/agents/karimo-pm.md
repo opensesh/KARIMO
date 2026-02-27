@@ -74,6 +74,75 @@ The mode determines which steps to execute in the 7-Step Execution Flow.
 
 ---
 
+## Helper: Update Project Status Field
+
+**Use this helper whenever task status changes and the GitHub Project board needs updating.** This ensures real-time visibility on the Kanban board.
+
+```bash
+# update_project_status - Updates the agent_status field on GitHub Project
+# Arguments: $1 = task_id, $2 = status (queued|running|in-review|needs-revision|needs-human-review|done|failed)
+update_project_status() {
+  local TASK_ID="$1"
+  local STATUS="$2"
+
+  # Skip if not in full mode
+  if [ "$MODE" != "full" ]; then return 0; fi
+
+  # Get project info from status.json
+  local PROJECT_NUMBER=$(grep -o '"github_project_number"[[:space:]]*:[[:space:]]*[0-9]*' "$STATUS_FILE" | \
+    grep -o '[0-9]*$')
+
+  if [ -z "$PROJECT_NUMBER" ]; then return 0; fi
+
+  # Get owner from config
+  local OWNER=$(grep "^  owner:" .karimo/config.yaml | head -1 | awk '{print $2}')
+  local OWNER_TYPE=$(grep "^  owner_type:" .karimo/config.yaml | head -1 | awk '{print $2}')
+
+  if [ "$OWNER_TYPE" = "personal" ]; then
+    PROJECT_OWNER="@me"
+  else
+    PROJECT_OWNER="$OWNER"
+  fi
+
+  # Find task's issue number from status.json
+  local ISSUE_NUMBER=$(grep -A5 "\"$TASK_ID\"" "$STATUS_FILE" | \
+    grep -o '"issue_number"[[:space:]]*:[[:space:]]*[0-9]*' | \
+    grep -o '[0-9]*$' | head -1)
+
+  if [ -z "$ISSUE_NUMBER" ]; then return 0; fi
+
+  # Find project item ID for this task's issue
+  local ITEM_ID=$(gh project item-list "$PROJECT_NUMBER" --owner "$PROJECT_OWNER" --format json \
+    --jq ".items[] | select(.content.number == $ISSUE_NUMBER) | .id" 2>/dev/null)
+
+  if [ -z "$ITEM_ID" ]; then return 0; fi
+
+  # Get project ID and field info
+  local PROJECT_ID=$(gh project list --owner "$PROJECT_OWNER" --format json \
+    --jq ".projects[] | select(.number == $PROJECT_NUMBER) | .id" 2>/dev/null)
+
+  local FIELD_ID=$(gh project field-list "$PROJECT_NUMBER" --owner "$PROJECT_OWNER" --format json \
+    --jq '.fields[] | select(.name == "agent_status") | .id' 2>/dev/null)
+
+  local OPTION_ID=$(gh project field-list "$PROJECT_NUMBER" --owner "$PROJECT_OWNER" --format json \
+    --jq ".fields[] | select(.name == \"agent_status\") | .options[] | select(.name == \"$STATUS\") | .id" 2>/dev/null)
+
+  if [ -n "$PROJECT_ID" ] && [ -n "$FIELD_ID" ] && [ -n "$OPTION_ID" ]; then
+    gh project item-edit --project-id "$PROJECT_ID" --id "$ITEM_ID" \
+      --field-id "$FIELD_ID" --single-select-option-id "$OPTION_ID" 2>/dev/null
+  fi
+}
+```
+
+**Call this helper at these transition points:**
+- After adding task to project → `update_project_status "$TASK_ID" "queued"`
+- After spawning worker → `update_project_status "$TASK_ID" "running"`
+- After creating PR → `update_project_status "$TASK_ID" "in-review"`
+- On Greptile failure → `update_project_status "$TASK_ID" "needs-revision"`
+- After 3 failed attempts → `update_project_status "$TASK_ID" "needs-human-review"`
+
+---
+
 ## 7-Step Execution Flow
 
 ### Step 1: Parse, Validate & Plan
@@ -411,6 +480,9 @@ gh project item-edit \
   --id "$ITEM_ID" \
   --field-id {wave-field-id} \
   --single-select-option-id {wave-option-id}
+
+# Set initial agent_status to queued for Kanban visibility
+update_project_status "{task-id}" "queued"
 ```
 
 Record wave assignment in status.json:
@@ -600,6 +672,10 @@ For **complexity 3+** tasks, prepend:
 
 **After spawning (Full Mode):**
 - Update `status.json`: task status → `running`, record `started_at`, `model`, `agent_type`, `loop_count: 1`
+- Update GitHub Project board for Kanban visibility:
+  ```bash
+  update_project_status "{task-id}" "running"
+  ```
 - Update GitHub Issue via MCP:
   ```typescript
   mcp__github__add_issue_comment({
@@ -889,7 +965,12 @@ Closes #{issue_number}
    }
    ```
 
-2. **Update GitHub Issue via MCP:**
+2. **Update GitHub Project board for Kanban visibility:**
+   ```bash
+   update_project_status "{task-id}" "in-review"
+   ```
+
+3. **Update GitHub Issue via MCP:**
    ```typescript
    mcp__github__add_issue_comment({
      owner: "{owner}",
@@ -969,6 +1050,10 @@ When a task PR receives a Greptile score < 3 (on a 0–5 scale), enter the revis
          }
        }
        ```
+   - Update GitHub Project board for Kanban visibility:
+     ```bash
+     update_project_status "{task-id}" "needs-revision"
+     ```
    - Spawn the worker agent via Task tool with updated context (include Greptile feedback)
    - If escalated to Opus, use the Opus variant (e.g., karimo-implementer-opus instead of karimo-implementer)
    - Worker revises code and updates PR
@@ -997,9 +1082,14 @@ When a task PR receives a Greptile score < 3 (on a 0–5 scale), enter the revis
    }
    ```
 
-2. **Add `blocked-needs-human` label to the PR**
+2. **Update GitHub Project board for Kanban visibility:**
+   ```bash
+   update_project_status "{task-id}" "needs-human-review"
+   ```
 
-3. **Comment on PR:**
+3. **Add `blocked-needs-human` label to the PR**
+
+4. **Comment on PR:**
    ```
    KARIMO: 3 revision attempts made. Greptile score remains below threshold (< 3/5).
    Human review required.
@@ -1008,11 +1098,11 @@ When a task PR receives a Greptile score < 3 (on a 0–5 scale), enter the revis
    Model: escalated sonnet → opus after attempt 1
    ```
 
-4. **Update the GitHub Issue** with block details
+5. **Update the GitHub Issue** with block details
 
-5. **Remove task from active execution queue** — continue with other independent tasks
+6. **Remove task from active execution queue** — continue with other independent tasks
 
-6. **Log the block for compound learning** — this becomes input for `/karimo-learn`
+7. **Log the block for compound learning** — this becomes input for `/karimo-learn`
 
 #### Model Selection Defaults
 
