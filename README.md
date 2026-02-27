@@ -35,12 +35,12 @@ This is a PRD-driven framework that starts with a detailed plan for a feature. A
 
 | Step | What Happens | Key Details |
 |------|--------------|-------------|
-| **Plan** | Structured PRD interview captures requirements | 5-round interview, codebase investigation, agent-optimized output |
-| **Tasks** | PRD decomposed into isolated task briefs | Self-contained briefs, dependency graph, parallel-ready |
-| **Execute** | Agents work in parallel isolation | Git worktrees, feature branches, findings propagation |
-| **Review** | Greptile provides objective code review | 0-5 scoring, revision loops, model escalation (optional) |
-| **Merge** | Clear audit trail at both levels | Task PRs → feature branch, feature PR → main (human gate) |
-| **Monitor** | Real-time visibility into progress | `/karimo-status`, `/karimo-overview`, GitHub Projects |
+| **1. Plan** | Structured PRD interview captures requirements | 5-round interview, codebase investigation, agent-optimized output |
+| **2. Tasks** | PRD decomposed into isolated task briefs | Self-contained briefs, dependency graph, parallel-ready |
+| **3. Execute** | Agents work in parallel isolation | Git worktrees, feature branches, findings propagation |
+| **4. Review** | Greptile provides objective code review | 0-5 scoring, revision loops, model escalation (optional) |
+| **5. Merge** | Clear audit trail at both levels | Task PRs → feature branch, feature PR → main (human gate) |
+| **6. Monitor** | Real-time visibility into progress | `/karimo-status`, `/karimo-overview`, GitHub Projects |
 
 ---
 
