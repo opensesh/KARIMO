@@ -7,6 +7,42 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [3.3.5] - 2026-02-27
+
+### Added
+
+**Real-Time GitHub Project Status Updates**
+
+Added `update_project_status` helper function to PM Agent that syncs task status changes with GitHub Projects in real-time. Previously, the Kanban board only updated after PR merge via `karimo-sync.yml`, causing a visibility gap during active execution where tasks appeared stuck with blank status.
+
+**Status transitions now update the board immediately:**
+
+| Transition Point | Status Set | Location |
+|------------------|------------|----------|
+| Task added to project | `queued` | Step 3f |
+| Worker agent spawned | `running` | Step 5c |
+| PR created | `in-review` | Step 6e |
+| Greptile review fails | `needs-revision` | Step 6f |
+| 3 failed Greptile attempts | `needs-human-review` | Step 6f |
+
+**Implementation details:**
+- Helper function uses `gh project item-edit` with proper field/option ID lookups
+- Gracefully skips in `fast-track` mode (no GitHub Projects)
+- Handles missing project data with early returns
+- Suppresses errors to avoid noisy output
+
+**Before:** Tasks on Kanban board had blank status during execution, jumping to `done` only after PR merge.
+
+**After:** Board reflects real-time execution state — `queued` → `running` → `in-review` → `done`.
+
+**Files updated:**
+
+| File | Changes |
+|------|---------|
+| `karimo-pm.md` | Added `update_project_status` helper, status update calls at 5 transition points |
+
+---
+
 ## [3.3.4] - 2026-02-26
 
 ### Fixed

@@ -484,9 +484,24 @@ This hybrid approach covers ~95% of CI setups without external dependencies.
 ### GitHub Projects
 
 Tasks sync to GitHub Projects for visibility:
-- Issues created for each task
-- Labels indicate status (ready, running, blocked, done)
-- Milestone tracks PRD completion
+- Feature issue created as parent with task issues linked as sub-issues
+- Custom fields: `complexity`, `wave`, `agent_status`, `pr_number`, `model`
+- Wave field enables filtering tasks by execution wave
+
+**Real-Time Status Updates**
+
+The PM Agent updates the `agent_status` field in real-time as tasks progress through execution:
+
+| Status | When Set | Meaning |
+|--------|----------|---------|
+| `queued` | Task added to project | Ready to start, waiting for dependencies |
+| `running` | Worker agent spawned | Agent actively working on task |
+| `in-review` | PR created | Awaiting code review |
+| `needs-revision` | Greptile score < 3 | Revision loop active |
+| `needs-human-review` | 3 failed attempts | Hard gate, human intervention required |
+| `done` | PR merged | Task complete (set by `karimo-sync.yml`) |
+
+This ensures the Kanban board reflects actual execution state, not just post-merge updates. The `update_project_status` helper in `karimo-pm.md` handles all status transitions.
 
 ### Pull Requests
 
