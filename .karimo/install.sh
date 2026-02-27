@@ -100,6 +100,17 @@ if [ ! -d "$TARGET_DIR" ]; then
     exit 1
 fi
 
+# Resolve to absolute path for clearer messaging
+TARGET_DIR=$(cd "$TARGET_DIR" && pwd)
+
+# Prevent self-installation (installing KARIMO into its own source)
+if [ "$TARGET_DIR" = "$KARIMO_ROOT" ]; then
+    echo -e "${RED}Error: Cannot install KARIMO into its own source directory.${NC}"
+    echo "Please specify a different target project:"
+    echo "  bash $0 /path/to/your/project"
+    exit 1
+fi
+
 # Check if target is a git repository
 if [ ! -d "$TARGET_DIR/.git" ]; then
     if [ "$CI_MODE" = true ]; then
