@@ -125,7 +125,7 @@ When you run `install.sh`, these files are added:
 |----------|----------|
 | `.claude/agents/` | 13 agent definitions (7 coordination + 6 task agents) |
 | `.claude/commands/` | 11 slash commands (plan, overview, execute, modify, status, configure, update, feedback, learn, doctor, test) |
-| `.claude/skills/` | 5 skills (2 coordination + 3 task agent skills) |
+| `.claude/skills/` | 6 skills (3 coordination + 3 task agent skills) |
 | `.claude/KARIMO_RULES.md` | Agent behavior rules |
 | `.karimo/templates/` | 9 templates (PRD, interview, task, status, dependencies, DAG, learn-interview, findings, task-brief) |
 | `.github/workflows/` | 5 GitHub Actions (ci, sync, dependency-watch, ci-integration, greptile-review) |
@@ -138,7 +138,7 @@ When you run `install.sh`, these files are added:
 
 ### Skills
 
-**Coordination skills:** git-worktree-ops, github-project-ops
+**Coordination skills:** git-worktree-ops, github-project-ops, karimo-bash-utilities
 
 **Task agent skills:** karimo-code-standards, karimo-testing-standards, karimo-doc-standards
 
