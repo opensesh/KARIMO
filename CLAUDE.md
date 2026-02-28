@@ -138,6 +138,8 @@ When you run `install.sh`, these files are added:
 
 ### Skills
 
+All skills use the `karimo-*` prefix for reliable update management and clear distinction from user-added files.
+
 **Coordination skills:** karimo-git-worktree-ops, karimo-github-project-ops, karimo-bash-utilities
 
 **Task agent skills:** karimo-code-standards, karimo-testing-standards, karimo-doc-standards

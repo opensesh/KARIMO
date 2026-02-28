@@ -121,6 +121,31 @@ manifest_get() {
         grep "\"$child\"" | head -1 | sed 's/.*"'"$child"'"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/'
 }
 
+# Remove karimo-* files not in manifest (handles renames/deletions)
+cleanup_stale_files() {
+    local dir="$1"
+    local manifest_key="$2"
+    local manifest_file="$3"
+    local removed=0
+
+    # Get list of files that SHOULD exist (from manifest)
+    local expected_files=$(manifest_list "$manifest_key" "$manifest_file")
+
+    # Check each karimo-*.md file in directory
+    for file in "$dir"/karimo-*.md; do
+        [ -f "$file" ] || continue
+        local filename=$(basename "$file")
+
+        # If not in manifest, remove it
+        if ! echo "$expected_files" | grep -qx "$filename"; then
+            rm "$file"
+            removed=$((removed + 1))
+        fi
+    done
+
+    echo $removed
+}
+
 # ==============================================================================
 # VERSION COMPARISON
 # ==============================================================================
@@ -389,6 +414,17 @@ for skill in $(manifest_list "skills" "$MANIFEST"); do
     fi
 done
 
+# Cleanup stale files (handles renames/deletions)
+echo "  Cleaning up stale files..."
+CLEANED_AGENTS=$(cleanup_stale_files "$PROJECT_ROOT/.claude/agents" "agents" "$MANIFEST")
+CLEANED_COMMANDS=$(cleanup_stale_files "$PROJECT_ROOT/.claude/commands" "commands" "$MANIFEST")
+CLEANED_SKILLS=$(cleanup_stale_files "$PROJECT_ROOT/.claude/skills" "skills" "$MANIFEST")
+
+TOTAL_CLEANED=$((CLEANED_AGENTS + CLEANED_COMMANDS + CLEANED_SKILLS))
+if [ $TOTAL_CLEANED -gt 0 ]; then
+    echo "    Removed $CLEANED_AGENTS stale agents, $CLEANED_COMMANDS commands, $CLEANED_SKILLS skills"
+fi
+
 # Update templates
 echo "  Updating templates..."
 for template in $(manifest_list "templates" "$MANIFEST"); do
@@ -524,6 +560,10 @@ echo "  • $UPDATED_TEMPLATES templates"
 echo "  • $UPDATED_WORKFLOWS workflows"
 echo "  • KARIMO_RULES.md"
 echo "  • VERSION, MANIFEST.json"
+if [ $TOTAL_CLEANED -gt 0 ]; then
+    echo ""
+    echo "Cleaned up $TOTAL_CLEANED stale files"
+fi
 echo
 echo "Preserved (not modified):"
 echo "  • .karimo/config.yaml"

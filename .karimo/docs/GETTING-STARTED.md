@@ -173,13 +173,15 @@ If your project already has `.claude/` with custom agents, commands, or `CLAUDE.
 **What gets added (from MANIFEST.json):**
 - 13 KARIMO agents (prefixed `karimo-*`)
 - 11 slash commands (prefixed `karimo-*`)
-- 5 KARIMO skills
+- 6 KARIMO skills (prefixed `karimo-*`)
 - `.claude/KARIMO_RULES.md`
 - `.karimo/` directory with templates, manifest, and learnings
 - GitHub Actions workflows
 - Marker-delimited KARIMO section appended to `CLAUDE.md` (~20 lines)
 
-**Naming conflicts:** KARIMO agents and commands both use the `karimo-` prefix to avoid conflicts with your existing configuration. If you happen to have agents or commands with `karimo-` prefix, rename yours before installing.
+**Naming convention:** All KARIMO-managed files use the `karimo-*` prefix for agents, commands, and skills. This enables reliable cleanup during updates and clear distinction from user-added files.
+
+**Naming conflicts:** If you have files with the `karimo-*` prefix, rename yours before installing.
 
 ---
 

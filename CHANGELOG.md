@@ -7,6 +7,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [3.5.2] - 2026-02-27
+
+### Added
+
+**Manifest-Based Cleanup in Update Script**
+
+The update script now automatically removes stale `karimo-*` files not present in the manifest. This handles file renames and deletions cleanly across updates.
+
+- New `cleanup_stale_files()` function compares local files against manifest
+- Removes orphaned agents, commands, and skills after copying new files
+- User's custom files (without `karimo-*` prefix) are never touched
+
+### Changed
+
+**Consistent `karimo-*` Prefix for All Skills**
+
+All KARIMO-managed skills now use the `karimo-*` prefix for consistent identification:
+- `karimo-git-worktree-ops.md`
+- `karimo-github-project-ops.md`
+- `karimo-bash-utilities.md`
+- `karimo-code-standards.md`
+- `karimo-doc-standards.md`
+- `karimo-testing-standards.md`
+
+This enables reliable cleanup during updates and clear distinction from user-added files.
+
+---
+
 ## [3.5.1] - 2026-02-27
 
 ### Fixed
