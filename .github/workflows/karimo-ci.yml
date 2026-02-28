@@ -20,27 +20,3 @@ jobs:
           fi
           node -e "JSON.parse(require('fs').readFileSync('.karimo/MANIFEST.json'))"
           echo "✓ MANIFEST.json is valid"
-
-  # Only runs in source repo - validates install script works
-  validate-installation:
-    runs-on: ubuntu-latest
-    if: hashFiles('.karimo/install.sh') != ''
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Create test fixture
-        run: |
-          mkdir -p /tmp/test-project
-          cd /tmp/test-project
-          git init
-          echo '{}' > package.json
-
-      - name: Run install script
-        run: bash .karimo/install.sh --ci /tmp/test-project
-
-      - name: Verify basic installation
-        run: |
-          test -f /tmp/test-project/.karimo/MANIFEST.json
-          test -f /tmp/test-project/.claude/KARIMO_RULES.md
-          test -f /tmp/test-project/.karimo/VERSION
-          echo "✓ Core files installed"

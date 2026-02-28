@@ -1,0 +1,36 @@
+name: Test Installation
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.karimo/install.sh'
+      - '.karimo/MANIFEST.json'
+  pull_request:
+    branches: [main]
+    paths:
+      - '.karimo/install.sh'
+      - '.karimo/MANIFEST.json'
+
+jobs:
+  test-install:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Create test fixture
+        run: |
+          mkdir -p /tmp/test-project
+          cd /tmp/test-project
+          git init
+          echo '{}' > package.json
+
+      - name: Run install script
+        run: bash .karimo/install.sh --ci /tmp/test-project
+
+      - name: Verify installation
+        run: |
+          test -f /tmp/test-project/.karimo/MANIFEST.json
+          test -f /tmp/test-project/.claude/KARIMO_RULES.md
+          test -f /tmp/test-project/.karimo/VERSION
+          echo "✓ Core files installed"
