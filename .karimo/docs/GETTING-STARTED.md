@@ -246,7 +246,8 @@ cat .karimo/prds/{slug}/tasks.yaml
 ├── prd.md              # Full PRD document
 ├── tasks.yaml          # Task definitions with dependencies
 ├── execution_plan.yaml # DAG for parallel execution
-└── status.json         # Execution state (created during /karimo-execute)
+├── status.json         # Execution state (created during /karimo-execute)
+└── metrics.json        # Execution metrics (created at PRD completion)
 ```
 
 The `tasks.yaml` contains entries like:
