@@ -102,16 +102,6 @@ manifest_list() {
     sed -n "/\"$key\"/,/]/p" "$manifest" | grep '"' | grep -v "\"$key\"" | sed 's/.*"\([^"]*\)".*/\1/'
 }
 
-manifest_nested_list() {
-    local key="$1"
-    local manifest="$2"
-    local parent="${key%%.*}"
-    local child="${key#*.}"
-    sed -n "/\"$parent\"/,/^[[:space:]]*}/p" "$manifest" | \
-        sed -n "/\"$child\"/,/]/p" | grep '"' | grep -v "\"$child\"" | \
-        sed 's/.*"\([^"]*\)".*/\1/'
-}
-
 manifest_get() {
     local key="$1"
     local manifest="$2"
@@ -440,18 +430,34 @@ if [ -f "$KARIMO_SOURCE/.claude/KARIMO_RULES.md" ]; then
     cp "$KARIMO_SOURCE/.claude/KARIMO_RULES.md" "$PROJECT_ROOT/.claude/KARIMO_RULES.md"
 fi
 
-# Update workflows (only replace existing ones for optional, always update required)
+# Update workflows
+# - karimo-ci.yml: Always update (required)
+# - Other karimo-* workflows: Update if already installed in target
 echo "  Updating workflows..."
-for workflow in $(manifest_nested_list "workflows.required" "$MANIFEST"); do
-    if [ -f "$KARIMO_SOURCE/.github/workflows/$workflow" ]; then
-        cp "$KARIMO_SOURCE/.github/workflows/$workflow" "$PROJECT_ROOT/.github/workflows/"
+
+# Always update the required CI workflow
+if [ -f "$KARIMO_SOURCE/.github/workflows/karimo-ci.yml" ]; then
+    cp "$KARIMO_SOURCE/.github/workflows/karimo-ci.yml" "$PROJECT_ROOT/.github/workflows/"
+    UPDATED_WORKFLOWS=$((UPDATED_WORKFLOWS + 1))
+fi
+
+# Update optional workflows if already installed (from .github/workflows/)
+for workflow in "$KARIMO_SOURCE"/.github/workflows/karimo-*.yml; do
+    [ -f "$workflow" ] || continue
+    workflow_name=$(basename "$workflow")
+    [ "$workflow_name" = "karimo-ci.yml" ] && continue  # Already handled above
+    if [ -f "$PROJECT_ROOT/.github/workflows/$workflow_name" ]; then
+        cp "$workflow" "$PROJECT_ROOT/.github/workflows/"
         UPDATED_WORKFLOWS=$((UPDATED_WORKFLOWS + 1))
     fi
 done
-for workflow in $(manifest_nested_list "workflows.optional" "$MANIFEST"); do
-    # Only update if already installed
-    if [ -f "$PROJECT_ROOT/.github/workflows/$workflow" ] && [ -f "$KARIMO_SOURCE/.github/workflows/$workflow" ]; then
-        cp "$KARIMO_SOURCE/.github/workflows/$workflow" "$PROJECT_ROOT/.github/workflows/"
+
+# Update optional workflows if already installed (from .karimo/workflow-templates/)
+for workflow in "$KARIMO_SOURCE"/.karimo/workflow-templates/karimo-*.yml; do
+    [ -f "$workflow" ] || continue
+    workflow_name=$(basename "$workflow")
+    if [ -f "$PROJECT_ROOT/.github/workflows/$workflow_name" ]; then
+        cp "$workflow" "$PROJECT_ROOT/.github/workflows/"
         UPDATED_WORKFLOWS=$((UPDATED_WORKFLOWS + 1))
     fi
 done
