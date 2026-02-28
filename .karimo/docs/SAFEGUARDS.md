@@ -329,11 +329,24 @@ Before PR creation, KARIMO rebases the task branch onto the feature branch.
 - Task A's changes get overwritten
 - Integration failures are hard to trace
 
-**Conflict handling:** If rebase conflicts occur:
-1. Task marked as `needs-human-rebase`
-2. PM Agent moves to next task
-3. Human resolves conflicts manually
-4. Task can be resumed after resolution
+**Three-Way Merge Conflict Resolution:**
+
+Before escalating to human, KARIMO attempts automated resolution:
+
+1. **Attempt `git merge --no-commit`** — Try merge before rebase
+2. **Categorize conflicts:**
+   - **Easy:** Imports, whitespace, lock files → auto-resolve
+   - **Moderate:** Non-overlapping changes in same file → attempt resolution
+   - **Hard:** Semantic conflicts, overlapping logic → escalate
+3. **Auto-resolve easy conflicts** — Apply heuristics for common patterns
+4. **Only escalate hard conflicts** — Mark as `needs-human-rebase`
+
+**Conflict handling flow:**
+1. Attempt three-way merge with auto-resolution
+2. If hard conflicts remain → Task marked as `needs-human-rebase`
+3. PM Agent moves to next task
+4. Human resolves conflicts manually
+5. Task can be resumed after resolution
 
 ### File Overlap Detection
 
@@ -605,6 +618,72 @@ Triggered on PR open/synchronize with `karimo` label:
 | `greptile-passed` | Greptile Review | Score >= 3 |
 | `greptile-needs-revision` | Greptile Review | Score < 3 |
 | `greptile-skipped` | Greptile Review | No API key configured |
+
+---
+
+## Rollback Protocol
+
+KARIMO provides structured rollback capabilities for error recovery.
+
+### Task-Level Rollback
+
+When a task fails validation after 3 loops:
+
+1. **Pre-commit SHA recorded** — `rollback_sha` captured before worker spawn
+2. **Validation failure** — Build/typecheck fails after 3 attempts
+3. **Auto-rollback** — Task branch reset to `rollback_sha`
+4. **Status update** — Task marked `rolled_back` with reason
+
+**Implementation:**
+
+The `safe_commit()` function in `git-worktree-ops` skill handles safe commits:
+
+```bash
+safe_commit() {
+  PRE_SHA=$(git rev-parse HEAD)
+  git add -A && git commit -m "$MESSAGE"
+
+  # Run validation
+  if ! $BUILD_CMD; then
+    git reset --hard $PRE_SHA
+    return 1
+  fi
+}
+```
+
+### Feature-Level Rollback
+
+When integration fails after all tasks complete:
+
+1. **Integration check fails** — Feature branch doesn't build/test
+2. **Identify culprit** — Last merged task PR
+3. **Revert merge** — Create revert commit on feature branch
+4. **Re-queue task** — Task status reset to `ready`
+
+### Decision Tree
+
+```
+Task Failure
+    │
+    ▼
+Retry (same model)
+    │
+    ├── Pass → Continue
+    │
+    └── Fail → Escalate (Sonnet → Opus)
+                  │
+                  ├── Pass → Continue
+                  │
+                  └── Fail (3x) → Rollback
+                                    │
+                                    └── Human review required
+```
+
+### Status Fields
+
+Rollback events tracked in `status.json`:
+- Task: `rollback_sha`, `rolled_back`, `rolled_back_at`, `rollback_reason`
+- Feature: `rollback_event` object
 
 ---
 
