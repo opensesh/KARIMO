@@ -7,6 +7,54 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [3.5.3] - 2026-02-27
+
+### Fixed
+
+**Buggy Manifest Workflow Parsing**
+
+Fixed a bug where `manifest_nested_list` incorrectly extracted "optional" as a workflow name due to regex not understanding JSON nesting. The root cause was sed/regex parsing that couldn't properly scope to nested arrays.
+
+### Changed
+
+**Simplified CI Validation**
+
+Radically simplified `karimo-ci.yml` from ~240 lines to ~45 lines:
+- Removed brittle `manifest_list` and `manifest_nested_list` shell functions
+- Removed file-by-file validation (over-engineered and fragile)
+- Kept JSON validity check and install script test
+- Philosophy: CI testing is the user's responsibility, not KARIMO's
+
+**Removed Workflows from MANIFEST.json**
+
+The `workflows` section is no longer tracked in MANIFEST.json:
+- Update script already uses `karimo-*` glob patterns for cleanup
+- Eliminates the buggy nested parsing entirely
+- Simplifies manifest structure
+
+**Workflow Installation via /karimo-configure**
+
+Optional workflows are now installed when users enable features:
+- Greptile: Copies `karimo-greptile-review.yml` when enabled
+- CI Observer: New question added; copies `karimo-ci-integration.yml` when enabled
+- Added `ci_observer_enabled` to config.yaml schema
+
+**Update Script Uses Glob Patterns**
+
+The update script now uses glob patterns instead of manifest parsing for workflows:
+- `karimo-ci.yml` always updated (required)
+- Other `karimo-*.yml` updated only if already installed
+- Supports workflows from both `.github/workflows/` and `.karimo/workflow-templates/`
+
+| File | Change |
+|------|--------|
+| `.karimo/MANIFEST.json` | Removed `workflows` section |
+| `.github/workflows/karimo-ci.yml` | Simplified to ~45 lines |
+| `.claude/commands/karimo-configure.md` | Added workflow installers, CI observer question |
+| `.karimo/update.sh` | Removed `manifest_nested_list`, use glob patterns |
+
+---
+
 ## [3.5.2] - 2026-02-27
 
 ### Added
