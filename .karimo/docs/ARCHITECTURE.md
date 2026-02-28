@@ -1,6 +1,6 @@
 # KARIMO Architecture
 
-**Version:** 3.3
+**Version:** 3.5.0
 **Status:** Active
 
 ---
@@ -264,6 +264,13 @@ After execution completes (or during long runs), use `/karimo-overview` to surfa
 - Tasks in active revision loops
 - Tasks with merge conflicts (needs human rebase)
 - Recently completed and merged tasks
+- Cross-PRD dependency graph (with `--deps` flag)
+
+The `--deps` flag displays:
+- `cross_feature_blockers` from all PRDs
+- Runtime discoveries from `dependencies.md`
+- Dependency graph with blocking relationships
+- Recommended execution order
 
 This is the primary human oversight touchpoint — check it each morning or after a run completes.
 
@@ -563,6 +570,111 @@ cost:
 
 Some values are not configurable:
 - **model threshold:** 5 (complexity < 5 → sonnet, >= 5 → opus)
+
+---
+
+## Metrics & Telemetry
+
+KARIMO generates execution metrics for analysis and learning automation.
+
+### metrics.json
+
+At PRD completion, a `metrics.json` file is generated in the PRD folder containing:
+
+```json
+{
+  "prd_slug": "user-profiles",
+  "completed_at": "2026-02-27T15:30:00Z",
+  "duration": {
+    "total_minutes": 45,
+    "waves": { "1": 12, "2": 18, "3": 15 }
+  },
+  "loop_counts": {
+    "total": 8,
+    "by_task": { "1a": 1, "1b": 3, "2a": 4 },
+    "high_loop_tasks": ["2a"]
+  },
+  "model_usage": {
+    "sonnet_tasks": 4,
+    "opus_tasks": 2,
+    "escalations": 1
+  },
+  "greptile_scores": {
+    "1a": [4], "1b": [2, 3, 4], "2a": [2, 2, 3]
+  },
+  "learning_candidates": [
+    { "task_id": "2a", "reason": "high_loop_count", "context": "..." },
+    { "task_id": "1b", "reason": "model_escalation", "context": "..." }
+  ]
+}
+```
+
+### Learning Candidates
+
+The PM Agent automatically identifies tasks that warrant learning capture:
+- **High loop count** — Tasks requiring 3+ revision attempts
+- **Model escalation** — Tasks that required Sonnet → Opus upgrade
+- **Low Greptile scores** — Tasks with initial score < 2
+
+Use `/karimo-feedback --from-metrics` to batch-process these candidates.
+
+**Reference:** `.karimo/templates/METRICS_SCHEMA.md`
+
+---
+
+## Error Recovery
+
+KARIMO provides structured error recovery at task and feature levels.
+
+### Task-Level Rollback
+
+When a task fails validation after 3 loops:
+
+1. **Pre-commit SHA recorded** — `rollback_sha` captured before worker spawn
+2. **Validation failure** — Build/typecheck fails after 3 attempts
+3. **Auto-rollback** — Task branch reset to `rollback_sha`
+4. **Status update** — Task marked `rolled_back` with reason
+
+The `safe_commit()` function in `git-worktree-ops` handles this:
+```bash
+# Record pre-commit SHA → Commit → Validate → Revert if fails
+```
+
+### Feature-Level Rollback
+
+When integration fails after all tasks complete:
+
+1. **Integration check fails** — Feature branch doesn't build/test
+2. **Identify culprit** — Last merged task PR
+3. **Revert merge** — Create revert commit on feature branch
+4. **Re-queue task** — Task status reset to `ready`
+
+### Decision Tree
+
+```
+Task Failure
+    │
+    ▼
+Retry (same model)
+    │
+    ├── Pass → Continue
+    │
+    └── Fail → Escalate (Sonnet → Opus)
+                  │
+                  ├── Pass → Continue
+                  │
+                  └── Fail (3x) → Rollback
+                                    │
+                                    └── Human review required
+```
+
+### Status Tracking
+
+Rollback events are tracked in `status.json`:
+- Task-level: `rollback_sha`, `rolled_back`, `rolled_back_at`, `rollback_reason`
+- Feature-level: `rollback_event` object
+
+**Reference:** `.karimo/templates/STATUS_SCHEMA.md`
 
 ---
 
