@@ -81,6 +81,60 @@ Generates:
 
 ---
 
+## Batch Mode: --from-metrics
+
+After PRD execution completes, KARIMO generates `metrics.json` with auto-identified learning candidates. Use batch mode to process them efficiently.
+
+### Workflow
+
+```
+PRD Execution → metrics.json generated → /karimo-feedback --from-metrics
+```
+
+### How It Works
+
+1. **Metrics generated** — PM Agent creates `metrics.json` at PRD completion
+2. **Candidates identified** — High loop counts, model escalations, low scores
+3. **Run batch mode** — `/karimo-feedback --from-metrics {prd-slug}`
+4. **Review each candidate** — Add, skip, or edit suggested rules
+5. **Batch append** — All approved rules added to `.karimo/learnings.md`
+
+### Learning Candidate Types
+
+| Trigger | Reason | Example |
+|---------|--------|---------|
+| Loop count ≥ 3 | `high_loop_count` | Task required 4 revision attempts |
+| Model escalation | `model_escalation` | Task upgraded from Sonnet to Opus |
+| Initial score < 2 | `low_greptile_score` | Greptile flagged significant issues |
+
+### Example Session
+
+```
+/karimo-feedback --from-metrics user-profiles
+
+╭──────────────────────────────────────────────────────────────╮
+│  Learning Candidate 1 of 3                                   │
+├──────────────────────────────────────────────────────────────┤
+│  Task: 2a (Profile edit form)                                │
+│  Reason: high_loop_count (4 loops)                           │
+│  Context: Greptile flagged missing error handling            │
+│                                                              │
+│  Suggested rule:                                             │
+│  "Form components must include error state handling"         │
+│                                                              │
+├──────────────────────────────────────────────────────────────┤
+│  [A]dd  [S]kip  [E]dit                                       │
+╰──────────────────────────────────────────────────────────────╯
+```
+
+### When to Use Batch Mode
+
+- After every PRD completion (part of retrospective)
+- When `metrics.json` shows multiple learning candidates
+- For systematic capture vs ad-hoc feedback
+
+---
+
 ## Scope 2: Deep Learning
 
 The `/karimo-learn` command conducts a comprehensive three-mode investigation.
