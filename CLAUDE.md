@@ -39,6 +39,68 @@ Changes to these files do NOT affect installed projects:
 - `CONTRIBUTING.md` — Contribution guidelines
 - `.github/workflows/karimo-test-install.yml` — Source-only CI
 
+## Atomic Commit Workflow (MANDATORY)
+
+**Iron Law: COMMIT AFTER EACH LOGICAL UNIT OF WORK — NOT AT THE END**
+
+Bundling all changes into one commit destroys traceability. Each plan phase, task, or logical unit gets its own commit. This is non-negotiable.
+
+### When to Commit
+
+| Trigger | Action |
+|---------|--------|
+| Plan phase complete | Commit immediately |
+| TodoWrite task marked `completed` | Commit that task's changes |
+| Bug fix verified | Commit the fix |
+| Refactor complete | Commit separately from features |
+| Moving to unrelated work | Commit current work first |
+
+### Workflow Integration
+
+1. **During Plan Execution:**
+   - Complete a phase/task
+   - Verify it works (tests, build, etc.)
+   - Stage and commit with descriptive message
+   - Mark TodoWrite item as `completed`
+   - Move to next task
+
+2. **At End of Work Session:**
+   - Show commit summary to user
+   - Format: list of commits made with messages
+   - Example:
+     ```
+     ## Commits Made This Session
+     - `abc1234` feat(auth): add logout button component
+     - `def5678` feat(auth): implement logout API call
+     - `ghi9012` test(auth): add logout flow tests
+     ```
+
+### Commit Format
+
+Use Conventional Commits:
+
+```
+<type>[optional scope]: <description>
+
+[optional body]
+
+Co-Authored-By: Claude <noreply@anthropic.com>
+```
+
+**Types:** feat, fix, refactor, style, docs, test, chore, perf
+
+**Rules:**
+- Imperative mood: "add feature" not "added feature"
+- Keep first line under 72 characters
+- ALWAYS include Co-Authored-By footer
+
+### Anti-Patterns (STOP if you catch yourself...)
+
+- Saying "I'll commit everything at the end"
+- Asking "do you want me to commit?" after all work is done
+- Making one commit with unrelated changes
+- Waiting to commit until user asks
+
 ---
 
 # KARIMO Configuration Guide
