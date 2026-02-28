@@ -1,5 +1,5 @@
 {
-  "version": "3.3.3",
+  "version": "3.4.0",
   "agents": [
     "karimo-brief-writer.md",
     "karimo-documenter.md",
@@ -31,6 +31,7 @@
   "skills": [
     "git-worktree-ops.md",
     "github-project-ops.md",
+    "karimo-bash-utilities.md",
     "karimo-code-standards.md",
     "karimo-doc-standards.md",
     "karimo-testing-standards.md"
@@ -41,6 +42,7 @@
     "FINDINGS_TEMPLATE.md",
     "INTERVIEW_PROTOCOL.md",
     "LEARN_INTERVIEW_PROTOCOL.md",
+    "METRICS_SCHEMA.md",
     "PRD_TEMPLATE.md",
     "STATUS_SCHEMA.md",
     "TASK_BRIEF_TEMPLATE.md",
