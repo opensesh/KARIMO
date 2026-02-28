@@ -1048,6 +1048,90 @@ When all tasks reach `done` status (Full Mode):
    All tasks committed directly to main.
    ```
 
+#### 7d. Metrics Generation (Both Modes)
+
+Generate `metrics.json` for telemetry and learning automation.
+
+**Reference schema:** `.karimo/templates/METRICS_SCHEMA.md`
+
+**Collect from status.json:**
+
+| Metric | Source | Calculation |
+|--------|--------|-------------|
+| `duration.total_minutes` | `started_at`, `completed_at` | Time difference |
+| `duration.per_wave` | Task timestamps | Group by wave |
+| `loops.total` | Sum of `loop_count` | All tasks |
+| `loops.per_task` | Each task's `loop_count` | Map |
+| `loops.high_loop_tasks` | Tasks with `loop_count > 3` | Filter |
+| `models.sonnet_count` | Tasks with `model: sonnet` | Count |
+| `models.opus_count` | Tasks with `model: opus` | Count |
+| `models.escalations` | Tasks with `model_escalated: true` | Details |
+| `greptile.scores` | Task `greptile_scores` arrays | Per-task |
+| `outcomes.successful` | Tasks with `status: done` | Count |
+| `outcomes.failed` | Tasks with `status: failed` | Count |
+
+**Identify learning candidates:**
+
+```javascript
+learning_candidates = {
+  high_loop_tasks: tasks.filter(t => t.loop_count > 3),
+  escalated_tasks: tasks.filter(t => t.model_escalated),
+  hard_gate_tasks: tasks.filter(t => t.status === 'needs-human-review'),
+  runtime_dependency_tasks: dependencies.entries.map(e => e.from_task)
+}
+```
+
+**Generate suggested learnings:**
+
+For each candidate, create entry:
+```json
+{
+  "task_id": "2a",
+  "reason": "high_loops",
+  "details": "5 loops before passing validation",
+  "suggested_learning": "Task complexity may have been underestimated for profile form validation patterns"
+}
+```
+
+**Write metrics:**
+
+```bash
+# Write to PRD folder
+cat > .karimo/prds/{slug}/metrics.json << 'EOF'
+{
+  "prd_slug": "{slug}",
+  "version": "1.0",
+  "generated_at": "{ISO timestamp}",
+  "duration": {...},
+  "loops": {...},
+  "models": {...},
+  "greptile": {...},
+  "outcomes": {...},
+  "runtime_dependencies": {...},
+  "learning_candidates": {...}
+}
+EOF
+```
+
+**Present learning prompt (if candidates exist):**
+
+```
+📊 Execution Metrics
+
+Duration: {total_minutes} minutes across {wave_count} waves
+Loops: {total} total (avg {average} per task)
+  High-loop tasks: {list}
+Models: {sonnet} Sonnet, {opus} Opus ({escalation_count} escalations)
+
+Suggested learnings from this execution:
+  1. [{task_id}] {reason} — {suggested_learning}
+  2. [{task_id}] {reason} — {suggested_learning}
+
+Capture these learnings? [Y/n/select]
+```
+
+If user confirms, append to `.karimo/learnings.md`.
+
 ---
 
 ## Stall Detection & Model Upgrade
