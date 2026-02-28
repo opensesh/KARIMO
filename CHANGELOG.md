@@ -7,6 +7,116 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [3.4.0] - 2026-02-27
+
+### Added
+
+**Execution Metrics & Telemetry**
+
+New `metrics.json` file generated at PRD completion for execution analysis and learning automation:
+- Duration tracking (total and per-wave)
+- Loop count statistics with high-loop task detection
+- Model usage tracking (Sonnet/Opus counts, escalations)
+- Greptile review scores per task
+- Learning candidates auto-identification
+
+**Reference:** `.karimo/templates/METRICS_SCHEMA.md`
+
+**Rollback Protocol**
+
+Task and feature-level rollback capabilities for error recovery:
+- Task-level: Record `rollback_sha` before worker spawn, reset on validation failure after 3 loops
+- Feature-level: Revert merged task commits if integration fails
+- Decision tree: Retry → Escalate → Rollback → Human review
+
+**Safe Commit Protocol**
+
+New `safe_commit()` function in `git-worktree-ops` skill:
+- Record pre-commit SHA
+- Commit changes
+- Run validation (build, lint)
+- Auto-revert if validation fails
+
+**Three-Way Merge Conflict Resolution**
+
+Enhanced conflict handling before escalating to human:
+- Attempt `git merge --no-commit` before rebase
+- Categorize conflicts (easy/moderate/hard)
+- Auto-resolve easy conflicts (imports, whitespace, lock files)
+- Only escalate hard conflicts to `needs-human-rebase`
+
+**Cross-PRD Dependency Graph**
+
+New `--deps` flag for `/karimo-overview`:
+- Read `cross_feature_blockers` from all PRDs
+- Display runtime discoveries from `dependencies.md`
+- Show dependency graph with blocking relationships
+- Recommend execution order
+
+**Cross-PRD Findings Propagation**
+
+Protocol for propagating findings between PRDs:
+- Finding types: DEPENDENCY, PATTERN, ANTI-PATTERN, INSIGHT
+- PM agent checks if target PRD exists
+- Propagate to target's `findings.md` or `dependencies.md`
+- Track propagation status
+
+**Batch Learning from Metrics**
+
+New `--from-metrics` flag for `/karimo-feedback`:
+- Read `metrics.json` learning candidates
+- Present formatted suggestions for selective capture
+- Batch append to `.karimo/learnings.md`
+
+**Bash Utilities Skill**
+
+New `.claude/skills/karimo-bash-utilities.md` with reusable helpers:
+- `update_project_status()` for GitHub Project updates
+- `parse_yaml_field()` for config parsing
+- `read_status_field()` / `read_task_field()` for status.json
+- Validation and time utilities
+
+### Changed
+
+**PM Agent Token Reduction (~830 tokens)**
+
+Consolidated PM agent with skill references:
+- Replaced 55-line `update_project_status()` with skill reference
+- Replaced 240-line Step 3 with 80-line skill-based workflow
+- Added Step 7d for metrics generation with learning prompt
+
+**Interview Protocol Consolidation**
+
+Made `INTERVIEW_PROTOCOL.md` the single source of truth:
+- Added model assignment rules and complexity scoring
+- Reduced `karimo-interviewer.md` from ~200 to ~90 lines
+- Standardized model assignment: 1-4 = Sonnet, 5-10 = Opus
+
+**STATUS_SCHEMA.md Updates**
+
+Added rollback-related fields:
+- Task-level: `rollback_sha`, `rolled_back`, `rolled_back_at`, `rollback_reason`
+- PRD-level: `rollback_event` object for feature-level rollbacks
+
+### Files Updated
+
+| File | Changes |
+|------|---------|
+| `.claude/skills/karimo-bash-utilities.md` | **NEW** — Reusable bash utilities |
+| `.karimo/templates/METRICS_SCHEMA.md` | **NEW** — Execution metrics schema |
+| `.karimo/templates/INTERVIEW_PROTOCOL.md` | Added model assignment, complexity scoring |
+| `.claude/agents/karimo-interviewer.md` | Reduced to ~90 lines, references protocol |
+| `.claude/agents/karimo-pm.md` | Skill refs, Step 7d metrics, rollback protocol |
+| `.claude/skills/git-worktree-ops.md` | Safe commit protocol |
+| `.claude/KARIMO_RULES.md` | Three-way merge conflict resolution |
+| `.karimo/templates/STATUS_SCHEMA.md` | Rollback fields |
+| `.claude/commands/karimo-overview.md` | `--deps` flag for dependency graph |
+| `.karimo/templates/DEPENDENCIES_TEMPLATE.md` | Cross-PRD propagation protocol |
+| `.claude/commands/karimo-feedback.md` | `--from-metrics` batch mode |
+| `.karimo/MANIFEST.json` | Version bump to 3.4.0 |
+
+---
+
 ## [3.3.5] - 2026-02-27
 
 ### Added
