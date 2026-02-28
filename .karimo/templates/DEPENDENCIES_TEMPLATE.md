@@ -166,5 +166,79 @@ When resolving a dependency, update the entry:
 
 ---
 
+## Cross-PRD Findings Propagation
+
+When a task discovers something that affects another PRD, the finding should be propagated to the target PRD.
+
+### Entry Format
+
+```markdown
+### [2026-02-20T16:30:00Z] Task 2a → Finding for analytics-dashboard
+- **Source PRD:** user-profiles
+- **Target PRD:** analytics-dashboard
+- **Found by:** Task Agent working on 2a
+- **Finding Type:** DEPENDENCY | PATTERN | ANTI-PATTERN | INSIGHT
+- **Description:** {What was discovered}
+- **Recommended Action:** {What the target PRD should do}
+- **Propagation Status:** PENDING | PROPAGATED | IGNORED
+- **Propagated At:** {timestamp when propagated}
+```
+
+### Finding Types
+
+| Type | Description | Propagate To |
+|------|-------------|--------------|
+| `DEPENDENCY` | Target PRD needs something from this PRD | Target's `dependencies.md` |
+| `PATTERN` | Discovered pattern that target PRD should follow | Target's `findings.md` |
+| `ANTI-PATTERN` | Discovered issue that target PRD should avoid | Target's `findings.md` |
+| `INSIGHT` | General insight relevant to target PRD | Target's `findings.md` |
+
+### PM Agent Propagation Protocol
+
+When a cross-PRD finding is recorded:
+
+1. **Check if target PRD exists:**
+   ```bash
+   TARGET_PRD="{target-slug}"
+   if [ -d ".karimo/prds/$TARGET_PRD" ]; then
+     # PRD exists, can propagate
+   else
+     # PRD doesn't exist, record but don't propagate
+   fi
+   ```
+
+2. **Propagate to target's dependencies.md or findings.md:**
+   ```markdown
+   <!-- Propagated from {source-prd} task {task-id} at {timestamp} -->
+   ### [{timestamp}] Cross-PRD Finding from {source-prd}/{task-id}
+   - **Source PRD:** {source-slug}
+   - **Source Task:** {task-id}
+   - **Finding Type:** {type}
+   - **Description:** {description}
+   - **Recommended Action:** {action}
+   ```
+
+3. **Update source entry:**
+   ```markdown
+   - **Propagation Status:** PROPAGATED
+   - **Propagated At:** {ISO timestamp}
+   ```
+
+### Example Cross-PRD Finding
+
+```markdown
+### [2026-02-20T17:00:00Z] Task 3b → Pattern for analytics-dashboard
+- **Source PRD:** user-profiles
+- **Target PRD:** analytics-dashboard
+- **Found by:** Task Agent working on 3b (Profile analytics)
+- **Finding Type:** PATTERN
+- **Description:** User activity tracking uses a specific event format: { userId, action, timestamp, metadata }. Analytics dashboard should consume this format.
+- **Recommended Action:** Use UserActivityEvent type from @/types/analytics
+- **Propagation Status:** PROPAGATED
+- **Propagated At:** 2026-02-20T17:05:00Z
+```
+
+---
+
 *This file is maintained by KARIMO task agents and the PM Agent.*
 *Runtime dependencies trigger the `karimo-dependency-watch` workflow when PM Action is PENDING.*
