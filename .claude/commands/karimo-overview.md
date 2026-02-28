@@ -8,6 +8,7 @@ Surface all tasks needing human attention and recently completed work across all
 /karimo-overview              # Full dashboard view
 /karimo-overview --blocked    # Show only blocked tasks (needs human review)
 /karimo-overview --active     # Show only active PRDs with progress
+/karimo-overview --deps       # Show cross-PRD dependency graph
 ```
 
 ## Purpose
@@ -143,6 +144,82 @@ Summary: 2 active PRDs
 ```
 
 Note: The `(modified Nx)` annotation appears when a PRD has been modified via `/karimo-modify`.
+
+### `--deps`
+
+Show cross-PRD dependency graph:
+
+```
+╭──────────────────────────────────────────────────────────────╮
+│  KARIMO Overview — Cross-PRD Dependencies                    │
+╰──────────────────────────────────────────────────────────────╯
+
+📊 Dependency Graph
+───────────────────
+
+  token-studio
+  └── user-profiles (blocks execution)
+      └── Listed in cross_feature_blockers
+      └── Runtime discovery: "Auth middleware needed" (from 2a)
+
+  notification-system
+  └── user-profiles (blocks execution)
+      └── Listed in cross_feature_blockers
+
+  analytics-dashboard
+  └── token-studio (blocks execution)
+      └── Listed in cross_feature_blockers
+  └── user-profiles (blocks execution)
+      └── Runtime discovery: "UserProfile types needed" (from 1c)
+
+
+⚠️  Dependency Issues
+────────────────────
+
+  token-studio
+    → Blocked by: user-profiles (status: running, 67% complete)
+    → Recommendation: Wait for user-profiles to complete
+
+  notification-system
+    → Blocked by: user-profiles (status: running, 67% complete)
+    → Can execute after: user-profiles completes
+
+  analytics-dashboard
+    → Blocked by: token-studio (status: ready), user-profiles (status: running)
+    → Recommendation: Execute after both dependencies complete
+
+
+📋 Recommended Execution Order
+──────────────────────────────
+
+  1. user-profiles          ← Currently running (67%)
+  2. token-studio           ← Ready, waiting on (1)
+  3. notification-system    ← Ready, waiting on (1)
+  4. analytics-dashboard    ← Ready, waiting on (1) and (2)
+
+
+Summary: 4 PRDs with dependencies · 1 running · 3 blocked
+```
+
+#### Data Sources for `--deps`
+
+1. **cross_feature_blockers from PRD.md:**
+   ```markdown
+   ## Dependencies
+   ### Cross-Feature Blockers
+   - `user-profiles` — needs UserProfile types
+   ```
+
+2. **Runtime discoveries from dependencies.md:**
+   ```markdown
+   | Dependency | Classification | Source Task |
+   |------------|----------------|-------------|
+   | Auth middleware | CROSS-FEATURE | 2a |
+   ```
+
+3. **Status from each PRD's status.json:**
+   - Calculate completion percentage
+   - Determine if PRD is running, ready, or complete
 
 ---
 
