@@ -76,70 +76,24 @@ The mode determines which steps to execute in the 7-Step Execution Flow.
 
 ## Helper: Update Project Status Field
 
-**Use this helper whenever task status changes and the GitHub Project board needs updating.** This ensures real-time visibility on the Kanban board.
+**Use the `update_project_status()` helper from the `karimo-bash-utilities` skill.**
 
-```bash
-# update_project_status - Updates the agent_status field on GitHub Project
-# Arguments: $1 = task_id, $2 = status (queued|running|in-review|needs-revision|needs-human-review|done|failed)
-update_project_status() {
-  local TASK_ID="$1"
-  local STATUS="$2"
+This helper updates the `agent_status` field on GitHub Project items for real-time Kanban visibility.
 
-  # Skip if not in full mode
-  if [ "$MODE" != "full" ]; then return 0; fi
+**Reference:** `.claude/skills/karimo-bash-utilities.md` — GitHub Project Status Updates section
 
-  # Get project info from status.json
-  local PROJECT_NUMBER=$(grep -o '"github_project_number"[[:space:]]*:[[:space:]]*[0-9]*' "$STATUS_FILE" | \
-    grep -o '[0-9]*$')
-
-  if [ -z "$PROJECT_NUMBER" ]; then return 0; fi
-
-  # Get owner from config
-  local OWNER=$(grep "^  owner:" .karimo/config.yaml | head -1 | awk '{print $2}')
-  local OWNER_TYPE=$(grep "^  owner_type:" .karimo/config.yaml | head -1 | awk '{print $2}')
-
-  if [ "$OWNER_TYPE" = "personal" ]; then
-    PROJECT_OWNER="@me"
-  else
-    PROJECT_OWNER="$OWNER"
-  fi
-
-  # Find task's issue number from status.json
-  local ISSUE_NUMBER=$(grep -A5 "\"$TASK_ID\"" "$STATUS_FILE" | \
-    grep -o '"issue_number"[[:space:]]*:[[:space:]]*[0-9]*' | \
-    grep -o '[0-9]*$' | head -1)
-
-  if [ -z "$ISSUE_NUMBER" ]; then return 0; fi
-
-  # Find project item ID for this task's issue
-  local ITEM_ID=$(gh project item-list "$PROJECT_NUMBER" --owner "$PROJECT_OWNER" --format json \
-    --jq ".items[] | select(.content.number == $ISSUE_NUMBER) | .id" 2>/dev/null)
-
-  if [ -z "$ITEM_ID" ]; then return 0; fi
-
-  # Get project ID and field info
-  local PROJECT_ID=$(gh project list --owner "$PROJECT_OWNER" --format json \
-    --jq ".projects[] | select(.number == $PROJECT_NUMBER) | .id" 2>/dev/null)
-
-  local FIELD_ID=$(gh project field-list "$PROJECT_NUMBER" --owner "$PROJECT_OWNER" --format json \
-    --jq '.fields[] | select(.name == "agent_status") | .id' 2>/dev/null)
-
-  local OPTION_ID=$(gh project field-list "$PROJECT_NUMBER" --owner "$PROJECT_OWNER" --format json \
-    --jq ".fields[] | select(.name == \"agent_status\") | .options[] | select(.name == \"$STATUS\") | .id" 2>/dev/null)
-
-  if [ -n "$PROJECT_ID" ] && [ -n "$FIELD_ID" ] && [ -n "$OPTION_ID" ]; then
-    gh project item-edit --project-id "$PROJECT_ID" --id "$ITEM_ID" \
-      --field-id "$FIELD_ID" --single-select-option-id "$OPTION_ID" 2>/dev/null
-  fi
-}
-```
-
-**Call this helper at these transition points:**
-- After adding task to project → `update_project_status "$TASK_ID" "queued"`
-- After spawning worker → `update_project_status "$TASK_ID" "running"`
-- After creating PR → `update_project_status "$TASK_ID" "in-review"`
-- On Greptile failure → `update_project_status "$TASK_ID" "needs-revision"`
-- After 3 failed attempts → `update_project_status "$TASK_ID" "needs-human-review"`
+**Call at these transition points:**
+| Transition | Call |
+|------------|------|
+| Task added to project | `update_project_status "$TASK_ID" "queued"` |
+| Worker spawned | `update_project_status "$TASK_ID" "running"` |
+| PR created | `update_project_status "$TASK_ID" "in-review"` |
+| Greptile failure | `update_project_status "$TASK_ID" "needs-revision"` |
+| 3 failed attempts | `update_project_status "$TASK_ID" "needs-human-review"` |
+| Merge conflicts | `update_project_status "$TASK_ID" "needs-human-rebase"` |
+| PR merged | `update_project_status "$TASK_ID" "done"` |
+| Task failed | `update_project_status "$TASK_ID" "failed"` |
+| Task paused | `update_project_status "$TASK_ID" "paused"` |
 
 ---
 
@@ -284,241 +238,67 @@ Wait for human confirmation before proceeding.
 
 **Skip this step entirely if `mode: fast-track`.**
 
-**Use the `github-project-ops` skill.**
+**Use the `github-project-ops` skill for all GitHub operations.** The skill provides:
+- Project owner resolution from config
+- Idempotent project creation
+- Issue/PR creation via MCP
+- Sub-issue hierarchy setup
+- Wave field configuration
 
-#### Step 3a: Read GitHub Configuration
+**Reference:** `.claude/skills/github-project-ops.md`
 
-Read owner settings from `.karimo/config.yaml`:
+#### Workflow Summary
 
-```bash
-# Parse YAML config (simple grep-based, no external dependencies)
-OWNER=$(grep "^  owner:" .karimo/config.yaml | head -1 | awk '{print $2}')
-OWNER_TYPE=$(grep "^  owner_type:" .karimo/config.yaml | head -1 | awk '{print $2}')
-REPO=$(grep "^  repository:" .karimo/config.yaml | head -1 | awk '{print $2}')
+1. **Resolve owner** using patterns from `github-project-ops` skill
+2. **Create feature issue** (parent for sub-issues) via MCP
+3. **Create/reuse project** (idempotent check)
+4. **Configure project fields** (agent_status, wave, complexity, etc.)
+5. **Create task issues** via MCP, link as sub-issues
+6. **Set wave field** on each task
+7. **Create feature branch** from main
+8. **Update status.json** with all GitHub references
 
-if [ "$OWNER_TYPE" = "personal" ]; then
-  PROJECT_OWNER="@me"
-else
-  PROJECT_OWNER="$OWNER"
-fi
-```
+#### Quick Reference
 
-**If GitHub Configuration is missing, STOP and report:**
+| Step | Tool | Skill Section |
+|------|------|---------------|
+| Read config | Bash | "Resolve Project Owner" |
+| Feature issue | MCP | "Sub-Issues Hierarchy" |
+| Check project | gh CLI | "Project Setup" |
+| Create project | gh CLI | "Project Setup" |
+| Add fields | gh CLI | "Add Custom Fields" |
+| Task issues | MCP | "Issue Creation via MCP" |
+| Link sub-issues | MCP | "Link Task Issues as Sub-Issues" |
+| Set wave | gh CLI | "Wave Field Tracking" |
 
-```
-❌ GitHub Configuration not found in .karimo/config.yaml
+#### Status.json Updates
 
-GitHub Projects require owner configuration.
-Run /karimo-configure to set up GitHub settings.
-```
-
-#### Step 3b: Create Feature Issue (Parent for Sub-Issues)
-
-**Create a feature-level issue first.** This becomes the parent for all task sub-issues, enabling hierarchical visibility.
-
-```typescript
-// Create feature issue via MCP
-const featureIssue = mcp__github__issue_write({
-  method: "create",
-  owner: "{owner}",
-  repo: "{repo}",
-  title: "[PRD] {prd_title}",
-  body: `## Feature: {prd_title}
-
-{executive_summary}
-
-### Scope
-- **Tasks:** {task_count} tasks across {wave_count} waves
-- **Complexity range:** {min_complexity}-{max_complexity}
-
-### Task Sub-Issues
-Task issues will be linked as sub-issues below.
-
-### Success Criteria
-{feature_level_success_criteria}
-
----
-**PRD:** {prd_slug}
-**Project:** Will be linked after creation
-
----
-*Created by [KARIMO](https://github.com/opensesh/KARIMO)*`,
-  labels: ["karimo", "karimo-feature"]
-})
-
-// Store feature issue number for sub-issue linking
-FEATURE_ISSUE_NUMBER = featureIssue.number
-FEATURE_ISSUE_ID = featureIssue.id  // Node ID needed for sub_issue_write
-```
-
-Store the `number` and `id` in `status.json`:
-```json
-{
-  "feature_issue_number": 42,
-  "feature_issue_id": "I_kwDOABC123..."
-}
-```
-
-#### Step 3c: Check if Project Exists (Idempotency)
-
-Before creating a project, check if one already exists for this PRD:
-
-```bash
-# Use gh CLI's built-in --jq flag (no external jq dependency)
-EXISTING=$(gh project list --owner "$PROJECT_OWNER" --format json \
-  --jq ".projects[] | select(.title == \"KARIMO: {feature_name}\") | .number")
-
-if [ -n "$EXISTING" ]; then
-  PROJECT_NUMBER=$EXISTING
-  echo "Using existing project #$PROJECT_NUMBER"
-else
-  PROJECT_NUMBER=$(gh project create --owner "$PROJECT_OWNER" \
-    --title "KARIMO: {feature_name}" --format json --jq '.number')
-  echo "Created new project #$PROJECT_NUMBER"
-fi
-```
-
-This ensures re-running `/karimo-execute` on the same PRD reuses the existing project rather than failing.
-
-#### Step 3d: Configure Project
-
-**Add custom fields** (if not already present):
-   - `complexity` (Number)
-   - `depends_on` (Text)
-   - `files_affected` (Text)
-   - `agent_status` (Single Select: queued / running / in-review / needs-revision / needs-human-review / done / failed / needs-human-rebase / paused)
-   - `pr_number` (Number)
-   - `revision_count` (Number)
-   - `model` (Text — "sonnet" or "opus")
-   - `loop_count` (Number)
-   - `wave` (Single Select: Wave 1, Wave 2, Wave 3, Wave 4, Wave 5)
-
-**Create Wave field:**
-```bash
-gh project field-create {project-number} \
-  --owner "$PROJECT_OWNER" \
-  --name "Wave" \
-  --data-type "SINGLE_SELECT" \
-  --single-select-options "Wave 1,Wave 2,Wave 3,Wave 4,Wave 5"
-```
-
-#### Step 3e: Create Task Issues & Link as Sub-Issues
-
-For each task, create an issue and link it as a sub-issue to the feature issue:
-
-```typescript
-// 1. Create task issue via MCP
-const taskIssue = mcp__github__issue_write({
-  method: "create",
-  owner: "{owner}",
-  repo: "{repo}",
-  title: "[{task_id}] {task_title}",
-  body: "{issue_body}",  // See template below
-  labels: ["karimo", "priority:{priority}"]
-})
-
-// Store the returned number and ID in status.json for PR linking
-// IMPORTANT: sub_issue_write needs the issue ID, not the issue number
-
-// 2. Link as sub-issue to feature issue via MCP
-mcp__github__sub_issue_write({
-  method: "add",
-  owner: "{owner}",
-  repo: "{repo}",
-  issue_number: {feature_issue_number},  // Parent feature issue
-  sub_issue_id: taskIssue.id             // Task issue ID (NOT number)
-})
-```
-
-**Issue Body Template (Enhanced):**
-```markdown
-## Task: {task_id}
-
-**Parent Feature:** #{feature_issue_number}
-**Wave:** {wave_number}
-
-{task_description}
-
-### Success Criteria
-
-- [ ] {criterion_1}
-- [ ] {criterion_2}
-- [ ] {criterion_3}
-
-### Files to Modify
-
-| File | Action |
-|------|--------|
-| `{path}` | {create/modify} |
-
-### Dependencies
-
-{depends_on or "None — can start immediately"}
-
----
-**PRD:** {prd_slug}
-**Complexity:** {complexity}/10
-**Priority:** {priority}
-**Model:** {model}
-
----
-*Created by [KARIMO](https://github.com/opensesh/KARIMO)*
-```
-
-#### Step 3f: Set Wave on Task Issues
-
-After adding task to project, set the Wave field:
-
-```bash
-# Get project item ID for the task issue
-ITEM_ID=$(gh project item-list {project-number} --owner "$PROJECT_OWNER" --format json \
-  --jq ".items[] | select(.content.number == {issue_number}) | .id")
-
-# Set Wave field (requires field ID from field-list)
-gh project item-edit \
-  --project-id {project-id} \
-  --id "$ITEM_ID" \
-  --field-id {wave-field-id} \
-  --single-select-option-id {wave-option-id}
-
-# Set initial agent_status to queued for Kanban visibility
-update_project_status "{task-id}" "queued"
-```
-
-Record wave assignment in status.json:
-```json
-{
-  "tasks": {
-    "1a": {
-      "wave": 1,
-      "issue_number": 43,
-      "issue_id": "I_kwDOABC124..."
-    }
-  }
-}
-```
-
-#### Step 3g: Create Feature Branch
-
-**Create feature branch** (if not exists):
-```bash
-git checkout -b feature/{prd-slug} main
-git push -u origin feature/{prd-slug}
-```
-
-#### Step 3h: Update Status
-
-**Update status.json** with GitHub Project URL, feature branch, and feature issue:
-
+After Step 3, status.json should contain:
 ```json
 {
   "github_project_url": "https://github.com/orgs/{org}/projects/{number}",
   "github_project_number": {number},
   "feature_branch": "feature/{prd-slug}",
   "feature_issue_number": 42,
-  "feature_issue_id": "I_kwDOABC123..."
+  "feature_issue_id": "I_kwDOABC123...",
+  "tasks": {
+    "1a": {
+      "wave": 1,
+      "issue_number": 43,
+      "issue_id": "I_kwDOABC124...",
+      "status": "queued"
+    }
+  }
 }
 ```
+
+#### Error Handling
+
+**Missing config:** Report error, suggest running `/karimo-configure`
+
+**Project access denied:** Suggest `gh auth refresh -s project`
+
+**Label creation fails:** Non-blocking, labels are created idempotently with `2>/dev/null || true`
 
 ---
 
