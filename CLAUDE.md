@@ -128,7 +128,7 @@ When you run `install.sh`, these files are added:
 | `.claude/skills/` | 6 skills (3 coordination + 3 task agent skills) |
 | `.claude/KARIMO_RULES.md` | Agent behavior rules |
 | `.karimo/templates/` | 9 templates (PRD, interview, task, status, dependencies, DAG, learn-interview, findings, task-brief) |
-| `.github/workflows/` | 5 GitHub Actions (ci, sync, dependency-watch, ci-integration, greptile-review) |
+| `.github/workflows/` | 1 required (karimo-ci.yml) + optional workflows via `/karimo-configure` |
 
 ### Agent Types
 

@@ -176,8 +176,12 @@ If your project already has `.claude/` with custom agents, commands, or `CLAUDE.
 - 6 KARIMO skills (prefixed `karimo-*`)
 - `.claude/KARIMO_RULES.md`
 - `.karimo/` directory with templates, manifest, and learnings
-- GitHub Actions workflows
+- `karimo-ci.yml` workflow (validates KARIMO installation)
 - Marker-delimited KARIMO section appended to `CLAUDE.md` (~20 lines)
+
+**Optional workflows (installed via `/karimo-configure`):**
+- `karimo-greptile-review.yml` — when Greptile is enabled
+- `karimo-ci-integration.yml` — when CI Observer is enabled
 
 **Naming convention:** All KARIMO-managed files use the `karimo-*` prefix for agents, commands, and skills. This enables reliable cleanup during updates and clear distinction from user-added files.
 

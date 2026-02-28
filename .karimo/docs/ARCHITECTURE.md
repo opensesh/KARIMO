@@ -21,26 +21,22 @@ KARIMO is an autonomous development **methodology** delivered via Claude Code co
 
 ## Manifest System
 
-KARIMO uses `.karimo/MANIFEST.json` as the single source of truth for all installed files. This enables:
+KARIMO uses `.karimo/MANIFEST.json` as the single source of truth for installed files. This enables:
 
 - **Consistent installation**: `install.sh` reads from manifest, not hardcoded lists
 - **Version tracking**: Manifest includes version number for update detection
-- **CI validation**: `karimo-ci.yml` validates actual files against manifest
-- **Easy updates**: Adding new files requires only updating MANIFEST.json
+- **Clean updates**: Update script uses manifest to detect and remove stale files
+- **Easy maintenance**: Adding new files requires only updating MANIFEST.json
 
 ### Manifest Structure
 
 ```json
 {
-  "version": "3.1.1",
+  "version": "3.5.3",
   "agents": ["karimo-brief-writer.md", "karimo-documenter.md", ...],
-  "commands": ["configure.md", "doctor.md", ...],
+  "commands": ["karimo-configure.md", "karimo-doctor.md", ...],
   "skills": ["karimo-git-worktree-ops.md", ...],
   "templates": ["PRD_TEMPLATE.md", ...],
-  "workflows": {
-    "required": ["karimo-ci.yml"],
-    "optional": ["karimo-sync.yml", ...]
-  },
   "other": {
     "rules": "KARIMO_RULES.md",
     "issue_template": "karimo-task.yml"
@@ -48,14 +44,15 @@ KARIMO uses `.karimo/MANIFEST.json` as the single source of truth for all instal
 }
 ```
 
+> **Note:** Workflows are not tracked in the manifest. The update script uses `karimo-*` glob patterns for workflow management. Optional workflows (Greptile, CI integration) are installed via `/karimo-configure`.
+
 ### CI Validation
 
-The `karimo-ci.yml` workflow validates:
+The `karimo-ci.yml` workflow provides minimal validation:
 1. MANIFEST.json exists and is valid JSON
-2. File counts match manifest expectations
-3. Each file listed in manifest exists on disk
+2. Install script runs successfully (source repo only)
 
-This catches drift between manifest and actual files, preventing installation failures.
+Philosophy: CI testing is the user's responsibility. KARIMO's CI validates only its own installation integrity.
 
 ---
 
