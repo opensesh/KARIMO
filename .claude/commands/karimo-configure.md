@@ -404,6 +404,39 @@ options:
     description: "Enable automated code review. Requires GREPTILE_API_KEY secret."
 ```
 
+**If "Yes" selected, install the Greptile workflow:**
+
+```bash
+# Copy workflow template to .github/workflows/
+mkdir -p .github/workflows
+cp .karimo/workflow-templates/karimo-greptile-review.yml .github/workflows/
+
+echo "✅ Installed karimo-greptile-review.yml"
+echo "   Configure GREPTILE_API_KEY secret in GitHub repository settings"
+```
+
+**Question 4: CI Observer Integration**
+```
+header: "CI Observer"
+question: "Enable CI status observation?"
+options:
+  - label: "No (default)"
+    description: "Skip CI integration. KARIMO won't track external CI results."
+  - label: "Yes"
+    description: "KARIMO observes your CI workflow results and updates task status."
+```
+
+**If "Yes" selected, install the CI integration workflow:**
+
+```bash
+# Copy workflow template to .github/workflows/
+mkdir -p .github/workflows
+cp .karimo/workflow-templates/karimo-ci-integration.yml .github/workflows/
+
+echo "✅ Installed karimo-ci-integration.yml"
+echo "   Workflow will observe CI results and update task status"
+```
+
 **Display confirmation after selection:**
 
 ```
@@ -420,6 +453,9 @@ Your selections:
 
   Greptile enabled: no
     Requires GREPTILE_API_KEY secret in repository
+
+  CI Observer enabled: no
+    Observes CI workflow results and updates task status
 
 These settings can be changed anytime by running /karimo-configure
 ```
@@ -478,6 +514,7 @@ Configuration Summary:
     escalate_after_failures: 1
     max_attempts: 3
     greptile_enabled: false
+    ci_observer_enabled: false
 
 Write this configuration? [Y/n]
 ```
@@ -532,6 +569,7 @@ cost:
   escalate_after_failures: 1
   max_attempts: 3
   greptile_enabled: false
+  ci_observer_enabled: false
 ```
 
 ---
@@ -619,7 +657,7 @@ The command writes to `.karimo/config.yaml`. See the YAML structure in Step 7 ab
 - `boundaries` — Never touch and require review patterns
 - `github` — Owner type, owner, repository, merge strategy (Full Mode only)
 - `execution` — Default model, max parallel, pre-PR checks
-- `cost` — Escalation settings, Greptile integration
+- `cost` — Escalation settings, Greptile integration, CI observer
 
 ---
 

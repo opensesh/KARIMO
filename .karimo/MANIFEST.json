@@ -48,17 +48,6 @@
     "TASK_BRIEF_TEMPLATE.md",
     "TASK_SCHEMA.md"
   ],
-  "workflows": {
-    "required": [
-      "karimo-ci.yml"
-    ],
-    "optional": [
-      "karimo-ci-integration.yml",
-      "karimo-dependency-watch.yml",
-      "karimo-greptile-review.yml",
-      "karimo-sync.yml"
-    ]
-  },
   "other": {
     "rules": "KARIMO_RULES.md",
     "issue_template": "karimo-task.yml"
