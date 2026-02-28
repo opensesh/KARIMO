@@ -1351,6 +1351,128 @@ When rebase conflicts occur:
 
 ---
 
+## Rollback Protocol
+
+Rollback provides a safety mechanism for reverting task changes when validation repeatedly fails.
+
+### Task-Level Rollback
+
+**Record rollback SHA before spawning worker:**
+
+```bash
+# In worktree, record current HEAD before worker makes changes
+ROLLBACK_SHA=$(git -C .worktrees/{prd-slug}/{task-id} rev-parse HEAD)
+```
+
+Update status.json:
+```json
+{
+  "1a": {
+    "rollback_sha": "abc123...",
+    "status": "running"
+  }
+}
+```
+
+**Trigger conditions:**
+- Validation fails after 3 loops (loop_count >= 3)
+- No model upgrade available (already on Opus or upgrade not applicable)
+- Build/test failures with same error pattern across attempts
+
+**Rollback execution:**
+
+```bash
+# Reset to rollback point
+cd .worktrees/{prd-slug}/{task-id}
+git reset --hard $ROLLBACK_SHA
+
+# Update status
+```
+
+Update status.json:
+```json
+{
+  "1a": {
+    "status": "needs-human-review",
+    "rolled_back": true,
+    "rolled_back_at": "ISO timestamp",
+    "rollback_reason": "validation_failure_after_3_loops"
+  }
+}
+```
+
+**Decision tree:**
+
+```
+Validation fails
+├── Loop < 3?
+│   └── Retry with feedback
+├── Loop >= 3?
+│   ├── Model upgrade available? (Sonnet → Opus)
+│   │   └── Escalate, reset loop_count to 1
+│   └── No upgrade available?
+│       └── Rollback to rollback_sha
+│           └── Mark needs-human-review
+```
+
+### Feature-Level Rollback
+
+When a merged task breaks integration:
+
+1. **Identify affected commits:**
+   ```bash
+   # Find commits from task branch that were merged
+   TASK_COMMITS=$(git log feature/{prd-slug} --oneline \
+     --grep="[{task-id}]" --format="%H")
+   ```
+
+2. **Revert the merge:**
+   ```bash
+   # If task PR was squash-merged, revert the single commit
+   git revert {merge_commit} --no-edit
+
+   # If task PR was merge-commit, revert with -m flag
+   git revert -m 1 {merge_commit} --no-edit
+   ```
+
+3. **Record rollback event:**
+   ```json
+   {
+     "rollback_event": {
+       "type": "feature_level",
+       "task_id": "2a",
+       "reverted_commits": ["abc123"],
+       "reverted_at": "ISO timestamp",
+       "reason": "integration_failure"
+     }
+   }
+   ```
+
+4. **Notify and unblock:**
+   ```
+   ⚠ Task [2a] reverted from feature branch
+
+   Reason: Integration tests failed after merge
+   Reverted commits: abc123
+
+   Task marked needs-human-review.
+   Other tasks can continue.
+   ```
+
+### Safe Commit Protocol
+
+Before committing task changes, use the safe commit protocol from `git-worktree-ops` skill:
+
+1. Record pre-commit SHA
+2. Commit changes
+3. Run validation (build, lint, typecheck)
+4. If validation fails: auto-revert to pre-commit SHA
+5. If validation passes: proceed normally
+
+**Reference:** `.claude/skills/git-worktree-ops.md` — Safe Commit section
+
+---
+
 ## Worktree TTL Enforcement
 
 The PM Agent enforces time-to-live policies for worktrees to prevent disk bloat:
