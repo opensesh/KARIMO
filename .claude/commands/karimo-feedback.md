@@ -9,10 +9,26 @@ Simple compound learning: you describe what went wrong or what worked well, and 
 ## Usage
 
 ```
+/karimo-feedback                           # Interactive mode
+/karimo-feedback --from-metrics {prd-slug} # Batch mode from execution metrics
+/karimo-feedback --undo                    # Remove recent learnings
+```
+
+### Interactive Mode
+
+```
 /karimo-feedback
 
 > "The agent kept using inline styles instead of Tailwind classes"
 ```
+
+### Batch Mode from Metrics
+
+```
+/karimo-feedback --from-metrics user-profiles
+```
+
+Reads `metrics.json` from the specified PRD and presents suggested learnings for batch capture.
 
 ## Behavior
 
@@ -150,6 +166,97 @@ _Rules learned from execution feedback via `/karimo-feedback` and `/karimo-learn
 ---
 *Last updated: {date}*
 ```
+
+---
+
+## Batch Mode: --from-metrics
+
+Batch mode reads execution metrics and presents suggested learnings automatically.
+
+### Usage
+
+```bash
+/karimo-feedback --from-metrics {prd-slug}
+```
+
+### Behavior
+
+1. **Read metrics.json:**
+   ```bash
+   # Read from PRD folder
+   METRICS_FILE=".karimo/prds/${prd_slug}/metrics.json"
+   ```
+
+2. **Extract learning candidates:**
+   - High-loop tasks (loops > 3)
+   - Escalated tasks (Sonnet → Opus)
+   - Hard gate tasks (failed 3 Greptile attempts)
+   - Runtime dependency tasks
+
+3. **Present suggested learnings:**
+   ```
+   📊 Learnings from: user-profiles
+
+   Found 4 learning candidates in metrics.json:
+
+   1. [2a] High loops (5)
+      → "Profile form validation patterns may be more complex than estimated"
+      Category: gotcha
+
+   2. [2a] Runtime dependency
+      → "Always check authentication requirements for API tasks during PRD planning"
+      Category: rule
+
+   3. [3b] Model escalation (Sonnet → Opus)
+      → "Tasks involving complex state management should start at complexity 5+"
+      Category: rule
+
+   4. [4a] Hard gate (3 Greptile failures)
+      → "Integration tests for external services need mocking patterns"
+      Category: gotcha
+
+   Select learnings to capture: [all/1,2,4/none]
+   ```
+
+4. **Capture selected learnings:**
+   - Append to `.karimo/learnings.md` under appropriate sections
+   - Update metrics.json to mark learnings as captured
+
+### Output Example
+
+```
+✓ Captured 3 learnings from user-profiles execution
+
+Added to .karimo/learnings.md:
+  - [gotcha] Profile form validation patterns...
+  - [rule] Always check authentication requirements...
+  - [gotcha] Integration tests for external services...
+
+Skipped: 1 (Model escalation — declined by user)
+```
+
+### Metrics Source
+
+Learning candidates come from `metrics.json.learning_candidates.suggested_learnings`:
+
+```json
+{
+  "learning_candidates": {
+    "suggested_learnings": [
+      {
+        "task_id": "2a",
+        "reason": "high_loops",
+        "details": "5 loops before passing validation",
+        "suggested_learning": "Profile form validation patterns..."
+      }
+    ]
+  }
+}
+```
+
+**Reference:** `.karimo/templates/METRICS_SCHEMA.md`
+
+---
 
 ## Multiple Feedback Items
 
