@@ -190,10 +190,100 @@ The human architect uses `/karimo-feedback` to capture learnings. These become r
 
 ### 1. Merge Conflicts
 
-If you encounter merge conflicts:
-1. **Do not resolve automatically.** Mark the task as `needs-human-rebase`.
-2. **Document the conflict.** List the conflicting files.
-3. **Continue with other tasks.** Don't block the entire execution.
+KARIMO uses a tiered approach to conflict resolution. Attempt auto-resolution before escalating to human.
+
+#### Step 1: Attempt Three-Way Merge
+
+Before rebase, try a merge to assess conflict scope:
+
+```bash
+cd .worktrees/{prd-slug}/{task-id}
+git fetch origin feature/{prd-slug}
+
+# Attempt merge without committing
+git merge feature/{prd-slug} --no-commit --no-ff
+
+if [ $? -eq 0 ]; then
+  # No conflicts — commit the merge
+  git commit -m "chore: merge latest from feature/{prd-slug}"
+else
+  # Conflicts detected — analyze before aborting
+  CONFLICTING_FILES=$(git diff --name-only --diff-filter=U)
+  git merge --abort
+fi
+```
+
+#### Step 2: Categorize Conflicts
+
+| Category | Pattern | Action |
+|----------|---------|--------|
+| **Easy** | Import statements, whitespace, trailing newlines | Auto-resolve |
+| **Moderate** | Non-overlapping function changes | Attempt auto-merge |
+| **Hard** | Same function/component modified, structural conflicts | Escalate |
+
+**Easy conflict patterns (auto-resolvable):**
+- Imports at file top (take both, dedupe)
+- Trailing newline differences
+- Comment-only changes
+- Lock file conflicts (regenerate)
+
+**Hard conflict patterns (require human):**
+- Same function modified by both branches
+- Architectural changes affecting structure
+- Test file with conflicting assertions
+- Files in `require_review` boundary
+
+#### Step 3: Auto-Resolve Easy Conflicts
+
+```bash
+# For import conflicts (example)
+for file in $CONFLICTING_FILES; do
+  if is_import_only_conflict "$file"; then
+    # Accept both imports, sort and dedupe
+    git checkout --ours "$file"
+    # Merge imports from theirs
+    merge_imports "$file"
+    git add "$file"
+  fi
+done
+
+# For lock files
+if echo "$CONFLICTING_FILES" | grep -q "package-lock.json\|yarn.lock\|pnpm-lock.yaml"; then
+  # Regenerate lock file
+  npm install  # or yarn/pnpm
+  git add package-lock.json
+fi
+
+# Check if all conflicts resolved
+if git diff --check; then
+  git commit -m "chore: auto-resolve merge conflicts"
+fi
+```
+
+#### Step 4: Escalate Hard Conflicts
+
+If conflicts remain after auto-resolution attempt:
+
+1. **Abort the merge:**
+   ```bash
+   git merge --abort
+   ```
+
+2. **Mark task status:**
+   ```json
+   {
+     "tasks": {
+       "1a": {
+         "status": "needs-human-rebase",
+         "conflict_files": ["src/component.tsx"],
+         "conflict_category": "hard",
+         "conflict_reason": "Same function modified by both branches"
+       }
+     }
+   }
+   ```
+
+3. **Document and continue:** Add comment to GitHub Issue, move to other tasks.
 
 ### 2. Ambiguous Requirements
 
