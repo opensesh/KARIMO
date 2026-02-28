@@ -1,3 +1,46 @@
+# KARIMO Source Repository Rules
+
+## Release Protocol (MANDATORY)
+
+When changes impact target repositories (installed KARIMO projects), you MUST:
+
+### 1. Version Bump
+- Update `.karimo/VERSION` with new semver
+- Update `version` field in `.karimo/MANIFEST.json` to match
+
+### 2. Changelog Entry
+- Add entry to `CHANGELOG.md` under new version header
+- Format: `## [X.Y.Z] - YYYY-MM-DD`
+- Include: Added, Changed, Fixed, Removed subsections as needed
+
+### 3. GitHub Release
+- Create release via `gh release create vX.Y.Z --title "vX.Y.Z" --notes "..."`
+- Include summary of changes in release notes
+
+### 4. Documentation Scan
+After making changes, scan these files for necessary updates:
+- `README.md` — Installation, features, command reference
+- `.karimo/docs/COMMANDS.md` — If slash commands changed
+- `.karimo/docs/ARCHITECTURE.md` — If system structure changed
+- `.karimo/docs/GETTING-STARTED.md` — If setup flow changed
+
+## What Impacts Target Repositories
+
+Changes to these files affect installed projects:
+- `.claude/agents/*` — Agent definitions
+- `.claude/commands/*` — Slash commands
+- `.claude/skills/*` — Skill definitions
+- `.karimo/templates/*` — PRD/task templates
+- `.github/workflows/karimo-*.yml` — CI workflows
+- `.claude/KARIMO_RULES.md` — Agent behavior rules
+
+Changes to these files do NOT affect installed projects:
+- `install.sh`, `update.sh` — Installer scripts (source-only)
+- `CONTRIBUTING.md` — Contribution guidelines
+- `.github/workflows/karimo-test-install.yml` — Source-only CI
+
+---
+
 # KARIMO Configuration Guide
 
 ## What is KARIMO?
