@@ -160,6 +160,7 @@ Each PRD folder contains a `status.json` file that tracks execution state. This 
 | `feature_pr_number` | number | Feature PR to main (v2.1) |
 | `feature_merged_at` | ISO datetime | When feature PR merged to main (v2.1) |
 | `reconciliation_status` | string | Feature reconciliation status (v2.1) |
+| `rollback_event` | object | Feature-level rollback details (v3.4) |
 | `summary` | object | Completion summary (only when complete) |
 | `tasks` | object | Map of task ID → task state |
 
@@ -205,6 +206,10 @@ Each PRD folder contains a `status.json` file that tracks execution state. This 
 | `blocked_at` | ISO datetime | When task was blocked |
 | `paused_at` | ISO datetime | When task was paused (if paused) |
 | `paused_reason` | string | Reason for pause ("usage_limit", "stall", "manual") |
+| `rollback_sha` | string | Commit SHA to rollback to if validation fails |
+| `rolled_back` | boolean | Whether a rollback was executed |
+| `rolled_back_at` | ISO datetime | When rollback occurred |
+| `rollback_reason` | string | Why rollback was triggered ("validation_failure", "integration_failure") |
 
 ### Worktree Status Values (v2.1)
 
@@ -221,6 +226,30 @@ Each PRD folder contains a `status.json` file that tracks execution state. This 
 | `pending` | Awaiting Review/Architect reconciliation |
 | `passed` | Reconciliation checklist passed |
 | `failed` | Reconciliation found issues |
+
+### Rollback Event Object (v3.4)
+
+When a feature-level rollback occurs, the `rollback_event` object is populated:
+
+```json
+{
+  "rollback_event": {
+    "type": "feature_level",
+    "task_id": "2a",
+    "reverted_commits": ["abc123def"],
+    "reverted_at": "2026-02-20T15:30:00Z",
+    "reason": "integration_failure"
+  }
+}
+```
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `type` | string | "task_level" or "feature_level" |
+| `task_id` | string | Task that triggered rollback |
+| `reverted_commits` | string[] | Commit SHAs that were reverted |
+| `reverted_at` | ISO datetime | When rollback occurred |
+| `reason` | string | Why rollback was triggered |
 
 ### Task Status Values
 
