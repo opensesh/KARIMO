@@ -476,7 +476,7 @@ Or manually remove these files:
 rm -rf .karimo/
 rm .claude/agents/karimo-*.md
 rm .claude/commands/karimo-*.md
-rm .claude/skills/{git-worktree-ops,github-project-ops,karimo-code-standards,karimo-testing-standards,karimo-doc-standards}.md
+rm .claude/skills/karimo-*.md
 rm .claude/KARIMO_RULES.md
 rm .github/workflows/karimo-*.yml
 ```

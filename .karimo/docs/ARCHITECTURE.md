@@ -35,7 +35,7 @@ KARIMO uses `.karimo/MANIFEST.json` as the single source of truth for all instal
   "version": "3.1.1",
   "agents": ["karimo-brief-writer.md", "karimo-documenter.md", ...],
   "commands": ["configure.md", "doctor.md", ...],
-  "skills": ["git-worktree-ops.md", ...],
+  "skills": ["karimo-git-worktree-ops.md", ...],
   "templates": ["PRD_TEMPLATE.md", ...],
   "workflows": {
     "required": ["karimo-ci.yml"],
@@ -110,8 +110,8 @@ Target Project/
 │   │   ├── doctor.md                # /karimo-doctor
 │   │   └── test.md                  # /karimo-test
 │   ├── skills/                      # 5 skills from manifest
-│   │   ├── git-worktree-ops.md      # Worktree management
-│   │   ├── github-project-ops.md    # GitHub Projects via gh CLI
+│   │   ├── karimo-git-worktree-ops.md      # Worktree management
+│   │   ├── karimo-github-project-ops.md    # GitHub Projects via gh CLI
 │   │   ├── karimo-code-standards.md     # Task agent skill
 │   │   ├── karimo-testing-standards.md  # Task agent skill
 │   │   └── karimo-doc-standards.md      # Task agent skill
@@ -635,7 +635,7 @@ When a task fails validation after 3 loops:
 3. **Auto-rollback** — Task branch reset to `rollback_sha`
 4. **Status update** — Task marked `rolled_back` with reason
 
-The `safe_commit()` function in `git-worktree-ops` handles this:
+The `safe_commit()` function in `karimo-git-worktree-ops` handles this:
 ```bash
 # Record pre-commit SHA → Commit → Validate → Revert if fails
 ```

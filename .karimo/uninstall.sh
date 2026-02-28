@@ -132,7 +132,7 @@ if [ -f "$MANIFEST" ]; then
     done
 else
     # Fallback: known KARIMO skills
-    for skill in git-worktree-ops.md github-project-ops.md karimo-code-standards.md karimo-testing-standards.md karimo-doc-standards.md; do
+    for skill in karimo-git-worktree-ops.md karimo-github-project-ops.md karimo-code-standards.md karimo-testing-standards.md karimo-doc-standards.md karimo-bash-utilities.md; do
         if [ -f "$TARGET_DIR/.claude/skills/$skill" ]; then
             rm "$TARGET_DIR/.claude/skills/$skill"
             REMOVED_COUNT=$((REMOVED_COUNT + 1))

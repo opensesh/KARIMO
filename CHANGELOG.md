@@ -7,6 +7,42 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [3.5.1] - 2026-02-27
+
+### Fixed
+
+**CI Manifest Validation Pattern Bug**
+
+Fixed a bug where CI validation counted ALL markdown files instead of only Karimo-managed files. This caused CI failures when users added custom commands or skills alongside Karimo's.
+
+**Problem:**
+- `validate-manifest` job used `*.md` pattern for commands and skills
+- Users adding custom files (e.g., `restart.md`, `my-tool.md`) broke CI
+- Manifest only tracks Karimo-managed files, not user additions
+
+**Solution:**
+- Changed patterns to `karimo-*.md` for commands and skills
+- Renamed 2 skills for consistent prefix:
+  - `git-worktree-ops.md` → `karimo-git-worktree-ops.md`
+  - `github-project-ops.md` → `karimo-github-project-ops.md`
+
+### Changed
+
+| File | Change |
+|------|--------|
+| `.github/workflows/karimo-ci.yml` | Use `karimo-*.md` pattern for commands/skills counting |
+| `.karimo/MANIFEST.json` | Updated skill filenames, bumped to 3.5.1 |
+| `.claude/skills/karimo-git-worktree-ops.md` | Renamed from `git-worktree-ops.md` |
+| `.claude/skills/karimo-github-project-ops.md` | Renamed from `github-project-ops.md` |
+| `.claude/agents/karimo-pm.md` | Updated skill references |
+| `.karimo/docs/ARCHITECTURE.md` | Updated skill references |
+| `.karimo/docs/SAFEGUARDS.md` | Updated skill references |
+| `.karimo/docs/GETTING-STARTED.md` | Simplified uninstall command |
+| `.karimo/uninstall.sh` | Updated skill filenames |
+| `CLAUDE.md` | Updated skill names |
+
+---
+
 ## [3.5.0] - 2026-02-27
 
 ### Added

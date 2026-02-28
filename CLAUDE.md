@@ -138,7 +138,7 @@ When you run `install.sh`, these files are added:
 
 ### Skills
 
-**Coordination skills:** git-worktree-ops, github-project-ops, karimo-bash-utilities
+**Coordination skills:** karimo-git-worktree-ops, karimo-github-project-ops, karimo-bash-utilities
 
 **Task agent skills:** karimo-code-standards, karimo-testing-standards, karimo-doc-standards
 

@@ -238,18 +238,18 @@ Wait for human confirmation before proceeding.
 
 **Skip this step entirely if `mode: fast-track`.**
 
-**Use the `github-project-ops` skill for all GitHub operations.** The skill provides:
+**Use the `karimo-github-project-ops` skill for all GitHub operations.** The skill provides:
 - Project owner resolution from config
 - Idempotent project creation
 - Issue/PR creation via MCP
 - Sub-issue hierarchy setup
 - Wave field configuration
 
-**Reference:** `.claude/skills/github-project-ops.md`
+**Reference:** `.claude/skills/karimo-github-project-ops.md`
 
 #### Workflow Summary
 
-1. **Resolve owner** using patterns from `github-project-ops` skill
+1. **Resolve owner** using patterns from `karimo-github-project-ops` skill
 2. **Create feature issue** (parent for sub-issues) via MCP
 3. **Create/reuse project** (idempotent check)
 4. **Configure project fields** (agent_status, wave, complexity, etc.)
@@ -304,7 +304,7 @@ After Step 3, status.json should contain:
 
 ### Step 4: Git Worktree Setup (Full Mode) / Branch Setup (Fast Track)
 
-**Full Mode:** Use the `git-worktree-ops` skill to create worktrees with branch-issue linking.
+**Full Mode:** Use the `karimo-git-worktree-ops` skill to create worktrees with branch-issue linking.
 **Fast Track:** Work directly on main branch or optionally create a feature branch.
 
 #### Full Mode: Branch-Issue Linking & Worktree Creation
@@ -1461,7 +1461,7 @@ When a merged task breaks integration:
 
 ### Safe Commit Protocol
 
-Before committing task changes, use the safe commit protocol from `git-worktree-ops` skill:
+Before committing task changes, use the safe commit protocol from `karimo-git-worktree-ops` skill:
 
 1. Record pre-commit SHA
 2. Commit changes
@@ -1469,7 +1469,7 @@ Before committing task changes, use the safe commit protocol from `git-worktree-
 4. If validation fails: auto-revert to pre-commit SHA
 5. If validation passes: proceed normally
 
-**Reference:** `.claude/skills/git-worktree-ops.md` — Safe Commit section
+**Reference:** `.claude/skills/karimo-git-worktree-ops.md` — Safe Commit section
 
 ---
 
@@ -1508,8 +1508,8 @@ for task in status.json.tasks:
 
 You have access to these skills:
 
-- **`git-worktree-ops`** — Worktree creation, cleanup, branch management, conflict handling
-- **`github-project-ops`** — Project creation, Issue management, PR creation, label management
+- **`karimo-git-worktree-ops`** — Worktree creation, cleanup, branch management, conflict handling
+- **`karimo-github-project-ops`** — Project creation, Issue management, PR creation, label management
 
 Use them by following their documented patterns. The skills contain the exact `gh` CLI commands and git workflows.
 

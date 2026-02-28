@@ -636,7 +636,7 @@ When a task fails validation after 3 loops:
 
 **Implementation:**
 
-The `safe_commit()` function in `git-worktree-ops` skill handles safe commits:
+The `safe_commit()` function in `karimo-git-worktree-ops` skill handles safe commits:
 
 ```bash
 safe_commit() {

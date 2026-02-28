@@ -54,7 +54,7 @@ jobs:
 
           echo "Validating commands..."
           EXPECTED_COMMANDS=$(manifest_count "commands")
-          ACTUAL_COMMANDS=$(ls -1 .claude/commands/*.md 2>/dev/null | wc -l | tr -d ' ')
+          ACTUAL_COMMANDS=$(ls -1 .claude/commands/karimo-*.md 2>/dev/null | wc -l | tr -d ' ')
           echo "  Expected: $EXPECTED_COMMANDS, Actual: $ACTUAL_COMMANDS"
           if [ "$ACTUAL_COMMANDS" -ne "$EXPECTED_COMMANDS" ]; then
             echo "  ❌ Command count mismatch"
@@ -65,7 +65,7 @@ jobs:
 
           echo "Validating skills..."
           EXPECTED_SKILLS=$(manifest_count "skills")
-          ACTUAL_SKILLS=$(ls -1 .claude/skills/*.md 2>/dev/null | wc -l | tr -d ' ')
+          ACTUAL_SKILLS=$(ls -1 .claude/skills/karimo-*.md 2>/dev/null | wc -l | tr -d ' ')
           echo "  Expected: $EXPECTED_SKILLS, Actual: $ACTUAL_SKILLS"
           if [ "$ACTUAL_SKILLS" -ne "$EXPECTED_SKILLS" ]; then
             echo "  ❌ Skill count mismatch"
@@ -210,12 +210,12 @@ jobs:
           [ "$ACTUAL_AGENTS" -eq "$EXPECTED_AGENTS" ] || exit 1
 
           EXPECTED_COMMANDS=$(manifest_count "commands")
-          ACTUAL_COMMANDS=$(ls -1 .claude/commands/*.md 2>/dev/null | wc -l | tr -d ' ')
+          ACTUAL_COMMANDS=$(ls -1 .claude/commands/karimo-*.md 2>/dev/null | wc -l | tr -d ' ')
           echo "Commands: $ACTUAL_COMMANDS (expected: $EXPECTED_COMMANDS)"
           [ "$ACTUAL_COMMANDS" -eq "$EXPECTED_COMMANDS" ] || exit 1
 
           EXPECTED_SKILLS=$(manifest_count "skills")
-          ACTUAL_SKILLS=$(ls -1 .claude/skills/*.md 2>/dev/null | wc -l | tr -d ' ')
+          ACTUAL_SKILLS=$(ls -1 .claude/skills/karimo-*.md 2>/dev/null | wc -l | tr -d ' ')
           echo "Skills: $ACTUAL_SKILLS (expected: $EXPECTED_SKILLS)"
           [ "$ACTUAL_SKILLS" -eq "$EXPECTED_SKILLS" ] || exit 1
 
