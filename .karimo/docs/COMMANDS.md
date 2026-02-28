@@ -87,6 +87,7 @@ Surface all tasks needing human attention and recently completed work across all
 /karimo-overview              # Full dashboard view
 /karimo-overview --blocked    # Show only blocked tasks
 /karimo-overview --active     # Show only active PRDs with progress
+/karimo-overview --deps       # Show cross-PRD dependency graph
 ```
 
 ### What It Shows
@@ -126,6 +127,31 @@ Surface all tasks needing human attention and recently completed work across all
     [1b] Add user type definitions           ✓ merged 2h ago
 ```
 
+### Dependency Graph (`--deps`)
+
+The `--deps` flag shows cross-PRD dependencies:
+
+```
+╭──────────────────────────────────────────────────────────────╮
+│  Cross-PRD Dependency Graph                                  │
+╰──────────────────────────────────────────────────────────────╯
+
+user-profiles ──────► notifications
+     │                     │
+     └──────► auth-v2 ◄────┘
+
+Blocking Relationships:
+  • notifications blocked by: user-profiles
+  • auth-v2 blocked by: user-profiles, notifications
+
+Runtime Discoveries:
+  • user-profiles/1b discovered dependency on auth-v2 types
+
+Recommended Order:
+  1. user-profiles
+  2. notifications, auth-v2 (parallel)
+```
+
 ### Why This Command Exists
 
 This is the **primary daily oversight touchpoint** for KARIMO:
@@ -133,6 +159,7 @@ This is the **primary daily oversight touchpoint** for KARIMO:
 - **Revision loops** — Tasks actively being revised
 - **Rebase conflicts** — Merge conflicts requiring manual resolution
 - **Completions** — Recently merged work
+- **Dependencies** — Cross-PRD blocking relationships (with `--deps`)
 
 Check this each morning or after a run completes.
 
@@ -506,7 +533,8 @@ Capture learnings to improve future agent execution.
 ### Usage
 
 ```
-/karimo-feedback
+/karimo-feedback                           # Interactive single capture
+/karimo-feedback --from-metrics {slug}     # Batch from PRD metrics
 
 > {your observation}
 ```
@@ -549,6 +577,34 @@ Generates:
 - Be specific about what went wrong
 - Include file paths when relevant
 - Mention the desired behavior
+
+### Batch Mode: `--from-metrics`
+
+After PRD execution completes, `metrics.json` contains auto-identified learning candidates. Use batch mode to process them:
+
+```
+/karimo-feedback --from-metrics user-profiles
+```
+
+This reads `.karimo/prds/user-profiles/metrics.json` and presents each candidate:
+
+```
+╭──────────────────────────────────────────────────────────────╮
+│  Learning Candidate 1 of 3                                   │
+├──────────────────────────────────────────────────────────────┤
+│  Task: 2a (Profile edit form)                                │
+│  Reason: high_loop_count (4 loops)                           │
+│  Context: Greptile flagged missing error handling            │
+│                                                              │
+│  Suggested rule:                                             │
+│  "Form components must include error state handling"         │
+│                                                              │
+├──────────────────────────────────────────────────────────────┤
+│  [A]dd  [S]kip  [E]dit                                       │
+╰──────────────────────────────────────────────────────────────╯
+```
+
+Approved rules are batch-appended to `.karimo/learnings.md`.
 
 ---
 
