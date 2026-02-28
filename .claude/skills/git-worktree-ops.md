@@ -268,6 +268,120 @@ If validation fails:
 
 3. **Update GitHub Issue with failure details**
 
+## Safe Commit Protocol
+
+The safe commit protocol ensures changes can be reverted if validation fails after commit.
+
+### Overview
+
+```
+Record pre-commit SHA → Commit changes → Run validation → Pass? Keep commit : Revert
+```
+
+### Implementation
+
+```bash
+safe_commit() {
+  local COMMIT_MSG="$1"
+  local WORKTREE_PATH="$2"
+
+  cd "$WORKTREE_PATH"
+
+  # Step 1: Record pre-commit state
+  PRE_COMMIT_SHA=$(git rev-parse HEAD)
+
+  # Step 2: Stage and commit
+  git add -A
+  git commit -m "$COMMIT_MSG
+
+Co-Authored-By: Claude <noreply@anthropic.com>"
+
+  if [ $? -ne 0 ]; then
+    echo "COMMIT_FAILED: Nothing to commit or commit error"
+    return 1
+  fi
+
+  # Step 3: Run validation
+  # Uses commands from .karimo/config.yaml
+  BUILD_CMD=$(grep "^  build:" .karimo/config.yaml | head -1 | cut -d'"' -f2)
+  LINT_CMD=$(grep "^  lint:" .karimo/config.yaml | head -1 | cut -d'"' -f2)
+
+  VALIDATION_FAILED=false
+
+  if [ -n "$BUILD_CMD" ]; then
+    eval "$BUILD_CMD"
+    if [ $? -ne 0 ]; then
+      VALIDATION_FAILED=true
+      echo "BUILD_FAILED"
+    fi
+  fi
+
+  if [ -n "$LINT_CMD" ] && [ "$VALIDATION_FAILED" = false ]; then
+    eval "$LINT_CMD"
+    if [ $? -ne 0 ]; then
+      VALIDATION_FAILED=true
+      echo "LINT_FAILED"
+    fi
+  fi
+
+  # Step 4: Handle result
+  if [ "$VALIDATION_FAILED" = true ]; then
+    echo "REVERTING: Validation failed, rolling back commit"
+    git reset --hard "$PRE_COMMIT_SHA"
+    return 1
+  fi
+
+  echo "COMMIT_SUCCESS: Validation passed"
+  return 0
+}
+```
+
+### Usage by Worker Agents
+
+Worker agents should use this protocol:
+
+```bash
+# In worktree
+cd .worktrees/{prd-slug}/{task-id}
+
+# Make changes...
+
+# Commit with validation
+safe_commit "feat(component): add user profile display" "$(pwd)"
+
+if [ $? -ne 0 ]; then
+  # Handle failure - increment loop count, log error
+  echo "Commit validation failed, adjusting approach..."
+fi
+```
+
+### When to Use Safe Commit
+
+| Scenario | Use Safe Commit? |
+|----------|------------------|
+| Feature implementation | Yes |
+| Bug fix | Yes |
+| Documentation-only change | No (skip validation) |
+| Config-only change | Optional |
+| Final commit before PR | Yes |
+
+### Recording Rollback SHA
+
+For PM agent rollback protocol, record the pre-commit SHA in status.json:
+
+```json
+{
+  "tasks": {
+    "1a": {
+      "rollback_sha": "{PRE_COMMIT_SHA}",
+      "last_commit_at": "ISO timestamp"
+    }
+  }
+}
+```
+
+This allows the PM agent to rollback to a known-good state if a task exceeds loop limits.
+
 ## Worktree Lifecycle (v2.1)
 
 KARIMO v2.1 uses an **extended worktree lifecycle**. Worktrees persist through the review cycle and are only cleaned up after PR merge.
