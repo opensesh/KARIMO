@@ -1,0 +1,342 @@
+# KARIMO CI/CD Integration
+
+How KARIMO interacts with your continuous integration and deployment systems.
+
+---
+
+## Philosophy
+
+**KARIMO observes your CI — it doesn't run your builds.**
+
+Your existing CI (GitHub Actions, CircleCI, Jenkins) runs `build`, `lint`, `test`, and `typecheck`. KARIMO's workflows observe the results via GitHub APIs and label PRs accordingly.
+
+This keeps KARIMO portable across any CI system.
+
+---
+
+## CI Integration (Observation)
+
+### How It Works
+
+1. Task agent creates PR with `karimo` label
+2. Your CI runs (GitHub Actions, Vercel, etc.)
+3. KARIMO CI Integration workflow observes Check Runs / Status APIs
+4. PR gets labeled: `ci-passed`, `ci-failed`, or `ci-skipped`
+
+### Labels
+
+| Label | Meaning |
+|-------|---------|
+| `ci-passed` | All external CI checks passed |
+| `ci-failed` | One or more CI checks failed |
+| `ci-skipped` | No external CI detected |
+
+### Configuration
+
+Enable via `/karimo-configure`:
+
+```yaml
+cost:
+  ci_observer_enabled: true
+```
+
+This installs `karimo-ci-integration.yml` which watches your CI.
+
+---
+
+## CD Integration (Preview Deployments)
+
+### The Problem
+
+KARIMO task PRs contain partial code that may not build in isolation:
+
+```
+Wave 1:
+  Task 1a: Add UserProfile type definitions
+  Task 1b: Add ProfileForm component (uses UserProfile)
+```
+
+If Vercel builds Task 1b before Task 1a merges, the build fails because `UserProfile` doesn't exist yet.
+
+**This is expected behavior.** The code works once all wave tasks merge to main.
+
+### Solutions
+
+#### Option 1: Skip KARIMO Branches (Recommended)
+
+Run `/karimo-cd-config` to auto-configure your deployment provider.
+
+Or manually configure:
+
+**Vercel** — Add to `vercel.json`:
+```json
+{
+  "ignoreCommand": "[[ \"$VERCEL_GIT_COMMIT_REF\" =~ -[0-9]+[a-z]?$ ]] && exit 0 || exit 1"
+}
+```
+
+**Netlify** — Add to `netlify.toml`:
+```toml
+[build]
+  ignore = "[[ \"$HEAD\" =~ -[0-9]+[a-z]?$ ]] && exit 0 || exit 1"
+```
+
+**Render** — In dashboard, set Auto-Deploy to exclude branches matching: `-[0-9]+[a-z]?$`
+
+**The Pattern:** KARIMO task branches end with `-{digit}{letter}` (e.g., `-1a`, `-2b`). The regex `-[0-9]+[a-z]?$` matches this.
+
+#### Option 2: Accept the Noise
+
+Preview failures are informational, not blocking:
+- KARIMO labels PRs with `ci-failed` when builds fail
+- Configure branch protection to make preview checks non-required
+- Rely on main branch builds for actual validation
+
+#### Option 3: Disable PR Previews
+
+Most platforms allow disabling PR previews while keeping main branch deployments.
+
+---
+
+## Branch Pattern Details
+
+### KARIMO Branch Naming
+
+KARIMO task branches follow this pattern:
+```
+{prd-slug}-{task-id}
+```
+
+Examples:
+- `user-profiles-1a`
+- `token-studio-2b`
+- `auth-refactor-3a`
+- `payment-flow-10a` (multi-digit task IDs supported)
+
+### Regex Pattern
+
+```regex
+-[0-9]+[a-z]?$
+```
+
+**Breakdown:**
+- `-` — Literal dash
+- `[0-9]+` — One or more digits (handles task IDs like 1, 10, 100)
+- `[a-z]?` — Optional lowercase letter (wave suffix)
+- `$` — End of string
+
+### Pattern Validation
+
+Test the pattern with bash:
+
+```bash
+# Should exit 0 (skip build)
+BRANCH="user-profiles-1a" && [[ "$BRANCH" =~ -[0-9]+[a-z]?$ ]] && echo "skip" || echo "build"
+
+# Should exit 1 (build)
+BRANCH="feature/new-api" && [[ "$BRANCH" =~ -[0-9]+[a-z]?$ ]] && echo "skip" || echo "build"
+```
+
+### Edge Cases
+
+| Branch Name | Matches? | Reason |
+|-------------|----------|--------|
+| `user-profiles-1a` | ✓ | Standard KARIMO format |
+| `auth-refactor-10b` | ✓ | Multi-digit task ID |
+| `fix-123` | ✗ | No dash before digits, no letter suffix |
+| `feature/add-1a` | ✗ | Contains slash, different pattern |
+| `hotfix-1` | ✓ | Matches (rare false positive, acceptable) |
+
+The pattern is conservative — it may skip a rare non-KARIMO branch like `hotfix-1`, but this is preferable to missing KARIMO branches.
+
+---
+
+## Branch Protection
+
+KARIMO doesn't enforce merge gates — that's your repository's policy.
+
+Recommended settings for KARIMO PRs:
+
+| Setting | Recommendation |
+|---------|----------------|
+| Require PR reviews | Optional (agents can merge if you trust them) |
+| Require status checks | Enable for main branch builds |
+| Require branches to be up to date | Disable (waves handle sequencing) |
+| Allow force pushes | Disable |
+
+### Making Preview Checks Non-Blocking
+
+If you want previews to run but not block merges:
+
+**GitHub:**
+1. Go to Settings → Branches → Branch protection rules
+2. Under "Require status checks", uncheck preview deployment checks
+3. Keep only essential checks (CI tests, linting) as required
+
+**Vercel:**
+- Preview check failures don't block merges by default
+- Only production deployment failures can be made required
+
+---
+
+## Greptile Integration (Phase 2)
+
+If you enable Greptile for automated code review:
+
+1. Task PR created → Greptile reviews code
+2. Score ≥ 3 → `greptile-passed` label
+3. Score < 3 → `greptile-needs-revision` label, agent revises
+
+This is separate from CI/CD — Greptile reviews code quality, not build status.
+
+---
+
+## Platform-Specific Guides
+
+### Vercel
+
+**Configuration:**
+```json
+{
+  "ignoreCommand": "[[ \"$VERCEL_GIT_COMMIT_REF\" =~ -[0-9]+[a-z]?$ ]] && exit 0 || exit 1"
+}
+```
+
+**How it works:**
+- `VERCEL_GIT_COMMIT_REF` contains the branch name
+- Exit code `0` = skip the build
+- Exit code `1` = proceed with build
+
+**Alternative (vercel.ts):**
+```typescript
+import type { VercelConfig } from '@vercel/config/v1';
+
+export const config: VercelConfig = {
+  ignoreCommand: '[[ "$VERCEL_GIT_COMMIT_REF" =~ -[0-9]+[a-z]?$ ]] && exit 0 || exit 1',
+};
+```
+
+### Netlify
+
+**Configuration:**
+```toml
+[build]
+  ignore = "[[ \"$HEAD\" =~ -[0-9]+[a-z]?$ ]] && exit 0 || exit 1"
+```
+
+**How it works:**
+- `$HEAD` contains the branch name
+- Same exit code logic as Vercel
+
+**Alternative (netlify-ignore.sh):**
+```bash
+#!/bin/bash
+# Skip KARIMO task branches
+if [[ "$HEAD" =~ -[0-9]+[a-z]?$ ]]; then
+  echo "Skipping KARIMO task branch: $HEAD"
+  exit 0
+fi
+exit 1
+```
+
+Reference in `netlify.toml`:
+```toml
+[build]
+  ignore = "./netlify-ignore.sh"
+```
+
+### Render
+
+Render requires dashboard configuration:
+
+1. Go to your service in the Render dashboard
+2. Navigate to Settings → Build & Deploy
+3. Under "Auto-Deploy", select "No" or configure branch patterns
+4. Add exclude pattern: `-[0-9]+[a-z]?$`
+
+**Note:** As of 2026, Render doesn't support ignore commands in `render.yaml`.
+
+### Railway
+
+Railway requires dashboard configuration:
+
+1. Go to your project in Railway dashboard
+2. Navigate to Settings → Deploys
+3. Configure "Watch Patterns" to exclude KARIMO branches
+4. Add pattern: `*-[0-9]+[a-z]$`
+
+### Fly.io
+
+Fly.io doesn't auto-deploy PRs by default. If you've set up GitHub Actions for Fly:
+
+```yaml
+# .github/workflows/fly-deploy.yml
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+    # Skip KARIMO task branches
+    paths-ignore:
+      - '**'  # Needs custom condition
+
+jobs:
+  deploy:
+    # Add condition to skip KARIMO branches
+    if: ${{ !endsWith(github.head_ref, '-1a') && !contains(github.head_ref, '-') }}
+    # ... rest of workflow
+```
+
+Or use a more robust check:
+
+```yaml
+jobs:
+  deploy:
+    if: ${{ !contains(github.head_ref, '-') || !endsWith(github.head_ref, 'a') }}
+```
+
+---
+
+## Troubleshooting
+
+### "CI-failed on all KARIMO PRs"
+
+This is expected for partial code. Run `/karimo-cd-config` to skip previews.
+
+### "CI-skipped on all PRs"
+
+Your CI isn't posting Check Runs to GitHub. Check:
+- GitHub Actions workflows exist and run on PRs
+- External CI (CircleCI, Jenkins) has GitHub integration enabled
+
+### "Previews still building after configuration"
+
+1. Verify the config file was saved
+2. Check the config file syntax (JSON/TOML)
+3. Push a test branch ending with `-1a`
+4. Check deployment logs for "Ignoring build" message
+
+### "Pattern matching wrong branches"
+
+The pattern `-[0-9]+[a-z]?$` is intentionally conservative. If you have branches like `hotfix-1` that get skipped:
+- Rename to `hotfix/issue-1` or `hotfix-issue-1`
+- Or adjust the pattern to be more specific
+
+### "Need to debug a KARIMO branch build"
+
+Temporarily force a build:
+1. Rename the branch to not match the pattern
+2. Or remove the ignore rule temporarily
+3. Or use `vercel --force` / manual deploy trigger
+
+---
+
+## Related Documentation
+
+| Document | Topic |
+|----------|-------|
+| [SAFEGUARDS.md](SAFEGUARDS.md) | Security and code integrity |
+| [COMMANDS.md](COMMANDS.md) | All KARIMO commands |
+| [PHASES.md](PHASES.md) | Adoption phases (CI observation is Phase 1) |
