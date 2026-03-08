@@ -167,7 +167,7 @@ Check this each morning or after a run completes.
 
 ## /karimo-execute
 
-Execute tasks from a finalized PRD. Two-phase flow: brief generation, then execution.
+Execute tasks from a finalized PRD. Two-phase flow: brief generation, then wave-ordered execution.
 
 ### Usage
 
@@ -179,9 +179,9 @@ Execute tasks from a finalized PRD. Two-phase flow: brief generation, then execu
 
 | Option | Required | Description |
 |--------|----------|-------------|
-| `--prd {slug}` | Yes | PRD slug to execute |
+| `--prd {slug}` | No | PRD slug to execute (lists available if omitted) |
 | `--task {id}` | No | Execute specific task only |
-| `--dry-run` | No | Preview without executing |
+| `--dry-run` | No | Preview execution plan without making changes |
 
 ### What It Does
 
@@ -190,18 +190,26 @@ Execute tasks from a finalized PRD. Two-phase flow: brief generation, then execu
 2. **Presents** briefs for user review
 3. **Options**: Execute all, Adjust briefs, Exclude tasks, Cancel
 
-**Phase 2: Execution**
-1. **Reads** `execution_plan.yaml` for wave-based scheduling
-2. **Creates** feature branch and worktrees
-3. **Spawns** agents with pre-generated briefs
-4. **Monitors** progress and propagates findings
-5. **Creates** PRs when tasks complete
+**Phase 2: Execution (v4.0 Model)**
+1. **Reconciles** status.json with git state (git is truth)
+2. **Executes** tasks wave by wave (wave 2 waits for wave 1 to merge)
+3. **Spawns** agents with `isolation: worktree` (Claude Code manages worktrees)
+4. **Creates** PRs targeting main directly
+5. **Applies** PR labels: `karimo`, `karimo-{prd-slug}`, `wave-{n}`, `complexity-{n}`
+6. **Finalizes** on completion (metrics, cleanup)
 
 ### Execution Flow
 
 ```
-Generate Briefs → User Review → Create Worktrees → Execute Tasks → Create PRs
+Generate Briefs → User Review → Wave-Ordered Execution → PRs to Main → Finalize
 ```
+
+### Resume Protocol
+
+If `/karimo-execute` runs on an active PRD, it:
+1. Derives truth from git state (not status.json)
+2. Reconciles any discrepancies
+3. Resumes from the correct wave
 
 ### Example
 
@@ -269,7 +277,7 @@ Modify an approved PRD before execution — add, remove, or change tasks with au
 
 ## /karimo-status
 
-View execution progress across all PRDs.
+View execution progress across all PRDs with git state reconstruction.
 
 ### Usage
 
@@ -282,7 +290,9 @@ View execution progress across all PRDs.
 | Option | Description |
 |--------|-------------|
 | `--prd {slug}` | Show specific PRD only |
-| `--verbose` | Include task details |
+| `--active` | Show only active PRDs |
+| `--reconcile` | Force git state reconstruction |
+| `--json` | Output as JSON |
 
 ### Output Example
 
@@ -294,28 +304,34 @@ View execution progress across all PRDs.
 PRDs:
 
   001_user-profiles          active     ████████░░ 80%
-    Tasks: 4/5 done, 1 running
-    PRs: #42 (merged), #43 (open), #44 (open)
+    Wave 2 of 3 in progress
+    Tasks: 4/5 done, 1 in-review
+    PRs: #42 #43 #44 #45 merged, #46 open
 
-  002_notifications          pending    ░░░░░░░░░░ 0%
-    Tasks: 0/3 done
-    Waiting for: user-profiles completion
+  002_notifications          ready      ░░░░░░░░░░ 0%
+    Tasks: 0/3 queued
+    Ready for execution
 ```
+
+### Git State Reconstruction
+
+v4.0 principle: **Git is truth. status.json is a cache.**
+
+The status command derives actual state from git and GitHub, not just status.json. If they conflict, git wins and status.json is updated.
 
 ### Task States
 
 | State | Description |
 |-------|-------------|
-| `pending` | Not yet started |
-| `ready` | Dependencies met, can run |
+| `queued` | Waiting for wave dependencies |
 | `running` | Agent executing |
-| `in-review` | PR created, awaiting review |
+| `in-review` | PR created, awaiting merge |
 | `needs-revision` | Review requested changes |
 | `needs-human-review` | Failed 3 Greptile attempts |
-| `done` | Completed successfully |
+| `done` | PR merged |
 | `failed` | Execution failed |
-| `blocked` | Dependencies not met |
-| `needs-human-rebase` | Merge conflicts |
+| `blocked` | Waiting on failed dependency |
+| `crashed` | Branch exists but no PR |
 
 ---
 
@@ -833,5 +849,5 @@ Commands are defined in `.claude/commands/`:
 | Document | Purpose |
 |----------|---------|
 | [GETTING-STARTED.md](GETTING-STARTED.md) | Installation walkthrough |
-| [ARCHITECTURE.md](ARCHITECTURE.md) | System design |
+| [ARCHITECTURE.md](CODE/KARIMO/Repo/docs/ARCHITECTURE.md) | System design |
 | [PHASES.md](PHASES.md) | Adoption phases |

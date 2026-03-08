@@ -41,26 +41,21 @@ This is where everyone starts. Phase 1 provides everything needed to go from ide
   - Automated DAG generation
 
 - **Task Execution** (`/karimo-execute`)
-  - PM Agent coordinates task work
-  - Git worktrees for isolation
-  - Feature branches per task
-  - PRs created automatically
+  - PM Agent coordinates wave-ordered execution
+  - Claude Code handles worktrees via `isolation: worktree`
+  - PRs target main directly
+  - PR labels for tracking (`karimo`, `wave-{n}`, etc.)
 
-- **Code Integration** (v2.1)
-  - Review/Architect Agent validates task PRs
-  - Two-tier merge model (task→feature→main)
-  - Merge conflict resolution
-  - Feature reconciliation before merge to main
+- **Code Integration** (v4.0)
+  - Wave-ordered execution (wave 2 waits for wave 1)
+  - PRs merge directly to main
+  - Git state reconstruction for crash recovery
+  - Findings propagation between waves
 
-- **Runtime Dependencies** (v2.1)
-  - Task agents can discover new dependencies
-  - Dependency Watch workflow notifies PM Agent
-  - Urgent dependencies get immediate attention
-
-- **GitHub Integration**
-  - Issues created for tasks
-  - GitHub Projects tracking
-  - Labels for status (ready, running, done)
+- **PR-Centric Tracking**
+  - PRs are the source of truth
+  - Labels replace GitHub Projects for tracking
+  - Dashboard queries via `gh pr list --label karimo`
 
 - **Compound Learning** (`/karimo-feedback`)
   - Capture patterns and anti-patterns
@@ -71,8 +66,7 @@ This is where everyone starts. Phase 1 provides everything needed to go from ide
 
 | Workflow | Purpose | Trigger |
 |----------|---------|---------|
-| `karimo-sync.yml` | Updates project item status on PR merge | PR merged with `karimo` label |
-| `karimo-dependency-watch.yml` | Alerts when runtime dependencies discovered | Issue labeled `karimo-dependency` |
+| `karimo-ci.yml` | Validates KARIMO installation | Push/PR |
 | `karimo-ci-integration.yml` *(optional)* | Observes external CI, labels PRs | PR opened/updated |
 
 The CI integration workflow is recommended but optional. It watches your existing CI (GitHub Actions, CircleCI, Jenkins, etc.) and labels PRs with `ci-passed`, `ci-failed`, or `ci-skipped`. It does NOT run build commands itself.
@@ -81,7 +75,7 @@ The CI integration workflow is recommended but optional. It watches your existin
 
 - Claude Code installed
 - GitHub CLI authenticated (`gh auth login`)
-- Git with worktree support (Git 2.5+)
+- GitHub MCP server configured
 
 ### Getting Started
 
@@ -210,14 +204,13 @@ See [DASHBOARD.md](DASHBOARD.md) for the planned specification.
 | Feature | Phase 1 | Phase 2 | Phase 3 |
 |---------|---------|---------|---------|
 | PRD Interview | Yes | Yes | Yes |
-| Task Execution | Yes | Yes | Yes |
-| Git Worktrees | Yes | Yes | Yes |
-| Automatic PRs | Yes | Yes | Yes |
-| GitHub Issues | Yes | Yes | Yes |
+| Wave-Ordered Execution | Yes | Yes | Yes |
+| Claude Code Worktrees | Yes | Yes | Yes |
+| PRs to Main | Yes | Yes | Yes |
+| PR Label Tracking | Yes | Yes | Yes |
 | Manual Review | Yes | Yes | Yes |
-| Review/Architect Agent | Yes | Yes | Yes |
-| Two-Tier Merge Model | Yes | Yes | Yes |
-| Runtime Dependencies | Yes | Yes | Yes |
+| Git State Reconstruction | Yes | Yes | Yes |
+| Crash Recovery | Yes | Yes | Yes |
 | Greptile Review | — | Yes | Yes |
 | Revision Loops | — | Yes | Yes |
 | Dashboard | — | — | Yes |
@@ -247,4 +240,4 @@ Instructions will be provided when the dashboard is available.
 | [GETTING-STARTED.md](GETTING-STARTED.md) | Installation walkthrough |
 | [COMMANDS.md](COMMANDS.md) | Slash command reference |
 | [SAFEGUARDS.md](SAFEGUARDS.md) | Worktrees, validation, Greptile |
-| [ARCHITECTURE.md](ARCHITECTURE.md) | System design |
+| [ARCHITECTURE.md](CODE/KARIMO/Repo/docs/ARCHITECTURE.md) | System design |

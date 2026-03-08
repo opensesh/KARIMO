@@ -139,9 +139,9 @@ KARIMO uses three optional adoption phases:
 Your first planning process with KARIMO:
 - Run `/karimo-plan` to create PRD through agent interviews
 - Agent teams coordinate task execution
-- GitHub Projects integration for tracking
-- Git worktrees and feature branches by default
-- PRs created for each completed task
+- Wave-based execution (wave 2 waits for wave 1 to merge)
+- PRs target main directly with labels for tracking
+- Claude Code handles worktrees automatically via `isolation: worktree`
 
 **This is where everyone starts.** Phase 1 is fully functional out of the box.
 
@@ -160,41 +160,27 @@ Add automated code review to your workflow:
 
 ---
 
-## Execution Mode
+## Execution Model (v4.0)
 
-KARIMO offers two execution modes to accommodate different team needs:
+KARIMO v4.0 uses a simplified PR-centric workflow:
 
-### Full Mode (Recommended)
-
-Full GitHub integration with issues, PRs, and Projects.
+**Key Features:**
+- PRs target `main` directly (no feature branches)
+- Tasks execute in wave order (wave 2 waits for wave 1 to merge)
+- Claude Code manages worktrees via `isolation: worktree`
+- PR labels replace GitHub Projects for tracking
+- Branch naming: `{prd-slug}-{task-id}`
 
 **Requirements:**
 - GitHub MCP server configured in Claude Code
-- gh CLI authenticated with `project` scope
+- gh CLI authenticated with `repo` scope
 
 **Benefits:**
-- Complete traceability (task → issue → PR → merge)
-- GitHub Projects visualization
+- Complete traceability (task → PR → merge)
+- Wave-based parallel execution
 - PR-based code review workflow
 - Greptile integration for automated review
-- Multi-feature management
-
-### Fast Track Mode
-
-Commit-only workflow without GitHub integration.
-
-**Requirements:**
-- git repository initialized
-- No GitHub configuration needed
-
-**Workflow:**
-- Tasks become structured commits to main
-- Commit format: `[{prd-slug}][{task-id}] {task-name}: {description}`
-- No issues, PRs, or Projects
-
-**Best for:** Small teams, rapid prototyping, solo developers
-
-> **Note:** Fast Track trades traceability for speed. Use Full Mode for production projects where auditability matters.
+- Git state reconstruction for crash recovery
 
 ---
 
@@ -203,11 +189,10 @@ Commit-only workflow without GitHub integration.
 KARIMO configuration lives in `.karimo/config.yaml`. On first `/karimo-plan` or `/karimo-configure`, the investigator agent auto-detects project context and populates the config file.
 
 Key settings:
-- **Mode** — `full` or `fast-track` execution mode
 - **Project** — Runtime, framework, package manager
 - **Commands** — Build, lint, test, typecheck commands
 - **Boundaries** — Files agents must not touch (`never_touch`) or must flag for review (`require_review`)
-- **GitHub** — Owner, repository, merge strategy (Full Mode only)
+- **GitHub** — Owner, repository, default branch
 - **Learnings** — Patterns and anti-patterns stored in `.karimo/learnings.md`
 
 ---
@@ -216,9 +201,9 @@ Key settings:
 
 Agent behavior is governed by `.claude/KARIMO_RULES.md`. This file defines:
 - Task execution boundaries
-- Git worktree conventions
+- Wave-ordered execution model
 - PR creation guidelines
-- Finding propagation between tasks
+- Finding propagation between waves
 
 ---
 
@@ -230,7 +215,7 @@ When you run `install.sh`, these files are added:
 |----------|----------|
 | `.claude/agents/` | 13 agent definitions (7 coordination + 6 task agents) |
 | `.claude/commands/` | 11 slash commands (plan, overview, execute, modify, status, configure, update, feedback, learn, doctor, test) |
-| `.claude/skills/` | 6 skills (3 coordination + 3 task agent skills) |
+| `.claude/skills/` | 4 skills (1 coordination + 3 task agent skills) |
 | `.claude/KARIMO_RULES.md` | Agent behavior rules |
 | `.karimo/templates/` | 9 templates (PRD, interview, task, status, dependencies, DAG, learn-interview, findings, task-brief) |
 | `.github/workflows/` | 1 required (karimo-ci.yml) + optional workflows via `/karimo-configure` |
@@ -239,13 +224,13 @@ When you run `install.sh`, these files are added:
 
 **Coordination agents:** interviewer, investigator, reviewer, brief-writer, pm, review-architect, learn-auditor
 
-**Task agents:** implementer, tester, documenter
+**Task agents:** implementer, tester, documenter (each with Sonnet and Opus variants)
 
 ### Skills
 
 All skills use the `karimo-*` prefix for reliable update management and clear distinction from user-added files.
 
-**Coordination skills:** karimo-git-worktree-ops, karimo-github-project-ops, karimo-bash-utilities
+**Coordination skills:** karimo-bash-utilities
 
 **Task agent skills:** karimo-code-standards, karimo-testing-standards, karimo-doc-standards
 

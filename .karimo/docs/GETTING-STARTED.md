@@ -60,11 +60,10 @@ The installer will prompt you for optional workflow tiers:
 
 ```
 GitHub Workflow Installation
-KARIMO uses a three-tier workflow system:
+KARIMO uses a tiered workflow system:
 
 Tier 1 (Required):
-  - karimo-sync.yml: Status sync on PR merge
-  - karimo-dependency-watch.yml: Runtime dependency alerts
+  - karimo-ci.yml: Validates KARIMO installation
   Installed
 
 Tier 2 (CI Integration):
@@ -290,20 +289,21 @@ Replace `{slug}` with your PRD slug (e.g., `user-profiles`).
 - Generates self-contained briefs for each task
 - User reviews briefs and can adjust or exclude tasks
 
-**Phase 2: Task Execution** (varies by PRD size)
-- PM Agent creates a feature branch: `karimo/{prd-slug}`
-- Creates worktrees for each task: `.worktrees/{prd-slug}/{task-id}/`
-- Spawns agents for ready tasks (respects dependency order)
-- Propagates findings between related tasks
-- Creates PRs when tasks complete
+**Phase 2: Wave-Ordered Execution** (varies by PRD size)
+- PM Agent executes tasks wave by wave
+- Wave 2 waits for all wave 1 PRs to merge
+- Claude Code manages worktrees automatically via `isolation: worktree`
+- PRs target main directly with labels for tracking
+- Branch naming: `{prd-slug}-{task-id}`
 
-Example worktree structure during execution:
+Example wave structure:
 
 ```
-.worktrees/user-profiles/
-├── T001/    # Implementing user profile model
-├── T002/    # Waiting on T001 (dependency)
-└── T003/    # Running in parallel with T001
+Wave 1: [1a, 1b] — Execute in parallel, PRs to main
+        ↓ (wait for merge)
+Wave 2: [2a, 2b] — Execute in parallel, PRs to main
+        ↓ (wait for merge)
+Wave 3: [3a] — Final task
 ```
 
 ### 3. Monitor Progress
@@ -324,6 +324,7 @@ Shows progress across all PRDs:
 PRDs:
 
   001_user-profiles          active     ████████░░ 80%
+    Wave 2 of 3 in progress
     Tasks: 4/5 done, 1 in-review
 ```
 
@@ -394,13 +395,6 @@ gh auth login
 gh auth status
 ```
 
-### "Worktree already exists"
-
-```bash
-git worktree list
-git worktree remove .worktrees/{prd-slug}/{task-id}
-```
-
 ### "Claude Code not found"
 
 Ensure Claude Code is installed and in your PATH:
@@ -423,6 +417,15 @@ ls .claude/agents/
 ```
 
 Should show KARIMO agents alongside any existing agents.
+
+### "Task crashed" or stale execution
+
+v4.0 uses git state reconstruction. Run:
+```bash
+/karimo-execute --prd {slug}
+```
+
+This will reconcile status.json with git reality and resume from the correct point.
 
 ### "Workflow conflicts"
 
@@ -503,9 +506,9 @@ With Greptile, you get:
 
 Most teams find Greptile significantly improves outcomes.
 
-### What about existing Git worktrees?
+### How does KARIMO handle task isolation?
 
-KARIMO creates worktrees in `.worktrees/{prd-slug}/{task-id}/`. This is separate from any worktrees you're already using. Add `.worktrees/` to `.gitignore` if not already present (the install script handles this).
+KARIMO v4.0 uses Claude Code's native `isolation: worktree` feature. Claude Code automatically creates and cleans up worktrees for each task agent. You don't need to manage worktrees manually.
 
 ---
 
@@ -524,5 +527,5 @@ KARIMO creates worktrees in `.worktrees/{prd-slug}/{task-id}/`. This is separate
 | Document | Description |
 |----------|-------------|
 | [PHASES.md](PHASES.md) | Adoption phases explained |
-| [ARCHITECTURE.md](ARCHITECTURE.md) | System design and integration |
+| [ARCHITECTURE.md](CODE/KARIMO/Repo/docs/ARCHITECTURE.md) | System design and integration |
 | [COMMANDS.md](COMMANDS.md) | Slash command reference |
