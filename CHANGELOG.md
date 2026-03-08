@@ -7,6 +7,45 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [4.0.1] - 2026-03-07
+
+### Added
+
+**CD Provider Configuration**
+
+New `/karimo-cd-config` command for configuring continuous deployment providers to skip preview builds on KARIMO task branches.
+
+**Problem:** KARIMO task PRs contain partial code that won't build in isolation. When Vercel/Netlify triggers preview builds, they fail because tasks depend on code from other wave tasks that haven't merged yet. This is expected — the code works once all wave tasks merge to main.
+
+**Solution:**
+- Auto-detect CD provider (Vercel, Netlify, Render, Railway, Fly.io)
+- Configure ignore rules using branch pattern: `-[0-9]+[a-z]?$`
+- Pattern matches KARIMO task branches (e.g., `user-profiles-1a`, `token-studio-2b`)
+
+**Files added:**
+- `.claude/commands/karimo-cd-config.md` — New command definition
+- `.karimo/docs/CI-CD.md` — CI/CD integration documentation
+
+**Integration with `/karimo-configure`:**
+- New Step 7: CD Integration (Optional)
+- Auto-detects provider during onboarding
+- Users can configure inline or defer to `/karimo-cd-config`
+
+### Changed
+
+**Updated Documentation:**
+- CLAUDE.md: Added `/karimo-cd-config` to slash commands table, updated command count (11 → 12)
+- COMMANDS.md: Added full documentation section for `/karimo-cd-config`
+- GETTING-STARTED.md: Added CD configuration section and FAQ entry
+- MANIFEST.json: Added `karimo-cd-config.md` to commands array
+
+**`/karimo-configure` Step Renumbering:**
+- Step 7 (new): CD Integration
+- Step 8 (was 7): Confirm and Write
+- Step 9 (was 8): Update CLAUDE.md GitHub Configuration
+
+---
+
 ## [4.0.0] - 2026-03-07
 
 ### BREAKING CHANGES
