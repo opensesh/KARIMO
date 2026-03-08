@@ -370,6 +370,23 @@ This auto-detects and writes to `.karimo/config.yaml`:
 - **Boundaries** — Default patterns for lock files, .env files, migrations, auth
 - **GitHub** — Owner, repository, default branch
 
+### Configure CD Provider (Optional)
+
+If you use preview deployments (Vercel, Netlify, etc.), KARIMO task PRs
+may trigger build failures. This is expected — partial code doesn't build
+in isolation, but works once all wave tasks merge.
+
+To skip preview builds for KARIMO branches:
+
+```
+/karimo-cd-config
+```
+
+Or configure during initial setup — `/karimo-configure` will prompt you
+if it detects a deployment provider.
+
+See [CI-CD.md](CI-CD.md) for details on KARIMO's CI/CD integration approach.
+
 ### Verify Configuration
 
 After configuration, verify everything is valid:
@@ -509,6 +526,14 @@ Most teams find Greptile significantly improves outcomes.
 ### How does KARIMO handle task isolation?
 
 KARIMO v4.0 uses Claude Code's native `isolation: worktree` feature. Claude Code automatically creates and cleans up worktrees for each task agent. You don't need to manage worktrees manually.
+
+### Vercel/Netlify previews fail on KARIMO PRs
+
+This is expected. KARIMO task PRs contain partial code that won't build
+in isolation. The code works once all wave tasks merge to main.
+
+Run `/karimo-cd-config` to configure your deployment provider to skip
+KARIMO task branches, or accept the noise (failures don't block merges).
 
 ---
 
