@@ -462,12 +462,109 @@ These settings can be changed anytime by running /karimo-configure
 
 ---
 
-### Step 7: Confirm and Write
+### Step 7: CD Integration (Optional)
+
+Check for CD provider presence:
+
+```bash
+# Detection priority
+if [ -f "vercel.json" ] || [ -f "vercel.ts" ] || [ -d ".vercel" ]; then
+  PROVIDER="vercel"
+elif [ -f "netlify.toml" ]; then
+  PROVIDER="netlify"
+elif [ -f "render.yaml" ]; then
+  PROVIDER="render"
+elif [ -f "railway.json" ] || [ -f "railway.toml" ]; then
+  PROVIDER="railway"
+elif [ -f "fly.toml" ]; then
+  PROVIDER="fly"
+else
+  PROVIDER="none"
+fi
+```
+
+**If a CD provider is detected, present the CD integration prompt:**
+
+```
+╭──────────────────────────────────────────────────────────────╮
+│  Step 7: CD Integration                                      │
+╰──────────────────────────────────────────────────────────────╯
+
+Since KARIMO uses worktrees and creates PRs for each task, preview
+deployments (Vercel, Netlify, etc.) may fail on partial code.
+
+This is expected — the code works once all wave tasks merge to main.
+The failures are just noise, not real problems.
+
+Detected: Vercel (vercel.json found)
+
+Options:
+  1. Configure now — Skip preview builds for KARIMO branches
+  2. Skip for now — I'll handle this later with /karimo-cd-config
+  3. Learn more — What does this mean?
+
+Your choice:
+```
+
+Use AskUserQuestion with:
+
+```
+header: "CD Config"
+question: "Configure CD provider to skip KARIMO task branch previews?"
+options:
+  - label: "Configure now (Recommended)"
+    description: "Add ignore rule for KARIMO branches. Prevents noise from partial code failures."
+  - label: "Skip for now"
+    description: "Handle later with /karimo-cd-config. Preview builds may fail on task PRs."
+  - label: "Learn more"
+    description: "Open CI-CD.md documentation for details."
+```
+
+**If "Configure now" selected:**
+
+Apply the appropriate configuration based on detected provider:
+
+**Vercel** — Add `ignoreCommand` to `vercel.json`:
+```json
+{
+  "ignoreCommand": "[[ \"$VERCEL_GIT_COMMIT_REF\" =~ -[0-9]+[a-z]?$ ]] && exit 0 || exit 1"
+}
+```
+
+**Netlify** — Add `ignore` to `netlify.toml`:
+```toml
+[build]
+  ignore = "[[ \"$HEAD\" =~ -[0-9]+[a-z]?$ ]] && exit 0 || exit 1"
+```
+
+**Render/Railway** — Add comment noting dashboard configuration required.
+
+Display confirmation:
+```
+✓ Updated vercel.json with KARIMO ignore rule
+  KARIMO task branches will skip preview deployments
+```
+
+**If "Skip for now" selected:**
+
+Note in final summary: "CD integration: skipped (run /karimo-cd-config later)"
+
+**If "Learn more" selected:**
+
+Display brief explanation, then re-prompt with options 1 and 2.
+
+**If no CD provider detected:**
+
+Skip this step silently and proceed to Step 8.
+
+---
+
+### Step 8: Confirm and Write
 
 Present final configuration for confirmation:
 
 ```
-Section 7 of 8: Confirm and Write
+Section 8 of 9: Confirm and Write
 ─────────────────────────────────
 
 Configuration Summary:
@@ -574,11 +671,11 @@ cost:
 
 ---
 
-### Step 8: Update CLAUDE.md GitHub Configuration
+### Step 9: Update CLAUDE.md GitHub Configuration
 
 After writing config.yaml, update the GitHub Configuration table in CLAUDE.md.
 
-**Step 8a: Detect CLAUDE.md path**
+**Step 9a: Detect CLAUDE.md path**
 
 ```bash
 # Check all possible locations for CLAUDE.md (case-insensitive)
@@ -597,7 +694,7 @@ else
 fi
 ```
 
-**Step 8b: Check if KARIMO section exists with markers**
+**Step 9b: Check if KARIMO section exists with markers**
 
 ```bash
 if ! grep -q "<!-- KARIMO:START" "$CLAUDE_MD"; then
@@ -607,7 +704,7 @@ if ! grep -q "<!-- KARIMO:START" "$CLAUDE_MD"; then
 fi
 ```
 
-**Step 8c: Update the GitHub Configuration table**
+**Step 9c: Update the GitHub Configuration table**
 
 Replace the `_pending_` values in the table with actual values:
 
@@ -632,7 +729,7 @@ echo "✅ Updated GitHub Configuration in $CLAUDE_MD"
 **Example output:**
 
 ```
-Section 8 of 8: Update CLAUDE.md
+Section 9 of 9: Update CLAUDE.md
 ────────────────────────────────
 
   ✅ Found CLAUDE.md at: .claude/CLAUDE.md
