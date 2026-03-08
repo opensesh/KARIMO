@@ -1,7 +1,7 @@
 # Status Schema Reference
 
-**Version:** 3.0
-**Purpose:** Document the `status.json` format used by KARIMO v3.0
+**Version:** 4.0
+**Purpose:** Document the `status.json` format used by KARIMO v4.0
 **Location:** `.karimo/prds/{slug}/status.json`
 
 ---
@@ -11,8 +11,13 @@
 Each PRD folder contains a `status.json` file that tracks execution state. This file is:
 - Created by the reviewer agent when the PRD is finalized
 - Updated continuously by the PM agent during execution
-- Read by `/karimo-execute` to resume or report status
+- Read by `/karimo-execute` for resume scenarios
 - Read by `/karimo-status` to display progress
+
+**v4.0 Changes:**
+- Removed: `github_project_*`, `feature_branch`, `issue_number`, `worktree*`, `reconciliation_status`
+- Added: `waves` object for wave-level tracking, `pr_labels`, simplified branch naming
+- PRs target main directly (no feature branch)
 
 ---
 
@@ -21,6 +26,7 @@ Each PRD folder contains a `status.json` file that tracks execution state. This 
 ```json
 {
   "prd_slug": "user-profiles",
+  "version": "4.0",
   "status": "ready",
   "created_at": "2026-02-19T10:00:00Z",
   "tasks": {}
@@ -34,63 +40,61 @@ Each PRD folder contains a `status.json` file that tracks execution state. This 
 ```json
 {
   "prd_slug": "user-profiles",
+  "version": "4.0",
   "status": "active",
   "created_at": "2026-02-19T10:00:00Z",
   "started_at": "2026-02-19T10:30:00Z",
+  "completed_at": null,
+  "finalized_at": null,
 
-  "github_project_url": "https://github.com/orgs/opensesh/projects/42",
-  "github_project_number": 42,
-  "feature_branch": "feature/user-profiles",
-  "reconciliation_status": "pending",
+  "waves": {
+    "1": { "status": "complete" },
+    "2": { "status": "running" }
+  },
 
   "tasks": {
     "1a": {
       "status": "done",
-      "issue_number": 100,
+      "wave": 1,
+      "branch": "user-profiles-1a",
       "pr_number": 42,
-      "branch": "feature/user-profiles/1a",
-      "worktree": ".worktrees/user-profiles/1a",
-      "worktree_status": "cleaned",
-      "worktree_created_at": "2026-02-19T10:31:00Z",
+      "pr_labels": ["karimo", "karimo-user-profiles", "wave-1"],
+      "model": "sonnet",
+      "loops": 2,
+      "greptile_score": 4,
       "started_at": "2026-02-19T10:31:00Z",
       "completed_at": "2026-02-19T10:45:00Z",
-      "merged_at": "2026-02-19T10:55:00Z",
-      "model": "sonnet",
-      "loop_count": 2
+      "merged_at": "2026-02-19T10:55:00Z"
     },
     "1b": {
-      "status": "in-review",
-      "issue_number": 101,
+      "status": "done",
+      "wave": 1,
+      "branch": "user-profiles-1b",
       "pr_number": 43,
-      "branch": "feature/user-profiles/1b",
-      "worktree": ".worktrees/user-profiles/1b",
-      "worktree_status": "active",
-      "worktree_created_at": "2026-02-19T10:32:00Z",
+      "pr_labels": ["karimo", "karimo-user-profiles", "wave-1"],
+      "model": "sonnet",
+      "loops": 1,
+      "greptile_score": 5,
       "started_at": "2026-02-19T10:32:00Z",
       "completed_at": "2026-02-19T10:50:00Z",
-      "model": "sonnet",
-      "loop_count": 1
+      "merged_at": "2026-02-19T10:58:00Z"
     },
     "2a": {
       "status": "running",
-      "issue_number": 102,
-      "branch": "feature/user-profiles/2a",
-      "worktree": ".worktrees/user-profiles/2a",
-      "worktree_status": "active",
-      "worktree_created_at": "2026-02-19T10:46:00Z",
-      "started_at": "2026-02-19T10:46:00Z",
+      "wave": 2,
+      "branch": "user-profiles-2a",
       "model": "opus",
-      "loop_count": 1
+      "loops": 1,
+      "started_at": "2026-02-19T11:00:00Z"
     },
     "2b": {
       "status": "queued",
-      "issue_number": 103,
+      "wave": 2,
       "model": "sonnet"
     },
     "3a": {
-      "status": "blocked",
-      "issue_number": 104,
-      "blocked_by": ["2a", "2b"],
+      "status": "queued",
+      "wave": 3,
       "model": "opus"
     }
   }
@@ -104,39 +108,32 @@ Each PRD folder contains a `status.json` file that tracks execution state. This 
 ```json
 {
   "prd_slug": "user-profiles",
+  "version": "4.0",
   "status": "complete",
   "created_at": "2026-02-19T10:00:00Z",
   "started_at": "2026-02-19T10:30:00Z",
   "completed_at": "2026-02-19T12:45:00Z",
+  "finalized_at": "2026-02-19T12:50:00Z",
 
-  "github_project_url": "https://github.com/orgs/opensesh/projects/42",
-  "github_project_number": 42,
-  "feature_branch": "feature/user-profiles",
-  "feature_pr_number": 50,
-  "feature_merged_at": "2026-02-19T13:00:00Z",
-  "reconciliation_status": "passed",
-
-  "summary": {
-    "total_tasks": 6,
-    "successful": 6,
-    "failed": 0,
-    "total_loops": 12,
-    "model_upgrades": 1,
-    "duration_minutes": 135,
-    "runtime_dependencies_discovered": 2
+  "waves": {
+    "1": { "status": "complete" },
+    "2": { "status": "complete" },
+    "3": { "status": "complete" }
   },
 
   "tasks": {
     "1a": {
       "status": "done",
-      "issue_number": 100,
+      "wave": 1,
+      "branch": "user-profiles-1a",
       "pr_number": 42,
-      "merged_at": "2026-02-19T11:00:00Z",
-      "worktree_status": "cleaned",
+      "pr_labels": ["karimo", "wave-1", "greptile-passed"],
       "model": "sonnet",
-      "loop_count": 2
+      "loops": 2,
+      "greptile_score": 4,
+      "started_at": "2026-02-19T10:31:00Z",
+      "merged_at": "2026-02-19T10:55:00Z"
     }
-    // ... all tasks with done status
   }
 }
 ```
@@ -150,18 +147,13 @@ Each PRD folder contains a `status.json` file that tracks execution state. This 
 | Field | Type | Description |
 |-------|------|-------------|
 | `prd_slug` | string | PRD identifier matching folder name |
+| `version` | string | Schema version ("4.0") |
 | `status` | string | Overall PRD status (see values below) |
 | `created_at` | ISO datetime | When PRD was finalized |
 | `started_at` | ISO datetime | When execution started |
-| `completed_at` | ISO datetime | When execution finished |
-| `github_project_url` | string | URL to GitHub Project board |
-| `github_project_number` | number | GitHub Project number |
-| `feature_branch` | string | Main feature branch name |
-| `feature_pr_number` | number | Feature PR to main (v2.1) |
-| `feature_merged_at` | ISO datetime | When feature PR merged to main (v2.1) |
-| `reconciliation_status` | string | Feature reconciliation status (v2.1) |
-| `rollback_event` | object | Feature-level rollback details (v3.4) |
-| `summary` | object | Completion summary (only when complete) |
+| `completed_at` | ISO datetime | When all tasks finished |
+| `finalized_at` | ISO datetime | When finalization step completed |
+| `waves` | object | Map of wave number → wave state |
 | `tasks` | object | Map of task ID → task state |
 
 ### PRD Status Values
@@ -169,147 +161,55 @@ Each PRD folder contains a `status.json` file that tracks execution state. This 
 | Status | Meaning |
 |--------|---------|
 | `draft` | PRD in progress via /karimo-plan |
-| `ready` | PRD approved via /karimo-plan interactive review |
+| `ready` | PRD approved, ready for execution |
 | `active` | Execution in progress |
-| `paused` | Execution paused (manual stop) |
-| `complete` | All tasks finished successfully |
+| `paused` | Execution paused (manual or usage limit) |
+| `complete` | All tasks merged, finalization done |
 | `partial` | Some tasks failed, others complete |
 
-**Backward Compatibility:** The `approved` status is treated as equivalent to `ready` for PRDs created before v3.0.0.
+### Wave Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `status` | string | Wave status: `pending`, `running`, `complete`, `blocked` |
 
 ### Task Fields
 
 | Field | Type | Description |
 |-------|------|-------------|
 | `status` | string | Task execution status (see values below) |
-| `issue_number` | number | GitHub Issue number |
+| `wave` | number | Wave number this task belongs to |
+| `branch` | string | Branch name: `{prd-slug}-{task-id}` |
 | `pr_number` | number | Pull request number (when created) |
-| `branch` | string | Git branch name |
-| `worktree` | string | Worktree path (while active) |
-| `worktree_status` | string | Worktree lifecycle status (v2.1) |
-| `worktree_created_at` | ISO datetime | When worktree was created (v2.1) |
-| `started_at` | ISO datetime | When task execution started |
-| `completed_at` | ISO datetime | When task finished |
-| `merged_at` | ISO datetime | When PR was merged |
+| `pr_labels` | string[] | Labels applied to the PR |
 | `model` | string | Model assigned ("sonnet" or "opus") |
-| `loop_count` | number | Number of execution loops |
+| `loops` | number | Number of execution loops |
+| `greptile_score` | number | Final Greptile score (0-5) |
+| `started_at` | ISO datetime | When task execution started |
+| `completed_at` | ISO datetime | When worker finished |
+| `merged_at` | ISO datetime | When PR was merged |
 | `error` | string | Error message (if failed) |
-| `conflict_files` | string[] | Conflicting files (if needs-human-rebase) |
-| `blocked_by` | string[] | Task IDs blocking this task |
-| `revision_count` | number | Number of Greptile revision attempts |
-| `greptile_scores` | number[] | Score from each Greptile review (0–5 scale) |
-| `model_escalated` | boolean | Whether the model was upgraded during revision |
-| `original_model` | string | Model initially assigned ("sonnet" or "opus") |
-| `current_model` | string | Model currently assigned after any escalation |
-| `escalation_reason` | string | Why the model was escalated |
-| `block_reason` | string | Why the task was blocked |
-| `blocked_at` | ISO datetime | When task was blocked |
-| `paused_at` | ISO datetime | When task was paused (if paused) |
-| `paused_reason` | string | Reason for pause ("usage_limit", "stall", "manual") |
-| `rollback_sha` | string | Commit SHA to rollback to if validation fails |
-| `rolled_back` | boolean | Whether a rollback was executed |
-| `rolled_back_at` | ISO datetime | When rollback occurred |
-| `rollback_reason` | string | Why rollback was triggered ("validation_failure", "integration_failure") |
-
-### Worktree Status Values (v2.1)
-
-| Status | Meaning |
-|--------|---------|
-| `active` | Worktree exists and is in use |
-| `pending-cleanup` | PR merged, cleanup scheduled |
-| `cleaned` | Worktree has been removed |
-
-### Reconciliation Status Values (v2.1)
-
-| Status | Meaning |
-|--------|---------|
-| `pending` | Awaiting Review/Architect reconciliation |
-| `passed` | Reconciliation checklist passed |
-| `failed` | Reconciliation found issues |
-
-### Rollback Event Object (v3.4)
-
-When a feature-level rollback occurs, the `rollback_event` object is populated:
-
-```json
-{
-  "rollback_event": {
-    "type": "feature_level",
-    "task_id": "2a",
-    "reverted_commits": ["abc123def"],
-    "reverted_at": "2026-02-20T15:30:00Z",
-    "reason": "integration_failure"
-  }
-}
-```
-
-| Field | Type | Description |
-|-------|------|-------------|
-| `type` | string | "task_level" or "feature_level" |
-| `task_id` | string | Task that triggered rollback |
-| `reverted_commits` | string[] | Commit SHAs that were reverted |
-| `reverted_at` | ISO datetime | When rollback occurred |
-| `reason` | string | Why rollback was triggered |
 
 ### Task Status Values
 
 | Status | Meaning |
 |--------|---------|
 | `queued` | Waiting to start (dependencies not met or at capacity) |
-| `blocked` | Dependencies not yet complete |
 | `running` | Worker agent actively executing |
-| `paused` | Execution paused (usage limit, stall, or manual) |
-| `in-review` | PR created, awaiting review/merge |
-| `needs-revision` | Review requested changes (Phase 2) |
-| `needs-human-review` | Failed 3 Greptile attempts, requires human intervention |
+| `paused` | Execution paused |
+| `in-review` | PR created, awaiting merge |
+| `needs-revision` | Greptile review requested changes |
+| `needs-human-review` | Failed 3 attempts, requires human |
 | `done` | PR merged successfully |
 | `failed` | Execution failed (see error field) |
-| `needs-human-rebase` | Merge conflicts require manual resolution |
-| `skipped` | Task was skipped (user request during execution) |
-| `excluded` | Task excluded by user during /karimo-execute Phase 1 |
-
-**Backward Compatibility:** The `approved` task status is treated as equivalent to `queued` for tasks from PRDs created before v3.0.0.
-
-### Staleness Thresholds
-
-KARIMO commands use these thresholds to detect potentially stale state that may indicate crashed or disconnected agents:
-
-| State | Threshold | Timestamp Field | Interpretation |
-|-------|-----------|-----------------|----------------|
-| `running` | 4 hours | `started_at` | Agent likely crashed or disconnected |
-| `in-review` | 48 hours | `completed_at` | PR may need attention |
-| `paused` | 7 days | `paused_at` | Task may be forgotten |
-| `pending-cleanup` | 6 hours | `merged_at` | Worktree cleanup was interrupted |
-
-#### Recovery
-
-When stale state is detected, re-running `/karimo-execute --prd {slug}` triggers the PM agent's Step 2 reconciliation, which:
-
-1. Compares status.json to git/GitHub state
-2. Resets stale "running" tasks to "queued"
-3. Updates merged PRs to "done"
-4. Cleans up pending worktrees
-
-#### Detection Locations
-
-- `/karimo-status` — Shows ⏰ indicator for stale tasks, suggests recovery
-- `/karimo-doctor` — Check 6 performs comprehensive staleness detection
-
-### Summary Fields (Completion Only)
-
-| Field | Type | Description |
-|-------|------|-------------|
-| `total_tasks` | number | Total tasks in PRD |
-| `successful` | number | Tasks completed successfully |
-| `failed` | number | Tasks that failed |
-| `skipped` | number | Tasks skipped |
-| `total_loops` | number | Sum of all loop counts |
-| `model_upgrades` | number | Number of Sonnet→Opus upgrades |
-| `duration_minutes` | number | Total execution time |
+| `blocked` | Waiting on failed dependency |
+| `crashed` | Worker crashed before creating PR |
 
 ---
 
 ## State Transitions
+
+### PRD State
 
 ```
 draft ──► ready ──► active ──► complete
@@ -321,24 +221,75 @@ draft ──► ready ──► active ──► complete
              └─ (/karimo-plan interactive review)
 ```
 
-### Task State Transitions
+### Task State
 
 ```
-queued ──► blocked ──► running ──► in-review ──► done
-  │            │          │            │
-  │            │          │            └──► needs-revision ──► running (retry)
-  │            │          │                       │
-  │            │          │                       └──► needs-human-review (after 3 failed attempts)
-  │            │          │
-  │            │          └──► paused ──► running (resume)
-  │            │          │
-  │            │          └──► failed
-  │            │          └──► needs-human-rebase
-  │            │
-  │            └──► skipped
-  │
-  └──► excluded (user chose to exclude during /karimo-execute Phase 1)
+queued ──► running ──► in-review ──► done
+               │            │
+               │            └──► needs-revision ──► running (retry)
+               │                       │
+               │                       └──► needs-human-review
+               │
+               └──► failed
+               └──► crashed
+               └──► paused ──► running (resume)
 ```
+
+### Wave State
+
+```
+pending ──► running ──► complete
+                │
+                └──► blocked (if task fails)
+```
+
+---
+
+## Git State Reconstruction
+
+**Principle:** Git is truth. status.json is a cache.
+
+When `/karimo-execute` resumes or `/karimo-status` runs, derive actual state from git:
+
+```bash
+for task_id in tasks; do
+  branch="${prd_slug}-${task_id}"
+
+  if git ls-remote --heads origin "$branch" | grep -q "$branch"; then
+    pr_data=$(gh pr list --head "$branch" --json state,number,mergedAt --jq '.[0]')
+
+    if [ -n "$pr_data" ]; then
+      state=$(echo "$pr_data" | jq -r '.state')
+      if [ "$state" = "MERGED" ]; then
+        derived_status="done"
+      else
+        labels=$(gh pr view "$branch" --json labels --jq '.labels[].name')
+        if echo "$labels" | grep -q "needs-revision"; then
+          derived_status="needs-revision"
+        else
+          derived_status="in-review"
+        fi
+      fi
+    else
+      # Branch exists, no PR
+      derived_status="crashed"
+    fi
+  else
+    # No branch = queued
+    derived_status="queued"
+  fi
+done
+```
+
+### Reconciliation Rules
+
+| status.json | Git State | Action |
+|-------------|-----------|--------|
+| pending | branch + merged PR | Update to `done` |
+| running | branch + merged PR | Update to `done` |
+| running | branch, no PR | Mark `crashed`, delete branch, re-execute |
+| done | no branch, no PR | Trust status.json (branch cleaned up) |
+| any | PR with `needs-revision` | Update to `needs-revision` |
 
 ---
 
@@ -348,14 +299,12 @@ queued ──► blocked ──► running ──► in-review ──► done
 {
   "2a": {
     "status": "failed",
-    "issue_number": 102,
-    "branch": "feature/user-profiles/2a",
-    "worktree": ".worktrees/user-profiles/2a",
-    "started_at": "2026-02-19T10:46:00Z",
-    "failed_at": "2026-02-19T11:02:00Z",
-    "error": "Build failed: Type error in src/components/ProfileForm.tsx:42",
+    "wave": 2,
+    "branch": "user-profiles-2a",
     "model": "opus",
-    "loop_count": 5
+    "loops": 5,
+    "started_at": "2026-02-19T10:46:00Z",
+    "error": "Build failed: Type error in src/components/ProfileForm.tsx:42"
   }
 }
 ```
@@ -368,94 +317,60 @@ queued ──► blocked ──► running ──► in-review ──► done
 {
   "2a": {
     "status": "needs-human-review",
-    "issue_number": 102,
+    "wave": 2,
+    "branch": "user-profiles-2a",
     "pr_number": 44,
-    "branch": "feature/user-profiles/2a",
-    "worktree": ".worktrees/user-profiles/2a",
-    "worktree_status": "active",
-    "started_at": "2026-02-19T10:46:00Z",
-    "blocked_at": "2026-02-19T11:30:00Z",
-    "revision_count": 3,
-    "greptile_scores": [2, 1, 2],
-    "model_escalated": true,
-    "original_model": "sonnet",
-    "current_model": "opus",
-    "escalation_reason": "Greptile flagged architectural integration issues",
-    "block_reason": "Failed 3 Greptile review attempts",
+    "pr_labels": ["karimo", "wave-2", "blocked-needs-human"],
     "model": "opus",
-    "loop_count": 4
+    "loops": 4,
+    "greptile_scores": [2, 1, 2],
+    "started_at": "2026-02-19T10:46:00Z"
   }
 }
 ```
 
 ---
 
-## Example: Needs Human Rebase
+## Example: Crashed Task
 
 ```json
 {
   "2b": {
-    "status": "needs-human-rebase",
-    "issue_number": 103,
-    "branch": "feature/user-profiles/2b",
-    "worktree": ".worktrees/user-profiles/2b",
-    "started_at": "2026-02-19T10:47:00Z",
-    "conflict_at": "2026-02-19T11:10:00Z",
-    "conflict_files": [
-      "src/types/index.ts",
-      "src/components/UserProfile.tsx"
-    ],
+    "status": "crashed",
+    "wave": 2,
+    "branch": "user-profiles-2b",
     "model": "sonnet",
-    "loop_count": 3
+    "loops": 1,
+    "started_at": "2026-02-19T10:47:00Z"
   }
 }
 ```
 
 ---
 
-## Usage Patterns
+## Dashboard Queries
 
-### Check if PRD is Ready
+```bash
+# All PRs for a feature
+gh pr list --label karimo-{slug} --state all
 
-```javascript
-const status = JSON.parse(fs.readFileSync('.karimo/prds/slug/status.json'));
-if (status.status === 'ready' || status.status === 'active') {
-  // Can execute
-}
-```
+# Merged PRs this month
+gh pr list --label karimo --search "merged:>2026-02-01" --state merged
 
-### Get Running Tasks
-
-```javascript
-const running = Object.entries(status.tasks)
-  .filter(([_, task]) => task.status === 'running')
-  .map(([id, _]) => id);
-```
-
-### Calculate Progress
-
-```javascript
-const total = Object.keys(status.tasks).length;
-const done = Object.values(status.tasks)
-  .filter(t => t.status === 'done').length;
-const progress = (done / total) * 100;
-```
-
-### Get Ready Tasks
-
-```javascript
-const blocked = new Set();
-Object.values(status.tasks).forEach(t => {
-  if (t.blocked_by) t.blocked_by.forEach(id => blocked.add(id));
-});
-
-const ready = Object.entries(status.tasks)
-  .filter(([id, task]) =>
-    task.status === 'queued' &&
-    !blocked.has(id)
-  );
+# PRs needing attention
+gh pr list --label karimo,needs-revision
 ```
 
 ---
 
-*Generated by [KARIMO v3](https://github.com/opensesh/KARIMO)*
+## Migration from v3.x
+
+v4.0 removes several fields. When reading status.json:
+
+1. Check `version` field (defaults to "3.0" if missing)
+2. Ignore deprecated fields: `github_project_*`, `feature_branch`, `issue_number`, `worktree*`, `reconciliation_status`
+3. Use `branch` format `{prd-slug}-{task-id}` (v4.0) vs `feature/{prd-slug}/{task-id}` (v3.x)
+
+---
+
+*Generated by [KARIMO v4](https://github.com/opensesh/KARIMO)*
