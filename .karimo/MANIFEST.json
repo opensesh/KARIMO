@@ -1,5 +1,5 @@
 {
-  "version": "4.0.0",
+  "version": "4.0.1",
   "agents": [
     "karimo-brief-writer.md",
     "karimo-documenter.md",
@@ -16,6 +16,7 @@
     "karimo-tester-opus.md"
   ],
   "commands": [
+    "karimo-cd-config.md",
     "karimo-configure.md",
     "karimo-doctor.md",
     "karimo-execute.md",

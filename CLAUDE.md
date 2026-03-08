@@ -123,6 +123,7 @@ KARIMO is an autonomous development **methodology** delivered via Claude Code co
 | `/karimo-modify --prd {slug}` | Modify an approved PRD before execution |
 | `/karimo-status` | View execution state and progress |
 | `/karimo-configure` | Create or update project configuration (~5 min) |
+| `/karimo-cd-config` | Configure CD provider to skip KARIMO branch previews |
 | `/karimo-update` | Check for and apply KARIMO updates from GitHub |
 | `/karimo-feedback` | Quick capture of single learnings (~2 min) |
 | `/karimo-learn` | Deep learning cycle with investigation (~45 min) |
@@ -214,7 +215,7 @@ When you run `install.sh`, these files are added:
 | Location | Contents |
 |----------|----------|
 | `.claude/agents/` | 13 agent definitions (7 coordination + 6 task agents) |
-| `.claude/commands/` | 11 slash commands (plan, overview, execute, modify, status, configure, update, feedback, learn, doctor, test) |
+| `.claude/commands/` | 12 slash commands (plan, overview, execute, modify, status, configure, cd-config, update, feedback, learn, doctor, test) |
 | `.claude/skills/` | 4 skills (1 coordination + 3 task agent skills) |
 | `.claude/KARIMO_RULES.md` | Agent behavior rules |
 | `.karimo/templates/` | 9 templates (PRD, interview, task, status, dependencies, DAG, learn-interview, findings, task-brief) |
@@ -241,6 +242,7 @@ All skills use the `karimo-*` prefix for reliable update management and clear di
 | Document | Purpose |
 |----------|---------|
 | [ARCHITECTURE.md](.karimo/docs/ARCHITECTURE.md) | System design and integration |
+| [CI-CD.md](.karimo/docs/CI-CD.md) | CI/CD integration and preview deployments |
 | [COMMANDS.md](.karimo/docs/COMMANDS.md) | Slash command reference |
 | [COMPOUND-LEARNING.md](.karimo/docs/COMPOUND-LEARNING.md) | Two-scope learning system |
 | [DASHBOARD.md](.karimo/docs/DASHBOARD.md) | Dashboard spec (Phase 3) |
