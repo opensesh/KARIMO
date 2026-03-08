@@ -401,6 +401,6 @@ The investigator agent surfaces relevant learnings when scanning:
 
 | Document | Purpose |
 |----------|---------|
-| [ARCHITECTURE.md](ARCHITECTURE.md) | System design |
+| [ARCHITECTURE.md](CODE/KARIMO/Repo/docs/ARCHITECTURE.md) | System design |
 | [COMMANDS.md](COMMANDS.md) | Slash command reference |
 | [SAFEGUARDS.md](SAFEGUARDS.md) | Code quality practices |

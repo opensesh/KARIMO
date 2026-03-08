@@ -709,6 +709,6 @@ Rollback events tracked in `status.json`:
 
 | Document | Purpose |
 |----------|---------|
-| [ARCHITECTURE.md](ARCHITECTURE.md) | System design |
+| [ARCHITECTURE.md](CODE/KARIMO/Repo/docs/ARCHITECTURE.md) | System design |
 | [PHASES.md](PHASES.md) | Adoption phases |
 | [GETTING-STARTED.md](GETTING-STARTED.md) | Installation walkthrough |

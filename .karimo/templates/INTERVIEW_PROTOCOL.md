@@ -2,8 +2,8 @@
 
 **Version:** 3.0
 **Purpose:** Single source of truth for PRD interview structure and model assignment
-**Output format:** See [PRD_TEMPLATE.md](./PRD_TEMPLATE.md)
-**Task schema:** See [TASK_SCHEMA.md](./TASK_SCHEMA.md)
+**Output format:** See [PRD_TEMPLATE.md](PRD_TEMPLATE.md)
+**Task schema:** See [TASK_SCHEMA.md](TASK_SCHEMA.md)
 
 ---
 
