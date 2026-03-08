@@ -7,6 +7,140 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [4.0.0] - 2026-03-07
+
+### BREAKING CHANGES
+
+**Major Simplification of Execution Model**
+
+KARIMO v4.0 introduces a simplified PR-centric workflow that removes ~2,100 lines of code. This is a breaking change for existing PRD executions.
+
+**What Changed:**
+- PRs now target `main` directly (no feature branches)
+- Tasks execute in wave order (wave 2 waits for wave 1 to merge)
+- Claude Code manages worktrees via `isolation: worktree` (no manual worktree management)
+- PR labels replace GitHub Projects for tracking
+- Branch naming simplified to `{prd-slug}-{task-id}`
+- Git state reconstruction for crash recovery
+
+**Migration:**
+- Existing active PRDs should complete before upgrading
+- New PRDs will use the simplified model automatically
+- No changes needed to your config.yaml or learnings.md
+
+### Removed
+
+**Deleted Files (~1,872 lines removed):**
+- `.claude/skills/karimo-git-worktree-ops.md` (559 lines) — Claude Code's `isolation: worktree` handles this natively
+- `.claude/skills/karimo-github-project-ops.md` (975 lines) — PR labels replace GitHub Projects V2
+- `.github/workflows/karimo-sync.yml` (338 lines) — No feature branches to sync
+
+**Removed Features:**
+- GitHub Issues creation (PRs are the source of truth)
+- GitHub Projects V2 integration (use `gh pr list --label karimo` instead)
+- Fast Track mode (consolidated to single PR-based model)
+- Manual worktree management (Claude Code handles automatically)
+- Feature branches (PRs target main directly)
+
+### Added
+
+**Git State Reconstruction**
+
+New crash recovery system that derives truth from git, not status.json:
+- `/karimo-status --reconcile` forces state reconstruction
+- `/karimo-execute` automatically reconciles on resume
+- Detects crashed tasks (branch exists, no PR)
+- Detects merged PRs that status.json missed
+- Updates status.json to match git reality
+
+**Wave-Ordered Execution**
+
+Tasks execute in dependency-ordered waves:
+- Wave 1 tasks execute in parallel
+- Wave 2 waits for all Wave 1 PRs to merge
+- Each wave's tasks branch from latest main (includes previous wave's code)
+- findings.md propagation between waves
+
+**PR-Centric Tracking**
+
+PRs replace GitHub Projects as the source of truth:
+- Labels: `karimo`, `karimo-{prd-slug}`, `wave-{n}`, `complexity-{n}`
+- Dashboard queries: `gh pr list --label karimo-{slug}`
+- Status derived from PR state (open, merged, closed)
+
+**Finalization Protocol**
+
+Mandatory finalization when all tasks complete:
+- Generates metrics.json with duration, loops, model usage
+- Deletes merged task branches from remote
+- Updates status.json to `complete` with `finalized_at`
+- Prompts for `/karimo-feedback` if learning candidates exist
+
+**Task Agent Isolation**
+
+All task agents now include `isolation: worktree` frontmatter:
+- `karimo-implementer.md`
+- `karimo-implementer-opus.md`
+- `karimo-tester.md`
+- `karimo-tester-opus.md`
+- `karimo-documenter.md`
+- `karimo-documenter-opus.md`
+
+### Changed
+
+**PM Agent Rewrite (~1,541 → ~512 lines)**
+
+Complete rewrite with simplified responsibilities:
+- Removed worktree management (Claude Code handles)
+- Removed GitHub Issues creation
+- Removed GitHub Projects setup
+- Added wave-ordered execution with main-targeting PRs
+- Added PR label management
+- Added finalization protocol
+
+**STATUS_SCHEMA.md Rewrite**
+
+Updated for v4.0 model:
+- Removed: `github_project_*`, `feature_branch`, `issue_number`, `worktree*`, `reconciliation_status`
+- Added: `waves` object, simplified task fields
+- Added: `version: "4.0"` field for schema versioning
+
+**KARIMO_RULES.md Simplification**
+
+- Removed Fast Track mode references
+- Removed worktree management rules
+- Added wave-ordered execution rules
+- Simplified to ~250 lines
+
+**karimo-execute.md Updates**
+
+- Removed GitHub Projects pre-flight check
+- Added label permission check
+- Added resume protocol with git state reconstruction
+- Updated pre-flight display for v4.0 model
+
+**karimo-status.md Updates**
+
+- Added git state reconstruction
+- Added `--reconcile` flag
+- Added crashed task detection (`💥` icon)
+- Added wave-based display format
+- Added reconciliation report display
+
+### Documentation
+
+**Updated Files:**
+- `CLAUDE.md` — v4.0 execution model, removed Fast Track
+- `COMMANDS.md` — Updated execute and status commands
+- `GETTING-STARTED.md` — v4.0 workflow, crash recovery troubleshooting
+- `PHASES.md` — Wave-ordered execution, updated Phase Comparison table
+
+**Skills Count:**
+- Reduced from 6 to 4 skills in manifest
+- Removed `karimo-git-worktree-ops.md` and `karimo-github-project-ops.md`
+
+---
+
 ## [3.5.3] - 2026-02-27
 
 ### Fixed

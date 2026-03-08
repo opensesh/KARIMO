@@ -1,5 +1,5 @@
 {
-  "version": "3.5.3",
+  "version": "4.0.0",
   "agents": [
     "karimo-brief-writer.md",
     "karimo-documenter.md",
@@ -29,8 +29,6 @@
     "karimo-update.md"
   ],
   "skills": [
-    "karimo-git-worktree-ops.md",
-    "karimo-github-project-ops.md",
     "karimo-bash-utilities.md",
     "karimo-code-standards.md",
     "karimo-doc-standards.md",
