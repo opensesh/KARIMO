@@ -14,6 +14,7 @@ Reference for all KARIMO slash commands available in Claude Code.
 | `/karimo-modify` | Modify approved PRD before execution |
 | `/karimo-status` | View execution progress |
 | `/karimo-configure` | Create or update project configuration |
+| `/karimo-cd-config` | Configure CD provider to skip KARIMO branch previews |
 | `/karimo-update` | Check for and apply KARIMO updates |
 | `/karimo-feedback` | Quick capture of single learnings |
 | `/karimo-learn` | Deep learning cycle (3 modes) |
@@ -444,6 +445,83 @@ When config already exists, shows current vs new values:
 
 ---
 
+## /karimo-cd-config
+
+Configure your continuous deployment provider to skip preview builds for KARIMO task branches.
+
+### Usage
+
+```
+/karimo-cd-config              # Auto-detect and configure
+/karimo-cd-config --provider vercel   # Skip detection, configure Vercel
+/karimo-cd-config --check      # Show current configuration status
+```
+
+### Why This Matters
+
+KARIMO task branches contain partial code that won't build in isolation:
+- Task 1a adds types
+- Task 1b adds the consumer that uses those types
+- Building Task 1b alone fails (types don't exist yet)
+
+**This is expected.** The code works once all wave tasks merge to main.
+
+### What It Does
+
+1. **Detects CD provider** — Checks for vercel.json, netlify.toml, render.yaml, etc.
+2. **Presents options** — Configure ignore rule, accept noise, or learn more
+3. **Applies configuration** — Adds ignore command to skip KARIMO branches
+4. **Verifies** — Shows confirmation with test instructions
+
+### Supported Providers
+
+| Provider | Config File | Approach |
+|----------|-------------|----------|
+| Vercel | `vercel.json` | `ignoreCommand` field |
+| Netlify | `netlify.toml` | `[build] ignore` field |
+| Render | `render.yaml` | Dashboard config (comment added) |
+| Railway | `railway.toml` | Dashboard config (comment added) |
+| Fly.io | `fly.toml` | No action needed (no PR auto-deploy) |
+
+### The Pattern
+
+KARIMO task branches follow: `{prd-slug}-{task-id}` (e.g., `user-profiles-1a`)
+
+**Regex:** `-[0-9]+[a-z]?$` (branches ending with dash-digit-optional-letter)
+
+This matches all KARIMO branches while avoiding false positives on typical branch names.
+
+### Output Example
+
+```
+╭──────────────────────────────────────────────────────────────╮
+│  CD Provider Configuration                                   │
+╰──────────────────────────────────────────────────────────────╯
+
+Detected: Vercel (vercel.json found)
+
+✓ Updated vercel.json with KARIMO ignore rule
+
+KARIMO task branches (e.g., user-profiles-1a) will skip preview deployments.
+Non-KARIMO branches (feature/*, fix/*, etc.) will deploy normally.
+```
+
+### When to Use
+
+| Scenario | Command |
+|----------|---------|
+| Initial KARIMO setup | Run during `/karimo-configure` or after |
+| Previews failing on task PRs | `/karimo-cd-config` |
+| Changing CD provider | `/karimo-cd-config` |
+| Check current status | `/karimo-cd-config --check` |
+
+### Related Documentation
+
+- [CI-CD.md](CI-CD.md) — Full CI/CD integration documentation
+- [SAFEGUARDS.md](SAFEGUARDS.md) — Code integrity and security
+
+---
+
 ## /karimo-update
 
 Check for and apply KARIMO updates from GitHub releases.
@@ -836,6 +914,7 @@ Commands are defined in `.claude/commands/`:
 | `karimo-modify.md` | `/karimo-modify` |
 | `karimo-status.md` | `/karimo-status` |
 | `karimo-configure.md` | `/karimo-configure` |
+| `karimo-cd-config.md` | `/karimo-cd-config` |
 | `karimo-update.md` | `/karimo-update` |
 | `karimo-feedback.md` | `/karimo-feedback` |
 | `karimo-learn.md` | `/karimo-learn` |
