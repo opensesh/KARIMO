@@ -3,6 +3,7 @@ name: karimo-implementer
 description: Executes coding tasks (complexity 1-4) from KARIMO PRDs. Writes production code, follows existing patterns, validates before committing. Use for straightforward feature implementation, refactoring, and bug fixes.
 tools: Read, Write, Edit, Bash, Glob, Grep
 model: sonnet
+isolation: worktree
 skills: karimo-code-standards
 ---
 

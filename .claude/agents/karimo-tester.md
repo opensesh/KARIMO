@@ -3,6 +3,7 @@ name: karimo-tester
 description: Writes and maintains tests (complexity 1-4) for KARIMO task outputs. Creates unit tests, integration tests, validates coverage. Use for straightforward test-specific tasks.
 tools: Read, Write, Edit, Bash, Glob, Grep
 model: sonnet
+isolation: worktree
 skills: karimo-testing-standards
 ---
 

@@ -3,6 +3,7 @@ name: karimo-tester-opus
 description: Writes tests for complex KARIMO tasks (complexity 5+). Creates comprehensive test suites with deep coverage analysis. Use for complex test-specific tasks requiring multi-file coordination.
 tools: Read, Write, Edit, Bash, Glob, Grep
 model: opus
+isolation: worktree
 skills: karimo-testing-standards
 ---
 

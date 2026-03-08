@@ -3,6 +3,7 @@ name: karimo-documenter-opus
 description: Creates complex documentation (complexity 5+). Writes comprehensive API docs, architectural documentation. Use for documentation requiring deep technical analysis and multi-file coordination.
 tools: Read, Write, Edit, Bash, Glob, Grep
 model: opus
+isolation: worktree
 skills: karimo-doc-standards
 ---
 

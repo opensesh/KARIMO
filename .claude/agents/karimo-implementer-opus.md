@@ -3,6 +3,7 @@ name: karimo-implementer-opus
 description: Executes complex coding tasks (complexity 5+) from KARIMO PRDs. Writes production code with deep reasoning, multi-file coordination. Use for high-complexity implementation, refactoring, and architectural changes.
 tools: Read, Write, Edit, Bash, Glob, Grep
 model: opus
+isolation: worktree
 skills: karimo-code-standards
 ---
 
