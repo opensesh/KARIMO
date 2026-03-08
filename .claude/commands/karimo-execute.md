@@ -48,130 +48,52 @@ Validate the PRD:
 
 ### 2. Pre-Execution Checks
 
-#### 2a. Execution Mode Validation
-
-Read `mode` from `.karimo/config.yaml` and validate accordingly:
+#### 2a. Validate GitHub Access
 
 ```bash
-MODE=$(grep "^mode:" .karimo/config.yaml 2>/dev/null | awk '{print $2}')
-if [ -z "$MODE" ]; then
-  MODE="full"  # Default to full mode if not specified
-fi
+# 1. Validate GitHub MCP
+# Use mcp__github__get_me to test connectivity
+# If fails: "❌ GitHub MCP required but not available."
+
+# 2. Validate gh CLI
+gh auth status 2>/dev/null || { echo "❌ gh CLI authentication required."; exit 1; }
+
+# 3. Validate label permissions (replaces project scope check)
+gh label list --repo "$OWNER/$REPO" --limit 1 2>/dev/null || {
+  echo "❌ Cannot access repository labels"
+  echo "Fix: gh auth refresh -s repo"
+  exit 1
+}
 ```
 
-**If `mode: full`:**
-
-1. **Validate GitHub MCP:**
-   Use `mcp__github__get_me` to test connectivity.
-   - If fails:
-     ```
-     ❌ GitHub MCP required for Full Mode but not available.
-
-     GitHub MCP is not configured or not responding.
-     Full Mode requires GitHub MCP for issues and PRs.
-
-     Options:
-       1. Configure GitHub MCP server and retry
-       2. Run /karimo-configure to switch to fast-track mode
-     ```
-     **Exit execution.**
-
-2. **Validate gh CLI:**
-   ```bash
-   gh auth status 2>/dev/null || { echo "❌ gh CLI authentication required."; exit 1; }
-   ```
-
-3. **Validate project scope:**
-   ```bash
-   SCOPES=$(gh auth status 2>&1)
-   if ! echo "$SCOPES" | grep -q "project"; then
-     echo "❌ Missing 'project' scope. Run: gh auth refresh -s project"
-     exit 1
-   fi
-   ```
-
-4. If all pass, proceed with GitHub-integrated execution
-
-**If `mode: fast-track`:**
-
-1. **Validate git repository:**
-   ```bash
-   [ -d .git ] || { echo "❌ Not a git repository."; exit 1; }
-   ```
-
-2. **Display reminder:**
-   ```
-   ℹ️  Fast Track Mode: Tasks will be committed directly.
-       No issues, PRs, or GitHub Projects will be created.
-   ```
-
-3. Proceed with commit-based execution
-
-#### 2b. Standard Pre-flight Checks
+#### 2b. Pre-flight Display
 
 ```
 ╭──────────────────────────────────────────────────────────────╮
 │  Execute: user-profiles                                      │
 ╰──────────────────────────────────────────────────────────────╯
 
-Mode: full
 Status: ready
-Tasks: 5 tasks
+Tasks: 5 tasks across 3 waves
 
 Pre-flight checks:
-  ✓ Execution mode validated (full)
   ✓ GitHub MCP connected
   ✓ Git repository clean
   ✓ GitHub CLI authenticated
-  ✓ GitHub owner: opensesh (organization) [from config.yaml]
-  ✓ GitHub Project permissions verified
+  ✓ Repository access verified
   ✓ config.yaml loaded (commands, boundaries)
-
-Ready to begin execution?
-```
-
-**Or for Fast Track Mode:**
-
-```
-╭──────────────────────────────────────────────────────────────╮
-│  Execute: user-profiles                                      │
-╰──────────────────────────────────────────────────────────────╯
-
-Mode: fast-track
-Status: ready
-Tasks: 5 tasks
-
-Pre-flight checks:
-  ✓ Execution mode validated (fast-track)
-  ✓ Git repository clean
-  ✓ config.yaml loaded (commands, boundaries)
-
-ℹ️  Fast Track Mode: No GitHub integration
-    Tasks will be committed directly with structured messages.
 
 Ready to begin execution?
 ```
 
 **Pre-flight validation commands:**
 
-Run these checks before spawning the PM agent:
-
 ```bash
-# 0. Read execution mode from config.yaml
-MODE=$(grep "^mode:" .karimo/config.yaml 2>/dev/null | awk '{print $2}')
-if [ -z "$MODE" ]; then
-  MODE="full"  # Default to full mode
-fi
-
-# 1. Detect CLAUDE.md path (case-insensitive)
+# 1. Detect CLAUDE.md path
 if [ -f ".claude/CLAUDE.md" ]; then
     CLAUDE_MD=".claude/CLAUDE.md"
-elif [ -f ".claude/claude.md" ]; then
-    CLAUDE_MD=".claude/claude.md"
 elif [ -f "CLAUDE.md" ]; then
     CLAUDE_MD="CLAUDE.md"
-elif [ -f "claude.md" ]; then
-    CLAUDE_MD="claude.md"
 else
     CLAUDE_MD=""
 fi
@@ -182,110 +104,29 @@ if [ -n "$(git status --porcelain)" ]; then
   exit 1
 fi
 
-# 3. Mode-specific validation
-if [ "$MODE" = "full" ]; then
-  # 3a. For Full Mode: Validate GitHub MCP (done via mcp__github__get_me call)
-  # 3b. Check GitHub CLI authenticated
-  gh auth status 2>/dev/null || { echo "❌ GitHub CLI not authenticated"; exit 1; }
+# 3. Check GitHub CLI authenticated
+gh auth status 2>/dev/null || { echo "❌ GitHub CLI not authenticated"; exit 1; }
 
-  # 3c. Check project scope
-  SCOPES=$(gh auth status 2>&1)
-  if ! echo "$SCOPES" | grep -q "project"; then
-    echo "❌ Missing 'project' scope. Run: gh auth refresh -s project"
-    exit 1
-  fi
+# 4. Check config.yaml exists
+[ -f ".karimo/config.yaml" ] || { echo "❌ config.yaml missing"; exit 1; }
 
-  # 3d. Check GitHub Configuration exists
-  if [ ! -f ".karimo/config.yaml" ]; then
-    echo "❌ GitHub Configuration not found"
-    echo "   .karimo/config.yaml doesn't exist"
-    echo "   Run /karimo-configure to set up GitHub settings"
-    exit 1
-  fi
+# 5. Parse GitHub config
+OWNER=$(grep "owner:" .karimo/config.yaml | head -1 | awk '{print $2}')
+REPO=$(grep "repo:" .karimo/config.yaml | head -1 | awk '{print $2}')
 
-  # 3e. Parse GitHub config from config.yaml
-  OWNER_TYPE=$(grep "owner_type:" .karimo/config.yaml | head -1 | awk '{print $2}')
-  OWNER=$(grep "owner:" .karimo/config.yaml | head -1 | awk '{print $2}')
-
-  # Final validation
-  if [ -z "$OWNER" ] || [ "$OWNER" = "_pending_" ]; then
-    echo "❌ GitHub owner not configured"
-    echo "   config.yaml is missing github section"
-    echo "   Run /karimo-configure to set up GitHub settings"
-    exit 1
-  fi
-
-  if [ "$OWNER_TYPE" = "personal" ]; then
-    gh project list --owner @me --limit 1 2>/dev/null || {
-      echo "❌ GitHub Project permissions denied"
-      echo "Fix: gh auth refresh -s project"
-      exit 1
-    }
-  else
-    gh project list --owner "$OWNER" --limit 1 2>/dev/null || {
-      echo "❌ GitHub Project permissions denied"
-      echo "Cannot access projects for '$OWNER'"
-      echo "Fix: gh auth refresh -s project"
-      exit 1
-    }
-  fi
-
-  echo "✓ Full Mode: GitHub MCP + CLI validated"
-
-elif [ "$MODE" = "fast-track" ]; then
-  # For Fast Track Mode: Just verify git is initialized
-  [ -d .git ] || { echo "❌ Not a git repository"; exit 1; }
-  echo "ℹ️  Fast Track Mode: Tasks will be committed directly."
+if [ -z "$OWNER" ] || [ "$OWNER" = "_pending_" ]; then
+  echo "❌ GitHub owner not configured"
+  echo "   Run /karimo-configure to set up GitHub settings"
+  exit 1
 fi
 
-# 4. Verify config.yaml has commands
-[ -f ".karimo/config.yaml" ] || { echo "❌ config.yaml missing"; exit 1; }
-```
+# 6. Validate label access
+gh label list --repo "$OWNER/$REPO" --limit 1 2>/dev/null || {
+  echo "❌ Cannot access repository labels"
+  exit 1
+}
 
-**If GitHub Configuration is missing (neither CLAUDE.md nor config.yaml):**
-
-```
-Pre-flight checks:
-  ✓ Git repository clean
-  ✓ GitHub CLI authenticated
-  ❌ GitHub Configuration not found
-     Not in CLAUDE.md and .karimo/config.yaml doesn't exist
-     Run /karimo-configure to set up GitHub settings
-```
-
-**If GitHub owner not configured (CLAUDE.md has _pending_ and config.yaml missing):**
-
-```
-Pre-flight checks:
-  ✓ Git repository clean
-  ✓ GitHub CLI authenticated
-  ❌ GitHub owner not configured
-     CLAUDE.md has placeholder values and config.yaml is missing github section
-     Run /karimo-configure to set up GitHub settings
-```
-
-**If using fallback to config.yaml:**
-
-```
-Pre-flight checks:
-  ✓ Git repository clean
-  ✓ GitHub CLI authenticated
-  ℹ️  Using GitHub config from .karimo/config.yaml
-  ✓ GitHub owner: opensesh (organization) [from config.yaml]
-  ✓ GitHub Project permissions verified
-```
-
-**If GitHub Project access is denied:**
-
-```
-Pre-flight checks:
-  ✓ Git repository clean
-  ✓ GitHub CLI authenticated
-  ✓ GitHub owner: opensesh (organization) [from CLAUDE.md]
-  ❌ GitHub Project permissions denied
-
-Cannot access projects for 'opensesh'.
-Fix: gh auth refresh -s project
+echo "✓ Pre-flight checks passed"
 ```
 
 ### 3. Phase 1: Brief Generation
@@ -324,11 +165,16 @@ After brief generation, present review options:
 
 Generated: 5 briefs
 
-  [1a] Create UserProfile component      complexity: 4  model: sonnet
-  [1b] Add user type definitions         complexity: 2  model: sonnet
-  [2a] Implement profile edit form       complexity: 5  model: opus
-  [2b] Add avatar upload                 complexity: 4  model: sonnet
-  [3a] Integration tests                 complexity: 3  model: sonnet
+  Wave 1:
+    [1a] Create UserProfile component      complexity: 4  model: sonnet
+    [1b] Add user type definitions         complexity: 2  model: sonnet
+
+  Wave 2:
+    [2a] Implement profile edit form       complexity: 5  model: opus
+    [2b] Add avatar upload                 complexity: 4  model: sonnet
+
+  Wave 3:
+    [3a] Integration tests                 complexity: 3  model: sonnet
 
 Options:
   1. Execute all — Begin autonomous execution
@@ -339,36 +185,6 @@ Options:
 Your choice:
 ```
 
-**Option 1 — Execute all:**
-- Proceed to Phase 2 (PM Agent execution)
-
-**Option 2 — Adjust briefs:**
-- Accept user modifications
-- Re-generate affected brief(s)
-- Loop back to present updated options
-
-**Option 3 — Exclude tasks:**
-```
-Enter task IDs to exclude (comma-separated):
-> 2b
-
-Excluding: [2b] Add avatar upload
-
-Note: This will also exclude dependent tasks:
-  - No dependent tasks found
-
-Proceed with 4 tasks?
-```
-
-**Option 4 — Cancel:**
-- Exit without executing
-- Briefs remain on disk for later execution
-
-> **Note:** To add, remove, or restructure tasks (not just adjust briefs),
-> use `/karimo-modify --prd {slug}` first, then re-run execute.
-
----
-
 ### 4. Dry Run Mode
 
 If `--dry-run` is specified, show the execution plan without acting:
@@ -376,31 +192,106 @@ If `--dry-run` is specified, show the execution plan without acting:
 ```
 Execution Plan for: user-profiles
 
-Feature Branch: feature/user-profiles
-GitHub Project: Will be created
-
 Tasks (5 approved):
 
-  Batch 1 (parallel):
+  Wave 1 (parallel):
     [1a] Create UserProfile component      complexity: 4  model: sonnet
     [1b] Add user type definitions         complexity: 2  model: sonnet
 
-  Batch 2 (parallel, after 1a, 1b):
+  Wave 2 (parallel, after wave 1 merges):
     [2a] Implement profile edit form       complexity: 5  model: opus
+    [2b] Add avatar upload                 complexity: 4  model: sonnet
 
-  Batch 3 (sequential):
+  Wave 3 (after wave 2 merges):
     [3a] Integration tests                 complexity: 3  model: sonnet
 
-Excluded tasks:
-  [2b] Add avatar upload (user excluded)
+Branch naming: {prd-slug}-{task-id}
+  - user-profiles-1a, user-profiles-1b, etc.
+
+PR target: main (direct)
 
 Model distribution: 4 sonnet, 1 opus
-Parallel opportunities: 3 tasks across 2 batches
+Parallel opportunities: 4 tasks across 2 waves
 
 Ready to execute? Run without --dry-run to start.
 ```
 
-### 5. Phase 2: Spawn PM Agent
+### 5. Resume Protocol
+
+If `status.json` shows tasks already in progress, perform git state reconstruction:
+
+**Git is truth. status.json is a cache.**
+
+```
+Resuming execution for: user-profiles
+
+Reconciling state from git...
+
+  [1a] status.json: running → git: merged (PR #42) → UPDATED to done
+  [1b] status.json: pending → git: no branch → OK (queued)
+  [2a] status.json: running → git: branch exists, no PR → CRASHED
+       Action: delete branch, re-execute
+  [2b] status.json: queued → git: no branch → OK (queued)
+  [3a] status.json: queued → git: no branch → OK (queued)
+
+State reconciliation complete.
+
+Completed: 1/5 tasks
+  ✓ [1a] Create UserProfile component (PR #42 merged)
+
+Ready to Resume: 4 tasks
+  ○ [1b] Add user type definitions (wave 1)
+  ⟳ [2a] Implement profile edit form (crashed, will re-execute)
+  ○ [2b] Add avatar upload (wave 2, waiting for wave 1)
+  ○ [3a] Integration tests (wave 3, waiting for wave 2)
+
+Continue execution?
+```
+
+**Reconciliation Algorithm:**
+
+```bash
+for task_id in $(get_task_ids); do
+  branch="${prd_slug}-${task_id}"
+
+  # Check if branch exists on remote
+  if git ls-remote --heads origin "$branch" | grep -q "$branch"; then
+    # Check for PR
+    pr_data=$(gh pr list --head "$branch" --json state,number,mergedAt --jq '.[0]')
+
+    if [ -n "$pr_data" ]; then
+      state=$(echo "$pr_data" | jq -r '.state')
+      if [ "$state" = "MERGED" ]; then
+        # Task complete
+        update_status "$task_id" "done"
+      else
+        labels=$(gh pr view "$branch" --json labels --jq '.labels[].name')
+        if echo "$labels" | grep -q "needs-revision"; then
+          update_status "$task_id" "needs-revision"
+        else
+          update_status "$task_id" "in-review"
+        fi
+      fi
+    else
+      # Branch exists, no PR → agent crashed mid-execution
+      echo "[RECONCILE] $task_id: branch exists but no PR → marking crashed"
+      git push origin --delete "$branch" 2>/dev/null || true
+      update_status "$task_id" "queued"
+    fi
+  else
+    # No branch = check status.json
+    current_status=$(get_status "$task_id")
+    if [ "$current_status" = "done" ]; then
+      # Trust status.json (branch was cleaned up after merge)
+      :
+    else
+      update_status "$task_id" "queued"
+    fi
+  fi
+done
+```
+
+### 6. Phase 2: Spawn PM Agent
 
 Hand off to the PM agent for execution:
 
@@ -409,104 +300,70 @@ Hand off to the PM agent for execution:
 ```
 
 Pass:
-- Project configuration from `.karimo/config.yaml` (commands, boundaries) and `.karimo/learnings.md`
+- Project configuration from `.karimo/config.yaml` and `.karimo/learnings.md`
 - PRD status (approved tasks, excluded tasks)
 - Brief file paths for each task
 - Execution plan from `execution_plan.yaml`
 - Execution mode (full PRD or single task)
+- Reconciled status.json state
 
-### 6. Brief-Based Execution
+### 7. Wave-Ordered Execution
 
 The PM agent:
-1. Creates feature branch and GitHub Project
-2. For each ready task:
-   - Creates worktree
-   - Reads the task brief from `briefs/{task_id}.md`
-   - Spawns worker agent with **only the brief** as context
-   - Worker has everything needed in the brief
-3. Monitors progress via status.json
-4. Creates PRs when tasks complete
-5. Unblocks dependent tasks
+1. Executes tasks wave by wave
+2. For each task in the current wave:
+   - Spawns worker agent with task brief
+   - Worker operates in worktree (Claude Code handles via `isolation: worktree`)
+   - Worker commits and pushes to `{prd-slug}-{task-id}` branch
+   - PM creates PR to main
+   - PR gets labels: `karimo`, `karimo-{prd-slug}`, `wave-{n}`, `complexity-{c}`
+3. Waits for all wave PRs to merge before starting next wave
+4. Updates findings.md between waves
 
-### 7. Single Task Mode
+### 8. Single Task Mode
 
 If `--task {id}` is specified:
 - Execute only that task
 - Read its brief from `briefs/{task_id}.md`
-- Skip GitHub Project setup
-- Create PR directly to feature branch
-- Useful for retrying failed tasks
+- Create PR directly to main
+- Useful for retrying failed or crashed tasks
 
-### 8. Resume Behavior
+### 9. Completion & Finalization
 
-If `status.json` shows tasks already in progress:
-
-```
-Resuming execution for: user-profiles
-
-Completed: 2/5 tasks
-  ✓ [1a] Create UserProfile component
-  ✓ [1b] Add user type definitions
-
-In Progress: 1 task
-  ⋯ [2a] Implement profile edit form (PR #42 - in review)
-
-Ready to Start: 1 task
-  ○ [3a] Integration tests (blocked by 2a)
-
-Excluded: 1 task
-  ✗ [2b] Add avatar upload
-
-Continue execution?
-```
-
-### 9. Execution Handoff
-
-The PM agent takes over and:
-1. Creates/updates GitHub Project
-2. Creates feature branch if needed
-3. Sets up worktrees for parallel tasks
-4. **Passes brief file path to each worker**
-5. Workers read their brief and execute
-6. Monitors progress and creates PRs
-7. Updates status.json continuously
-
-### 10. Completion
-
-When all approved tasks complete, the PM agent:
-1. Cleans up worktrees
-2. Updates status.json to `complete`
-3. Reports final summary:
+When all tasks complete:
 
 ```
 Execution Complete: user-profiles
 
-Tasks: 5/5 approved tasks complete
-PRs Created: 5
-  - #42 [1a] Create UserProfile component ✓ merged (sonnet, 2 loops)
-  - #43 [1b] Add user type definitions ✓ merged (sonnet, 1 loop)
-  - #44 [2a] Implement profile edit form ✓ merged (opus, 3 loops)
-  - #46 [3a] Integration tests ✓ merged (sonnet, 2 loops)
+Tasks: 5/5 complete
+PRs Merged: 5
+  - #42 [1a] Create UserProfile component ✓ (sonnet, 2 loops)
+  - #43 [1b] Add user type definitions ✓ (sonnet, 1 loop)
+  - #44 [2a] Implement profile edit form ✓ (opus, 3 loops)
+  - #45 [2b] Add avatar upload ✓ (sonnet, 1 loop)
+  - #46 [3a] Integration tests ✓ (sonnet, 2 loops)
 
-Excluded (not executed):
-  - [2b] Add avatar upload
+Model Usage: 4 sonnet, 1 opus
+Total Loops: 9
+Duration: 1h 45m
 
-Model Usage: 3 sonnet, 1 opus
-Total Loops: 8
-Duration: 2h 15m
+Finalization:
+  ✓ All branches deleted from remote
+  ✓ metrics.json generated
+  ✓ status.json updated to complete
 
-Feature branch `feature/user-profiles` ready for final review.
+Consider running /karimo-feedback to capture learnings.
 ```
 
-## Brief-Based Worker Flow
+## Worker Flow (v4.0)
 
 ```
 PM Agent                           Worker Agent
     │                                   │
-    ├─ Create worktree ────────────────►│
+    ├─ Spawn with brief path ──────────►│
+    │   Branch: {prd-slug}-{task-id}    │
     │                                   │
-    ├─ Pass brief path ────────────────►│
-    │   briefs/1a.md                    │
+    │            (Claude Code creates worktree automatically)
     │                                   │
     │                              ┌────┴────┐
     │                              │ Read    │
@@ -518,16 +375,14 @@ PM Agent                           Worker Agent
     │                              │ task    │
     │                              └────┬────┘
     │                                   │
-    │◄─────── Commit changes ───────────┤
+    │◄─────── Push to branch ───────────┤
     │                                   │
-    ├─ Create PR ──────────────────────►│
+    ├─ Create PR to main ──────────────►│
+    │   Labels: karimo, wave-1, etc.    │
+    │                                   │
+    │            (Claude Code cleans up worktree automatically)
     │                                   │
 ```
-
-The worker agent **only sees the brief** — not the full PRD, not other tasks. This isolation ensures:
-- Clear scope boundaries
-- No confusion about what to build
-- Portable execution (any agent can run any brief)
 
 ## Output Files
 
@@ -535,7 +390,8 @@ Execution updates these files:
 
 ```
 .karimo/prds/{slug}/status.json    # Updated continuously
-.worktrees/{slug}/                 # Temporary worktrees (cleaned up)
+.karimo/prds/{slug}/findings.md    # Updated between waves
+.karimo/prds/{slug}/metrics.json   # Generated at finalization
 ```
 
 ## Error Handling
@@ -545,8 +401,9 @@ Execution updates these files:
 | PRD not found | List available PRDs |
 | PRD not ready | "Run /karimo-plan to approve first" |
 | GitHub config missing | "Run /karimo-configure to set up GitHub settings" |
-| GitHub project access denied | "Run `gh auth refresh -s project` to add project scope" |
+| Repository access denied | "Run `gh auth refresh -s repo`" |
 | Task failed | Mark as failed, continue with independent tasks |
+| Task crashed | Delete stale branch, re-execute |
 | All tasks blocked | Report blockers, suggest intervention |
 | Task stalled | Attempt model upgrade (Sonnet→Opus), pause if still failing |
 | Loop limit reached | Pause task, request human intervention |
