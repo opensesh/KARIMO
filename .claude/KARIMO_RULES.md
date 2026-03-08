@@ -12,81 +12,18 @@ KARIMO agents execute tasks defined in PRDs. The human architect designs the fea
 
 ---
 
-## Execution Modes
+## v4.0 Execution Model
 
-KARIMO supports two execution modes. Check `.karimo/config.yaml` for the configured mode.
+KARIMO v4.0 uses a simplified PR-centric workflow:
+- PRs target `main` directly (no feature branches)
+- Tasks execute in wave order (wave 2 waits for wave 1 to merge)
+- Claude Code manages worktrees via `isolation: worktree`
+- PR labels replace GitHub Projects for tracking
+- Branch naming: `{prd-slug}-{task-id}`
 
-### Full Mode (Default)
-
-Full GitHub integration with complete traceability.
-
-**Tool Selection:**
-| Operation | Tool | Rationale |
-|-----------|------|-----------|
-| Issue create/update | GitHub MCP | Better error handling, typed params |
-| Issue comments | GitHub MCP | Native support |
-| PR create/update | GitHub MCP | `Closes #X` linking built-in |
-| PR review comments | GitHub MCP | Pending review support |
-| Sub-issues | GitHub MCP | `sub_issue_write` for hierarchy |
-| Projects v2 | gh CLI | MCP doesn't support Projects |
-| Labels | gh CLI | MCP is read-only for labels |
-| Branch-issue linking | gh CLI | `gh issue develop` |
-
-**Workflow:**
-1. Feature issue created (parent)
-2. Task issues linked as sub-issues
-3. Branches linked to issues via `gh issue develop`
-4. Worktrees created from linked branches
-5. PRs use `Closes #{issue_number}` for auto-close
-6. Project board tracks wave and status
-
-**Required:**
+**Requirements:**
 - GitHub MCP server configured in Claude Code
-- gh CLI authenticated with `project` scope
-- GitHub owner/repo configured in `.karimo/config.yaml`
-
-### Fast Track Mode
-
-Commit-only workflow without GitHub integration.
-
-**Workflow:**
-1. Tasks execute sequentially on main branch
-2. Structured commits replace issues/PRs:
-   ```
-   [{prd_slug}][{task_id}] {task_name}: {description}
-   ```
-3. No issues, PRs, or Projects created
-4. Status tracked only in `status.json`
-
-**When to Use:**
-- Rapid prototyping
-- Solo development
-- Projects without GitHub
-- Teams preferring simple git workflows
-
-**Trade-offs:**
-- ❌ No GitHub UI visibility
-- ❌ No PR review workflow
-- ❌ No sub-issue hierarchy
-- ❌ No Greptile integration
-- ✓ Faster execution
-- ✓ No GitHub configuration needed
-- ✓ Works offline
-
-### Mode-Specific Agent Behavior
-
-**In Full Mode, agents must:**
-- Create issues before starting work
-- Link branches to issues
-- Create PRs (never push directly to feature branch)
-- Update GitHub Issues with status comments
-- Use MCP for issues/PRs, CLI for Projects
-
-**In Fast Track Mode, agents must:**
-- Commit directly to main (or optionally a feature branch)
-- Use structured commit format with PRD/task context
-- Skip all GitHub operations
-- Update only `status.json` for state tracking
+- gh CLI authenticated with `repo` scope
 
 ---
 
@@ -142,27 +79,28 @@ Commit-only workflow without GitHub integration.
 - **If blocked, document why.** Add a comment explaining what's blocking progress.
 - **Mark ambiguous requirements.** If something is unclear, add a TODO and note it in the PR.
 
-### 2. Worktree Discipline
+### 2. Branch Discipline
 
-- **Work in your assigned directory.** The PM agent sets your working directory when spawning.
-- **Don't navigate outside your directory.** Your changes should only affect your assigned branch.
+- **Push to your assigned branch.** Branch name: `{prd-slug}-{task-id}`
+- **Claude Code handles worktrees.** Task agents use `isolation: worktree` — worktree creation/cleanup is automatic.
 - **Commit frequently.** Make atomic commits that can be understood independently.
 
 ### 3. Pre-PR Validation
 
-Before creating a PR, verify:
+Before the PM creates a PR, verify:
 - [ ] Build passes (from CLAUDE.md Commands table)
 - [ ] Type check passes (from CLAUDE.md Commands table)
 - [ ] Lint passes (from CLAUDE.md Commands table)
 - [ ] No `Never Touch` files modified (from CLAUDE.md Boundaries)
-- [ ] Branch rebased on feature branch
+- [ ] Branch based on latest main
 
 ### 4. PR Standards
 
-- **Clear title:** `[KARIMO] [{task_id}] {task_title}`
-- **Complete description:** Task context, changes made, files affected
+PRs are created by the PM agent with:
+- **Title:** `feat({prd-slug}): [{task-id}] {task-title}`
+- **Labels:** `karimo`, `karimo-{prd-slug}`, `wave-{n}`, `complexity-{c}`
+- **Description:** Task context, changes made, files affected
 - **Success criteria checklist:** Include criteria from the task definition
-- **Note caution files:** If `require_review` files were modified
 
 ---
 
@@ -186,127 +124,11 @@ The human architect uses `/karimo-feedback` to capture learnings. These become r
 
 ---
 
-## Conflict Resolution
-
-### 1. Merge Conflicts
-
-KARIMO uses a tiered approach to conflict resolution. Attempt auto-resolution before escalating to human.
-
-#### Step 1: Attempt Three-Way Merge
-
-Before rebase, try a merge to assess conflict scope:
-
-```bash
-cd .worktrees/{prd-slug}/{task-id}
-git fetch origin feature/{prd-slug}
-
-# Attempt merge without committing
-git merge feature/{prd-slug} --no-commit --no-ff
-
-if [ $? -eq 0 ]; then
-  # No conflicts — commit the merge
-  git commit -m "chore: merge latest from feature/{prd-slug}"
-else
-  # Conflicts detected — analyze before aborting
-  CONFLICTING_FILES=$(git diff --name-only --diff-filter=U)
-  git merge --abort
-fi
-```
-
-#### Step 2: Categorize Conflicts
-
-| Category | Pattern | Action |
-|----------|---------|--------|
-| **Easy** | Import statements, whitespace, trailing newlines | Auto-resolve |
-| **Moderate** | Non-overlapping function changes | Attempt auto-merge |
-| **Hard** | Same function/component modified, structural conflicts | Escalate |
-
-**Easy conflict patterns (auto-resolvable):**
-- Imports at file top (take both, dedupe)
-- Trailing newline differences
-- Comment-only changes
-- Lock file conflicts (regenerate)
-
-**Hard conflict patterns (require human):**
-- Same function modified by both branches
-- Architectural changes affecting structure
-- Test file with conflicting assertions
-- Files in `require_review` boundary
-
-#### Step 3: Auto-Resolve Easy Conflicts
-
-```bash
-# For import conflicts (example)
-for file in $CONFLICTING_FILES; do
-  if is_import_only_conflict "$file"; then
-    # Accept both imports, sort and dedupe
-    git checkout --ours "$file"
-    # Merge imports from theirs
-    merge_imports "$file"
-    git add "$file"
-  fi
-done
-
-# For lock files
-if echo "$CONFLICTING_FILES" | grep -q "package-lock.json\|yarn.lock\|pnpm-lock.yaml"; then
-  # Regenerate lock file
-  npm install  # or yarn/pnpm
-  git add package-lock.json
-fi
-
-# Check if all conflicts resolved
-if git diff --check; then
-  git commit -m "chore: auto-resolve merge conflicts"
-fi
-```
-
-#### Step 4: Escalate Hard Conflicts
-
-If conflicts remain after auto-resolution attempt:
-
-1. **Abort the merge:**
-   ```bash
-   git merge --abort
-   ```
-
-2. **Mark task status:**
-   ```json
-   {
-     "tasks": {
-       "1a": {
-         "status": "needs-human-rebase",
-         "conflict_files": ["src/component.tsx"],
-         "conflict_category": "hard",
-         "conflict_reason": "Same function modified by both branches"
-       }
-     }
-   }
-   ```
-
-3. **Document and continue:** Add comment to GitHub Issue, move to other tasks.
-
-### 2. Ambiguous Requirements
-
-If requirements are unclear:
-1. **Check the PRD narrative.** The human-readable sections often have context.
-2. **Look at `agent_context`.** Specific guidance may be there.
-3. **Make a reasonable choice and document it.** Add a comment explaining your decision.
-4. **Flag for review.** Note the ambiguity in the PR description.
-
-### 3. Blocked Dependencies
-
-If a dependency isn't ready:
-1. **Check if you can stub it.** Sometimes a placeholder enables progress.
-2. **Mark the task as blocked.** Update status to `blocked` with reason.
-3. **Move to other tasks.** Work on independent tasks while waiting.
-
----
-
 ## Loop Awareness
 
 ### 1. Loop Count Tracking
 
-Each task has a `loop_count` tracked in `status.json`. A "loop" is one complete attempt at a task (code → validate → commit or retry).
+Each task has a `loops` count tracked in `status.json`. A "loop" is one complete attempt at a task (code → validate → commit or retry).
 
 **Guardrails:**
 - After 3 loops without progress → stall detection triggers
@@ -333,21 +155,13 @@ Tasks are assigned models based on complexity:
 
 If a Sonnet task stalls with borderline complexity (4-5), PM may upgrade to Opus.
 
-### 4. Efficient Execution
-
-Work efficiently by:
-- Completing success criteria directly
-- Not over-engineering solutions
-- Using provided `agent_context` and patterns from `findings.md`
-- Asking for clarification rather than guessing
-
 ---
 
 ## Communication
 
-### 1. PR Comments
+### 1. PR Description
 
-Use comments to:
+Use the PR description to:
 - Explain non-obvious decisions
 - Flag areas that need human attention
 - Note deviations from the original task
@@ -357,14 +171,14 @@ Use comments to:
 Keep `status.json` current:
 - Mark task `running` when starting
 - Update to `in-review` when PR created
-- Record `model` and `loop_count` on completion
+- Record `model` and `loops` on completion
 
-### 3. Handoffs
+### 3. Wave Findings
 
-When finishing a task that other tasks depend on:
-- Ensure the code is properly exported/accessible
-- Document any APIs or interfaces created
-- Note anything the dependent task needs to know
+When a wave completes, findings are propagated:
+- PM updates `.karimo/prds/{slug}/findings.md`
+- Next wave gets context from merged PRs
+- Files modified and patterns established are documented
 
 ---
 
@@ -374,48 +188,34 @@ KARIMO avoids external `jq` dependency. Use these approaches:
 
 ### Simple Root-Level Fields (grep/sed)
 
-For parsing simple fields from status.json or similar files:
-
 ```bash
 # Parse status field
 status=$(grep -o '"status"[[:space:]]*:[[:space:]]*"[^"]*"' file.json | \
   sed 's/.*"\([^"]*\)"$/\1/')
-
-# Parse optional field (with fallback)
-feature_merged=$(grep -o '"feature_merged_at"[[:space:]]*:[[:space:]]*"[^"]*"' \
-  file.json 2>/dev/null | sed 's/.*"\([^"]*\)"$/\1/' || echo "")
 ```
 
 ### GitHub CLI Operations (gh --jq)
 
-GitHub CLI has built-in jq support via the `--jq` flag. This uses an embedded Go implementation, NOT the external jq binary:
+GitHub CLI has built-in jq support via the `--jq` flag:
 
 ```bash
-# Filter project list
-gh project list --owner "$OWNER" --format json \
-  --jq '.projects[] | select(.title == "My Project") | .number'
+# Get PR state
+gh pr view 42 --json state --jq '.state'
 
-# Extract field from creation response
-gh project create --title "Title" --format json --jq '.number'
+# List labels
+gh pr view 42 --json labels --jq '.labels[].name'
 
-# Filter project items
-gh project item-list 123 --owner "$OWNER" --format json \
-  --jq '.items[] | select(.content.number == 42) | .id'
+# Check for merged PRs
+gh pr list --head "branch-name" --json state,mergedAt --jq '.[0]'
 ```
 
 ### Complex JSON Queries (Node.js Fallback)
 
-For complex nested queries, arrays, or transformations, use Node.js one-liners:
+For complex nested queries:
 
 ```bash
-# Read nested field
-node -e "const s = JSON.parse(require('fs').readFileSync('.karimo/prds/\${slug}/status.json','utf8')); console.log(s.tasks['1a'].status)"
-
-# Filter array
-node -e "const s = JSON.parse(require('fs').readFileSync('status.json','utf8')); const done = Object.values(s.tasks).filter(t => t.status === 'done'); console.log(done.length)"
+node -e "const s = JSON.parse(require('fs').readFileSync('status.json','utf8')); console.log(s.tasks['1a'].status)"
 ```
-
-Node.js is available in most KARIMO target projects (JavaScript/TypeScript ecosystems).
 
 ---
 
