@@ -150,15 +150,20 @@ If you want previews to run but not block merges:
 
 ## Greptile Integration (Optional)
 
-If you enable Greptile for automated code review:
+KARIMO installs zero workflows by default. Greptile is available as an explicit opt-in:
 
+```bash
+/karimo-configure --greptile
+```
+
+This installs `karimo-greptile-review.yml` and provides instructions for adding your `GREPTILE_API_KEY` secret.
+
+When enabled:
 1. Task PR created → Greptile reviews code
 2. Score ≥ 3 → `greptile-passed` label
 3. Score < 3 → `greptile-needs-revision` label, agent revises
 
-This is separate from CD — Greptile reviews code quality, not deployment.
-
-See [PHASES.md](PHASES.md) for details on enabling Greptile (Phase 2).
+Greptile reviews code quality, not deployment. See [PHASES.md](PHASES.md) for details.
 
 ---
 
