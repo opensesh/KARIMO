@@ -56,24 +56,18 @@ Configuration is written to `.karimo/config.yaml`.
 
 The installer uses `.karimo/MANIFEST.json` as the single source of truth for file inventory.
 
-The installer will prompt you for optional workflow tiers:
+The installer will prompt you for optional workflows:
 
 ```
 GitHub Workflow Installation
-KARIMO uses a tiered workflow system:
+KARIMO workflows align with adoption phases:
 
-Tier 1 (Required):
+Phase 1 (Required):
   - karimo-ci.yml: Validates KARIMO installation
-  Installed
+  - karimo-dependency-watch.yml: Alerts on runtime dependencies
+  Installed automatically
 
-Tier 2 (CI Integration):
-  - karimo-ci-integration.yml: Observes your existing CI, labels PRs
-  - This workflow does NOT run build commands - it watches external CI
-
-Install CI integration workflow? (Y/n) Y
-  Installed
-
-Tier 3 (Greptile Review):
+Phase 2 (Optional):
   - karimo-greptile-review.yml: Automated code review via Greptile
   - Requires GREPTILE_API_KEY secret in your repository
 
@@ -81,9 +75,7 @@ Install Greptile review workflow? (y/N) n
   Skipped
 ```
 
-**Recommendations:**
-- **CI Integration (Tier 2):** Accept the default (Y) if you have any CI workflows
-- **Greptile Review (Tier 3):** Install if you have a Greptile API key
+**Recommendation:** Install Greptile if you have an API key. It acts as a force multiplier for code quality.
 
 This installs:
 - Agent definitions to `.claude/agents/`
@@ -446,16 +438,14 @@ This will reconcile status.json with git reality and resume from the correct poi
 
 ### "Workflow conflicts"
 
-Check GitHub Actions tab for errors. KARIMO workflows use unique names (`karimo-*`) and self-exclude from CI detection. If you skipped a tier during installation, you can add it later:
+Check GitHub Actions tab for errors. KARIMO workflows use unique names (`karimo-*`). If you skipped Greptile during installation, you can add it later:
 
 ```bash
-# Copy missing workflow from KARIMO source
-cp KARIMO/.karimo/workflow-templates/karimo-ci-integration.yml .github/workflows/
+# Copy Greptile workflow from KARIMO source
+cp KARIMO/.karimo/workflow-templates/karimo-greptile-review.yml .github/workflows/
 ```
 
-### "CI always shows skipped"
-
-The CI Integration workflow only monitors external CI. If you don't have GitHub Actions, CircleCI, Jenkins, or similar, it will apply `ci-skipped`. This is expected — add CI workflows to your project and KARIMO will automatically detect them.
+Then add `GREPTILE_API_KEY` to your repository secrets.
 
 ---
 
