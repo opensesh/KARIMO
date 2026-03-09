@@ -556,52 +556,19 @@ permissions:
 
 ---
 
-## GitHub Actions Workflows
+## PR Labels
 
-KARIMO uses a two-tier workflow architecture. Your existing CI (GitHub Actions, CircleCI, Jenkins, etc.) catches issues at merge time — KARIMO focuses on orchestration.
-
-### Two-Tier System
-
-| Tier | Workflow | Install | Purpose |
-|------|----------|---------|---------|
-| 1 | `karimo-ci.yml` | Always | Validates KARIMO installation |
-| 1 | `karimo-dependency-watch.yml` | Always | Runtime dependency alerts |
-| 2 | `karimo-greptile-review.yml` | Opt-in | Greptile code review |
-
-### karimo-ci.yml (Tier 1)
-
-Validates KARIMO installation on push/PR:
-
-- Checks KARIMO files are present
-- Validates configuration
-
-### karimo-dependency-watch.yml (Tier 1)
-
-Triggered when `dependencies.md` files are updated:
-
-- Detects runtime dependency discoveries
-- Creates issues for pending dependencies
-- Alerts on urgent dependencies
-
-### karimo-greptile-review.yml (Tier 2)
-
-Triggered on PR open/synchronize with `karimo` label:
-
-- Calls Greptile API for code review
-- Posts review as PR comment
-- Labels: `greptile-passed`, `greptile-needs-revision`, `greptile-skipped`
-- Gracefully handles missing API key with informational comment
-
-### Label Reference
+KARIMO uses PR labels for tracking and workflow integration.
 
 | Label | Applied By | Meaning |
 |-------|-----------|---------|
 | `karimo` | PM Agent | Identifies KARIMO-managed PRs |
 | `wave-{n}` | PM Agent | Wave number for execution ordering |
 | `complexity-{n}` | PM Agent | Task complexity score |
-| `greptile-passed` | Greptile Review | Score >= 3 |
-| `greptile-needs-revision` | Greptile Review | Score < 3 |
-| `greptile-skipped` | Greptile Review | No API key configured |
+| `greptile-passed` | Greptile Review | Score >= 3 (when Greptile enabled) |
+| `greptile-needs-revision` | Greptile Review | Score < 3 (when Greptile enabled) |
+
+To enable Greptile review, run `/karimo-configure --greptile`.
 
 ---
 
