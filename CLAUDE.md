@@ -31,7 +31,6 @@ Changes to these files affect installed projects:
 - `.claude/commands/*` — Slash commands
 - `.claude/skills/*` — Skill definitions
 - `.karimo/templates/*` — PRD/task templates
-- `.github/workflows/karimo-*.yml` — CI workflows
 - `.claude/KARIMO_RULES.md` — Agent behavior rules
 
 Changes to these files do NOT affect installed projects:
@@ -218,8 +217,9 @@ When you run `install.sh`, these files are added:
 | `.claude/commands/` | 12 slash commands (plan, overview, execute, modify, status, configure, cd-config, update, feedback, learn, doctor, test) |
 | `.claude/skills/` | 4 skills (1 coordination + 3 task agent skills) |
 | `.claude/KARIMO_RULES.md` | Agent behavior rules |
-| `.karimo/templates/` | 9 templates (PRD, interview, task, status, dependencies, DAG, learn-interview, findings, task-brief) |
-| `.github/workflows/` | 1 required (karimo-ci.yml) + optional workflows via `/karimo-configure` |
+| `.karimo/templates/` | 10 templates (PRD, interview, task, status, dependencies, DAG, learn-interview, findings, task-brief, metrics) |
+
+**Optional:** Run `/karimo-configure --greptile` to install Greptile workflow for automated code review.
 
 ### Agent Types
 
