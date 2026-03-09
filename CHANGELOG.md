@@ -7,6 +7,50 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [4.1.0] - 2026-03-09
+
+### Removed
+
+**CI Observer Integration**
+
+Removed the CI Observer workflow (`karimo-ci-integration.yml`) entirely. KARIMO now focuses on orchestration, trusting developers' existing CI pipelines to catch issues at merge time.
+
+**Philosophy shift:** When PRs merge to main, your existing CI (GitHub Actions, CircleCI, Jenkins, etc.) runs builds and catches issues. KARIMO doesn't need to observe or track CI results.
+
+**Deleted files:**
+- `.karimo/workflow-templates/karimo-ci-integration.yml` (269 lines)
+
+**Deprecated labels:**
+- `ci-passed` — No longer created
+- `ci-failed` — No longer created
+- `ci-skipped` — No longer created
+
+**Configuration removed:**
+- `ci_observer_enabled` field no longer used in config.yaml (harmless if present)
+
+### Changed
+
+**Simplified Workflow Tiers**
+
+- Changed from three-tier to two-tier workflow system
+- Phase 1 (Required): `karimo-ci.yml`, `karimo-dependency-watch.yml`
+- Phase 2 (Optional): `karimo-greptile-review.yml`
+- Removed Phase 1+ (CI Awareness) tier
+
+**Updated Files:**
+- `install.sh` — Removed Phase 1+ tier, simplified to Core + Greptile
+- `karimo-configure.md` — Removed CI Observer question from configuration
+- `CI-CD.md` — Restructured to focus on CD integration and preview deployments
+- `PHASES.md` — Removed CI integration workflow from Phase 1
+- `SAFEGUARDS.md` — Updated "Three-Tier System" to "Two-Tier System"
+- `GETTING-STARTED.md` — Simplified installation prompts, removed CI troubleshooting
+
+**Migration notes:**
+- Existing installations with `karimo-ci-integration.yml` in `.github/workflows/` should delete it manually
+- Existing `config.yaml` with `ci_observer_enabled` field will continue to work (field is ignored)
+
+---
+
 ## [4.0.1] - 2026-03-07
 
 ### Added
