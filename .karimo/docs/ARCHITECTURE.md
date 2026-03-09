@@ -458,28 +458,12 @@ See [PHASES.md](PHASES.md) for adoption guidance.
 
 | Label | Applied By | Meaning |
 |-------|-----------|---------|
-| `ci-passed` | CI Integration | All external CI checks passed |
-| `ci-failed` | CI Integration | One or more CI checks failed |
-| `ci-skipped` | CI Integration | No external CI detected |
 | `greptile-passed` | Greptile Review | Score >= 3 |
 | `greptile-needs-revision` | Greptile Review | Score < 3 |
 | `greptile-skipped` | Greptile Review | No API key configured |
-
-### CI Detection (Hybrid Approach)
-
-The CI Integration workflow uses two APIs to detect external CI:
-
-1. **Check Runs API** (`github.rest.checks.listForRef`) — GitHub Actions, modern CI, GitHub Apps
-2. **Combined Status API** (`github.rest.repos.getCombinedStatusForRef`) — Legacy external CI (Jenkins, Travis)
-
-This hybrid approach covers ~95% of CI setups without external dependencies.
-
-**Key details:**
-- Initial 5-second wait (checks register async)
-- 15-second polling interval
-- 30-minute timeout
-- Self-exclusion via regex: `/^KARIMO/i`, `/karimo-/i`
-- Never blocks pipeline — timeout applies `ci-failed` label
+| `karimo/task` | PM Agent | Marks PR as KARIMO task |
+| `karimo/wave-N` | PM Agent | Indicates task's execution wave |
+| `karimo/complexity-N` | PM Agent | Task complexity rating (1-5) |
 
 ### GitHub Projects
 
