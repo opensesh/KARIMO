@@ -67,9 +67,9 @@ This is where everyone starts. Phase 1 provides everything needed to go from ide
 | Workflow | Purpose | Trigger |
 |----------|---------|---------|
 | `karimo-ci.yml` | Validates KARIMO installation | Push/PR |
-| `karimo-ci-integration.yml` *(optional)* | Observes external CI, labels PRs | PR opened/updated |
+| `karimo-dependency-watch.yml` | Alerts on runtime dependency changes | PR merged |
 
-The CI integration workflow is recommended but optional. It watches your existing CI (GitHub Actions, CircleCI, Jenkins, etc.) and labels PRs with `ci-passed`, `ci-failed`, or `ci-skipped`. It does NOT run build commands itself.
+Your existing CI pipelines (GitHub Actions, CircleCI, Jenkins, etc.) run builds and catch issues at merge time. KARIMO focuses on orchestration, not CI observation.
 
 ### Prerequisites
 
@@ -109,12 +109,6 @@ Phase 2 adds Greptile integration for automated code review. This enables:
   - Score-based assessment
   - Detailed feedback comments
 
-- **Review/Architect + Greptile Coordination** (v2.1)
-  - Review/Architect validates integration first
-  - Then Greptile reviews code quality
-  - Architectural issues escalated to PM Agent
-  - Code quality issues trigger revision loops
-
 - **Agentic Revision Loops**
   - Score < 3 triggers revision (0-5 scale)
   - Agent reads feedback, fixes issues
@@ -122,9 +116,8 @@ Phase 2 adds Greptile integration for automated code review. This enables:
   - Hard gate after 3 failed attempts (needs-human-review)
 
 - **Review Workflow**
-  - `karimo-greptile-review.yml` triggers Greptile
-  - `karimo-ci-integration.yml` runs on pass
-  - Labels track review state
+  - `karimo-greptile-review.yml` triggers Greptile review
+  - Labels track review state (`greptile-passed`, `greptile-needs-revision`)
 
 ### Why Greptile is Highly Recommended
 
