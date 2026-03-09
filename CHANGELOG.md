@@ -30,24 +30,34 @@ Removed the CI Observer workflow (`karimo-ci-integration.yml`) entirely. KARIMO 
 
 ### Changed
 
-**Simplified Workflow Tiers**
+**Zero-Workflow Default**
 
-- Changed from three-tier to two-tier workflow system
-- Phase 1 (Required): `karimo-ci.yml`, `karimo-dependency-watch.yml`
-- Phase 2 (Optional): `karimo-greptile-review.yml`
-- Removed Phase 1+ (CI Awareness) tier
+KARIMO no longer installs any workflows by default. Greptile is available as an explicit opt-in:
 
-**Updated Files:**
-- `install.sh` — Removed Phase 1+ tier, simplified to Core + Greptile
-- `karimo-configure.md` — Removed CI Observer question from configuration
-- `CI-CD.md` — Restructured to focus on CD integration and preview deployments
-- `PHASES.md` — Removed CI integration workflow from Phase 1
-- `SAFEGUARDS.md` — Updated "Three-Tier System" to "Two-Tier System"
-- `GETTING-STARTED.md` — Simplified installation prompts, removed CI troubleshooting
+- Run `/karimo-configure --greptile` to install Greptile workflow
+- Deleted: `karimo-dependency-watch.yml` (unused)
+- Removed: All workflow prompts from installer
 
-**Migration notes:**
-- Existing installations with `karimo-ci-integration.yml` in `.github/workflows/` should delete it manually
-- Existing `config.yaml` with `ci_observer_enabled` field will continue to work (field is ignored)
+**Philosophy:** KARIMO focuses on orchestration, not CI. Your existing CI (GitHub Actions, CircleCI, Jenkins) catches issues at merge time.
+
+**Files deleted:**
+- `.github/workflows/karimo-dependency-watch.yml`
+
+**Files updated:**
+- `install.sh` — Removed all workflow installation code
+- `karimo-configure.md` — Added `--greptile` flag for opt-in workflow installation
+- `CI-CD.md` — Updated Greptile section for opt-in
+- `PHASES.md` — Removed workflow sections, updated setup instructions
+- `SAFEGUARDS.md` — Replaced "GitHub Actions Workflows" with "PR Labels"
+- `GETTING-STARTED.md` — Removed workflow prompts
+- `ARCHITECTURE.md` — Updated workflow references
+- `CLAUDE.md` — Removed workflow from Installed Components
+- `README.md` — Removed Workflows section
+
+**Migration:**
+- Existing installations can delete `.github/workflows/karimo-*.yml` files
+- No functional impact — KARIMO orchestration works without workflows
+- To add Greptile later: `/karimo-configure --greptile`
 
 ---
 
