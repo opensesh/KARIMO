@@ -1,50 +1,20 @@
-# KARIMO CI/CD Integration
+# KARIMO CD Integration
 
-How KARIMO interacts with your continuous integration and deployment systems.
+How KARIMO interacts with your continuous deployment systems.
 
 ---
 
 ## Philosophy
 
-**KARIMO observes your CI — it doesn't run your builds.**
+**KARIMO focuses on orchestration — your CI catches issues at merge time.**
 
-Your existing CI (GitHub Actions, CircleCI, Jenkins) runs `build`, `lint`, `test`, and `typecheck`. KARIMO's workflows observe the results via GitHub APIs and label PRs accordingly.
+KARIMO creates PRs for each task. When those PRs merge to main, your existing CI (GitHub Actions, CircleCI, Jenkins) runs `build`, `lint`, `test`, and `typecheck` as normal.
 
-This keeps KARIMO portable across any CI system.
-
----
-
-## CI Integration (Observation)
-
-### How It Works
-
-1. Task agent creates PR with `karimo` label
-2. Your CI runs (GitHub Actions, Vercel, etc.)
-3. KARIMO CI Integration workflow observes Check Runs / Status APIs
-4. PR gets labeled: `ci-passed`, `ci-failed`, or `ci-skipped`
-
-### Labels
-
-| Label | Meaning |
-|-------|---------|
-| `ci-passed` | All external CI checks passed |
-| `ci-failed` | One or more CI checks failed |
-| `ci-skipped` | No external CI detected |
-
-### Configuration
-
-Enable via `/karimo-configure`:
-
-```yaml
-cost:
-  ci_observer_enabled: true
-```
-
-This installs `karimo-ci-integration.yml` which watches your CI.
+This keeps KARIMO simple and portable across any CI system.
 
 ---
 
-## CD Integration (Preview Deployments)
+## Preview Deployments
 
 ### The Problem
 
@@ -88,7 +58,6 @@ Or manually configure:
 #### Option 2: Accept the Noise
 
 Preview failures are informational, not blocking:
-- KARIMO labels PRs with `ci-failed` when builds fail
 - Configure branch protection to make preview checks non-required
 - Rely on main branch builds for actual validation
 
@@ -179,7 +148,7 @@ If you want previews to run but not block merges:
 
 ---
 
-## Greptile Integration (Phase 2)
+## Greptile Integration (Optional)
 
 If you enable Greptile for automated code review:
 
@@ -187,7 +156,9 @@ If you enable Greptile for automated code review:
 2. Score ≥ 3 → `greptile-passed` label
 3. Score < 3 → `greptile-needs-revision` label, agent revises
 
-This is separate from CI/CD — Greptile reviews code quality, not build status.
+This is separate from CD — Greptile reviews code quality, not deployment.
+
+See [PHASES.md](PHASES.md) for details on enabling Greptile (Phase 2).
 
 ---
 
@@ -301,15 +272,9 @@ jobs:
 
 ## Troubleshooting
 
-### "CI-failed on all KARIMO PRs"
+### "Preview builds failing on KARIMO PRs"
 
 This is expected for partial code. Run `/karimo-cd-config` to skip previews.
-
-### "CI-skipped on all PRs"
-
-Your CI isn't posting Check Runs to GitHub. Check:
-- GitHub Actions workflows exist and run on PRs
-- External CI (CircleCI, Jenkins) has GitHub integration enabled
 
 ### "Previews still building after configuration"
 
@@ -339,4 +304,4 @@ Temporarily force a build:
 |----------|-------|
 | [SAFEGUARDS.md](SAFEGUARDS.md) | Security and code integrity |
 | [COMMANDS.md](COMMANDS.md) | All KARIMO commands |
-| [PHASES.md](PHASES.md) | Adoption phases (CI observation is Phase 1) |
+| [PHASES.md](PHASES.md) | Adoption phases |
