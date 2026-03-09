@@ -267,7 +267,6 @@ echo ""
 # Track installed workflows
 INSTALLED_SYNC="true"
 INSTALLED_DEPENDENCY="true"
-INSTALLED_CI="false"
 INSTALLED_GREPTILE="false"
 
 if [ "$CI_MODE" = true ]; then
@@ -291,7 +290,6 @@ if [ "$CI_MODE" = true ]; then
         fi
     done
 
-    INSTALLED_CI="true"
     INSTALLED_GREPTILE="true"
     echo -e "  ${GREEN}All workflows installed${NC}"
 else
@@ -300,13 +298,9 @@ else
     echo ""
     echo "┌─────────────────────────────────────────────────────────────────────┐"
     echo "│ Phase 1: Execute PRD (Required)                                     │"
-    echo "│   • karimo-sync.yml           — Updates project status on PR merge  │"
+    echo "│   • karimo-ci.yml             — Validates KARIMO installation       │"
     echo "│   • karimo-dependency-watch.yml — Alerts on runtime dependencies    │"
     echo "│   → Installed automatically                                         │"
-    echo "├─────────────────────────────────────────────────────────────────────┤"
-    echo "│ Phase 1+: CI Awareness (Recommended)                                │"
-    echo "│   • karimo-ci-integration.yml — Observes your CI, labels PRs        │"
-    echo "│   → Does NOT run builds — watches external CI only                  │"
     echo "├─────────────────────────────────────────────────────────────────────┤"
     echo "│ Phase 2: Automate Review (Optional)                                 │"
     echo "│   • karimo-greptile-review.yml — Greptile code review gates         │"
@@ -317,20 +311,9 @@ else
     echo ""
 
     # Phase 1 workflows (always installed)
-    cp "$KARIMO_ROOT/.github/workflows/karimo-sync.yml" "$TARGET_DIR/.github/workflows/"
+    cp "$KARIMO_ROOT/.github/workflows/karimo-ci.yml" "$TARGET_DIR/.github/workflows/"
     cp "$KARIMO_ROOT/.github/workflows/karimo-dependency-watch.yml" "$TARGET_DIR/.github/workflows/"
     echo -e "  ${GREEN}✓${NC} Phase 1 workflows installed"
-
-    # Phase 1+ prompt
-    read -p "Install Phase 1+ workflows (CI Awareness)? [Y/n] " -n 1 -r CI_RESPONSE
-    echo ""
-    if [[ ! $CI_RESPONSE =~ ^[Nn]$ ]]; then
-        cp "$KARIMO_ROOT/.karimo/workflow-templates/karimo-ci-integration.yml" "$TARGET_DIR/.github/workflows/"
-        INSTALLED_CI="true"
-        echo -e "  ${GREEN}✓${NC} Phase 1+ workflow installed"
-    else
-        echo -e "  ${YELLOW}○${NC} Phase 1+ workflow skipped"
-    fi
 
     # Phase 2 prompt
     read -p "Install Phase 2 workflows (Greptile Review)? [y/N] " -n 1 -r GREPTILE_RESPONSE
@@ -595,9 +578,6 @@ fi
 
 # Count installed workflows
 WORKFLOW_COUNT=2
-if [ "$INSTALLED_CI" = "true" ]; then
-    WORKFLOW_COUNT=$((WORKFLOW_COUNT + 1))
-fi
 if [ "$INSTALLED_GREPTILE" = "true" ]; then
     WORKFLOW_COUNT=$((WORKFLOW_COUNT + 1))
 fi
@@ -639,12 +619,8 @@ fi
 echo
 echo "Workflows installed: ${WORKFLOW_COUNT}"
 echo "  Phase 1 (Required):"
-echo "    • karimo-sync.yml"
+echo "    • karimo-ci.yml"
 echo "    • karimo-dependency-watch.yml"
-if [ "$INSTALLED_CI" = "true" ]; then
-    echo "  Phase 1+ (CI Awareness):"
-    echo "    • karimo-ci-integration.yml"
-fi
 if [ "$INSTALLED_GREPTILE" = "true" ]; then
     echo "  Phase 2 (Greptile Review):"
     echo "    • karimo-greptile-review.yml"
