@@ -7,6 +7,7 @@ Create or update KARIMO configuration in `.karimo/config.yaml`. Use this when yo
 ```
 /karimo-configure              # Create new config or update existing
 /karimo-configure --reset      # Start fresh, ignore existing config
+/karimo-configure --greptile   # Install Greptile workflow only
 ```
 
 **This command writes configuration to `.karimo/config.yaml` (single source of truth).**
@@ -19,6 +20,51 @@ Create or update KARIMO configuration in `.karimo/config.yaml`. Use this when yo
 - CLAUDE.md contains only a minimal reference block (~8 lines)
 
 ## Behavior
+
+### Quick Install: `--greptile` Flag
+
+When the `--greptile` flag is passed, skip the full configuration flow and install only the Greptile workflow:
+
+```bash
+# Create workflows directory if needed
+mkdir -p .github/workflows
+
+# Check if greptile workflow template exists
+if [ -f ".karimo/workflow-templates/karimo-greptile-review.yml" ]; then
+    cp .karimo/workflow-templates/karimo-greptile-review.yml .github/workflows/
+    echo "✅ Installed karimo-greptile-review.yml"
+else
+    echo "❌ Greptile workflow template not found"
+    echo "   Expected at: .karimo/workflow-templates/karimo-greptile-review.yml"
+    exit 1
+fi
+```
+
+**Display instructions:**
+
+```
+╭──────────────────────────────────────────────────────────────╮
+│  Greptile Workflow Installed                                 │
+╰──────────────────────────────────────────────────────────────╯
+
+✅ Copied karimo-greptile-review.yml to .github/workflows/
+
+Next steps:
+  1. Add GREPTILE_API_KEY to your repository secrets
+     → Settings → Secrets and variables → Actions → New repository secret
+  2. Push changes to trigger workflow on PRs
+
+Greptile provides automated code review for KARIMO task PRs:
+  • Score ≥ 3: PR passes review
+  • Score < 3: Triggers revision with model escalation
+  • After 3 failures: Requires human review
+
+Learn more: https://greptile.com
+```
+
+**Exit after installation.** The `--greptile` flag is a quick-install shortcut, not a configuration flow.
+
+---
 
 ### Step 0: Check Existing Configuration
 
