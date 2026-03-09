@@ -44,15 +44,7 @@ KARIMO uses `.karimo/MANIFEST.json` as the single source of truth for installed 
 }
 ```
 
-> **Note:** Workflows are not tracked in the manifest. The update script uses `karimo-*` glob patterns for workflow management. Optional workflows (Greptile, CI integration) are installed via `/karimo-configure`.
-
-### CI Validation
-
-The `karimo-ci.yml` workflow provides minimal validation:
-1. MANIFEST.json exists and is valid JSON
-2. Install script runs successfully (source repo only)
-
-Philosophy: CI testing is the user's responsibility. KARIMO's CI validates only its own installation integrity.
+> **Note:** KARIMO installs zero workflows by default. Greptile integration is available via `/karimo-configure --greptile`.
 
 ---
 
@@ -64,10 +56,9 @@ KARIMO is a **configuration framework**, not a compiled application:
 - **Commands**: Slash command definitions for Claude Code
 - **Skills**: Reusable capabilities agents can invoke
 - **Templates**: PRD, task, and status schemas
-- **Workflows**: GitHub Actions for automation
 - **Manifest**: JSON file tracking all components
 
-Everything is installed into your project via `install.sh` — no binaries, no build step.
+Everything is installed into your project via `install.sh` — no binaries, no build step, no workflows by default.
 
 ---
 
@@ -130,10 +121,6 @@ Target Project/
 │   └── prds/                        # Created PRDs stored here
 │
 ├── .github/
-│   ├── workflows/
-│   │   ├── karimo-ci.yml                # Phase 1: Validates KARIMO installation
-│   │   ├── karimo-dependency-watch.yml  # Phase 1: Runtime dependency alerts
-│   │   └── karimo-greptile-review.yml   # Phase 2: Greptile review (opt-in)
 │   └── ISSUE_TEMPLATE/
 │       └── karimo-task.yml              # Task issue template
 │
@@ -246,10 +233,10 @@ task-branch-1b ─┘         ▲                  ▲
 
 ### Review Phase (Phase 2)
 
-GitHub Actions automate review when Greptile is configured:
-
-1. **karimo-greptile-review.yml**: Triggers Greptile on PR open
-2. **karimo-dependency-watch.yml**: Monitors runtime dependency changes
+When Greptile is enabled via `/karimo-configure --greptile`:
+- `karimo-greptile-review.yml` triggers Greptile review on PR open
+- Greptile scores PRs (0-5 scale)
+- Score < 3 triggers agent revision loop
 
 ### Human Oversight (`/karimo-overview`)
 
@@ -440,17 +427,16 @@ Estimates assume shared dependency store. Without sharing, multiply by 3-5x.
 
 ## GitHub Integration
 
-### Workflows (Phase-Aligned)
+### Workflows
 
-KARIMO workflows align with adoption phases. The key principle: **KARIMO never runs your build commands** — workflows observe external CI instead of executing their own build/lint/test.
+KARIMO installs zero workflows by default. Your existing CI (GitHub Actions, CircleCI, Jenkins, etc.) handles builds — KARIMO focuses on orchestration.
 
-| Phase | Workflow | Install | Purpose |
-|-------|----------|---------|---------|
-| Phase 1 | `karimo-ci.yml` | Always | Validates KARIMO installation |
-| Phase 1 | `karimo-dependency-watch.yml` | Always | Runtime dependency alerts |
-| Phase 2 | `karimo-greptile-review.yml` | Opt-in | Greptile code review gates |
+**Optional Greptile integration:**
+```
+/karimo-configure --greptile
+```
 
-**Phase 1** workflows are always installed. **Phase 2** requires Greptile API key.
+This installs `karimo-greptile-review.yml` for automated code review. Requires `GREPTILE_API_KEY` secret.
 
 See [PHASES.md](PHASES.md) for adoption guidance.
 
