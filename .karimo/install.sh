@@ -192,7 +192,6 @@ mkdir -p "$TARGET_DIR/.claude/commands"
 mkdir -p "$TARGET_DIR/.claude/skills"
 mkdir -p "$TARGET_DIR/.karimo/templates"
 mkdir -p "$TARGET_DIR/.karimo/prds"
-mkdir -p "$TARGET_DIR/.github/workflows"
 mkdir -p "$TARGET_DIR/.github/ISSUE_TEMPLATE"
 
 # ==============================================================================
@@ -255,78 +254,6 @@ echo "  Copied $TEMPLATE_COUNT templates"
 echo "Setting version..."
 cp "$KARIMO_ROOT/.karimo/VERSION" "$TARGET_DIR/.karimo/VERSION"
 cp "$MANIFEST" "$TARGET_DIR/.karimo/MANIFEST.json"
-
-# ==============================================================================
-# WORKFLOW INSTALLATION (Phase-Based)
-# ==============================================================================
-
-echo ""
-echo -e "${BLUE}GitHub Workflow Installation${NC}"
-echo ""
-
-# Track installed workflows
-INSTALLED_SYNC="true"
-INSTALLED_DEPENDENCY="true"
-INSTALLED_GREPTILE="false"
-
-if [ "$CI_MODE" = true ]; then
-    # CI mode: install all workflows from manifest without prompts
-    echo "CI mode: installing all workflows from manifest"
-
-    # Copy required workflows
-    for workflow in $(manifest_nested_list "workflows.required"); do
-        if [ -f "$KARIMO_ROOT/.github/workflows/$workflow" ]; then
-            cp "$KARIMO_ROOT/.github/workflows/$workflow" "$TARGET_DIR/.github/workflows/"
-        fi
-    done
-
-    # Copy optional workflows (all in CI mode)
-    # Note: Some workflows live in .karimo/workflow-templates/ to avoid running on the source repo
-    for workflow in $(manifest_nested_list "workflows.optional"); do
-        if [ -f "$KARIMO_ROOT/.karimo/workflow-templates/$workflow" ]; then
-            cp "$KARIMO_ROOT/.karimo/workflow-templates/$workflow" "$TARGET_DIR/.github/workflows/"
-        elif [ -f "$KARIMO_ROOT/.github/workflows/$workflow" ]; then
-            cp "$KARIMO_ROOT/.github/workflows/$workflow" "$TARGET_DIR/.github/workflows/"
-        fi
-    done
-
-    INSTALLED_GREPTILE="true"
-    echo -e "  ${GREEN}All workflows installed${NC}"
-else
-    # Interactive mode: show upfront summary, then prompt for optional workflows
-    echo "KARIMO workflows align with adoption phases:"
-    echo ""
-    echo "┌─────────────────────────────────────────────────────────────────────┐"
-    echo "│ Phase 1: Execute PRD (Required)                                     │"
-    echo "│   • karimo-ci.yml             — Validates KARIMO installation       │"
-    echo "│   • karimo-dependency-watch.yml — Alerts on runtime dependencies    │"
-    echo "│   → Installed automatically                                         │"
-    echo "├─────────────────────────────────────────────────────────────────────┤"
-    echo "│ Phase 2: Automate Review (Optional)                                 │"
-    echo "│   • karimo-greptile-review.yml — Greptile code review gates         │"
-    echo "│   → Requires: GREPTILE_API_KEY secret in repository                 │"
-    echo "└─────────────────────────────────────────────────────────────────────┘"
-    echo ""
-    echo -e "\033[2mLearn more: https://github.com/opensesh/KARIMO#workflows\033[0m"
-    echo ""
-
-    # Phase 1 workflows (always installed)
-    cp "$KARIMO_ROOT/.github/workflows/karimo-ci.yml" "$TARGET_DIR/.github/workflows/"
-    cp "$KARIMO_ROOT/.github/workflows/karimo-dependency-watch.yml" "$TARGET_DIR/.github/workflows/"
-    echo -e "  ${GREEN}✓${NC} Phase 1 workflows installed"
-
-    # Phase 2 prompt
-    read -p "Install Phase 2 workflows (Greptile Review)? [y/N] " -n 1 -r GREPTILE_RESPONSE
-    echo ""
-    if [[ $GREPTILE_RESPONSE =~ ^[Yy]$ ]]; then
-        cp "$KARIMO_ROOT/.karimo/workflow-templates/karimo-greptile-review.yml" "$TARGET_DIR/.github/workflows/"
-        INSTALLED_GREPTILE="true"
-        echo -e "  ${GREEN}✓${NC} Phase 2 workflow installed"
-    else
-        echo -e "  ${YELLOW}○${NC} Phase 2 workflow skipped"
-    fi
-    echo ""
-fi
 
 # Copy issue template
 echo "Copying issue template..."
@@ -576,12 +503,6 @@ else
     echo ".worktrees/" >> "$GITIGNORE"
 fi
 
-# Count installed workflows
-WORKFLOW_COUNT=2
-if [ "$INSTALLED_GREPTILE" = "true" ]; then
-    WORKFLOW_COUNT=$((WORKFLOW_COUNT + 1))
-fi
-
 # Get counts from manifest for summary
 MANIFEST_AGENTS=$(manifest_count "agents")
 MANIFEST_COMMANDS=$(manifest_count "commands")
@@ -617,15 +538,6 @@ else
     echo "    Run /karimo-configure to create config"
 fi
 echo
-echo "Workflows installed: ${WORKFLOW_COUNT}"
-echo "  Phase 1 (Required):"
-echo "    • karimo-ci.yml"
-echo "    • karimo-dependency-watch.yml"
-if [ "$INSTALLED_GREPTILE" = "true" ]; then
-    echo "  Phase 2 (Greptile Review):"
-    echo "    • karimo-greptile-review.yml"
-fi
-echo
 echo "Next steps:"
 echo "  1. Run '/karimo-doctor' to verify installation health"
 if [ "$CONFIG_AUTODETECTED" = true ]; then
@@ -637,10 +549,6 @@ else
 fi
 echo "  4. Run '/karimo-feedback' for quick single-rule capture"
 echo "  5. Run '/karimo-learn' for periodic deep learning cycles"
-if [ "$INSTALLED_GREPTILE" = "true" ]; then
-    echo ""
-    echo -e "${YELLOW}Note: Add GREPTILE_API_KEY to your repository secrets for Greptile review.${NC}"
-fi
 echo
 echo "For more information, see: https://github.com/opensesh/KARIMO"
 echo
