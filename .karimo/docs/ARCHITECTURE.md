@@ -131,10 +131,8 @@ Target Project/
 │
 ├── .github/
 │   ├── workflows/
-│   │   ├── karimo-ci.yml                # CI validation (validates manifest)
-│   │   ├── karimo-sync.yml              # Phase 1: Status sync on merge
+│   │   ├── karimo-ci.yml                # Phase 1: Validates KARIMO installation
 │   │   ├── karimo-dependency-watch.yml  # Phase 1: Runtime dependency alerts
-│   │   ├── karimo-ci-integration.yml    # Phase 1+: Observes external CI (opt-in)
 │   │   └── karimo-greptile-review.yml   # Phase 2: Greptile review (opt-in)
 │   └── ISSUE_TEMPLATE/
 │       └── karimo-task.yml              # Task issue template
@@ -251,8 +249,7 @@ task-branch-1b ─┘         ▲                  ▲
 GitHub Actions automate review when Greptile is configured:
 
 1. **karimo-greptile-review.yml**: Triggers Greptile on PR open
-2. **karimo-ci-integration.yml**: Runs validation on review pass
-3. **karimo-sync.yml**: Updates status on merge
+2. **karimo-dependency-watch.yml**: Monitors runtime dependency changes
 
 ### Human Oversight (`/karimo-overview`)
 
@@ -449,12 +446,11 @@ KARIMO workflows align with adoption phases. The key principle: **KARIMO never r
 
 | Phase | Workflow | Install | Purpose |
 |-------|----------|---------|---------|
-| Phase 1 | `karimo-sync.yml` | Always | Project status sync on merge |
+| Phase 1 | `karimo-ci.yml` | Always | Validates KARIMO installation |
 | Phase 1 | `karimo-dependency-watch.yml` | Always | Runtime dependency alerts |
-| Phase 1+ | `karimo-ci-integration.yml` | Opt-in (Y) | CI observation and labeling |
-| Phase 2 | `karimo-greptile-review.yml` | Opt-in (N) | Greptile code review gates |
+| Phase 2 | `karimo-greptile-review.yml` | Opt-in | Greptile code review gates |
 
-**Phase 1** workflows are required for execution tracking. **Phase 1+** adds CI awareness without running builds. **Phase 2** requires Greptile API key.
+**Phase 1** workflows are always installed. **Phase 2** requires Greptile API key.
 
 See [PHASES.md](PHASES.md) for adoption guidance.
 

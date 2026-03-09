@@ -172,7 +172,6 @@ If your project already has `.claude/` with custom agents, commands, or `CLAUDE.
 
 **Optional workflows (installed via `/karimo-configure`):**
 - `karimo-greptile-review.yml` — when Greptile is enabled
-- `karimo-ci-integration.yml` — when CI Observer is enabled
 
 **Naming convention:** All KARIMO-managed files use the `karimo-*` prefix for agents, commands, and skills. This enables reliable cleanup during updates and clear distinction from user-added files.
 
