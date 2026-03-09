@@ -558,24 +558,22 @@ permissions:
 
 ## GitHub Actions Workflows
 
-KARIMO uses a three-tier workflow architecture. **Key principle:** KARIMO never runs your build commands — workflows observe external CI instead of executing their own build/lint/test.
+KARIMO uses a two-tier workflow architecture. Your existing CI (GitHub Actions, CircleCI, Jenkins, etc.) catches issues at merge time — KARIMO focuses on orchestration.
 
-### Three-Tier System
+### Two-Tier System
 
 | Tier | Workflow | Install | Purpose |
 |------|----------|---------|---------|
-| 1 | `karimo-sync.yml` | Always | Status sync on PR merge |
+| 1 | `karimo-ci.yml` | Always | Validates KARIMO installation |
 | 1 | `karimo-dependency-watch.yml` | Always | Runtime dependency alerts |
-| 2 | `karimo-ci-integration.yml` | Opt-in (default Y) | Observes external CI, labels PRs |
-| 3 | `karimo-greptile-review.yml` | Opt-in (default N) | Greptile code review |
+| 2 | `karimo-greptile-review.yml` | Opt-in | Greptile code review |
 
-### karimo-sync.yml (Tier 1)
+### karimo-ci.yml (Tier 1)
 
-Triggered when KARIMO PR is merged:
+Validates KARIMO installation on push/PR:
 
-- Updates `status.json` with completion
-- Creates final merge PR when all tasks done
-- Updates GitHub Project board
+- Checks KARIMO files are present
+- Validates configuration
 
 ### karimo-dependency-watch.yml (Tier 1)
 
@@ -585,21 +583,7 @@ Triggered when `dependencies.md` files are updated:
 - Creates issues for pending dependencies
 - Alerts on urgent dependencies
 
-### karimo-ci-integration.yml (Tier 2)
-
-Triggered on PR open/synchronize with `karimo` label:
-
-- **Observes** your existing CI workflows (does NOT run commands)
-- Uses hybrid detection: Check Runs API + Combined Status API
-- Self-excludes KARIMO workflows from detection
-- Labels: `ci-passed`, `ci-failed`, `ci-skipped`
-
-**Why observation instead of execution?**
-- Portable: Works with any CI system (GitHub Actions, CircleCI, Jenkins, etc.)
-- No configuration: Automatically detects your CI
-- No duplication: Uses your existing build/lint/test workflows
-
-### karimo-greptile-review.yml (Tier 3)
+### karimo-greptile-review.yml (Tier 2)
 
 Triggered on PR open/synchronize with `karimo` label:
 
@@ -612,9 +596,9 @@ Triggered on PR open/synchronize with `karimo` label:
 
 | Label | Applied By | Meaning |
 |-------|-----------|---------|
-| `ci-passed` | CI Integration | All external CI checks passed |
-| `ci-failed` | CI Integration | One or more CI checks failed |
-| `ci-skipped` | CI Integration | No external CI detected |
+| `karimo` | PM Agent | Identifies KARIMO-managed PRs |
+| `wave-{n}` | PM Agent | Wave number for execution ordering |
+| `complexity-{n}` | PM Agent | Task complexity score |
 | `greptile-passed` | Greptile Review | Score >= 3 |
 | `greptile-needs-revision` | Greptile Review | Score < 3 |
 | `greptile-skipped` | Greptile Review | No API key configured |
