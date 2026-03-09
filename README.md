@@ -8,14 +8,25 @@
 ```
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
-[![Status](https://img.shields.io/badge/Status-v3-green.svg)]()
+[![Status](https://img.shields.io/badge/Status-v4-green.svg)]()
 [![Claude Code](https://img.shields.io/badge/Claude%20Code-Framework-blueviolet.svg)]()
 
 ---
 
 ## What is KARIMO?
 
-This is a PRD-driven framework that starts with a detailed plan for a feature. Agents help plan, execute, and ship. You review and merge. That's the loop.
+KARIMO is a **framework and Claude Code plugin** for PRD-driven autonomous development — one of the most comprehensive Claude Code plugins available.
+
+Think of it as **plan mode on steroids**:
+
+| Feature | What It Means |
+|---------|---------------|
+| **Structured interviews** | Multi-round questions following a user-controlled template |
+| **Two-tier planning** | PRDs decomposed into self-contained task briefs |
+| **Wave-based execution** | Dependency graph determines parallel vs sequential tasks |
+| **Agent teams** | 13 specialized agents using Claude Code's sub-agent architecture |
+| **Native worktree isolation** | Parallel execution via `isolation: worktree` |
+| **Optional code review** | Greptile integration for automated quality gates |
 
 > **Philosophy:** You are the architect, agents are the builders, Greptile is the inspector.
 
@@ -39,8 +50,8 @@ This is a PRD-driven framework that starts with a detailed plan for a feature. A
 | **2-Tasks** | PRD decomposed into isolated task briefs | Self-contained briefs, dependency graph, parallel-ready |
 | **3-Execute** | Agents work in parallel isolation | Git worktrees, feature branches, findings propagation |
 | **4-Review** | Greptile provides objective code review | 0-5 scoring, revision loops, model escalation (optional) |
-| **5-Merge** | Clear audit trail at both levels | Task PRs → feature branch, feature PR → main (human gate) |
-| **6-Monitor** | Real-time visibility into progress | `/karimo-status`, `/karimo-overview`, GitHub Projects |
+| **5-Merge** | Clear audit trail at both levels | Task PRs target main directly, wave-ordered merges |
+| **6-Monitor** | Real-time visibility into progress | `/karimo-status`, `/karimo-overview`, PR labels |
 
 ---
 
@@ -48,27 +59,35 @@ This is a PRD-driven framework that starts with a detailed plan for a feature. A
 
 | Feature | What It Means |
 |---------|---------------|
-| **GitHub Projects** | Tasks as sub-issues, auto-board movement, wave-based execution |
-| **Markdown PRDs** | Agent-optimized format with structured interviews |
-| **Full auditability** | Every change traceable: task → issue → branch → PR → merge |
-| **Compound learning** | `/karimo-feedback` and `/karimo-learn` capture patterns |
-| **Worktree isolation** | Parallel task execution without conflicts |
-| **Two-tier merge** | Task PRs merge to feature branch (auto), feature to main (human gate) |
+| **Markdown automation** | PRDs and task briefs as agent-optimized markdown with structured interviews |
+| **PR-centric workflow** | Full auditability via PRs targeting main — wave-ordered merges with PR labels |
+| **Agent teams** | 13 specialized agents (7 coordination + 6 task) using Claude Code sub-agents |
+| **Native worktree isolation** | Claude Code's `isolation: worktree` for automatic parallel task execution |
+| **Compound learning** | `/karimo-feedback` and `/karimo-learn` capture patterns for future agents |
+| **Model routing** | Sonnet for complexity 1-4, Opus for 5+, with automatic escalation on failures |
 
 ---
 
-## Execution Modes
+## v4.0 Execution Model
 
-| Mode | Traceability | Requirements | Best For |
-|------|--------------|--------------|----------|
-| **Full** (default) | Issue → Branch → PR → Merge | GitHub CLI + `project` scope | Production, teams, audit trails |
-| **Fast Track** | Commits only | Git repository | Prototyping, solo developers |
+KARIMO v4.0 uses a simplified PR-centric workflow:
 
-**Full Mode:** GitHub Projects integration, PR-based review, Greptile support.
+```
+Wave 1: [task-1a, task-1b] ─── parallel execution, PRs to main
+              ↓ (wait for merge)
+Wave 2: [task-2a, task-2b] ─── parallel execution, PRs to main
+              ↓ (wait for merge)
+Wave 3: [task-3a] ─────────── final task, PR to main
+```
 
-**Fast Track:** Skips GitHub for speed. Commits use format: `[{prd-slug}][{task-id}] {title}`.
-
-See [SAFEGUARDS.md](.karimo/docs/SAFEGUARDS.md#execution-modes) for detailed comparison.
+| Feature | How It Works |
+|---------|--------------|
+| **PRs target main** | No feature branches — task PRs merge directly to main |
+| **Wave-based execution** | Wave 2 waits for all wave 1 PRs to merge |
+| **Worktree isolation** | Claude Code's native `isolation: worktree` handles automatically |
+| **PR label tracking** | Labels: `karimo`, `karimo-{slug}`, `wave-{n}`, `complexity-{n}` |
+| **Branch naming** | `{prd-slug}-{task-id}` (e.g., `user-profiles-1a`) |
+| **Crash recovery** | Git state reconstruction via `/karimo-status --reconcile` |
 
 ---
 
@@ -110,17 +129,6 @@ bash KARIMO/.karimo/install.sh /path/to/project
 ```bash
 bash KARIMO/.karimo/update.sh --local KARIMO /path/to/project
 ```
-
-### When to Use What
-
-| Scenario | Command |
-|----------|---------|
-| First time setup | Remote one-liner or `install.sh` |
-| Routine updates | `update.sh` (shows diff preview) |
-| Full reinstall | `install.sh` (overwrites all KARIMO files) |
-| Inspect before installing | Clone first, then `install.sh` |
-| Offline/air-gapped | Clone, then `--local` mode |
-| CI/CD pipelines | Add `--ci` flag for non-interactive |
 
 ### What Gets Updated vs Preserved
 
@@ -181,6 +189,7 @@ The interview takes ~10 minutes. See [Getting Started](.karimo/docs/GETTING-STAR
 | `/karimo-feedback` | Capture a single learning (~2 min) |
 | `/karimo-learn` | Deep learning cycle (~45 min) |
 | `/karimo-configure` | Create or update project configuration |
+| `/karimo-cd-config` | Configure CD provider to skip task branch previews |
 | `/karimo-update` | Update KARIMO to latest version |
 | `/karimo-test` | Verify installation works end-to-end |
 
@@ -194,7 +203,7 @@ Full reference: [COMMANDS.md](.karimo/docs/COMMANDS.md)
 |-------|--------------|
 | **Phase 1: Execute PRD** | PRD interviews, agent execution, worktrees, PRs — fully functional out of the box |
 | **Phase 2: Automate Review** | Add Greptile for code quality gates, revision loops, model escalation (requires API key) |
-| **Phase 3: Monitor & Review** | Dashboard for team-wide visibility (coming soon) |
+| **Phase 3: Monitor & Review** | Dashboard for team-wide visibility (work in progress) |
 
 Everyone starts at Phase 1. Add phases as you build trust with the system.
 
@@ -208,13 +217,11 @@ KARIMO installs GitHub workflows that align with adoption phases:
 
 | Phase | Workflow | Purpose |
 |-------|----------|---------|
-| **Phase 1** | `karimo-sync.yml` | Updates project status when PRs merge |
+| **Phase 1** | `karimo-ci.yml` | Core CI workflow — labels PRs, tracks wave status |
 | **Phase 1** | `karimo-dependency-watch.yml` | Alerts on runtime dependency changes |
-| **Phase 1+** | `karimo-ci-integration.yml` | Observes your existing CI, labels PRs |
 | **Phase 2** | `karimo-greptile-review.yml` | Automated Greptile code review gates |
 
-- **Phase 1 workflows** are always installed — they're required for execution tracking
-- **Phase 1+ (CI Awareness)** is recommended — observes external CI without running builds
+- **Phase 1 workflows** are always installed — they're required for PR label tracking
 - **Phase 2 workflows** require `GREPTILE_API_KEY` secret in your repository
 
 See [PHASES.md](.karimo/docs/PHASES.md) for detailed adoption guidance.
