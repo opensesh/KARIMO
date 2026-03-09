@@ -17,16 +17,18 @@
 
 KARIMO is a **framework and Claude Code plugin** for PRD-driven autonomous development — one of the most comprehensive Claude Code plugins available.
 
-Think of it as **plan mode on steroids**:
+Think of it as **plan mode on steroids**, leveraging Claude Code's latest features including [native worktree isolation](https://docs.anthropic.com/en/docs/claude-code/common-workflows), [sub-agent architecture](https://docs.anthropic.com/en/docs/claude-code/sub-agents), and model routing.
 
 | Feature | What It Means |
 |---------|---------------|
-| **Structured interviews** | Multi-round questions following a user-controlled template |
+| **Native worktree isolation** | Parallel execution via Claude Code's [`isolation: worktree`](https://docs.anthropic.com/en/docs/claude-code/common-workflows) |
+| **Sub-agent architecture** | 13 specialized agents (7 coordination + 6 task) using [Claude Code sub-agents](https://docs.anthropic.com/en/docs/claude-code/sub-agents) |
+| **Model routing** | Sonnet for complexity 1-4, Opus for 5+, with automatic escalation on failures |
+| **Structured interviews** | Multi-round PRD questions following user-controlled templates |
 | **Two-tier planning** | PRDs decomposed into self-contained task briefs |
 | **Wave-based execution** | Dependency graph determines parallel vs sequential tasks |
-| **Agent teams** | 13 specialized agents using Claude Code's sub-agent architecture |
-| **Native worktree isolation** | Parallel execution via `isolation: worktree` |
-| **Optional code review** | Greptile integration for automated quality gates |
+| **Compound learning** | `/karimo-feedback` and `/karimo-learn` capture patterns for future agents |
+| **PR-centric workflow** | Full auditability via PRs targeting main with wave-ordered merges |
 
 > **Philosophy:** You are the architect, agents are the builders, Greptile is the inspector.
 
@@ -52,19 +54,6 @@ Think of it as **plan mode on steroids**:
 | **Review** | Greptile provides objective code review | 0-5 scoring, revision loops, model escalation (optional) |
 | **Merge** | Clear audit trail at both levels | Task PRs target main directly, wave-ordered merges |
 | **Monitor** | Real-time visibility into progress | `/karimo-status`, `/karimo-overview`, PR labels |
-
----
-
-## Key Differentiators
-
-| Feature | What It Means |
-|---------|---------------|
-| **Markdown automation** | PRDs and task briefs as agent-optimized markdown with structured interviews |
-| **PR-centric workflow** | Full auditability via PRs targeting main — wave-ordered merges with PR labels |
-| **Agent teams** | 13 specialized agents (7 coordination + 6 task) using Claude Code sub-agents |
-| **Native worktree isolation** | Claude Code's `isolation: worktree` for automatic parallel task execution |
-| **Compound learning** | `/karimo-feedback` and `/karimo-learn` capture patterns for future agents |
-| **Model routing** | Sonnet for complexity 1-4, Opus for 5+, with automatic escalation on failures |
 
 ---
 
