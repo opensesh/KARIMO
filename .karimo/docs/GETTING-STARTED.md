@@ -52,30 +52,11 @@ bash KARIMO/.karimo/install.sh /path/to/your/project
 Configuration is written to `.karimo/config.yaml`.
 
 **Options:**
-- `--ci` — CI mode: non-interactive, installs all workflows, skips prompts
+- `--ci` — CI mode: non-interactive, skips prompts
 
 The installer uses `.karimo/MANIFEST.json` as the single source of truth for file inventory.
 
-The installer will prompt you for optional workflows:
-
-```
-GitHub Workflow Installation
-KARIMO workflows align with adoption phases:
-
-Phase 1 (Required):
-  - karimo-ci.yml: Validates KARIMO installation
-  - karimo-dependency-watch.yml: Alerts on runtime dependencies
-  Installed automatically
-
-Phase 2 (Optional):
-  - karimo-greptile-review.yml: Automated code review via Greptile
-  - Requires GREPTILE_API_KEY secret in your repository
-
-Install Greptile review workflow? (y/N) n
-  Skipped
-```
-
-**Recommendation:** Install Greptile if you have an API key. It acts as a force multiplier for code quality.
+**Note:** KARIMO installs zero workflows by default. If you want Greptile integration, run `/karimo-configure --greptile` after installation.
 
 This installs:
 - Agent definitions to `.claude/agents/`
@@ -84,7 +65,6 @@ This installs:
 - Agent rules to `.claude/KARIMO_RULES.md`
 - Templates to `.karimo/templates/`
 - Learnings template to `.karimo/learnings.md`
-- GitHub Actions based on your tier selections
 - Marker-delimited KARIMO section appended to `CLAUDE.md` (~20 lines)
 
 ### 3. Verify Installation
@@ -167,11 +147,10 @@ If your project already has `.claude/` with custom agents, commands, or `CLAUDE.
 - 6 KARIMO skills (prefixed `karimo-*`)
 - `.claude/KARIMO_RULES.md`
 - `.karimo/` directory with templates, manifest, and learnings
-- `karimo-ci.yml` workflow (validates KARIMO installation)
 - Marker-delimited KARIMO section appended to `CLAUDE.md` (~20 lines)
 
-**Optional workflows (installed via `/karimo-configure`):**
-- `karimo-greptile-review.yml` — when Greptile is enabled
+**Optional (installed via `/karimo-configure --greptile`):**
+- `karimo-greptile-review.yml` — automated code review via Greptile
 
 **Naming convention:** All KARIMO-managed files use the `karimo-*` prefix for agents, commands, and skills. This enables reliable cleanup during updates and clear distinction from user-added files.
 
@@ -435,16 +414,15 @@ v4.0 uses git state reconstruction. Run:
 
 This will reconcile status.json with git reality and resume from the correct point.
 
-### "Workflow conflicts"
+### "Want to add Greptile?"
 
-Check GitHub Actions tab for errors. KARIMO workflows use unique names (`karimo-*`). If you skipped Greptile during installation, you can add it later:
+KARIMO installs zero workflows by default. To add Greptile for automated code review:
 
-```bash
-# Copy Greptile workflow from KARIMO source
-cp KARIMO/.karimo/workflow-templates/karimo-greptile-review.yml .github/workflows/
+```
+/karimo-configure --greptile
 ```
 
-Then add `GREPTILE_API_KEY` to your repository secrets.
+Then add `GREPTILE_API_KEY` to your repository secrets (Settings → Secrets → Actions).
 
 ---
 
