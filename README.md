@@ -130,7 +130,6 @@ bash KARIMO/.karimo/update.sh --local KARIMO /path/to/project
 | Commands (`.claude/commands/`) | ✓ | |
 | Skills (`.claude/skills/`) | ✓ | |
 | Templates (`.karimo/templates/`) | ✓ | |
-| Workflows (`.github/workflows/`) | ✓ | |
 | `KARIMO_RULES.md` | ✓ | |
 | `VERSION`, `MANIFEST.json` | ✓ | |
 | `CLAUDE.md` (KARIMO section) | ✓ | |
@@ -203,23 +202,6 @@ Full details: [PHASES.md](.karimo/docs/PHASES.md)
 
 ---
 
-## Workflows
-
-KARIMO installs GitHub workflows that align with adoption phases:
-
-| Phase | Workflow | Purpose |
-|-------|----------|---------|
-| **Phase 1** | `karimo-ci.yml` | Core CI workflow — labels PRs, tracks wave status |
-| **Phase 1** | `karimo-dependency-watch.yml` | Alerts on runtime dependency changes |
-| **Phase 2** | `karimo-greptile-review.yml` | Automated Greptile code review gates |
-
-- **Phase 1 workflows** are always installed — they're required for PR label tracking
-- **Phase 2 workflows** require `GREPTILE_API_KEY` secret in your repository
-
-See [PHASES.md](.karimo/docs/PHASES.md) for detailed adoption guidance.
-
----
-
 ## Agents
 
 KARIMO includes 13 specialized agents in two categories:
@@ -279,18 +261,16 @@ Point Claude to this directory and ask. Run `claude` in the KARIMO repo (or your
 
 ### Can I run KARIMO without Greptile?
 
-Yes. Phase 1 is fully functional without Greptile — PRD interviews, agent execution, worktrees, and PRs all work out of the box. Greptile adds automated code review with revision loops (Phase 2), but it's optional. Without Greptile, task PRs are created and you review them manually.
-
-The workflow automatically applies the `greptile-skipped` label when no API key is configured, so everything continues to work.
+Yes. KARIMO installs zero workflows by default. PRD interviews, agent execution, worktrees, and PRs all work out of the box. Greptile adds automated code review with revision loops (Phase 2), but it's optional. Without Greptile, task PRs are created and you review them manually.
 
 ### How do I set up Greptile?
 
 1. Get an API key from [greptile.com](https://greptile.com)
-2. Add `GREPTILE_API_KEY` to your GitHub repository secrets
-3. Ensure the `karimo` label exists on your repository
+2. Run `/karimo-configure --greptile` to install the Greptile workflow
+3. Add `GREPTILE_API_KEY` to your GitHub repository secrets
 4. PRs with the `karimo` label will trigger automated review
 
-That's it. The `karimo-greptile-review.yml` workflow handles the rest — scoring PRs on a 0-5 scale, posting review comments, and triggering revision loops when scores fall below 3.
+The workflow handles the rest — scoring PRs on a 0-5 scale, posting review comments, and triggering revision loops when scores fall below 3.
 
 ### Having issues?
 
