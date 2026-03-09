@@ -62,15 +62,6 @@ This is where everyone starts. Phase 1 provides everything needed to go from ide
   - Rules appended to `.karimo/learnings.md`
   - Future agents learn from feedback
 
-### Workflows Installed
-
-| Workflow | Purpose | Trigger |
-|----------|---------|---------|
-| `karimo-ci.yml` | Validates KARIMO installation | Push/PR |
-| `karimo-dependency-watch.yml` | Alerts on runtime dependency changes | PR merged |
-
-Your existing CI pipelines (GitHub Actions, CircleCI, Jenkins, etc.) run builds and catch issues at merge time. KARIMO focuses on orchestration, not CI observation.
-
 ### Prerequisites
 
 - Claude Code installed
@@ -126,22 +117,16 @@ Greptile acts as a force multiplier — catching issues before human review and 
 ### Prerequisites
 
 - Phase 1 complete
-- Greptile API key (`GREPTILE_API_KEY` in GitHub secrets)
+- Greptile API key
 
 ### Setup
 
 1. Get a Greptile API key from [greptile.com](https://greptile.com)
-2. Add `GREPTILE_API_KEY` to your GitHub repository secrets
-3. Ensure `karimo` label exists on your repository
+2. Run `/karimo-configure --greptile` to install the Greptile workflow
+3. Add `GREPTILE_API_KEY` to your GitHub repository secrets
 4. PRs with `karimo` label trigger automated review
 
-### Workflows Installed
-
-| Workflow | Purpose | Trigger |
-|----------|---------|---------|
-| `karimo-greptile-review.yml` | Automated code review via Greptile | PR opened with `karimo` label |
-
-This workflow:
+The workflow:
 - Sends PR diff to Greptile for review
 - Posts review comments with 0-5 quality score
 - Labels PRs `greptile-passed` (score >= 3) or `greptile-needs-revision` (score < 3)
@@ -215,10 +200,11 @@ See [DASHBOARD.md](DASHBOARD.md) for the planned specification.
 
 ### Phase 1 → Phase 2
 
-1. Get Greptile API key
-2. Add to GitHub secrets as `GREPTILE_API_KEY`
-3. Ensure `karimo` label exists
-4. Workflows automatically use Greptile on next PR
+1. Get Greptile API key from [greptile.com](https://greptile.com)
+2. Run `/karimo-configure --greptile` to install the workflow
+3. Add `GREPTILE_API_KEY` to your GitHub repository secrets
+4. Ensure `karimo` label exists in your repository
+5. PRs with `karimo` label will trigger automated review
 
 ### Phase 2 → Phase 3
 
