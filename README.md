@@ -15,22 +15,10 @@
 
 ## What is KARIMO?
 
-KARIMO is a **framework and Claude Code plugin** for PRD-driven autonomous development — one of the most comprehensive Claude Code plugins available.
+KARIMO is a **framework and Claude Code plugin** for PRD-driven autonomous development — one of the most comprehensive Claude Code plugins available. Think of it as **plan mode on steroids**, leveraging Claude Code's latest features including [native worktree isolation](https://docs.anthropic.com/en/docs/claude-code/common-workflows), [sub-agent architecture](https://docs.anthropic.com/en/docs/claude-code/sub-agents), and model routing.
 
-Think of it as **plan mode on steroids**, leveraging Claude Code's latest features including [native worktree isolation](https://docs.anthropic.com/en/docs/claude-code/common-workflows), [sub-agent architecture](https://docs.anthropic.com/en/docs/claude-code/sub-agents), and model routing.
 
-| Feature | What It Means |
-|---------|---------------|
-| **Native worktree isolation** | Parallel execution via Claude Code's [`isolation: worktree`](https://docs.anthropic.com/en/docs/claude-code/common-workflows) |
-| **Sub-agent architecture** | 13 specialized agents (7 coordination + 6 task) using [Claude Code sub-agents](https://docs.anthropic.com/en/docs/claude-code/sub-agents) |
-| **Model routing** | Sonnet for complexity 1-4, Opus for 5+, with automatic escalation on failures |
-| **Structured interviews** | Multi-round PRD questions following user-controlled templates |
-| **Two-tier planning** | PRDs decomposed into self-contained task briefs |
-| **Wave-based execution** | Dependency graph determines parallel vs sequential tasks |
-| **Compound learning** | `/karimo-feedback` and `/karimo-learn` capture patterns for future agents |
-| **PR-centric workflow** | Full auditability via PRs targeting main with wave-ordered merges |
-
-> **Philosophy:** You are the architect, agents are the builders, Greptile is the inspector.
+> **Philosophy:** You are the architect, agents are the builders, Greptile is the *optional* inspector.
 
 ---
 
@@ -54,6 +42,21 @@ Think of it as **plan mode on steroids**, leveraging Claude Code's latest featur
 | **Review** | Greptile provides objective code review | 0-5 scoring, revision loops, model escalation (optional) |
 | **Merge** | Clear audit trail at both levels | Task PRs target main directly, wave-ordered merges |
 | **Monitor** | Real-time visibility into progress | `/karimo-status`, `/karimo-overview`, PR labels |
+
+---
+
+## Key Differentiators
+
+| Feature | What It Means |
+|---------|---------------|
+| **Native worktree isolation** | Parallel execution via Claude Code's [`isolation: worktree`](https://docs.anthropic.com/en/docs/claude-code/common-workflows) |
+| **Sub-agent architecture** | 13 specialized agents (7 coordination + 6 task) using [Claude Code sub-agents](https://docs.anthropic.com/en/docs/claude-code/sub-agents) |
+| **Model routing** | Sonnet for complexity 1-4, Opus for 5+, with automatic escalation on failures |
+| **Structured interviews** | Multi-round PRD questions following user-controlled templates |
+| **Two-tier planning** | PRDs decomposed into self-contained task briefs |
+| **Wave-based execution** | Dependency graph determines parallel vs sequential tasks |
+| **Compound learning** | `/karimo-feedback` and `/karimo-learn` capture patterns for future agents |
+| **PR-centric workflow** | Full auditability via PRs targeting main with wave-ordered merges |
 
 ---
 
