@@ -324,7 +324,7 @@ When creating a new PRD directory, generate the sequential number prefix:
 
 ## PRD Date Population
 
-When writing `PRD.md`, populate the `created_date` field in the YAML frontmatter:
+When writing `PRD_{slug}.md`, populate the `created_date` field in the YAML frontmatter:
 
 ### Implementation
 
@@ -348,12 +348,17 @@ On approval, save to `.karimo/prds/{NNN}_{slug}/`:
 
 ```
 .karimo/prds/001_feature-slug/
-├── PRD.md              # Complete narrative document
+├── PRD_feature-slug.md # Complete narrative document (slug in filename for searchability)
 ├── tasks.yaml          # Extracted task block only
 ├── execution_plan.yaml # Wave-based execution plan
 ├── assets/             # Images from interview
 └── status.json         # Empty execution state
 ```
+
+**PRD File Naming:** Use `PRD_{slug}.md` (e.g., `PRD_user-profiles.md`) instead of generic `PRD.md`. This enables:
+- Quick file search across multiple PRDs
+- Distinguishable editor tabs when multiple PRDs are open
+- Clear identification in git history
 
 **status.json initial state:**
 ```json
@@ -369,7 +374,7 @@ On approval, save to `.karimo/prds/{NNN}_{slug}/`:
 
 After saving, confirm to the interviewer:
 
-> "PRD saved to `.karimo/prds/{NNN}_{slug}/`
+> "PRD saved to `.karimo/prds/{NNN}_{slug}/PRD_{slug}.md`
 >
 > **Summary:**
 > - Tasks: {count} ({must_count} must, {should_count} should, {could_count} could)
