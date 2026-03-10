@@ -21,8 +21,8 @@ Phases are **optional progression**, not requirements. Phase 1 is fully function
 | Phase | Name | Description | Required? |
 |-------|------|-------------|-----------|
 | **1** | Execute PRD | Full PRD-to-PR workflow | Yes (starting point) |
-| **2** | Automate Review | Greptile integration, revision loops | Optional |
-| **3** | Monitor & Review | Dashboard for oversight | Future |
+| **2** | Automate Review | Choose Greptile or Code Review | Optional |
+| **3** | Monitor & Review | GitHub-native oversight | Optional |
 
 ---
 
@@ -91,89 +91,187 @@ claude
 
 **Add automated code review to your workflow.**
 
-Phase 2 adds Greptile integration for automated code review. This enables:
+Phase 2 adds automated code review through your choice of provider. Both options enable revision loops and model escalation.
 
-### What You Get
+### Provider Comparison
 
-- **Greptile Code Review**
-  - Automated review on PR open
-  - Score-based assessment
-  - Detailed feedback comments
+| Feature | Greptile | Claude Code Review |
+|---------|----------|-------------------|
+| **Pricing** | $30/month flat (14-day trial) | $15-25 per PR |
+| **Setup** | API key + GitHub workflow | Claude admin settings |
+| **Review Style** | Score-based (0-5) | Finding-based (severity tags) |
+| **Integration** | GitHub Actions workflow | Native Claude Code (automatic) |
+| **Auto-resolve** | Manual | Threads auto-resolve on fix |
+| **Best for** | High PR volume (50+/month) | Low-medium PR volume |
 
-- **Agentic Revision Loops**
-  - Score < 3 triggers revision (0-5 scale)
-  - Agent reads feedback, fixes issues
-  - Model escalation (Sonnet → Opus) after first failure
-  - Hard gate after 3 failed attempts (needs-human-review)
+**Recommendation:**
+- **High volume (50+ PRs/month):** Greptile ($30 flat)
+- **Low-medium volume:** Claude Code Review ($15-25 per PR)
+- **Teams/Enterprise users:** Code Review (native integration)
 
-- **Review Workflow**
-  - `karimo-greptile-review.yml` triggers Greptile review
-  - Labels track review state (`greptile-passed`, `greptile-needs-revision`)
+### Choose Your Provider
 
-### Why Greptile is Highly Recommended
+Run `/karimo-configure --review` to choose interactively, or use:
+- `/karimo-configure --greptile` for Greptile
+- `/karimo-configure --code-review` for Claude Code Review
 
-Greptile acts as a force multiplier — catching issues before human review and enabling automated revision loops. While optional, most teams find it significantly improves code quality outcomes.
+---
 
-### Prerequisites
+### Option A: Greptile
 
-- Phase 1 complete
-- Greptile API key
+**Score-based review with GitHub Actions workflow.**
 
-### Setup
+**Prerequisites:**
+- Greptile account ($30/month, 14-day trial)
+- `GREPTILE_API_KEY` in GitHub repository secrets
 
-1. Get a Greptile API key from [greptile.com](https://greptile.com)
-2. Run `/karimo-configure --greptile` to install the Greptile workflow
-3. Add `GREPTILE_API_KEY` to your GitHub repository secrets
+**Setup:**
+1. Get API key from [greptile.com](https://greptile.com)
+2. Run `/karimo-configure --greptile`
+3. Add `GREPTILE_API_KEY` to repository secrets
 4. PRs with `karimo` label trigger automated review
 
-The workflow:
+**How it works:**
 - Sends PR diff to Greptile for review
 - Posts review comments with 0-5 quality score
 - Labels PRs `greptile-passed` (score >= 3) or `greptile-needs-revision` (score < 3)
-- Triggers revision loops when score is below threshold
+- Score < 3 triggers revision loop
 
-### How Revision Loops Work
-
-Greptile uses a **0-5 scale**. Score ≥ 3 passes, < 3 enters revision loop.
-
+**Revision flow (Greptile):**
 ```
-Task Complete → PR Created → Greptile Review
-                                   │
-                    ┌──────────────┴──────────────┐
-                    │                             │
-                Score ≥ 3                    Score < 3
-                    │                             │
-                    ▼                             ▼
-             Integration             Attempt 1: Revise code
-                Checks                    │
-                    │              ┌──────┴──────┐
-                    ▼              │             │
-               Ready to         Pass          Fail
-                Merge             │             │
-                                  ▼             ▼
-                             Integration   Escalate model
-                                Checks     (Sonnet → Opus)
-                                                │
-                                           Attempts 2-3
-                                                │
-                                         ┌──────┴──────┐
-                                         │             │
-                                       Pass          Fail
-                                         │             │
-                                         ▼             ▼
-                                    Integration   HARD GATE
-                                       Checks    needs-human-review
+PR Created → Greptile Review → Score 0-5
+                                  │
+                     ┌────────────┴────────────┐
+                     │                         │
+                 Score ≥ 3                 Score < 3
+                     │                         │
+                  ✅ Pass                 🔄 Revision Loop
 ```
+
+---
+
+### Option B: Claude Code Review
+
+**Finding-based review with native Claude integration.**
+
+**Prerequisites:**
+- Claude Teams or Enterprise subscription
+- Admin access to your Claude organization
+
+**Setup:**
+1. Go to `claude.ai/admin-settings/claude-code`
+2. Enable "Code Review" in the Code Review section
+3. Install Claude GitHub App on your repository
+4. Enable repository for Code Review in admin settings
+5. Run `/karimo-configure --code-review` to create REVIEW.md
+
+**How it works:**
+- Multi-agent fleet examines code in full codebase context
+- Posts inline comments with severity markers
+- Auto-resolves threads when issues are fixed
+- Completes in ~20 minutes on average
+
+**Severity markers:**
+
+| Marker | Level | Action |
+|--------|-------|--------|
+| 🔴 | Normal | Bug to fix before merge |
+| 🟡 | Nit | Minor issue, worth fixing |
+| 🟣 | Pre-existing | Bug in codebase, not from this PR |
+
+**Revision flow (Code Review):**
+```
+PR Created → Code Review → Findings Posted
+                               │
+              ┌────────────────┼────────────────┐
+              │                │                │
+         No Findings      Only 🟡 Nit       🔴 Normal
+              │                │                │
+           ✅ Pass         ✅ Pass*         🔄 Revision Loop
+                          (minor issues)
+```
+
+*Pass with nits: PM Agent logs nits but doesn't block.
+
+**Customization:**
+- `REVIEW.md` — Review-specific guidance (what to flag/skip)
+- `CLAUDE.md` — Shared project instructions
+
+> **Note:** Code Review is currently available for Teams and Enterprise users.
+
+---
+
+### Revision Loop (Both Providers)
+
+Both providers support automated revision loops with model escalation:
+
+1. Review finds issues → PM Agent reads feedback
+2. Increment `loop_count`, re-spawn worker with context
+3. Worker pushes fixes to same branch
+4. Provider re-reviews automatically
+5. Repeat until pass or hard gate
+
+**Model escalation:**
+- If Sonnet fails on architectural issue → Escalate to Opus
+- Simple bugs → Retry with same model
+
+**Hard gate (after 3 failed attempts):**
+1. Task marked `needs-human-review`
+2. PR receives `blocked-needs-human` label
+3. Human must intervene
 
 ---
 
 ## Phase 3: Monitor & Review
 
-**Coming soon.** Dashboard for team-wide visibility and oversight.
+**GitHub-native oversight for team-wide visibility.**
 
-Phase 3 will provide a web-based dashboard for reviewing PRDs, visualizing dependencies, and tracking team metrics. Until then, GitHub Projects Kanban + `/karimo-status` serve the same purpose.
+Phase 3 uses existing GitHub infrastructure and KARIMO commands for monitoring — no separate dashboard needed.
 
-See [DASHBOARD.md](DASHBOARD.md) for the planned specification.
+### What You Get
+
+- **`/karimo-status`** — Execution state per PRD
+  - Task progress, wave status, PR links
+  - Loop counts and model usage
+  - Blocked tasks and error details
+
+- **`/karimo-overview`** — Cross-PRD oversight
+  - All active PRDs and their status
+  - Team-wide execution summary
+  - Stalled or blocked work
+
+- **GitHub PR Dashboard**
+  - `gh pr list --label karimo` — All KARIMO PRs
+  - `gh pr list --label karimo-{slug}` — PRs for a feature
+  - `gh pr list --label needs-revision` — PRs needing attention
+  - `gh pr list --label blocked-needs-human` — Hard gate PRs
+
+- **Claude Code Analytics** (if using Code Review)
+  - Review usage and spend at `claude.ai/admin-settings`
+  - Cost per PR and monthly totals
+
+### Dashboard Queries
+
+```bash
+# All PRs for a feature
+gh pr list --label karimo-{slug} --state all
+
+# All KARIMO PRs this month
+gh pr list --label karimo --search "merged:>2026-02-01" --state merged
+
+# PRs needing attention
+gh pr list --label karimo,needs-revision
+
+# PRs blocked by hard gate
+gh pr list --label blocked-needs-human
+```
+
+### Why GitHub-Native?
+
+- **No extra infrastructure** — Use what you already have
+- **Real-time** — GitHub is the source of truth
+- **Team access** — Anyone with repo access can view
+- **Integrations** — Works with existing GitHub workflows
 
 ---
 
@@ -189,10 +287,11 @@ See [DASHBOARD.md](DASHBOARD.md) for the planned specification.
 | Manual Review | Yes | Yes | Yes |
 | Git State Reconstruction | Yes | Yes | Yes |
 | Crash Recovery | Yes | Yes | Yes |
-| Greptile Review | — | Yes | Yes |
+| Automated Review | — | Yes (choice) | Yes |
 | Revision Loops | — | Yes | Yes |
-| Dashboard | — | — | Yes |
-| Team Analytics | — | — | Yes |
+| /karimo-status | Yes | Yes | Yes |
+| /karimo-overview | Yes | Yes | Yes |
+| GitHub Queries | Yes | Yes | Yes |
 
 ---
 
@@ -200,15 +299,28 @@ See [DASHBOARD.md](DASHBOARD.md) for the planned specification.
 
 ### Phase 1 → Phase 2
 
-1. Get Greptile API key from [greptile.com](https://greptile.com)
-2. Run `/karimo-configure --greptile` to install the workflow
-3. Add `GREPTILE_API_KEY` to your GitHub repository secrets
-4. Ensure `karimo` label exists in your repository
-5. PRs with `karimo` label will trigger automated review
+**Choose your review provider:**
+
+Run `/karimo-configure --review` to choose interactively, or:
+
+**Option A: Greptile**
+1. Get API key from [greptile.com](https://greptile.com)
+2. Run `/karimo-configure --greptile`
+3. Add `GREPTILE_API_KEY` to repository secrets
+4. PRs with `karimo` label trigger automated review
+
+**Option B: Claude Code Review**
+1. Go to `claude.ai/admin-settings/claude-code`
+2. Enable Code Review, install GitHub App
+3. Enable repository for Code Review
+4. Run `/karimo-configure --code-review` to create REVIEW.md
 
 ### Phase 2 → Phase 3
 
-Instructions will be provided when the dashboard is available.
+Phase 3 uses existing tooling — no upgrade required:
+- `/karimo-status` for per-PRD state
+- `/karimo-overview` for cross-PRD oversight
+- `gh pr list --label karimo` for GitHub queries
 
 ---
 
