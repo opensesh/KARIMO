@@ -299,7 +299,7 @@ If reviewer flags issues:
 On approval, save to PRD folder:
 ```
 .karimo/prds/{NNN}_{slug}/
-├── PRD.md
+├── PRD_{slug}.md
 ├── tasks.yaml
 ├── execution_plan.yaml
 ├── status.json (initial state)
@@ -314,15 +314,15 @@ On approval, save to PRD folder:
 
 ```
 .karimo/prds/001_feature-slug/
-├── PRD.md              # Narrative document
+├── PRD_feature-slug.md # Narrative document (slug-based naming)
 ├── tasks.yaml          # Task definitions (parsed by PM agent)
 ├── execution_plan.yaml # Wave-based execution plan
 ├── status.json         # Execution state
 ├── findings.md         # Cross-task discoveries (maintained by PM)
 ├── dependencies.md     # Runtime dependencies (maintained by agents)
 ├── briefs/             # Generated briefs per task (created by brief-writer)
-│   ├── 1a.md
-│   ├── 1b.md
+│   ├── 1a_feature-slug.md
+│   ├── 1b_feature-slug.md
 │   └── ...
 └── assets/             # Images from interview
     ├── mockup.png

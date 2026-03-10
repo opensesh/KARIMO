@@ -288,8 +288,8 @@ If briefs exist in `.karimo/prds/{slug}/briefs/`:
 
 ```
 Brief cleanup:
-  - Deleted: briefs/1d.md (task removed)
-  - Marked stale: briefs/2a.md (task modified)
+  - Deleted: briefs/1d_{slug}.md (task removed)
+  - Marked stale: briefs/2a_{slug}.md (task modified)
 
 Briefs will be regenerated at execution time.
 ```

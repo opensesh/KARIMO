@@ -207,7 +207,7 @@ task-branch-1b ─┘         ▲                  ▲
 5. **Interactive Review**: User approves, modifies, or saves as draft
 
 **Output**: `.karimo/prds/{slug}/` containing:
-- `PRD.md` — Full PRD document
+- `PRD_{slug}.md` — Full PRD document (slug-based naming for searchability)
 - `tasks.yaml` — Task definitions
 - `execution_plan.yaml` — Wave-based execution plan
 - `status.json` — Execution tracking (status: `ready` when approved)
