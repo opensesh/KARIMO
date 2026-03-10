@@ -430,18 +430,10 @@ if [ -f "$KARIMO_SOURCE/.claude/KARIMO_RULES.md" ]; then
     cp "$KARIMO_SOURCE/.claude/KARIMO_RULES.md" "$PROJECT_ROOT/.claude/KARIMO_RULES.md"
 fi
 
-# Update workflows
-# - karimo-ci.yml: Always update (required)
-# - Other karimo-* workflows: Update if already installed in target
-echo "  Updating workflows..."
-
-# Always update the required CI workflow
-if [ -f "$KARIMO_SOURCE/.github/workflows/karimo-ci.yml" ]; then
-    cp "$KARIMO_SOURCE/.github/workflows/karimo-ci.yml" "$PROJECT_ROOT/.github/workflows/"
-    UPDATED_WORKFLOWS=$((UPDATED_WORKFLOWS + 1))
-fi
-
 # Update optional workflows if already installed (from .github/workflows/)
+# Note: karimo-ci.yml is a source repo workflow only (validates MANIFEST.json)
+# It should NOT be copied to target projects
+echo "  Updating workflows..."
 for workflow in "$KARIMO_SOURCE"/.github/workflows/karimo-*.yml; do
     [ -f "$workflow" ] || continue
     workflow_name=$(basename "$workflow")
