@@ -15,8 +15,8 @@ KARIMO enforces code quality and security through multiple layers: file boundari
 | **Mandatory rebase** | Keeps task branches current | 1+ |
 | **File overlap detection** | Prevents parallel conflicts | 1+ |
 | **Scoped GitHub tokens** | Minimum required permissions | 1+ |
-| **Greptile review** | Automated code quality checks | 2+ |
-| **Revision loops** | Agent self-correction on low scores | 2+ |
+| **Automated review** | Code review via Greptile or Code Review | 2+ |
+| **Revision loops** | Agent self-correction on findings/scores | 2+ |
 
 ---
 
@@ -411,19 +411,40 @@ This appends rules to `.karimo/learnings.md` that all future agents read.
 
 ---
 
-## Automated Code Review (Greptile)
+## Automated Code Review
 
-Greptile integration is **optional but highly recommended**. It acts as a force multiplier — catching issues before human review and enabling automated revision loops.
+Automated code review is **optional but highly recommended**. It catches issues before human review and enables automated revision loops.
 
-### Why Greptile?
+KARIMO supports two review providers — choose based on your workflow and budget.
 
-- **Catches issues early** — Before human review time is spent
-- **Enables self-correction** — Agents can revise based on feedback
-- **Consistent standards** — Same quality bar for every PR
-- **Reduces review burden** — Humans focus on architecture, not style
+### Provider Comparison
 
-### Review Flow
+| Feature | Greptile | Claude Code Review |
+|---------|----------|-------------------|
+| **Pricing** | $30/month flat (14-day trial) | $15-25 per PR |
+| **Review Style** | Score-based (0-5) | Finding-based (severity tags) |
+| **Integration** | GitHub Actions workflow | Native Claude Code |
+| **Auto-resolve** | Manual | Threads auto-resolve on fix |
+| **Best for** | High PR volume (50+/month) | Low-medium PR volume |
 
+### Setup
+
+Run `/karimo-configure --review` to choose your provider interactively, or:
+
+- `/karimo-configure --greptile` — Install Greptile workflow
+- `/karimo-configure --code-review` — Setup Claude Code Review
+
+---
+
+### Option A: Greptile
+
+**Score-based review with GitHub Actions.**
+
+**Prerequisites:**
+- Greptile account ($30/month, 14-day trial)
+- `GREPTILE_API_KEY` in GitHub repository secrets
+
+**How it works:**
 ```
 PR Created → karimo-greptile-review.yml triggers
                     │
@@ -431,7 +452,7 @@ PR Created → karimo-greptile-review.yml triggers
             Greptile analyzes PR
                     │
                     ▼
-            Posts review comment
+            Posts review comment (score 0-5)
                     │
             ┌───────┴───────┐
             │               │
@@ -439,35 +460,77 @@ PR Created → karimo-greptile-review.yml triggers
             │               │
             ▼               ▼
     Add label:        Add label:
-    review-passed     needs-revision
+    greptile-passed   needs-revision
             │               │
             ▼               ▼
     Integration      Revision loop
     checks run       (see below)
 ```
 
-### Score Interpretation
-
-Greptile uses a **0-5 scale**:
+**Score interpretation:**
 
 | Score | Meaning | Action |
 |-------|---------|--------|
 | 3-5 | Passes | Proceed to integration |
 | 0-2 | Needs work | Enters revision loop |
 
-### Revision Loop Protocol
+---
 
-When Greptile scores a PR below 3, KARIMO enters a revision loop:
+### Option B: Claude Code Review
+
+**Finding-based review with native Claude integration.**
+
+**Prerequisites:**
+- Claude Teams or Enterprise subscription
+- Admin enables Code Review at `claude.ai/admin-settings/claude-code`
+- Claude GitHub App installed on repository
+
+**How it works:**
+```
+PR Created → Code Review multi-agent fleet activates
+                    │
+                    ▼
+            Posts inline comments with severity markers
+                    │
+            ┌───────┴───────┬───────────────┐
+            │               │               │
+       No 🔴           Only 🟡/🟣        Has 🔴
+       findings        findings         findings
+            │               │               │
+            ▼               ▼               ▼
+         ✅ Pass       ✅ Pass*       🔄 Revision
+                      (logged)           loop
+```
+
+*Nits are logged but don't block.
+
+**Severity markers:**
+
+| Marker | Level | Action |
+|--------|-------|--------|
+| 🔴 | Normal | Bug to fix before merge |
+| 🟡 | Nit | Minor issue, worth fixing |
+| 🟣 | Pre-existing | Bug in codebase, not from this PR |
+
+**Customization:**
+- `REVIEW.md` — Review-specific guidance (run `/karimo-configure --code-review` to create)
+- `CLAUDE.md` — Shared project instructions
+
+---
+
+### Revision Loop (Both Providers)
+
+When review finds issues, KARIMO enters a revision loop:
 
 **Attempt 1:**
-1. Task agent reads Greptile feedback
-2. Analyzes specific issues flagged
-3. Makes targeted fixes
+1. PM Agent reads review feedback (score or findings)
+2. Re-spawns worker with feedback context
+3. Worker makes targeted fixes
 4. Updates PR with new commit
-5. Greptile re-reviews
+5. Provider re-reviews automatically
 
 **After First Failure:**
-- PM Agent autonomously escalates model (Sonnet → Opus)
+- PM Agent escalates model (Sonnet → Opus) if issues are architectural
 - No human intervention required
 - Continues revision loop with upgraded model
 
@@ -477,33 +540,29 @@ When Greptile scores a PR below 3, KARIMO enters a revision loop:
 - Task removed from active execution queue
 - Human must review and unblock
 
-**Model Escalation Rules:**
-- Model upgrade happens after first failure
-- If task was already Opus (complexity ≥ 5), no escalation possible
-- Escalation reason logged in status.json for learning
+**Model Escalation Triggers:**
+
+| Provider | Trigger | Action |
+|----------|---------|--------|
+| Greptile | Score < 3 | Escalate to Opus |
+| Code Review | 🔴 describes architectural issue | Escalate to Opus |
+| Code Review | 🔴 describes simple bug | Retry same model |
 
 ```
-Attempt 1 → Fail (score < 3)
+Attempt 1 → Fail
     │
     ▼
-Escalate model (Sonnet → Opus)
+Escalate model (Sonnet → Opus) if architectural
     │
     ▼
-Attempt 2 → Fail (score < 3)
+Attempt 2 → Fail
     │
     ▼
-Attempt 3 → Fail (score < 3)
+Attempt 3 → Fail
     │
     ▼
 HARD GATE: needs-human-review
 ```
-
-### Setup
-
-1. Get a Greptile API key from [greptile.com](https://greptile.com)
-2. Add `GREPTILE_API_KEY` to your GitHub repository secrets
-3. Ensure `karimo` label exists on your repository
-4. PRs with `karimo` label trigger automated review
 
 ---
 
@@ -560,15 +619,20 @@ permissions:
 
 KARIMO uses PR labels for tracking and workflow integration.
 
-| Label | Applied By | Meaning |
-|-------|-----------|---------|
-| `karimo` | PM Agent | Identifies KARIMO-managed PRs |
-| `wave-{n}` | PM Agent | Wave number for execution ordering |
-| `complexity-{n}` | PM Agent | Task complexity score |
-| `greptile-passed` | Greptile Review | Score >= 3 (when Greptile enabled) |
-| `greptile-needs-revision` | Greptile Review | Score < 3 (when Greptile enabled) |
+| Label | Applied By | Provider | Meaning |
+|-------|-----------|----------|---------|
+| `karimo` | PM Agent | Both | Identifies KARIMO-managed PRs |
+| `karimo-{prd-slug}` | PM Agent | Both | Feature grouping |
+| `wave-{n}` | PM Agent | Both | Wave number for execution ordering |
+| `complexity-{n}` | PM Agent | Both | Task complexity score |
+| `needs-revision` | PM Agent | Both | Review requested changes |
+| `greptile-passed` | Greptile workflow | Greptile | Score >= 3 |
+| `greptile-needs-revision` | Greptile workflow | Greptile | Score < 3 |
+| `blocked-needs-human` | PM Agent | Both | Hard gate after 3 attempts |
 
-To enable Greptile review, run `/karimo-configure --greptile`.
+**Note:** Claude Code Review uses inline comments with severity markers (🔴, 🟡, 🟣) instead of labels. PM Agent reads these from PR review comments.
+
+To enable automated review, run `/karimo-configure --review` to choose your provider.
 
 ---
 
