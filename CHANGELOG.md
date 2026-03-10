@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [4.2.1] - 2026-03-10
+
+### Fixed
+
+**Update Script Legacy Workflow Bug**
+
+- Removed `karimo-ci.yml` copy logic from `update.sh` that incorrectly installed source repo CI workflow to target projects
+- `karimo-ci.yml` validates MANIFEST.json and should only exist in the KARIMO source repo
+
+### Changed
+
+**Documentation Cleanup**
+
+- Removed references to deprecated `karimo-dependency-watch` workflow from DEPENDENCIES_TEMPLATE.md
+- Updated ARCHITECTURE.md `done` status mechanism to reflect git state detection instead of legacy `karimo-sync.yml`
+
+---
+
 ## [4.2.0] - 2026-03-09
 
 ### Added
