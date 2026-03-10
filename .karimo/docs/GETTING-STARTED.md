@@ -539,5 +539,5 @@ KARIMO task branches, or accept the noise (failures don't block merges).
 | Document | Description |
 |----------|-------------|
 | [PHASES.md](PHASES.md) | Adoption phases explained |
-| [ARCHITECTURE.md](CODE/KARIMO/Repo/docs/ARCHITECTURE.md) | System design and integration |
+| [ARCHITECTURE.md](ARCHITECTURE.md) | System design and integration |
 | [COMMANDS.md](COMMANDS.md) | Slash command reference |

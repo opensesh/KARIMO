@@ -57,6 +57,7 @@ KARIMO is a **framework and Claude Code plugin** for PRD-driven autonomous devel
 | **Wave-based execution** | Dependency graph determines parallel vs sequential tasks |
 | **Compound learning** | `/karimo-feedback` and `/karimo-learn` capture patterns for future agents |
 | **PR-centric workflow** | Full auditability via PRs targeting main with wave-ordered merges |
+| **Flexible code review** | Choose Greptile ($30/mo) or Claude Code Review ($15-25/PR) for automated review |
 
 ---
 
@@ -164,6 +165,14 @@ cd your-project && claude
 ```
 
 The interview takes ~10 minutes. See [Getting Started](.karimo/docs/GETTING-STARTED.md) for the full walkthrough.
+
+### Optional: Set Up Automated Review
+
+```
+/karimo-configure --review
+```
+
+Choose Greptile or Claude Code Review. See [Adoption Phases](.karimo/docs/PHASES.md) for details.
 
 ---
 

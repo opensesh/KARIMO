@@ -347,6 +347,15 @@ Create or update configuration in `.karimo/config.yaml` (single source of truth)
 /karimo-configure --reset      # Start fresh, ignore existing config
 ```
 
+### Flags
+
+| Flag | Description |
+|------|-------------|
+| `--reset` | Start fresh, ignore existing config |
+| `--greptile` | Install Greptile workflow only |
+| `--code-review` | Setup Claude Code Review (instructions only) |
+| `--review` | Choose between review providers (interactive) |
+
 ### What It Does
 
 Walks through 6 configuration sections:
@@ -928,5 +937,5 @@ Commands are defined in `.claude/commands/`:
 | Document | Purpose |
 |----------|---------|
 | [GETTING-STARTED.md](GETTING-STARTED.md) | Installation walkthrough |
-| [ARCHITECTURE.md](CODE/KARIMO/Repo/docs/ARCHITECTURE.md) | System design |
+| [ARCHITECTURE.md](ARCHITECTURE.md) | System design |
 | [PHASES.md](PHASES.md) | Adoption phases |

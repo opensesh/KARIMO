@@ -1,4 +1,4 @@
-# KARIMO Dashboard (Phase 3)
+# KARIMO Monitoring (Phase 3)
 
 ## Overview
 

@@ -331,4 +331,4 @@ Phase 3 uses existing tooling — no upgrade required:
 | [GETTING-STARTED.md](GETTING-STARTED.md) | Installation walkthrough |
 | [COMMANDS.md](COMMANDS.md) | Slash command reference |
 | [SAFEGUARDS.md](SAFEGUARDS.md) | Worktrees, validation, Greptile |
-| [ARCHITECTURE.md](CODE/KARIMO/Repo/docs/ARCHITECTURE.md) | System design |
+| [ARCHITECTURE.md](ARCHITECTURE.md) | System design |
