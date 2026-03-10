@@ -185,6 +185,28 @@ Options:
 Your choice:
 ```
 
+### 3a. Commit Task Briefs
+
+**After all briefs are generated, commit them as a unit before spawning the PM agent.**
+
+```bash
+git add .karimo/prds/{NNN}_{slug}/briefs/
+git commit -m "docs(karimo): generate task briefs for {slug}
+
+{count} briefs generated for PRD {slug}.
+
+Waves:
+- Wave 1: {task_ids}
+- Wave 2: {task_ids}
+- ...
+
+Co-Authored-By: Claude <noreply@anthropic.com>"
+```
+
+**Rationale:** Brief generation is a distinct logical unit from PRD creation and from task execution. If the session is interrupted after briefs are generated but before workers start, the briefs are safely committed.
+
+**Note:** Briefs use slug-based naming for searchability: `{task_id}_{slug}.md` (e.g., `1a_user-profiles.md`).
+
 ### 4. Dry Run Mode
 
 If `--dry-run` is specified, show the execution plan without acting:
@@ -324,7 +346,7 @@ The PM agent:
 
 If `--task {id}` is specified:
 - Execute only that task
-- Read its brief from `briefs/{task_id}.md`
+- Read its brief from `briefs/{task_id}_{slug}.md`
 - Create PR directly to main
 - Useful for retrying failed or crashed tasks
 
