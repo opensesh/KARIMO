@@ -8,6 +8,8 @@ Create or update KARIMO configuration in `.karimo/config.yaml`. Use this when yo
 /karimo-configure              # Create new config or update existing
 /karimo-configure --reset      # Start fresh, ignore existing config
 /karimo-configure --greptile   # Install Greptile workflow only
+/karimo-configure --code-review  # Setup Claude Code Review (instructions only)
+/karimo-configure --review       # Choose between review providers (interactive)
 ```
 
 **This command writes configuration to `.karimo/config.yaml` (single source of truth).**
@@ -63,6 +65,129 @@ Learn more: https://greptile.com
 ```
 
 **Exit after installation.** The `--greptile` flag is a quick-install shortcut, not a configuration flow.
+
+---
+
+### Quick Install: `--code-review` Flag
+
+When the `--code-review` flag is passed, skip the full configuration flow and provide Code Review setup instructions:
+
+**Display instructions:**
+
+```
+╭──────────────────────────────────────────────────────────────╮
+│  Claude Code Review Setup                                     │
+╰──────────────────────────────────────────────────────────────╯
+
+Claude Code Review provides automated PR reviews with inline findings.
+
+Prerequisites:
+  • Claude Teams or Enterprise subscription
+  • Admin access to your Claude organization
+
+Setup steps:
+  1. Go to claude.ai/admin-settings/claude-code
+  2. Enable "Code Review" in the Code Review section
+  3. Install the Claude GitHub App on your repository
+  4. Enable the repository for Code Review in admin settings
+
+Review behavior:
+  • Multi-agent fleet examines code in full codebase context
+  • Posts inline comments with severity markers:
+      🔴 Normal — Bug to fix before merge
+      🟡 Nit — Minor issue, worth fixing
+      🟣 Pre-existing — Bug in codebase, not from this PR
+  • Auto-resolves threads when issues are fixed
+  • Completes in ~20 minutes on average
+
+Cost: $15-25 per review (token-based)
+
+Best for: Low-medium PR volume, Teams/Enterprise users
+
+Learn more: https://code.claude.com/docs/en/code-review
+```
+
+**Generate REVIEW.md if it doesn't exist:**
+
+```bash
+if [ ! -f "REVIEW.md" ]; then
+  cp .karimo/templates/REVIEW_TEMPLATE.md REVIEW.md
+
+  # Inject boundaries from config.yaml if it exists
+  if [ -f ".karimo/config.yaml" ]; then
+    # Add never_touch patterns to Skip section
+    NEVER_TOUCH=$(grep -A 20 'never_touch:' .karimo/config.yaml | grep '^\s*-' | head -10 | sed 's/^\s*- //' | sed 's/"//g')
+    if [ -n "$NEVER_TOUCH" ]; then
+      echo "" >> REVIEW.md
+      echo "### Project-Specific Skip Patterns" >> REVIEW.md
+      echo "" >> REVIEW.md
+      for pattern in $NEVER_TOUCH; do
+        echo "- \`$pattern\`" >> REVIEW.md
+      done
+    fi
+
+    # Add require_review patterns to Always check section
+    REQUIRE_REVIEW=$(grep -A 20 'require_review:' .karimo/config.yaml | grep '^\s*-' | head -10 | sed 's/^\s*- //' | sed 's/"//g')
+    if [ -n "$REQUIRE_REVIEW" ]; then
+      echo "" >> REVIEW.md
+      echo "### Files Requiring Extra Attention" >> REVIEW.md
+      echo "" >> REVIEW.md
+      for pattern in $REQUIRE_REVIEW; do
+        echo "- Changes to \`$pattern\` require careful review" >> REVIEW.md
+      done
+    fi
+  fi
+
+  echo "✅ Created REVIEW.md from template"
+fi
+```
+
+**Display confirmation:**
+
+```
+✅ REVIEW.md created (customize review guidelines in this file)
+
+Next steps:
+  1. Complete admin setup at claude.ai/admin-settings/claude-code
+  2. Install Claude GitHub App on your repository
+  3. Open a PR to trigger your first Code Review
+```
+
+**Exit after instructions.** The `--code-review` flag is a setup guide, not a configuration flow.
+
+---
+
+### Quick Install: `--review` Flag (Provider Choice)
+
+When the `--review` flag is passed, prompt user to choose their review provider:
+
+Use AskUserQuestion:
+
+```
+header: "Review Provider"
+question: "Which automated code review provider would you like to use?"
+options:
+  - label: "Claude Code Review (Recommended)"
+    description: "$15-25 per PR. Native Claude integration. Auto-resolves issues."
+  - label: "Greptile"
+    description: "$30/month flat. Score-based reviews. Best for high PR volume."
+  - label: "Skip for now"
+    description: "Configure review provider later. Manual PR review only."
+```
+
+**If Code Review selected:**
+- Run the `--code-review` flow above
+- Generate REVIEW.md if it doesn't exist
+
+**If Greptile selected:**
+- Run the `--greptile` flow above
+- Install workflow file
+
+**If Skip selected:**
+- Display message: "Skipped. Run `/karimo-configure --review` anytime to set up automated review."
+- Exit
+
+**Exit after selection.** The `--review` flag is a provider choice shortcut.
 
 ---
 
@@ -439,18 +564,45 @@ options:
     description: "More autonomous. May spend more on difficult tasks."
 ```
 
-**Question 3: Greptile Integration**
+**Question 3: Automated Review**
 ```
-header: "Greptile"
-question: "Enable Greptile for automated code review?"
+header: "Review"
+question: "Enable automated code review?"
 options:
   - label: "No (default)"
-    description: "Skip Greptile integration. Can enable later."
-  - label: "Yes"
-    description: "Enable automated code review. Requires GREPTILE_API_KEY secret."
+    description: "Skip automated review. Can enable later with /karimo-configure --review."
+  - label: "Claude Code Review"
+    description: "$15-25 per PR. Native Claude integration. Requires Teams/Enterprise."
+  - label: "Greptile"
+    description: "$30/month flat. Score-based reviews. Requires GREPTILE_API_KEY secret."
 ```
 
-**If "Yes" selected, install the Greptile workflow:**
+**If "Claude Code Review" selected:**
+
+1. Generate REVIEW.md if it doesn't exist:
+   ```bash
+   if [ ! -f "REVIEW.md" ]; then
+     cp .karimo/templates/REVIEW_TEMPLATE.md REVIEW.md
+     # Inject boundaries from config.yaml (see --code-review section for details)
+     echo "✅ Created REVIEW.md from template"
+   fi
+   ```
+
+2. Display setup instructions:
+   ```
+   Claude Code Review selected.
+
+   Complete setup at claude.ai/admin-settings/claude-code:
+     1. Enable "Code Review" in the Code Review section
+     2. Install Claude GitHub App on your repository
+     3. Enable the repository for Code Review
+
+   REVIEW.md created — customize review guidelines as needed.
+   ```
+
+3. Update config.yaml with `review_provider: code-review`
+
+**If "Greptile" selected, install the Greptile workflow:**
 
 ```bash
 # Copy workflow template to .github/workflows/
@@ -460,6 +612,8 @@ cp .karimo/workflow-templates/karimo-greptile-review.yml .github/workflows/
 echo "✅ Installed karimo-greptile-review.yml"
 echo "   Configure GREPTILE_API_KEY secret in GitHub repository settings"
 ```
+
+Update config.yaml with `review_provider: greptile`
 
 **Display confirmation after selection:**
 
@@ -475,8 +629,8 @@ Your selections:
   Max attempts before human review: 3
     After this many failures, task marked needs-human-review
 
-  Greptile enabled: no
-    Requires GREPTILE_API_KEY secret in repository
+  Review provider: none | code-review | greptile
+    Automated code review configuration
 
 These settings can be changed anytime by running /karimo-configure
 ```
@@ -685,7 +839,9 @@ execution:
 cost:
   escalate_after_failures: 1
   max_attempts: 3
-  greptile_enabled: false
+
+# Review provider: none | greptile | code-review
+review_provider: none
 ```
 
 ---
@@ -773,7 +929,8 @@ The command writes to `.karimo/config.yaml`. See the YAML structure in Step 7 ab
 - `boundaries` — Never touch and require review patterns
 - `github` — Owner type, owner, repository, merge strategy (Full Mode only)
 - `execution` — Default model, max parallel, pre-PR checks
-- `cost` — Escalation settings, Greptile integration
+- `cost` — Escalation settings
+- `review_provider` — Automated review provider (`none`, `greptile`, `code-review`)
 
 ---
 
