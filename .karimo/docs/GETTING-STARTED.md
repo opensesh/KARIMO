@@ -21,8 +21,11 @@ Before installing KARIMO, ensure you have:
 | Tool | Purpose | Installation |
 |------|---------|--------------|
 | **Greptile** | Automated code review (Phase 2) | [greptile.com](https://greptile.com) |
+| **Claude Code Review** | Automated code review (Phase 2) | Teams/Enterprise |
 
-Greptile acts as a force multiplier — catching issues before human review and enabling automated revision loops. While KARIMO works without it, Greptile significantly improves code quality outcomes.
+Automated code review catches issues before human review and enables revision loops. Choose your provider:
+- **Greptile**: $30/month flat, best for high volume (50+ PRs/month)
+- **Claude Code Review**: $15-25 per PR, native Claude integration
 
 ---
 
@@ -414,15 +417,26 @@ v4.0 uses git state reconstruction. Run:
 
 This will reconcile status.json with git reality and resume from the correct point.
 
-### "Want to add Greptile?"
+### "Want automated code review?"
 
-KARIMO installs zero workflows by default. To add Greptile for automated code review:
+KARIMO installs zero review workflows by default. Choose your provider:
 
+**Option A: Greptile** ($30/month, best for high volume)
 ```
 /karimo-configure --greptile
 ```
+Then add `GREPTILE_API_KEY` to your repository secrets.
 
-Then add `GREPTILE_API_KEY` to your repository secrets (Settings → Secrets → Actions).
+**Option B: Claude Code Review** ($15-25/PR, native integration)
+```
+/karimo-configure --code-review
+```
+Then enable at `claude.ai/admin-settings/claude-code` and install Claude GitHub App.
+
+**Interactive choice:**
+```
+/karimo-configure --review
+```
 
 ---
 
@@ -476,19 +490,25 @@ rm .github/workflows/karimo-*.yml
 
 Then remove the KARIMO section from `CLAUDE.md`. For marker-based installations, remove everything between `<!-- KARIMO:START -->` and `<!-- KARIMO:END -->` (inclusive). For legacy installations, remove from `## KARIMO` to the end of the file or the next `---` separator.
 
-### Do I need Greptile?
+### Do I need automated code review?
 
-Greptile is optional but highly recommended. Without it, KARIMO still:
+Automated code review (Greptile or Claude Code Review) is optional but highly recommended.
+
+**Without automated review**, KARIMO still:
 - Creates PRDs through interviews
 - Executes tasks with agent coordination
 - Creates PRs with pre-validation
 
-With Greptile, you get:
-- Automated code review on every PR
-- Score-based quality gates
+**With automated review**, you get:
+- Code review on every PR
+- Quality gates (score-based or finding-based)
 - Automated revision loops when issues are found
 
-Most teams find Greptile significantly improves outcomes.
+**Choose your provider:**
+- **Greptile**: $30/month flat. Best for high PR volume (50+/month).
+- **Claude Code Review**: $15-25 per PR. Best for low-medium volume, native Claude integration.
+
+Run `/karimo-configure --review` to choose your provider.
 
 ### How does KARIMO handle task isolation?
 
