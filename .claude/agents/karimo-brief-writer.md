@@ -218,7 +218,7 @@ When the PM Agent creates the GitHub Issue, use this enhanced template:
 
 - **Branch:** `feature/{prd-slug}/{task-id}`
 - **Worktree:** `.worktrees/{prd-slug}/{task-id}`
-- **Brief:** `.karimo/prds/{prd-slug}/briefs/{task-id}.md`
+- **Brief:** `.karimo/prds/{prd-slug}/briefs/{task-id}_{prd-slug}.md`
 
 ---
 *Created by [KARIMO](https://github.com/opensesh/KARIMO)*
@@ -305,8 +305,13 @@ Every section should guide the agent toward specific actions. Remove vague langu
 
 Save the brief to:
 ```
-.karimo/prds/{slug}/briefs/{task_id}.md
+.karimo/prds/{slug}/briefs/{task_id}_{slug}.md
 ```
+
+**Brief File Naming:** Use `{task_id}_{slug}.md` (e.g., `1a_user-profiles.md`) instead of generic `{task_id}.md`. This enables:
+- Quick file search across multiple PRDs
+- Distinguishable editor tabs when multiple briefs are open
+- Clear identification in git history
 
 Create the `briefs/` directory if it doesn't exist.
 
@@ -314,7 +319,7 @@ Create the `briefs/` directory if it doesn't exist.
 
 Report success to the caller:
 ```
-Brief created: .karimo/prds/{slug}/briefs/{task_id}.md
+Brief created: .karimo/prds/{slug}/briefs/{task_id}_{slug}.md
   - Objective: {first sentence of objective}
   - Files: {count} files to modify
   - Criteria: {count} success criteria
