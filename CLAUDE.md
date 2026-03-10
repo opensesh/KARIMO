@@ -108,7 +108,7 @@ Co-Authored-By: Claude <noreply@anthropic.com>
 
 KARIMO is an autonomous development **methodology** delivered via Claude Code configuration. It transforms product requirements into shipped code using AI agents, GitHub automation, and structured human oversight.
 
-**Core philosophy:** You are the architect, agents are the builders, Greptile is the inspector.
+**Core philosophy:** You are the architect, agents are the builders, automated review is the inspector.
 
 ---
 
@@ -146,17 +146,26 @@ Your first planning process with KARIMO:
 **This is where everyone starts.** Phase 1 is fully functional out of the box.
 
 ### Phase 2: Automate Review
-Add automated code review to your workflow:
-- Integrate Greptile for code integrity checks (0-5 scale)
-- Score ≥ 3 passes, < 3 triggers revision loop
+Add automated code review to your workflow. Choose your provider:
+
+| Provider | Pricing | Best For |
+|----------|---------|----------|
+| **Greptile** | $30/month flat | High volume (50+ PRs/month) |
+| **Claude Code Review** | $15-25 per PR | Low-medium volume, native Claude integration |
+
+Both providers support:
+- Automated revision loops when issues are found
 - Model escalation (Sonnet → Opus) after first failure
 - Hard gate after 3 failed attempts (needs human review)
 
-**Optional but highly recommended.** Greptile acts as a force multiplier. Requires Greptile API key.
+**Optional but highly recommended.** Run `/karimo-configure --review` to choose your provider.
 
 ### Phase 3: Monitor & Review
-
-**Coming soon.** Dashboard for team-wide visibility and oversight.
+GitHub-native monitoring — no separate dashboard needed:
+- `/karimo-status` — Execution state per PRD
+- `/karimo-overview` — Cross-PRD oversight
+- GitHub — PR comments, labels, activity
+- Claude Code analytics — Review usage (if using Code Review)
 
 ---
 
@@ -179,7 +188,7 @@ KARIMO v4.0 uses a simplified PR-centric workflow:
 - Complete traceability (task → PR → merge)
 - Wave-based parallel execution
 - PR-based code review workflow
-- Greptile integration for automated review
+- Automated review integration (Greptile or Code Review)
 - Git state reconstruction for crash recovery
 
 ---
@@ -219,7 +228,7 @@ When you run `install.sh`, these files are added:
 | `.claude/KARIMO_RULES.md` | Agent behavior rules |
 | `.karimo/templates/` | 10 templates (PRD, interview, task, status, dependencies, DAG, learn-interview, findings, task-brief, metrics) |
 
-**Optional:** Run `/karimo-configure --greptile` to install Greptile workflow for automated code review.
+**Optional:** Run `/karimo-configure --review` to choose and configure your automated code review provider (Greptile or Claude Code Review).
 
 ### Agent Types
 
