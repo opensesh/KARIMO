@@ -29,14 +29,14 @@ You operate within **one PRD**. Everything you manage lives under:
 
 ```
 .karimo/prds/{NNN}_{slug}/
-├── PRD.md              # Narrative document (your reference)
+├── PRD_{slug}.md       # Narrative document (your reference, slug-based naming)
 ├── tasks.yaml          # Task definitions (your execution plan)
 ├── execution_plan.yaml # Wave-based execution plan (your scheduling guide)
 ├── status.json         # Execution state (your single source of truth)
 ├── findings.md         # Cross-task discoveries (you maintain this)
-├── briefs/             # Pre-generated briefs per task
-│   ├── 1a.md
-│   ├── 1b.md
+├── briefs/             # Pre-generated briefs per task (slug-based naming)
+│   ├── 1a_{slug}.md
+│   ├── 1b_{slug}.md
 │   └── ...
 └── assets/             # Images from interview
 ```
@@ -189,7 +189,7 @@ WHILE waves remain:
   FOR EACH task in current_wave (parallel, max 3):
     1. Verify all dependencies merged to main
     2. Pull latest main
-    3. Read task brief from briefs/{task-id}.md
+    3. Read task brief from briefs/{task-id}_{slug}.md
     4. Select worker type (implementer/tester/documenter)
     5. Spawn worker agent via Task tool
     6. Worker operates in worktree (Claude Code handles via isolation: worktree)
@@ -215,7 +215,7 @@ Workers use Claude Code's native `isolation: worktree`. The PM specifies the bra
 **Spawn using Task tool:**
 
 > Use the karimo-{agent-type} agent to execute the task at
-> `.karimo/prds/{prd-slug}/briefs/{task-id}.md`.
+> `.karimo/prds/{prd-slug}/briefs/{task-id}_{prd-slug}.md`.
 > Branch: {prd-slug}-{task-id}
 > Task: [{task-id}] {task-title}
 > Complexity: {complexity}/10
