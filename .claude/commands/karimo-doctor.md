@@ -62,7 +62,7 @@ Verify required tools are available:
 | Claude Code | `which claude` | ✅ Installed / ❌ Not found |
 | GitHub CLI | `gh auth status` | ✅ Authenticated / ❌ Not authenticated |
 | Git | `git --version` | ✅ 2.5+ (worktree support) / ⚠️ Older version |
-| Greptile API | `GREPTILE_API_KEY` env var | ✅ Set / ℹ️ Not set (optional for Phase 2) |
+| Review Provider | `config.yaml review_provider` | ✅ Configured / ℹ️ Not set (optional for Phase 2) |
 
 **1c: Git Version Check**
 
@@ -94,7 +94,33 @@ Check 1: Environment
   ✅ Claude Code     Installed
   ✅ GitHub CLI      Authenticated as @username
   ✅ Git             v2.43.0 (worktree support)
-  ℹ️  Greptile       Not configured (optional for Phase 2)
+  ℹ️  Review         Not configured (optional for Phase 2)
+                     Run /karimo-configure --review to set up
+```
+
+**Example output with Greptile:**
+
+```
+Check 1: Environment
+────────────────────
+
+  ✅ Claude Code     Installed
+  ✅ GitHub CLI      Authenticated as @username
+  ✅ Git             v2.43.0 (worktree support)
+  ✅ Review          Greptile (workflow installed, API key set)
+```
+
+**Example output with Code Review:**
+
+```
+Check 1: Environment
+────────────────────
+
+  ✅ Claude Code     Installed
+  ✅ GitHub CLI      Authenticated as @username
+  ✅ Git             v2.43.0 (worktree support)
+  ✅ Review          Claude Code Review
+                     Setup at claude.ai/admin-settings/claude-code
 ```
 
 ### Check 1.5: GitHub Project Access
@@ -587,14 +613,31 @@ Assess current adoption phase and PRD status.
 
 **Phase detection:**
 - **Phase 1:** Config exists, agents installed, commands work
-- **Phase 2:** Greptile workflow installed + API key configured
-- **Phase 3:** Coming soon
+- **Phase 2:** Review provider configured (Greptile workflow OR Code Review)
+- **Phase 3:** GitHub-native monitoring (no additional setup)
+
+**Review provider detection:**
+```bash
+# Read from config.yaml
+REVIEW_PROVIDER=$(grep "^review_provider:" .karimo/config.yaml 2>/dev/null | awk '{print $2}')
+
+# Check for Greptile workflow if provider is greptile
+if [ "$REVIEW_PROVIDER" = "greptile" ]; then
+  [ -f ".github/workflows/karimo-greptile-review.yml" ] || echo "⚠️ Workflow missing"
+  [ -n "$GREPTILE_API_KEY" ] || echo "⚠️ API key not set"
+fi
+
+# Check for REVIEW.md if provider is code-review
+if [ "$REVIEW_PROVIDER" = "code-review" ]; then
+  [ -f "REVIEW.md" ] || echo "ℹ️ Consider creating REVIEW.md for custom guidelines"
+fi
+```
 
 **PRD inventory:**
 - Count PRDs in `.karimo/prds/`
 - Summarize statuses: draft, ready, approved, active, complete
 
-**Example output:**
+**Example output (Greptile):**
 
 ```
 Check 5: Phase Assessment
@@ -602,14 +645,47 @@ Check 5: Phase Assessment
 
   Phase Status:
     ✅ Phase 1    Configured (config + agents + commands)
-    ✅ Phase 2    Enabled (Greptile workflow + API key)
-    ℹ️  Phase 3    Coming soon
+    ✅ Phase 2    Greptile (workflow + API key)
+    ✅ Phase 3    GitHub-native monitoring
 
   PRDs:
     Total: 3
       ✓ user-profiles     complete
       ⋯ token-studio      active (4/8 tasks)
       ○ auth-refactor     ready (for execution)
+```
+
+**Example output (Code Review):**
+
+```
+Check 5: Phase Assessment
+─────────────────────────
+
+  Phase Status:
+    ✅ Phase 1    Configured (config + agents + commands)
+    ✅ Phase 2    Claude Code Review
+    ✅ Phase 3    GitHub-native monitoring
+
+  PRDs:
+    Total: 2
+      ✓ user-profiles     complete
+      ⋯ auth-refactor     active (2/5 tasks)
+```
+
+**Example output (no review):**
+
+```
+Check 5: Phase Assessment
+─────────────────────────
+
+  Phase Status:
+    ✅ Phase 1    Configured (config + agents + commands)
+    ℹ️  Phase 2    No review provider (run /karimo-configure --review)
+    ✅ Phase 3    GitHub-native monitoring
+
+  PRDs:
+    Total: 1
+      ○ user-profiles     ready (for execution)
 ```
 
 ### Check 7: Execution Health
