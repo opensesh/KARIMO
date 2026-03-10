@@ -7,6 +7,69 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [4.2.0] - 2026-03-09
+
+### Added
+
+**Claude Code Review as Review Provider Option**
+
+Added Claude Code Review as an alternative to Greptile for automated code review. Users now choose their preferred provider based on cost and workflow preferences.
+
+**Provider Comparison:**
+
+| Feature | Greptile | Claude Code Review |
+|---------|----------|-------------------|
+| Pricing | $30/month flat | $15-25 per PR |
+| Best For | High volume (50+ PRs/month) | Low-medium volume |
+| Review Style | Score-based (0-5) | Finding-based (severity markers) |
+| Setup | API key + GitHub workflow | Claude admin settings |
+| Auto-resolve | Manual | Automatic |
+
+**New Files:**
+- `.karimo/templates/REVIEW_TEMPLATE.md` — Best practices template for Code Review guidelines
+
+**New Command Flags:**
+- `/karimo-configure --code-review` — Setup instructions for Claude Code Review
+- `/karimo-configure --review` — Interactive provider choice
+
+**Code Review Severity Markers:**
+| Marker | Level | Action |
+|--------|-------|--------|
+| 🔴 | Normal | Bug to fix before merge |
+| 🟡 | Nit | Minor issue, worth fixing |
+| 🟣 | Pre-existing | Bug in codebase, not from this PR |
+
+### Changed
+
+**PM Agent Updates:**
+- Added provider detection from `config.yaml` (`review_provider` field)
+- Added Code Review revision loop alongside Greptile loop
+- Updated model escalation triggers for finding-based reviews
+
+**Configuration Changes:**
+- `greptile_enabled` field replaced by `review_provider: none | greptile | code-review`
+- REVIEW.md auto-generated from template with boundaries injected
+
+**Phase 3 Clarification:**
+- Removed "coming soon" dashboard language
+- Clarified GitHub-native monitoring approach via `/karimo-status`, `/karimo-overview`, PR labels
+
+**Documentation Updates:**
+- PHASES.md — Rewrote Phase 2 with provider choice, Phase 3 for GitHub-native monitoring
+- SAFEGUARDS.md — Added Code Review section alongside Greptile
+- CI-CD.md — Added Code Review setup section
+- GETTING-STARTED.md — Added provider choice FAQ
+- ARCHITECTURE.md — Updated review phase for both providers
+- DASHBOARD.md — Clarified GitHub-native approach, added query examples
+- CLAUDE.md — Updated for provider choice
+- README.md — Updated FAQ with provider comparison
+
+**Doctor Command:**
+- Added review provider status checks
+- Shows configured provider and status
+
+---
+
 ## [4.1.0] - 2026-03-09
 
 ### Removed
