@@ -18,7 +18,7 @@
 KARIMO is a **framework and Claude Code plugin** for PRD-driven autonomous development — one of the most comprehensive Claude Code plugins available. Think of it as **plan mode on steroids**, leveraging Claude Code's latest features including [native worktree isolation](https://docs.anthropic.com/en/docs/claude-code/common-workflows), [sub-agent architecture](https://docs.anthropic.com/en/docs/claude-code/sub-agents), and model routing.
 
 
-> **Philosophy:** You are the architect, agents are the builders, Greptile is the *optional* inspector.
+> **Philosophy:** You are the architect, agents are the builders, automated review is the *optional* inspector.
 
 ---
 
@@ -39,7 +39,7 @@ KARIMO is a **framework and Claude Code plugin** for PRD-driven autonomous devel
 | **Plan** | Structured PRD interview captures requirements | 5-round interview, codebase investigation, agent-optimized output |
 | **Tasks** | PRD decomposed into isolated task briefs | Self-contained briefs, dependency graph, parallel-ready |
 | **Execute** | Agents work in parallel isolation | Git worktrees, feature branches, findings propagation |
-| **Review** | Greptile provides objective code review | 0-5 scoring, revision loops, model escalation (optional) |
+| **Review** | Automated code review (Greptile or Code Review) | Revision loops, model escalation, quality gates (optional) |
 | **Merge** | Clear audit trail at both levels | Task PRs target main directly, wave-ordered merges |
 | **Monitor** | Real-time visibility into progress | `/karimo-status`, `/karimo-overview`, PR labels |
 
@@ -193,8 +193,8 @@ Full reference: [COMMANDS.md](.karimo/docs/COMMANDS.md)
 | Phase | What You Get |
 |-------|--------------|
 | **Phase 1: Execute PRD** | PRD interviews, agent execution, worktrees, PRs — fully functional out of the box |
-| **Phase 2: Automate Review** | Add Greptile for code quality gates, revision loops, model escalation (requires API key) |
-| **Phase 3: Monitor & Review** | Dashboard for team-wide visibility (work in progress) |
+| **Phase 2: Automate Review** | Choose Greptile ($30/mo) or Claude Code Review ($15-25/PR) for quality gates, revision loops, model escalation |
+| **Phase 3: Monitor & Review** | GitHub-native monitoring via `/karimo-status`, `/karimo-overview`, and PR labels |
 
 Everyone starts at Phase 1. Add phases as you build trust with the system.
 
@@ -259,18 +259,29 @@ CLAUDE.md contains only a minimal reference block (~8 lines).
 
 Point Claude to this directory and ask. Run `claude` in the KARIMO repo (or your project with KARIMO installed) and ask your question. 90% of challenges can be answered by letting Claude read the documentation and understand the repository.
 
-### Can I run KARIMO without Greptile?
+### Can I run KARIMO without automated code review?
 
-Yes. KARIMO installs zero workflows by default. PRD interviews, agent execution, worktrees, and PRs all work out of the box. Greptile adds automated code review with revision loops (Phase 2), but it's optional. Without Greptile, task PRs are created and you review them manually.
+Yes. KARIMO installs zero review workflows by default. PRD interviews, agent execution, worktrees, and PRs all work out of the box. Automated review (Phase 2) adds revision loops and quality gates, but it's optional. Without it, task PRs are created and you review them manually.
 
-### How do I set up Greptile?
+### How do I set up automated code review?
 
-1. Get an API key from [greptile.com](https://greptile.com)
-2. Run `/karimo-configure --greptile` to install the Greptile workflow
-3. Add `GREPTILE_API_KEY` to your GitHub repository secrets
-4. PRs with the `karimo` label will trigger automated review
+Run `/karimo-configure --review` to choose your provider:
 
-The workflow handles the rest — scoring PRs on a 0-5 scale, posting review comments, and triggering revision loops when scores fall below 3.
+| Provider | Pricing | Best For | Setup |
+|----------|---------|----------|-------|
+| **Greptile** | $30/month flat | High volume (50+ PRs/month) | API key + GitHub workflow |
+| **Claude Code Review** | $15-25 per PR | Low-medium volume | Claude admin settings |
+
+**Greptile setup:**
+1. Run `/karimo-configure --greptile`
+2. Add `GREPTILE_API_KEY` to GitHub secrets
+
+**Claude Code Review setup:**
+1. Run `/karimo-configure --code-review`
+2. Enable at `claude.ai/admin-settings/claude-code`
+3. Install Claude GitHub App
+
+Both providers support revision loops and model escalation.
 
 ### Having issues?
 
