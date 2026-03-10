@@ -233,10 +233,17 @@ task-branch-1b ─┘         ▲                  ▲
 
 ### Review Phase (Phase 2)
 
-When Greptile is enabled via `/karimo-configure --greptile`:
+When automated review is enabled via `/karimo-configure --review`:
+
+**Option A: Greptile** (`/karimo-configure --greptile`)
 - `karimo-greptile-review.yml` triggers Greptile review on PR open
 - Greptile scores PRs (0-5 scale)
 - Score < 3 triggers agent revision loop
+
+**Option B: Claude Code Review** (`/karimo-configure --code-review`)
+- Code Review activates automatically on PR
+- Posts inline comments with severity markers (🔴 🟡 🟣)
+- 🔴 findings trigger agent revision loop
 
 ### Human Oversight (`/karimo-overview`)
 
@@ -526,7 +533,9 @@ execution:
 cost:
   escalate_after_failures: 1
   max_attempts: 3
-  greptile_enabled: false
+
+# Review provider: none | greptile | code-review
+review_provider: none
 ```
 
 ### Hardcoded Defaults
