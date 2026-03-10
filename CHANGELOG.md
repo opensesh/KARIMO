@@ -7,6 +7,63 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [4.3.0] - 2026-03-10
+
+### Added
+
+**Atomic Commit Staging for PRD and Brief Generation**
+
+Added commit steps to `/karimo-plan` and `/karimo-execute` to ensure PRD artifacts and task briefs are committed as separate atomic units before execution begins.
+
+**New Steps:**
+- `/karimo-plan` Step 8a: Commit PRD Artifacts — Commits PRD, tasks.yaml, execution_plan.yaml, and status.json immediately after approval
+- `/karimo-execute` Phase 3a: Commit Task Briefs — Commits all generated briefs as a unit before spawning PM agent
+
+**Rationale:** Previously, PRD generation and brief creation didn't commit, leading to 16+ uncommitted files accumulating. Now each phase is a discrete commit, providing:
+- Clean atomic history
+- Safe interruption points (work saved even if session ends)
+- Clear traceability (PRD commit separate from brief commit separate from task commits)
+
+### Changed
+
+**Slug-Based File Naming for Searchability**
+
+Updated PRD and brief file naming to include the slug for better searchability and distinguishable editor tabs.
+
+**Before:**
+```
+.karimo/prds/003_feature-slug/
+├── PRD.md                    # Generic filename
+├── briefs/
+│   ├── 1a.md                 # Generic filename
+│   └── 1b.md
+```
+
+**After:**
+```
+.karimo/prds/003_feature-slug/
+├── PRD_feature-slug.md       # Searchable filename
+├── briefs/
+│   ├── 1a_feature-slug.md    # Searchable filename
+│   └── 1b_feature-slug.md
+```
+
+**Benefits:**
+- Quick file search across multiple PRDs (search for "PRD_user-profiles" vs 30 matches for "PRD.md")
+- Distinguishable editor tabs when multiple PRDs/briefs are open
+- Clear identification in git history
+
+**Files Updated:**
+| File | Changes |
+|------|---------|
+| `karimo-reviewer.md` | PRD.md → PRD_{slug}.md |
+| `karimo-brief-writer.md` | {task_id}.md → {task_id}_{slug}.md |
+| `karimo-pm.md` | Updated brief and PRD path references |
+| `karimo-plan.md` | Added Step 8a, updated folder structure |
+| `karimo-execute.md` | Added Phase 3a, updated brief paths |
+
+---
+
 ## [4.2.1] - 2026-03-10
 
 ### Fixed
