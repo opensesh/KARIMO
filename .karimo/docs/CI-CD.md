@@ -148,9 +148,11 @@ If you want previews to run but not block merges:
 
 ---
 
-## Greptile Integration (Optional)
+## Automated Code Review Integration (Optional)
 
-KARIMO installs zero workflows by default. Greptile is available as an explicit opt-in:
+KARIMO installs zero review workflows by default. Choose your review provider with `/karimo-configure --review`:
+
+### Option A: Greptile
 
 ```bash
 /karimo-configure --greptile
@@ -163,7 +165,37 @@ When enabled:
 2. Score ≥ 3 → `greptile-passed` label
 3. Score < 3 → `greptile-needs-revision` label, agent revises
 
-Greptile reviews code quality, not deployment. See [PHASES.md](PHASES.md) for details.
+**Pricing:** $30/month flat, 14-day trial
+
+### Option B: Claude Code Review
+
+```bash
+/karimo-configure --code-review
+```
+
+This creates `REVIEW.md` with review guidelines and provides setup instructions.
+
+When enabled:
+1. Task PR created → Code Review multi-agent fleet activates
+2. Inline comments posted with severity markers (🔴 🟡 🟣)
+3. 🔴 findings → revision loop, 🟡/🟣 → logged but not blocking
+
+**Setup:**
+1. Enable at `claude.ai/admin-settings/claude-code`
+2. Install Claude GitHub App on repository
+3. Enable repository for Code Review
+
+**Pricing:** $15-25 per review (token-based)
+
+### Provider Comparison
+
+| Feature | Greptile | Code Review |
+|---------|----------|-------------|
+| Best for | High volume (50+ PRs/month) | Low-medium volume |
+| Style | Score-based (0-5) | Finding-based (severity) |
+| Auto-resolve | Manual | Automatic |
+
+Both providers enable revision loops and model escalation. See [PHASES.md](PHASES.md) for details.
 
 ---
 
