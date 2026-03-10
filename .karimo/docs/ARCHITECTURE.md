@@ -476,7 +476,7 @@ The PM Agent updates the `agent_status` field in real-time as tasks progress thr
 | `in-review` | PR created | Awaiting code review |
 | `needs-revision` | Greptile score < 3 | Revision loop active |
 | `needs-human-review` | 3 failed attempts | Hard gate, human intervention required |
-| `done` | PR merged | Task complete (set by `karimo-sync.yml`) |
+| `done` | PR merged | Task complete (detected via git state) |
 
 This ensures the Kanban board reflects actual execution state, not just post-merge updates. The `update_project_status` helper in `karimo-pm.md` handles all status transitions.
 

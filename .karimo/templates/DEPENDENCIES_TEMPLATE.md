@@ -83,7 +83,7 @@ A dependency on work in a different PRD/feature branch.
 A modifier that indicates the dependency is blocking task completion. Can be combined with any classification.
 
 **PM Agent Response:**
-- Immediate notification via `karimo-dependency-watch` workflow
+- PM Agent escalates immediately via urgent issue creation
 - Prioritize resolution
 - Consider pausing affected tasks
 
@@ -241,4 +241,4 @@ When a cross-PRD finding is recorded:
 ---
 
 *This file is maintained by KARIMO task agents and the PM Agent.*
-*Runtime dependencies trigger the `karimo-dependency-watch` workflow when PM Action is PENDING.*
+*The PM Agent evaluates runtime dependencies when PM Action is PENDING.*
