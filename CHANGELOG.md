@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [5.5.2] - 2026-03-11
+
+### Fixed
+
+- **Update script bug**: VERSION/MANIFEST files now properly update on disk during `/karimo-update`
+  - Added `-f` flag to force overwrite permissions
+  - Added error checking for cp commands
+  - Added verification that VERSION file updated with expected content
+- Doctor now correctly identifies and flags deprecated commands for removal
+- Documentation updated to reflect actual component counts (15 agents, 11 commands, 12 templates)
+
+### Changed
+
+- MANIFEST.json no longer includes deprecated commands in expected counts
+  - Removed karimo-cd-config.md (use `/karimo-configure --cd`)
+  - Removed karimo-execute.md (use `/karimo-run`)
+  - Removed karimo-orchestrate.md (use `/karimo-run`)
+- Update script now automatically removes deprecated command files during updates
+- Doctor Check 2.5 added to detect and report deprecated files
+
+---
+
 ## [5.5.1] - 2026-03-11
 
 ### Changed
