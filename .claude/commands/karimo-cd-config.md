@@ -1,5 +1,15 @@
 # /karimo-cd-config — CD Provider Configuration
 
+**⚠️ DEPRECATED:** This command is now part of `/karimo-configure`. Use `/karimo-configure --cd` instead.
+
+**Migration:**
+- `/karimo-cd-config` → `/karimo-configure --cd` (configure CD provider)
+- `/karimo-cd-config --check` → `/karimo-configure --check` (view configuration)
+
+**This command will be removed in v6.0.**
+
+---
+
 Configure your continuous deployment provider to skip preview builds for KARIMO task branches.
 
 ## Usage
@@ -20,6 +30,30 @@ KARIMO task branches contain partial code that won't build in isolation:
 **This is expected.** The code works once all wave tasks merge to main.
 
 ## Behavior
+
+### Step 0: Show Deprecation Warning
+
+Display deprecation message at the start of execution:
+
+```
+╭──────────────────────────────────────────────────────────────╮
+│  ⚠️  DEPRECATED: /karimo-cd-config                           │
+╰──────────────────────────────────────────────────────────────╯
+
+This command is now part of /karimo-configure.
+
+Use instead:
+  • /karimo-configure --cd    (configure CD provider)
+  • /karimo-configure --check (view current config)
+
+This command will be removed in v6.0.
+
+Continuing with legacy flow...
+```
+
+Then proceed with Steps 1-4 below (command still functional).
+
+---
 
 ### Step 1: Provider Detection
 
