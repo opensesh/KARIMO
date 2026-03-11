@@ -12,6 +12,21 @@ KARIMO agents execute tasks defined in PRDs. The human architect designs the fea
 
 ---
 
+## Command Context
+
+Agents are spawned by these primary commands:
+- `/karimo-plan` — Spawns interviewer + investigator + reviewer
+- `/karimo-orchestrate` — Creates feature branch, spawns PM agent (v5.0)
+- `/karimo-execute` — Spawns PM agent (v4.0 or as called by orchestrate)
+- `/karimo-merge` — Final PR creation after feature branch execution (v5.0)
+- `/karimo-modify` — Spawns interviewer to modify approved PRD
+- `/karimo-feedback` — Quick learning capture (single finding)
+- `/karimo-learn` — Deep learning cycle with investigation
+
+Task agents (implementer, tester, documenter) are spawned by PM agent, not directly by commands.
+
+---
+
 ## Execution Models
 
 KARIMO v5.0 supports two execution models:
