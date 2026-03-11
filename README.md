@@ -51,7 +51,7 @@ KARIMO is a **framework and Claude Code plugin** for PRD-driven autonomous devel
 |---------|---------------|
 | **Native worktree isolation** | Parallel execution via Claude Code's [`isolation: worktree`](https://docs.anthropic.com/en/docs/claude-code/common-workflows) |
 | **Sub-agent architecture** | 13 specialized agents (7 coordination + 6 task) using [Claude Code sub-agents](https://docs.anthropic.com/en/docs/claude-code/sub-agents) |
-| **Model routing** | Sonnet for complexity 1-3, Opus for 4+, with automatic escalation on failures |
+| **Model routing** | Sonnet for complexity 1-2, Opus for 3+, with automatic escalation on failures |
 | **Structured interviews** | Multi-round PRD questions following user-controlled templates |
 | **Two-tier planning** | PRDs decomposed into self-contained task briefs |
 | **Wave-based execution** | Dependency graph determines parallel vs sequential tasks |
