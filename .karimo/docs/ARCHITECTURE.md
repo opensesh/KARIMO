@@ -93,8 +93,7 @@ Target Project/
 │   │   ├── status.md                # /karimo-status
 │   │   ├── configure.md             # /karimo-configure
 │   │   ├── update.md                # /karimo-update
-│   │   ├── feedback.md              # /karimo-feedback
-│   │   ├── learn.md                 # /karimo-learn
+│   │   ├── feedback.md              # /karimo-feedback (unified with complexity detection)
 │   │   ├── doctor.md                # /karimo-doctor
 │   │   └── test.md                  # /karimo-test
 │   ├── skills/                      # 5 skills from manifest
@@ -108,17 +107,19 @@ Target Project/
 ├── .karimo/
 │   ├── MANIFEST.json                # Single source of truth
 │   ├── VERSION                      # Version tracking
-│   ├── templates/                   # 9 templates from manifest
+│   ├── templates/                   # 10 templates from manifest
 │   │   ├── PRD_TEMPLATE.md
 │   │   ├── INTERVIEW_PROTOCOL.md
 │   │   ├── TASK_SCHEMA.md
 │   │   ├── STATUS_SCHEMA.md
 │   │   ├── DEPENDENCIES_TEMPLATE.md
 │   │   ├── EXECUTION_PLAN_SCHEMA.md
-│   │   ├── LEARN_INTERVIEW_PROTOCOL.md
-│   │   ├── FINDINGS_TEMPLATE.md
+│   │   ├── FEEDBACK_INTERVIEW_PROTOCOL.md   # Adaptive feedback interviews
+│   │   ├── FEEDBACK_DOCUMENT_TEMPLATE.md    # Feedback investigation artifacts
 │   │   └── TASK_BRIEF_TEMPLATE.md
-│   └── prds/                        # Created PRDs stored here
+│   ├── prds/                        # Created PRDs stored here
+│   ├── feedback/                    # Feedback investigation documents (complex path)
+│   └── learnings.md                 # Accumulated rules from feedback
 │
 ├── .github/
 │   └── ISSUE_TEMPLATE/
@@ -662,23 +663,26 @@ Immediate capture of single observations:
 - Rule appended to `.karimo/learnings.md`
 - Time: ~2 minutes
 
-### Scope 2: Deep Learning (`/karimo-learn`)
+### Complex Path (Investigation Mode)
 
-Comprehensive three-mode investigation cycle:
+Deep investigation for unclear or systemic issues (30% of cases):
 
-| Mode | Agent | Output |
+| Step | Agent | Output |
 |------|-------|--------|
-| 1. Interview | Opus | `interview.md` with audit directives |
-| 2. Audit | karimo-learn-auditor | `findings.md` with evidence |
-| 3. Review & Act | Human + Agent | Applied changes to config/docs |
+| 1. Detection | Auto-detect complexity | "This needs investigation..." |
+| 2. Interview | karimo-interviewer (feedback mode) | Investigation directives |
+| 3. Audit | karimo-feedback-auditor | Evidence, root cause, recommendations |
+| 4. Document | Generate feedback doc | `.karimo/feedback/{slug}.md` |
+| 5. Review & Apply | Human approval | Changes to multiple files |
 
 Key features:
+- Adaptive interview (3-7 questions, not rigid rounds)
 - Evidence-based investigation (status.json, PR history, codebase)
 - Per-change approval gate
-- Continuity across cycles ("Last time you flagged X...")
-- Time: ~45 minutes
+- Creates feedback document for provenance
+- Time: 10-20 minutes
 
-Learnings are stored in `.karimo/learnings.md`, making them available to all future agent invocations.
+Learnings are stored in `.karimo/learnings.md`, making them available to all future agent invocations. Investigation artifacts are preserved in `.karimo/feedback/` for reference.
 
 See [COMPOUND-LEARNING.md](COMPOUND-LEARNING.md) for full documentation.
 
