@@ -368,7 +368,9 @@ Returns:
   "prds": [
     {
       "slug": "user-profiles",
-      "version": "4.0",
+      "version": "5.0",
+      "execution_mode": "feature-branch",
+      "feature_branch": "feature/user-profiles",
       "status": "active",
       "progress": 0.8,
       "waves": {
