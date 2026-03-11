@@ -1,5 +1,5 @@
 {
-  "version": "5.0.0",
+  "version": "5.1.0",
   "agents": [
     "karimo-brief-writer.md",
     "karimo-documenter.md",
@@ -8,7 +8,7 @@
     "karimo-implementer-opus.md",
     "karimo-interviewer.md",
     "karimo-investigator.md",
-    "karimo-learn-auditor.md",
+    "karimo-feedback-auditor.md",
     "karimo-pm.md",
     "karimo-review-architect.md",
     "karimo-reviewer.md",
@@ -40,9 +40,9 @@
   "templates": [
     "EXECUTION_PLAN_SCHEMA.md",
     "DEPENDENCIES_TEMPLATE.md",
-    "FINDINGS_TEMPLATE.md",
+    "FEEDBACK_DOCUMENT_TEMPLATE.md",
+    "FEEDBACK_INTERVIEW_PROTOCOL.md",
     "INTERVIEW_PROTOCOL.md",
-    "LEARN_INTERVIEW_PROTOCOL.md",
     "METRICS_SCHEMA.md",
     "PRD_TEMPLATE.md",
     "REVIEW_TEMPLATE.md",
