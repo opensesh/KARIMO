@@ -136,6 +136,48 @@ cleanup_stale_files() {
     echo $removed
 }
 
+# Remove deprecated files that are no longer needed
+cleanup_deprecated_files() {
+    local target_dir="$1"
+    local removed=0
+
+    echo "  Cleaning up deprecated files..."
+
+    # Remove deprecated commands
+    if [ -f "$target_dir/.claude/commands/karimo-cd-config.md" ]; then
+        rm -f "$target_dir/.claude/commands/karimo-cd-config.md"
+        removed=$((removed + 1))
+    fi
+    if [ -f "$target_dir/.claude/commands/karimo-execute.md" ]; then
+        rm -f "$target_dir/.claude/commands/karimo-execute.md"
+        removed=$((removed + 1))
+    fi
+    if [ -f "$target_dir/.claude/commands/karimo-orchestrate.md" ]; then
+        rm -f "$target_dir/.claude/commands/karimo-orchestrate.md"
+        removed=$((removed + 1))
+    fi
+
+    # Remove empty worktrees directory if it exists
+    if [ -d "$target_dir/.claude/worktrees" ]; then
+        if [ -z "$(ls -A "$target_dir/.claude/worktrees")" ]; then
+            echo "    Removing empty worktrees directory..."
+            rmdir "$target_dir/.claude/worktrees"
+        fi
+    fi
+
+    # Ensure .worktrees/ is in .gitignore
+    if [ -f "$target_dir/.gitignore" ]; then
+        if ! grep -q "^\.worktrees/$" "$target_dir/.gitignore"; then
+            echo "    Adding .worktrees/ to .gitignore..."
+            echo ".worktrees/" >> "$target_dir/.gitignore"
+        fi
+    fi
+
+    if [ $removed -gt 0 ]; then
+        echo "    Removed $removed deprecated command(s)"
+    fi
+}
+
 # ==============================================================================
 # VERSION COMPARISON
 # ==============================================================================
@@ -415,6 +457,9 @@ if [ $TOTAL_CLEANED -gt 0 ]; then
     echo "    Removed $CLEANED_AGENTS stale agents, $CLEANED_COMMANDS commands, $CLEANED_SKILLS skills"
 fi
 
+# Remove deprecated files
+cleanup_deprecated_files "$PROJECT_ROOT"
+
 # Update templates
 echo "  Updating templates..."
 for template in $(manifest_list "templates" "$MANIFEST"); do
@@ -462,8 +507,23 @@ fi
 
 # Update VERSION and MANIFEST
 echo "  Updating version info..."
-cp "$KARIMO_SOURCE/.karimo/VERSION" "$PROJECT_ROOT/.karimo/VERSION"
-cp "$MANIFEST" "$PROJECT_ROOT/.karimo/MANIFEST.json"
+if ! cp -f "$KARIMO_SOURCE/.karimo/VERSION" "$PROJECT_ROOT/.karimo/VERSION"; then
+    echo -e "${RED}Error: Failed to update VERSION file${NC}"
+    exit 1
+fi
+if ! cp -f "$MANIFEST" "$PROJECT_ROOT/.karimo/MANIFEST.json"; then
+    echo -e "${RED}Error: Failed to update MANIFEST.json${NC}"
+    exit 1
+fi
+
+# Verify the updates
+UPDATED_VERSION=$(cat "$PROJECT_ROOT/.karimo/VERSION" | tr -d '[:space:]')
+if [ "$UPDATED_VERSION" != "$LATEST_VERSION" ]; then
+    echo -e "${RED}Error: VERSION file update verification failed${NC}"
+    echo "  Expected: $LATEST_VERSION"
+    echo "  Got: $UPDATED_VERSION"
+    exit 1
+fi
 
 # Update the update script itself
 if [ -f "$KARIMO_SOURCE/.karimo/update.sh" ]; then
