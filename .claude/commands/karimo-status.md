@@ -399,6 +399,17 @@ Returns:
 }
 ```
 
+## Status Schema Reference
+
+For complete field definitions, see [STATUS_SCHEMA.md](../../.karimo/templates/STATUS_SCHEMA.md).
+
+New in v5.0:
+- `execution_mode` — "feature-branch" or "direct-to-main"
+- `feature_branch` — Feature branch name (v5.0 only)
+- `ready_for_merge_at` — Timestamp when ready-for-merge status set
+- `merged_to_main_at` — Timestamp when final PR merged to main
+- `pr_target` — Per-task field tracking PR base branch
+
 ---
 
 ## Dashboard Queries

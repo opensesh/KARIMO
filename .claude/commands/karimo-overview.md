@@ -231,6 +231,10 @@ Summary: 4 PRDs with dependencies · 1 running · 3 blocked
    - Calculate completion percentage
    - Determine if PRD is running, ready, or complete
 
+## Status Schema Reference
+
+For complete PRD status values and field definitions, see [STATUS_SCHEMA.md](../../.karimo/templates/STATUS_SCHEMA.md).
+
 ---
 
 ## Empty States
