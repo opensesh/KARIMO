@@ -22,7 +22,6 @@ Reference for all KARIMO slash commands available in Claude Code.
 | Command | Purpose |
 |---------|---------|
 | `/karimo-configure` | Create or update project configuration |
-| `/karimo-cd-config` | Configure CD provider to skip KARIMO branch previews |
 | `/karimo-doctor` | Check installation health |
 | `/karimo-test` | Installation smoke test |
 | `/karimo-update` | Check for and apply KARIMO updates |
@@ -569,6 +568,8 @@ Create or update configuration in `.karimo/config.yaml` (single source of truth)
 ```
 /karimo-configure              # Create new config or update existing
 /karimo-configure --reset      # Start fresh, ignore existing config
+/karimo-configure --cd         # Configure CD provider to skip KARIMO branches
+/karimo-configure --check      # Show current configuration status
 ```
 
 ### Flags
@@ -579,6 +580,8 @@ Create or update configuration in `.karimo/config.yaml` (single source of truth)
 | `--greptile` | Install Greptile workflow only |
 | `--code-review` | Setup Claude Code Review (instructions only) |
 | `--review` | Choose between review providers (interactive) |
+| `--cd` | Configure CD provider to skip KARIMO branches |
+| `--check` | Show current configuration status |
 
 ### What It Does
 
@@ -680,6 +683,16 @@ When config already exists, shows current vs new values:
 
 ## /karimo-cd-config
 
+**⚠️ DEPRECATED:** This command is now part of `/karimo-configure`. Use `/karimo-configure --cd` instead.
+
+**Migration:**
+- `/karimo-cd-config` → `/karimo-configure --cd` (configure CD provider)
+- `/karimo-cd-config --check` → `/karimo-configure --check` (view configuration)
+
+**This command will be removed in v6.0.**
+
+---
+
 Configure your continuous deployment provider to skip preview builds for KARIMO task branches.
 
 ### Usage
@@ -743,10 +756,10 @@ Non-KARIMO branches (feature/*, fix/*, etc.) will deploy normally.
 
 | Scenario | Command |
 |----------|---------|
-| Initial KARIMO setup | Run during `/karimo-configure` or after |
-| Previews failing on task PRs | `/karimo-cd-config` |
-| Changing CD provider | `/karimo-cd-config` |
-| Check current status | `/karimo-cd-config --check` |
+| Initial KARIMO setup | Run during `/karimo-configure` (Step 7) or after with `--cd` |
+| Previews failing on task PRs | `/karimo-configure --cd` |
+| Changing CD provider | `/karimo-configure --cd` |
+| Check current status | `/karimo-configure --check` |
 
 ### Related Documentation
 
