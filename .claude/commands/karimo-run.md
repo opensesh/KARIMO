@@ -22,7 +22,7 @@ Execute an approved PRD using feature branch workflow (v5.0). This is the recomm
 2. **Generates task briefs** — Self-contained instructions for each task
 3. **Executes tasks in waves** — Parallel execution where possible
 4. **Creates PRs** — Task PRs target feature branch (not main)
-5. **Prepares for final merge** — Run `/karimo-finish` when complete
+5. **Prepares for final merge** — Run `/karimo-merge` when complete
 
 ## Benefits Over Direct-to-Main
 
@@ -50,7 +50,7 @@ When all tasks complete, the feature branch is ready for final review:
 
 ```bash
 # Create final PR to main
-/karimo-finish --prd user-profiles
+/karimo-merge --prd user-profiles
 ```
 
 ## Technical Details
@@ -69,7 +69,7 @@ For full implementation details, see `.claude/commands/karimo-orchestrate.md`.
 | Command | Purpose |
 |---------|---------|
 | `/karimo-plan` | Create PRD (before running) |
-| `/karimo-finish` | Create final PR to main (after running) |
+| `/karimo-merge` | Create final PR to main (after running) |
 | `/karimo-status` | Monitor execution progress |
 | `/karimo-orchestrate` | Original command name (equivalent) |
 

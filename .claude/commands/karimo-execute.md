@@ -12,7 +12,7 @@
 >
 > **To use v5.0 workflow:**
 > 1. Run `/karimo-run --prd {slug}` to execute tasks
-> 2. Run `/karimo-finish --prd {slug}` to create final PR
+> 2. Run `/karimo-merge --prd {slug}` to create final PR
 >
 > This command remains available for backward compatibility but will be removed in v6.0.
 
