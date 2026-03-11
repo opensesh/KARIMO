@@ -216,7 +216,8 @@ When the PM Agent creates the GitHub Issue, use this enhanced template:
 
 ### Execution Context
 
-- **Branch:** `feature/{prd-slug}/{task-id}`
+- **Branch:** `{prd-slug}-{task-id}`
+- **Target:** Determined by PM Agent based on execution mode (feature branch or main)
 - **Worktree:** `.worktrees/{prd-slug}/{task-id}`
 - **Brief:** `.karimo/prds/{prd-slug}/briefs/{task-id}_{prd-slug}.md`
 
