@@ -7,6 +7,89 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [5.4.0] - 2026-03-11
+
+### Added
+
+**CD Configuration Consolidation into `/karimo-configure`**
+
+New flags for unified configuration management:
+
+- **`--cd` flag** — Configure CD provider to skip KARIMO task branch previews
+  - Auto-detects CD provider (Vercel, Netlify, Render, Railway, Fly.io)
+  - Applies ignore rules to prevent noise from partial code failures
+  - Updates `config.yaml` with CD configuration state
+  - Supports all providers from `/karimo-cd-config`
+
+- **`--check` flag** — View current configuration status at a glance
+  - Shows project settings (runtime, framework, package manager)
+  - Displays GitHub configuration (owner, repository)
+  - Shows review provider status (none, greptile, code-review)
+  - Shows CD provider status (provider, configured/skipped/pending)
+  - Displays last updated timestamp
+
+**CD Configuration Schema in `config.yaml`**
+
+New `cd` section stores CD provider state:
+
+```yaml
+cd:
+  provider: vercel          # vercel | netlify | render | railway | fly | none
+  status: configured        # configured | skipped | pending
+  pattern: "^feature/|-[0-9]+[a-z]?$"  # Branch ignore pattern
+  configured_at: "2026-03-11T10:30:00Z"
+```
+
+**Enhanced Step 7 in `/karimo-configure` Full Flow**
+
+CD integration step now persists configuration to `config.yaml`:
+- Auto-detects CD provider during full configuration flow
+- Presents options: Configure now, Skip for now, Learn more
+- Updates `config.yaml` with CD section based on user choice
+- Marks status as `configured` or `skipped`
+
+### Changed
+
+**CD Configuration Workflow**
+
+- CD configuration now integrated into `/karimo-configure` command
+- Users can configure CD provider during initial setup (Step 7) or later with `--cd` flag
+- Configuration state persisted in `config.yaml` for full traceability
+- `--check` flag provides single view of all configuration settings
+
+**Documentation Updates**
+
+All documentation updated to reference new consolidated commands:
+
+- `COMMANDS.md` — Added `--cd` and `--check` flags to `/karimo-configure`, deprecated `/karimo-cd-config`
+- `CI-CD.md` — Updated all references from `/karimo-cd-config` to `/karimo-configure --cd`
+- `README.md` — Updated command reference, added to deprecated list
+- `CLAUDE.md` — Updated command tables, moved `/karimo-cd-config` to deprecated section
+
+### Deprecated
+
+- `/karimo-cd-config` — Use `/karimo-configure --cd` instead (CD configuration consolidated into main config command)
+  - `/karimo-cd-config` → `/karimo-configure --cd` (configure CD provider)
+  - `/karimo-cd-config --check` → `/karimo-configure --check` (view configuration)
+  - Command remains functional with deprecation warning until v6.0 removal
+
+### Migration Guide
+
+**For existing users:**
+
+1. **No immediate action required** — `/karimo-cd-config` still works with deprecation warning
+2. **To migrate:** Use `/karimo-configure --cd` instead of `/karimo-cd-config`
+3. **To check config:** Use `/karimo-configure --check` instead of `/karimo-cd-config --check`
+4. **New users:** CD configuration is now part of `/karimo-configure` Step 7 or via `--cd` flag
+
+**Benefits:**
+- Single command for all configuration needs
+- Consistent flag pattern (`--review`, `--cd`, `--check`)
+- Configuration state persisted in `config.yaml`
+- Quick access to CD configuration via `--cd` flag
+
+---
+
 ## [5.3.0] - 2026-03-11
 
 ### Added
