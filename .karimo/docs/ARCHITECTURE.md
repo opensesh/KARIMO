@@ -279,7 +279,7 @@ This is the primary human oversight touchpoint — check it each morning or afte
 | **Brief Writer** | Generates task briefs | Sonnet | No |
 | **PM Agent** | Coordinates task execution | Sonnet | No |
 | **Review/Architect** | Code-level integration and merge quality | Sonnet | Conflict resolution only |
-| **Learn Auditor** | Investigates learning directives | Sonnet | No |
+| **Feedback Auditor** | Investigates complex feedback issues | Sonnet | No |
 
 #### Task Agents
 
@@ -287,27 +287,27 @@ KARIMO uses a dual-model system for task agents. Each agent type has a Sonnet va
 
 | Agent | Complexity | Purpose | Model | Writes Code? |
 |-------|------------|---------|-------|--------------|
-| **Implementer** | 1-4 | Standard coding tasks | Sonnet | Yes |
-| **Implementer (Opus)** | 5+ | Complex coding tasks | Opus | Yes |
-| **Tester** | 1-4 | Standard test writing | Sonnet | Yes |
-| **Tester (Opus)** | 5+ | Complex test suites | Opus | Yes |
-| **Documenter** | 1-4 | Standard documentation | Sonnet | Yes (docs) |
-| **Documenter (Opus)** | 5+ | Complex documentation | Opus | Yes (docs) |
+| **Implementer** | 1-3 | Standard coding tasks | Sonnet | Yes |
+| **Implementer (Opus)** | 4+ | Complex coding tasks | Opus | Yes |
+| **Tester** | 1-3 | Standard test writing | Sonnet | Yes |
+| **Tester (Opus)** | 4+ | Complex test suites | Opus | Yes |
+| **Documenter** | 1-3 | Standard documentation | Sonnet | Yes (docs) |
+| **Documenter (Opus)** | 4+ | Complex documentation | Opus | Yes (docs) |
 
 The PM Agent coordinates but never writes code. Task agents are spawned by PM to execute work in isolated worktrees.
 
 **Task Agent Selection:**
 - PM analyzes task type from title/description and complexity from task definition
-- Implementation tasks → `karimo-implementer` (or `karimo-implementer-opus` for complexity 5+)
-- Test-only tasks → `karimo-tester` (or `karimo-tester-opus` for complexity 5+)
-- Documentation-only tasks → `karimo-documenter` (or `karimo-documenter-opus` for complexity 5+)
+- Implementation tasks → `karimo-implementer` (or `karimo-implementer-opus` for complexity 4+)
+- Test-only tasks → `karimo-tester` (or `karimo-tester-opus` for complexity 4+)
+- Documentation-only tasks → `karimo-documenter` (or `karimo-documenter-opus` for complexity 4+)
 - Mixed tasks → `karimo-implementer` (handles inline)
 
 **Model Assignment:**
 | Complexity | Model | Rationale |
 |------------|-------|-----------|
-| 1-4 | Sonnet | Efficient for straightforward tasks |
-| 5+ | Opus | Complex reasoning, multi-file coordination |
+| 1-3 | Sonnet | Efficient for straightforward tasks |
+| 4+ | Opus | Complex reasoning, multi-file coordination |
 
 The Review/Architect Agent handles code-level integration:
 - Validates task PRs integrate cleanly with feature branch
