@@ -1,6 +1,6 @@
 # Task Schema Reference
 
-**Version:** 2.0
+**Version:** 2.0 (stable, v5.0 compatible)
 **Purpose:** Document the `tasks.yaml` format used by KARIMO v2
 **Location:** `.karimo/prds/{slug}/tasks.yaml`
 

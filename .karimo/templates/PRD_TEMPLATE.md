@@ -1,6 +1,6 @@
 # PRD Template (v2)
 
-**Version:** 2.0
+**Version:** 2.0 (stable, v5.0 compatible)
 **Purpose:** Output format for PRDs generated through the KARIMO v2 interview system
 **Usage:** Generated automatically after interview via `/karimo-plan`
 
