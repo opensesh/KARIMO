@@ -1,7 +1,7 @@
 # Status Schema Reference
 
-**Version:** 4.0
-**Purpose:** Document the `status.json` format used by KARIMO v4.0
+**Version:** 5.0
+**Purpose:** Document the `status.json` format used by KARIMO v5.0
 **Location:** `.karimo/prds/{slug}/status.json`
 
 ---
@@ -11,13 +11,19 @@
 Each PRD folder contains a `status.json` file that tracks execution state. This file is:
 - Created by the reviewer agent when the PRD is finalized
 - Updated continuously by the PM agent during execution
-- Read by `/karimo-execute` for resume scenarios
+- Read by `/karimo-orchestrate` or `/karimo-execute` for resume scenarios
 - Read by `/karimo-status` to display progress
 
-**v4.0 Changes:**
-- Removed: `github_project_*`, `feature_branch`, `issue_number`, `worktree*`, `reconciliation_status`
-- Added: `waves` object for wave-level tracking, `pr_labels`, simplified branch naming
-- PRs target main directly (no feature branch)
+**v5.0 Changes:**
+- Added: `execution_mode`, `feature_branch`, `ready_for_merge_at`, `merged_to_main_at`
+- Added: Task field `pr_target` (tracks PR base branch)
+- Added: New PRD status values: `ready-for-merge`, `merging`
+- Feature branch mode: PRs target feature branch, final PR to main
+- Direct-to-main mode: PRs target main (v4.0 backward compatible)
+
+**Backward Compatibility:**
+- Missing `execution_mode` field defaults to "direct-to-main" (v4.0 behavior)
+- v4.0 PRDs continue working without migration
 
 ---
 
@@ -26,26 +32,34 @@ Each PRD folder contains a `status.json` file that tracks execution state. This 
 ```json
 {
   "prd_slug": "user-profiles",
-  "version": "4.0",
+  "version": "5.0",
   "status": "ready",
+  "execution_mode": "feature-branch",
+  "feature_branch": "feature/user-profiles",
   "created_at": "2026-02-19T10:00:00Z",
   "tasks": {}
 }
 ```
 
+**Note:** In direct-to-main mode (v4.0 backward compatible), `execution_mode` is set to "direct-to-main" and `feature_branch` field is omitted.
+
 ---
 
-## Active Execution State
+## Active Execution State (Feature Branch Mode)
 
 ```json
 {
   "prd_slug": "user-profiles",
-  "version": "4.0",
+  "version": "5.0",
   "status": "active",
+  "execution_mode": "feature-branch",
+  "feature_branch": "feature/user-profiles",
   "created_at": "2026-02-19T10:00:00Z",
   "started_at": "2026-02-19T10:30:00Z",
   "completed_at": null,
   "finalized_at": null,
+  "ready_for_merge_at": null,
+  "merged_to_main_at": null,
 
   "waves": {
     "1": { "status": "complete" },
@@ -58,6 +72,7 @@ Each PRD folder contains a `status.json` file that tracks execution state. This 
       "wave": 1,
       "branch": "user-profiles-1a",
       "pr_number": 42,
+      "pr_target": "feature/user-profiles",
       "pr_labels": ["karimo", "karimo-user-profiles", "wave-1"],
       "model": "sonnet",
       "loops": 2,
@@ -71,6 +86,7 @@ Each PRD folder contains a `status.json` file that tracks execution state. This 
       "wave": 1,
       "branch": "user-profiles-1b",
       "pr_number": 43,
+      "pr_target": "feature/user-profiles",
       "pr_labels": ["karimo", "karimo-user-profiles", "wave-1"],
       "model": "sonnet",
       "loops": 1,
@@ -83,6 +99,7 @@ Each PRD folder contains a `status.json` file that tracks execution state. This 
       "status": "running",
       "wave": 2,
       "branch": "user-profiles-2a",
+      "pr_target": "feature/user-profiles",
       "model": "opus",
       "loops": 1,
       "started_at": "2026-02-19T11:00:00Z"
@@ -103,17 +120,20 @@ Each PRD folder contains a `status.json` file that tracks execution state. This 
 
 ---
 
-## Completed State
+## Ready for Merge State (Feature Branch Mode)
 
 ```json
 {
   "prd_slug": "user-profiles",
-  "version": "4.0",
-  "status": "complete",
+  "version": "5.0",
+  "status": "ready-for-merge",
+  "execution_mode": "feature-branch",
+  "feature_branch": "feature/user-profiles",
   "created_at": "2026-02-19T10:00:00Z",
   "started_at": "2026-02-19T10:30:00Z",
   "completed_at": "2026-02-19T12:45:00Z",
-  "finalized_at": "2026-02-19T12:50:00Z",
+  "ready_for_merge_at": "2026-02-19T12:45:00Z",
+  "merged_to_main_at": null,
 
   "waves": {
     "1": { "status": "complete" },
@@ -127,6 +147,47 @@ Each PRD folder contains a `status.json` file that tracks execution state. This 
       "wave": 1,
       "branch": "user-profiles-1a",
       "pr_number": 42,
+      "pr_target": "feature/user-profiles",
+      "pr_labels": ["karimo", "wave-1", "greptile-passed"],
+      "model": "sonnet",
+      "loops": 2,
+      "greptile_score": 4,
+      "started_at": "2026-02-19T10:31:00Z",
+      "merged_at": "2026-02-19T10:55:00Z"
+    }
+  }
+}
+```
+
+## Completed State (Feature Branch Mode)
+
+```json
+{
+  "prd_slug": "user-profiles",
+  "version": "5.0",
+  "status": "complete",
+  "execution_mode": "feature-branch",
+  "feature_branch": "feature/user-profiles",
+  "created_at": "2026-02-19T10:00:00Z",
+  "started_at": "2026-02-19T10:30:00Z",
+  "completed_at": "2026-02-19T12:45:00Z",
+  "ready_for_merge_at": "2026-02-19T12:45:00Z",
+  "merged_to_main_at": "2026-02-19T13:00:00Z",
+  "finalized_at": "2026-02-19T13:05:00Z",
+
+  "waves": {
+    "1": { "status": "complete" },
+    "2": { "status": "complete" },
+    "3": { "status": "complete" }
+  },
+
+  "tasks": {
+    "1a": {
+      "status": "done",
+      "wave": 1,
+      "branch": "user-profiles-1a",
+      "pr_number": 42,
+      "pr_target": "feature/user-profiles",
       "pr_labels": ["karimo", "wave-1", "greptile-passed"],
       "model": "sonnet",
       "loops": 2,
@@ -147,11 +208,15 @@ Each PRD folder contains a `status.json` file that tracks execution state. This 
 | Field | Type | Description |
 |-------|------|-------------|
 | `prd_slug` | string | PRD identifier matching folder name |
-| `version` | string | Schema version ("4.0") |
+| `version` | string | Schema version ("5.0") |
 | `status` | string | Overall PRD status (see values below) |
+| `execution_mode` | string | Execution model: "feature-branch" or "direct-to-main" (v5.0+) |
+| `feature_branch` | string | Feature branch name (only in feature-branch mode, e.g., "feature/user-profiles") |
 | `created_at` | ISO datetime | When PRD was finalized |
 | `started_at` | ISO datetime | When execution started |
 | `completed_at` | ISO datetime | When all tasks finished |
+| `ready_for_merge_at` | ISO datetime | When ready-for-merge status set (feature-branch mode only) |
+| `merged_to_main_at` | ISO datetime | When final PR merged to main (feature-branch mode only) |
 | `finalized_at` | ISO datetime | When finalization step completed |
 | `waves` | object | Map of wave number → wave state |
 | `tasks` | object | Map of task ID → task state |
@@ -164,6 +229,8 @@ Each PRD folder contains a `status.json` file that tracks execution state. This 
 | `ready` | PRD approved, ready for execution |
 | `active` | Execution in progress |
 | `paused` | Execution paused (manual or usage limit) |
+| `ready-for-merge` | All tasks merged to feature branch, awaiting /karimo-merge (v5.0, feature-branch mode only) |
+| `merging` | /karimo-merge in progress (v5.0, feature-branch mode only) |
 | `complete` | All tasks merged, finalization done |
 | `partial` | Some tasks failed, others complete |
 
@@ -181,6 +248,7 @@ Each PRD folder contains a `status.json` file that tracks execution state. This 
 | `wave` | number | Wave number this task belongs to |
 | `branch` | string | Branch name: `{prd-slug}-{task-id}` |
 | `pr_number` | number | Pull request number (when created) |
+| `pr_target` | string | PR base branch (feature branch or main, v5.0+) |
 | `pr_labels` | string[] | Labels applied to the PR |
 | `model` | string | Model assigned ("sonnet" or "opus") |
 | `loops` | number | Number of execution loops |
@@ -211,6 +279,20 @@ Each PRD folder contains a `status.json` file that tracks execution state. This 
 
 ### PRD State
 
+**Feature Branch Mode (v5.0):**
+```
+draft ──► ready ──► active ──► ready-for-merge ──► merging ──► complete
+             │         │              │
+             │         ├──► paused ──►│
+             │         │              │
+             │         └──► partial   │
+             │                        │
+             └─ (/karimo-plan interactive review)
+                                      │
+                                      └─ (/karimo-merge)
+```
+
+**Direct-to-Main Mode (v4.0 compatible):**
 ```
 draft ──► ready ──► active ──► complete
              │         │
@@ -363,14 +445,27 @@ gh pr list --label karimo,needs-revision
 
 ---
 
-## Migration from v3.x
+## Backward Compatibility
 
-v4.0 removes several fields. When reading status.json:
+### v5.0 with v4.0 PRDs
+
+v5.0 is fully backward compatible with v4.0 PRDs. When reading status.json:
+
+1. Check `execution_mode` field
+2. If missing or `"direct-to-main"`: Use v4.0 direct-to-main behavior
+3. If `"feature-branch"`: Use v5.0 feature branch aggregation
+4. PM agent detects mode automatically from status.json
+
+**No migration required for existing v4.0 PRDs.**
+
+### v4.0 with v3.x PRDs
+
+When reading v3.x status.json:
 
 1. Check `version` field (defaults to "3.0" if missing)
-2. Ignore deprecated fields: `github_project_*`, `feature_branch`, `issue_number`, `worktree*`, `reconciliation_status`
-3. Use `branch` format `{prd-slug}-{task-id}` (v4.0) vs `feature/{prd-slug}/{task-id}` (v3.x)
+2. Ignore deprecated fields: `github_project_*`, `issue_number`, `worktree*`, `reconciliation_status`
+3. Use `branch` format `{prd-slug}-{task-id}` (v4.0+) vs `feature/{prd-slug}/{task-id}` (v3.x)
 
 ---
 
-*Generated by [KARIMO v4](https://github.com/opensesh/KARIMO)*
+*Generated by [KARIMO v5](https://github.com/opensesh/KARIMO)*
