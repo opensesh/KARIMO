@@ -8,21 +8,25 @@ Execute an approved PRD using feature branch workflow (v5.0). This is the recomm
 ## Usage
 
 ```bash
-/karimo-run [--prd {slug}] [--dry-run]
+/karimo-run [--prd {slug}] [--dry-run] [--skip-review] [--review-only]
 ```
 
 ## Arguments
 
 - `--prd {slug}` (optional): The PRD slug to execute. If not provided, lists available PRDs.
 - `--dry-run` (optional): Preview the execution plan without making changes.
+- `--skip-review` (optional): Skip pre-execution review and execute immediately after brief generation.
+- `--review-only` (optional): Generate briefs and run review, then stop without executing. Allows manual correction before proceeding.
 
 ## What This Command Does
 
 1. **Creates feature branch** — `feature/{prd-slug}` from main
 2. **Generates task briefs** — Self-contained instructions for each task
-3. **Executes tasks in waves** — Parallel execution where possible
-4. **Creates PRs** — Task PRs target feature branch (not main)
-5. **Prepares for final merge** — Run `/karimo-merge` when complete
+3. **Reviews briefs (optional)** — Validates briefs against codebase reality
+4. **Applies corrections (optional)** — Fixes issues found during review
+5. **Executes tasks in waves** — Parallel execution where possible
+6. **Creates PRs** — Task PRs target feature branch (not main)
+7. **Prepares for final merge** — Run `/karimo-merge` when complete
 
 ## Benefits Over Direct-to-Main
 
@@ -30,6 +34,59 @@ Execute an approved PRD using feature branch workflow (v5.0). This is the recomm
 - **No deployment spam** (Vercel/Netlify/etc.)
 - **Consolidated review** before main merge
 - **Clean git history** with wave-based commits
+
+## Pre-Execution Review Workflow
+
+After generating task briefs, KARIMO offers an optional pre-execution review to validate briefs against codebase reality:
+
+### Default Behavior (Recommended)
+
+```
+Options:
+  1. Review briefs (recommended) — Validate against codebase
+  2. Skip review — Execute immediately
+  3. Cancel — Exit without executing
+```
+
+**If you choose "Review briefs":**
+
+1. **Investigation:** Agent validates assumptions, success criteria, and configurations against actual codebase
+2. **Findings:** Produces document with critical/warning/observation categories
+3. **Correction:** Choose to apply fixes automatically or proceed anyway
+
+**Benefits:**
+- Catches incorrect assumptions before execution
+- Prevents contradictory success criteria
+- Validates configuration prerequisites
+- Significantly increases execution success rate
+
+### Skip Review
+
+Use `--skip-review` to bypass the review gate entirely:
+
+```bash
+/karimo-run --prd feature-name --skip-review
+```
+
+**When to skip:**
+- You've already reviewed the PRD thoroughly
+- Briefs are simple and low-risk
+- You want to test the execution flow quickly
+
+### Review Only
+
+Use `--review-only` to review briefs without executing:
+
+```bash
+/karimo-run --prd feature-name --review-only
+```
+
+**Use case:**
+- Want to see potential issues before committing to execution
+- Need to manually review findings before proceeding
+- Want to gather validation data for PRD improvements
+
+After reviewing, run without `--review-only` to apply corrections and execute.
 
 ## Example
 
