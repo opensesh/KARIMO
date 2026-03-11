@@ -364,23 +364,186 @@ Modify an approved PRD before execution — add, remove, or change tasks with au
 
 ---
 
+## /karimo-run
+
+Execute tasks from an approved PRD using feature branch workflow (v5.0). **This is the recommended execution command.**
+
+> **Note:** This command delegates to `/karimo-orchestrate` with a more intuitive name.
+
+### Usage
+
+```
+/karimo-run --prd {slug}
+/karimo-run --prd {slug} --dry-run
+/karimo-run --prd {slug} --skip-review
+/karimo-run --prd {slug} --review-only
+```
+
+### What It Does
+
+1. **Creates feature branch** — `feature/{prd-slug}` from main
+2. **Generates task briefs** — Self-contained instructions for each task
+3. **Reviews briefs (optional)** — Validates briefs against codebase reality
+4. **Applies corrections (optional)** — Fixes issues found during review
+5. **Executes tasks in waves** — Parallel execution where possible
+6. **Creates PRs** — Task PRs target feature branch (not main)
+7. **Prepares for final merge** — Run `/karimo-merge` when complete
+
+### Arguments
+
+| Flag | Required | Description |
+|------|----------|-------------|
+| `--prd {slug}` | Yes | PRD slug to execute |
+| `--dry-run` | No | Preview execution plan without making changes |
+| `--skip-review` | No | Skip pre-execution review and execute immediately |
+| `--review-only` | No | Generate briefs and review, then stop without executing |
+
+### Pre-Execution Review Workflow (New in v5.1)
+
+After generating task briefs, KARIMO offers an optional pre-execution review to validate briefs against codebase reality.
+
+#### Default Behavior (Recommended)
+
+```
+╭──────────────────────────────────────────────────────────────╮
+│  Briefs Generated: user-profiles                             │
+╰──────────────────────────────────────────────────────────────╯
+
+5 task briefs created
+
+Options:
+  1. Review briefs (recommended) — Validate against codebase
+  2. Skip review — Execute immediately
+  3. Cancel — Exit without executing
+
+Your choice:
+```
+
+**If you choose "Review briefs":**
+
+**Stage 1: Investigation**
+- Agent validates assumptions, success criteria, and configurations against actual codebase
+- Produces findings document with critical/warning/observation categories
+- Findings committed to git: `.karimo/prds/{NNN}_{slug}/review/PRD_REVIEW_pre-orchestration.md`
+
+**Stage 2: Correction (Conditional)**
+```
+╭──────────────────────────────────────────────────────────────╮
+│  Review Complete: user-profiles                              │
+╰──────────────────────────────────────────────────────────────╯
+
+Findings:
+  Critical: 3 — Will likely cause execution failures
+  Warnings: 2 — May cause issues
+  Observations: 1 — FYI only
+
+Critical findings:
+- ESLint rule already at 'error' (Task 1a assumption incorrect)
+- Contradictory lint success criteria across Wave 1
+- Vitest projects not configured (Task 2b will fail)
+
+Options:
+  1. Apply corrections (recommended) — Fix briefs automatically
+  2. Skip corrections — Execute anyway (failures expected)
+  3. Cancel — Exit for manual review
+```
+
+If you choose "Apply corrections":
+- Agent modifies briefs, PRD, or creates new tasks based on findings
+- Corrections committed to git atomically
+- Execution proceeds with corrected briefs
+
+#### Review Benefits
+
+- **Catches incorrect assumptions** before wasting agent time/tokens
+- **Prevents contradictory success criteria** across tasks
+- **Validates configuration prerequisites** exist (vitest projects, ESLint rules, etc.)
+- **Significantly increases execution success rate**
+- **Reduces automated review failures** (Greptile/Code Review)
+
+#### Skip Review
+
+Use `--skip-review` to bypass the review gate entirely:
+
+```
+/karimo-run --prd feature-name --skip-review
+```
+
+**When to skip:**
+- You've already reviewed the PRD thoroughly
+- Briefs are simple and low-risk
+- You want to test the execution flow quickly
+
+#### Review Only
+
+Use `--review-only` to review briefs without executing:
+
+```
+/karimo-run --prd feature-name --review-only
+```
+
+**Use case:**
+- Want to see potential issues before committing to execution
+- Need to manually review findings before proceeding
+- Want to gather validation data for PRD improvements
+
+After reviewing, run without `--review-only` to apply corrections and execute.
+
+### Output
+
+```
+╭──────────────────────────────────────────────────────────────╮
+│  Orchestrate: user-profiles                                  │
+╰──────────────────────────────────────────────────────────────╯
+
+Mode: Feature Branch Aggregation (v5.0)
+Feature Branch: feature/user-profiles (will be created)
+
+✓ Created feature branch: feature/user-profiles
+✓ Generated 5 task briefs
+✓ Review complete: No critical findings
+✓ Spawned PM agent for wave-based execution
+
+Task PRs will target: feature/user-profiles
+Final PR will be created with: /karimo-merge --prd user-profiles
+
+Execution started in background...
+```
+
+### Next Step
+
+When all tasks complete and status is `ready-for-merge`:
+
+```
+/karimo-merge --prd user-profiles
+```
+
+---
+
 ## /karimo-orchestrate
 
 Create feature branch and execute all tasks with PRs targeting the feature branch (v5.0 feature branch mode).
+
+> **Note:** `/karimo-run` is the recommended alias for this command. See `/karimo-run` documentation for full details including the new pre-execution review workflow (v5.1).
 
 ### Usage
 
 ```
 /karimo-orchestrate --prd {slug}
 /karimo-orchestrate --prd {slug} --dry-run
+/karimo-orchestrate --prd {slug} --skip-review
+/karimo-orchestrate --prd {slug} --review-only
 ```
 
 ### What It Does
 
 1. **Creates feature branch** — `feature/{prd-slug}` from main
-2. **Updates status.json** — Sets `execution_mode: "feature-branch"` and `feature_branch: "feature/{prd-slug}"`
-3. **Spawns PM agent** — Executes tasks in wave order with PRs targeting feature branch
-4. **Pauses at completion** — Sets status to `ready-for-merge` when all tasks done
+2. **Generates task briefs** — Self-contained instructions for each task (committed atomically)
+3. **Reviews briefs (optional, v5.1)** — Validates briefs against codebase reality
+4. **Applies corrections (optional, v5.1)** — Fixes issues found during review (committed atomically)
+5. **Updates status.json** — Sets `execution_mode: "feature-branch"` and `feature_branch: "feature/{prd-slug}"`
+6. **Spawns PM agent** — Executes tasks in wave order with PRs targeting feature branch
+7. **Pauses at completion** — Sets status to `ready-for-merge` when all tasks done
 
 ### When to Use
 
@@ -401,6 +564,8 @@ Create feature branch and execute all tasks with PRs targeting the feature branc
 |------|----------|-------------|
 | `--prd {slug}` | Yes | PRD slug to orchestrate |
 | `--dry-run` | No | Preview feature branch plan without execution |
+| `--skip-review` | No | Skip pre-execution review and execute immediately (v5.1) |
+| `--review-only` | No | Generate briefs and review, then stop without executing (v5.1) |
 
 ### Output
 
