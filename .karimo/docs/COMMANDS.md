@@ -9,7 +9,8 @@ Reference for all KARIMO slash commands available in Claude Code.
 | Command | Purpose |
 |---------|---------|
 | `/karimo-plan` | Start PRD interview with interactive approval |
-| `/karimo-overview` | Cross-PRD oversight dashboard |
+| `/karimo-dashboard` | Comprehensive CLI dashboard for KARIMO monitoring |
+| `/karimo-overview` | **DEPRECATED** — Use `/karimo-dashboard` instead |
 | `/karimo-execute` | Execute tasks from PRD (brief gen + execution) |
 | `/karimo-modify` | Modify approved PRD before execution |
 | `/karimo-orchestrate` | Create feature branch and execute tasks (v5.0 feature branch mode) |
@@ -79,91 +80,160 @@ Creates `.karimo/prds/{slug}/`:
 
 ---
 
-## /karimo-overview
+## /karimo-dashboard
 
-Surface all tasks needing human attention and recently completed work across all active PRDs.
+Comprehensive CLI dashboard for KARIMO monitoring with system health, execution insights, and velocity analytics.
 
 ### Usage
 
-```
-/karimo-overview              # Full dashboard view
-/karimo-overview --blocked    # Show only blocked tasks
-/karimo-overview --active     # Show only active PRDs with progress
-/karimo-overview --deps       # Show cross-PRD dependency graph
+```bash
+/karimo-dashboard              # Full dashboard (all 5 sections)
+/karimo-dashboard --active     # Show only active PRDs with progress
+/karimo-dashboard --blocked    # Show only blocked tasks
+/karimo-dashboard --deps       # Show cross-PRD dependency graph
+/karimo-dashboard --prd {slug} # PRD-specific dashboard
+/karimo-dashboard --alerts     # Show only Critical Alerts section
+/karimo-dashboard --activity   # Extended activity feed (last 50 events)
+/karimo-dashboard --json       # JSON output for scripting/automation
+/karimo-dashboard --refresh    # Force refresh (bypass cache)
 ```
 
 ### What It Shows
 
-```
-╭──────────────────────────────────────────────────────────────╮
-│  KARIMO Overview                                             │
-╰──────────────────────────────────────────────────────────────╯
+The dashboard has 5 comprehensive sections:
 
-🚫 Blocked — Needs Human Review
-───────────────────────────────
-
-  PRD: user-profiles
-    [2a] Implement profile edit form
-         PR #44 · Greptile: 2/5, 2/5, 2/5 (3 attempts)
-         → Review PR: https://github.com/owner/repo/pull/44
-
-⚠️  In Revision — Active Loops
-────────────────────────────────
-
-  PRD: token-studio
-    [1c] Token validation logic
-         PR #51 · Greptile: 2/5 (attempt 1 of 3)
-
-🔀 Needs Human Rebase
-──────────────────────
-
-  PRD: user-profiles
-    [2b] Add avatar upload
-         Conflict files: src/types/index.ts
-
-✅ Recently Completed
-─────────────────────
-
-  PRD: user-profiles (4/6 tasks done — 67%)
-    [1a] Create UserProfile component        ✓ merged 3h ago
-    [1b] Add user type definitions           ✓ merged 2h ago
-```
-
-### Dependency Graph (`--deps`)
-
-The `--deps` flag shows cross-PRD dependencies:
+**1. Executive Summary** — System health score, quick stats, next completions
 
 ```
-╭──────────────────────────────────────────────────────────────╮
-│  Cross-PRD Dependency Graph                                  │
-╰──────────────────────────────────────────────────────────────╯
+╭────────────────────────────────────────────────────────────────────╮
+│  KARIMO Dashboard                              Updated: 45s ago    │
+│  System Health: ████████░░ 85%                 Active: 2 PRDs      │
+╰────────────────────────────────────────────────────────────────────╯
 
-user-profiles ──────► notifications
-     │                     │
-     └──────► auth-v2 ◄────┘
+📊 QUICK SUMMARY
+────────────────
+  PRDs:       3 total (2 active, 1 complete)
+  Tasks:      42 total (28 done, 8 running, 4 queued, 2 blocked)
+  Progress:   ████████░░ 67% complete
+  Models:     28 Sonnet, 12 Opus (30% escalation rate)
 
-Blocking Relationships:
-  • notifications blocked by: user-profiles
-  • auth-v2 blocked by: user-profiles, notifications
-
-Runtime Discoveries:
-  • user-profiles/1b discovered dependency on auth-v2 types
-
-Recommended Order:
-  1. user-profiles
-  2. notifications, auth-v2 (parallel)
+  ✅ Next completions:
+    • user-profiles Wave 2 (~2h, 1 task remaining)
+    • token-studio Wave 1 (~6h, 6 tasks queued)
 ```
+
+**2. Critical Alerts** — Blocked, stale, crashed tasks needing intervention
+
+```
+🚨 CRITICAL ALERTS — Needs Immediate Attention
+───────────────────────────────────────────────
+
+  [user-profiles / 2a] BLOCKED — 3 failed Greptile attempts
+    → PR #44 needs human review
+    → Blocked for: 2h 15m
+    → Action: gh pr view 44
+
+  [token-studio / 1c] STALE — Running for 6h 23m
+    → Agent may have crashed
+    → Action: /karimo-execute --prd token-studio --task 1c
+
+  Total: 2 items requiring human intervention
+```
+
+**3. Execution Velocity** — Completion rate, loop efficiency, wave progress, ETAs
+
+```
+📊 EXECUTION VELOCITY — Last 7 Days
+────────────────────────────────────
+
+  Completion Rate:    ████████████░░ 42 tasks (6/day avg)
+  Loop Efficiency:    ████████░░░░░ 2.8 avg (improving ↓)
+  First-Time Pass:    █████░░░░░░░ 45% (↑ from 38%)
+  Review Pass Rate:   ██████████░░ 82% (Greptile avg: 3.2)
+
+  Wave Progress:
+    user-profiles:    Wave 2 of 3  ████████░░ 80%
+    token-studio:     Wave 1 of 4  ███░░░░░░░ 25%
+
+  ETA Projections:
+    user-profiles:    ~2h (Wave 2: 1 task remaining)
+    token-studio:     ~6h (Wave 1: 6 tasks queued)
+```
+
+**4. Resource Usage** — Model distribution, loop distribution, parallel capacity
+
+```
+⚙️  RESOURCE USAGE — Current Cycle
+──────────────────────────────────
+
+  Model Distribution:   Sonnet: 28 tasks (70%)  Opus: 12 tasks (30%)
+  Escalations:          4 tasks (10% escalation rate)
+  Parallel Capacity:    2/3 slots utilized (67%)
+
+  Loop Distribution:
+    1 loop:  ████████████████ 20 tasks (50%)
+    2 loops: ████████ 12 tasks (30%)
+    3 loops: ████ 6 tasks (15%)
+    4+ loops: ██ 2 tasks (5%)  ← Learning candidates
+```
+
+**5. Recent Activity** — Timeline of events across all PRDs
+
+```
+📋 RECENT ACTIVITY — Last 10 Events
+────────────────────────────────────
+
+  3m ago   [user-profiles] Task 2c completed (PR #46 merged)
+  12m ago  [token-studio] Task 1b needs revision (Greptile: 2/5)
+  15m ago  [user-profiles] Wave 2 completed
+  28m ago  [token-studio] Task 1a escalated (sonnet → opus)
+  1h ago   [user-profiles] Task 2b completed (PR #45 merged)
+```
+
+### Features
+
+- **Health Scoring** — 0-100 score based on task success, loop efficiency, stalled/blocked counts
+- **Caching** — 2-minute cache for performance (< 1s with valid cache)
+- **Git Reconciliation** — Derives truth from git state, same as `/karimo-status`
+- **JSON Export** — `--json` flag for scripting and automation
+- **Minimal Mode** — `--alerts` flag shows only critical alerts
 
 ### Why This Command Exists
 
-This is the **primary daily oversight touchpoint** for KARIMO:
-- **Blocked tasks** — Failed 3 Greptile attempts, need human intervention
-- **Revision loops** — Tasks actively being revised
-- **Rebase conflicts** — Merge conflicts requiring manual resolution
-- **Completions** — Recently merged work
-- **Dependencies** — Cross-PRD blocking relationships (with `--deps`)
+This is the **primary monitoring touchpoint** for KARIMO:
+- **Active monitoring** during execution — Check health, view alerts, track progress
+- **Post-execution analysis** — Review velocity metrics, resource usage, activity timeline
+- **Replaces `/karimo-overview`** — All overview functionality preserved and enhanced
 
-Check this each morning or after a run completes.
+Check this each morning or after execution runs complete.
+
+### Workflow Integration
+
+**During execution:**
+```bash
+/karimo-dashboard           # System health, what needs attention, progress
+/karimo-status --prd X      # Wave-level task details (deep dive)
+/karimo-execute --prd X     # Resume/start execution
+```
+
+**Post-execution:**
+```bash
+/karimo-dashboard --activity # Review execution history
+/karimo-dashboard --prd X    # PRD-specific metrics and insights
+/karimo-feedback             # Capture learnings
+```
+
+---
+
+## /karimo-overview (DEPRECATED)
+
+> **⚠️ DEPRECATED:** Use `/karimo-dashboard` instead.
+>
+> All functionality from `/karimo-overview` has been merged into `/karimo-dashboard` with enhanced capabilities.
+>
+> - `--blocked` → Use `/karimo-dashboard --blocked`
+> - `--active` → Use `/karimo-dashboard --active`
+> - `--deps` → Use `/karimo-dashboard --deps`
 
 ---
 
@@ -1023,7 +1093,8 @@ Commands are defined in `.claude/commands/`:
 | File | Command |
 |------|---------|
 | `karimo-plan.md` | `/karimo-plan` |
-| `karimo-overview.md` | `/karimo-overview` |
+| `karimo-dashboard.md` | `/karimo-dashboard` |
+| `karimo-overview.md` | `/karimo-overview` (deprecated) |
 | `karimo-execute.md` | `/karimo-execute` |
 | `karimo-modify.md` | `/karimo-modify` |
 | `karimo-status.md` | `/karimo-status` |
