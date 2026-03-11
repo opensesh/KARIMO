@@ -1,0 +1,522 @@
+# /karimo-orchestrate — Feature Branch Orchestration Command
+
+Start autonomous execution of an approved PRD using feature branch aggregation (v5.0). Creates a feature branch, executes tasks, and prepares for final merge to main.
+
+## Arguments
+
+- `--prd {slug}` (optional): The PRD slug to orchestrate. If not provided, lists available PRDs.
+- `--dry-run` (optional): Preview the execution plan without making changes.
+
+## Prerequisites
+
+Before orchestration, the PRD must be:
+1. **Approved** via `/karimo-plan` (status: `ready`)
+
+Note: For backward compatibility, `approved` status is treated as equivalent to `ready`.
+
+## Behavior
+
+### 1. PRD Selection
+
+**If no `--prd` argument:**
+
+List available PRDs from `.karimo/prds/`:
+
+```
+Available PRDs:
+
+  001_user-profiles     ready     5 tasks
+    Approved: 2 hours ago
+    Ready to orchestrate
+
+  002_token-studio      draft     — Not yet approved
+    Resume: /karimo-plan --resume token-studio
+
+  003_auth-refactor     active    3/8 tasks complete (feature-branch mode)
+    Resume: /karimo-orchestrate --prd auth-refactor
+
+Run: /karimo-orchestrate --prd user-profiles
+```
+
+**If `--prd` provided:**
+
+Validate the PRD:
+1. Check `.karimo/prds/{NNN}_{slug}/` exists
+2. Verify `status.json` shows `status: "ready"`, `status: "approved"` (backward compat), or `status: "active"`
+3. Load tasks and execution plan
+
+### 2. Pre-Execution Checks
+
+#### 2a. Validate GitHub Access
+
+```bash
+# 1. Validate GitHub MCP
+# Use mcp__github__get_me to test connectivity
+# If fails: "❌ GitHub MCP required but not available."
+
+# 2. Validate gh CLI
+gh auth status 2>/dev/null || { echo "❌ gh CLI authentication required."; exit 1; }
+
+# 3. Validate label permissions
+gh label list --repo "$OWNER/$REPO" --limit 1 2>/dev/null || {
+  echo "❌ Cannot access repository labels"
+  echo "Fix: gh auth refresh -s repo"
+  exit 1
+}
+```
+
+#### 2b. Pre-flight Display
+
+```
+╭──────────────────────────────────────────────────────────────╮
+│  Orchestrate: user-profiles                                  │
+╰──────────────────────────────────────────────────────────────╯
+
+Mode: Feature Branch Aggregation (v5.0)
+Feature Branch: feature/user-profiles (will be created)
+
+Status: ready
+Tasks: 5 tasks across 3 waves
+
+Pre-flight checks:
+  ✓ GitHub MCP connected
+  ✓ Git repository clean
+  ✓ GitHub CLI authenticated
+  ✓ Repository access verified
+  ✓ config.yaml loaded (commands, boundaries)
+
+Benefits:
+  • Single production deployment (vs 15+ with direct-to-main)
+  • No Vercel/Netlify email spam
+  • Consolidated review before main merge
+  • Clean git history
+
+Ready to begin orchestration?
+```
+
+**Pre-flight validation commands:**
+
+```bash
+# 1. Detect CLAUDE.md path
+if [ -f ".claude/CLAUDE.md" ]; then
+    CLAUDE_MD=".claude/CLAUDE.md"
+elif [ -f "CLAUDE.md" ]; then
+    CLAUDE_MD="CLAUDE.md"
+else
+    CLAUDE_MD=""
+fi
+
+# 2. Check git is clean
+if [ -n "$(git status --porcelain)" ]; then
+  echo "❌ Uncommitted changes detected"
+  exit 1
+fi
+
+# 3. Check GitHub CLI authenticated
+gh auth status 2>/dev/null || { echo "❌ GitHub CLI not authenticated"; exit 1; }
+
+# 4. Check config.yaml exists
+[ -f ".karimo/config.yaml" ] || { echo "❌ config.yaml missing"; exit 1; }
+
+# 5. Parse GitHub config
+OWNER=$(grep "owner:" .karimo/config.yaml | head -1 | awk '{print $2}')
+REPO=$(grep "repo:" .karimo/config.yaml | head -1 | awk '{print $2}')
+
+if [ -z "$OWNER" ] || [ "$OWNER" = "_pending_" ]; then
+  echo "❌ GitHub owner not configured"
+  echo "   Run /karimo-configure to set up GitHub settings"
+  exit 1
+fi
+
+# 6. Validate label access
+gh label list --repo "$OWNER/$REPO" --limit 1 2>/dev/null || {
+  echo "❌ Cannot access repository labels"
+  exit 1
+}
+
+echo "✓ Pre-flight checks passed"
+```
+
+### 3. Feature Branch Creation
+
+**Create feature branch from main before brief generation:**
+
+```bash
+# Get PRD slug from status.json
+prd_slug=$(jq -r '.prd_slug' .karimo/prds/*/status.json | head -1)
+feature_branch="feature/${prd_slug}"
+
+# Ensure on main and up to date
+git checkout main
+git pull origin main
+
+# Create feature branch
+git checkout -b "$feature_branch"
+git push -u origin "$feature_branch"
+
+echo "✓ Feature branch created: $feature_branch"
+```
+
+**Update status.json with execution mode:**
+
+```bash
+# Add execution_mode and feature_branch fields
+jq --arg branch "$feature_branch" \
+  '. + {execution_mode: "feature-branch", feature_branch: $branch}' \
+  .karimo/prds/{NNN}_{slug}/status.json > temp.json
+mv temp.json .karimo/prds/{NNN}_{slug}/status.json
+
+echo "✓ Execution mode: feature-branch"
+echo "✓ Feature branch: $feature_branch"
+```
+
+**Commit status update:**
+
+```bash
+git add .karimo/prds/{NNN}_{slug}/status.json
+git commit -m "feat(karimo): configure feature branch execution for ${prd_slug}
+
+Execution mode: feature-branch
+Feature branch: ${feature_branch}
+Task PRs will target feature branch, not main.
+
+Co-Authored-By: Claude <noreply@anthropic.com>"
+
+git push origin "$feature_branch"
+```
+
+**Return to main for task execution:**
+
+```bash
+# PM agent and workers will use worktrees, so stay on main
+git checkout main
+```
+
+### 4. Phase 1: Brief Generation
+
+If briefs don't exist yet, generate them before execution:
+
+```
+Generating task briefs for: user-profiles
+
+  [1a] Create UserProfile component... ✓
+  [1b] Add user type definitions... ✓
+  [2a] Implement profile edit form... ✓
+  [2b] Add avatar upload... ✓
+  [3a] Integration tests... ✓
+
+Briefs saved to: .karimo/prds/001_user-profiles/briefs/
+```
+
+For each task, spawn the brief-writer agent:
+
+```
+@karimo-brief-writer.md
+```
+
+Pass:
+- Task definition from `tasks.yaml`
+- Relevant sections from `PRD.md`
+- Project configuration from `CLAUDE.md`
+
+After brief generation, present review options:
+
+```
+╭──────────────────────────────────────────────────────────────╮
+│  Brief Review: user-profiles                                 │
+╰──────────────────────────────────────────────────────────────╯
+
+Generated: 5 briefs
+
+  Wave 1:
+    [1a] Create UserProfile component      complexity: 4  model: sonnet
+    [1b] Add user type definitions         complexity: 2  model: sonnet
+
+  Wave 2:
+    [2a] Implement profile edit form       complexity: 5  model: opus
+    [2b] Add avatar upload                 complexity: 4  model: sonnet
+
+  Wave 3:
+    [3a] Integration tests                 complexity: 3  model: sonnet
+
+Options:
+  1. Execute all — Begin autonomous execution
+  2. Adjust briefs — Modify scope, add criteria
+  3. Exclude tasks — Remove specific tasks from execution
+  4. Cancel — Return without executing
+
+Your choice:
+```
+
+### 4a. Commit Task Briefs
+
+**After all briefs are generated, commit them as a unit before spawning the PM agent.**
+
+```bash
+git add .karimo/prds/{NNN}_{slug}/briefs/
+git commit -m "docs(karimo): generate task briefs for {slug}
+
+{count} briefs generated for PRD {slug}.
+
+Waves:
+- Wave 1: {task_ids}
+- Wave 2: {task_ids}
+- ...
+
+Co-Authored-By: Claude <noreply@anthropic.com>"
+```
+
+**Rationale:** Brief generation is a distinct logical unit from PRD creation and from task execution. If the session is interrupted after briefs are generated but before workers start, the briefs are safely committed.
+
+**Note:** Briefs use slug-based naming for searchability: `{task_id}_{slug}.md` (e.g., `1a_user-profiles.md`).
+
+### 5. Dry Run Mode
+
+If `--dry-run` is specified, show the execution plan without acting:
+
+```
+Execution Plan for: user-profiles
+
+Mode: Feature Branch Aggregation
+Feature Branch: feature/user-profiles (will be created)
+
+Tasks (5 approved):
+
+  Wave 1 (parallel):
+    [1a] Create UserProfile component      complexity: 4  model: sonnet
+    [1b] Add user type definitions         complexity: 2  model: sonnet
+
+  Wave 2 (parallel, after wave 1 merges to feature branch):
+    [2a] Implement profile edit form       complexity: 5  model: opus
+    [2b] Add avatar upload                 complexity: 4  model: sonnet
+
+  Wave 3 (after wave 2 merges to feature branch):
+    [3a] Integration tests                 complexity: 3  model: sonnet
+
+Branch naming: {prd-slug}-{task-id}
+  - user-profiles-1a, user-profiles-1b, etc.
+
+PR target: feature/user-profiles (feature branch)
+Final PR: feature/user-profiles → main (after /karimo-merge)
+
+Model distribution: 4 sonnet, 1 opus
+Parallel opportunities: 4 tasks across 2 waves
+
+Ready to orchestrate? Run without --dry-run to start.
+```
+
+### 6. Resume Protocol
+
+If `status.json` shows tasks already in progress, perform git state reconstruction:
+
+**Git is truth. status.json is a cache.**
+
+```
+Resuming orchestration for: user-profiles
+
+Reconciling state from git...
+
+  [1a] status.json: running → git: merged to feature branch (PR #42) → UPDATED to done
+  [1b] status.json: pending → git: no branch → OK (queued)
+  [2a] status.json: running → git: branch exists, no PR → CRASHED
+       Action: delete branch, re-execute
+  [2b] status.json: queued → git: no branch → OK (queued)
+  [3a] status.json: queued → git: no branch → OK (queued)
+
+State reconciliation complete.
+
+Completed: 1/5 tasks (merged to feature branch)
+  ✓ [1a] Create UserProfile component (PR #42 merged)
+
+Ready to Resume: 4 tasks
+  ○ [1b] Add user type definitions (wave 1)
+  ⟳ [2a] Implement profile edit form (crashed, will re-execute)
+  ○ [2b] Add avatar upload (wave 2, waiting for wave 1)
+  ○ [3a] Integration tests (wave 3, waiting for wave 2)
+
+Continue orchestration?
+```
+
+**Reconciliation Algorithm:**
+
+```bash
+# Read feature branch from status.json
+feature_branch=$(jq -r '.feature_branch' .karimo/prds/{NNN}_{slug}/status.json)
+
+for task_id in $(get_task_ids); do
+  branch="${prd_slug}-${task_id}"
+
+  # Check if branch exists on remote
+  if git ls-remote --heads origin "$branch" | grep -q "$branch"; then
+    # Check for PR
+    pr_data=$(gh pr list --head "$branch" --json state,number,mergedAt,baseRefName --jq '.[0]')
+
+    if [ -n "$pr_data" ]; then
+      state=$(echo "$pr_data" | jq -r '.state')
+      base=$(echo "$pr_data" | jq -r '.baseRefName')
+
+      # Verify PR targets feature branch
+      if [ "$base" != "$feature_branch" ]; then
+        echo "[WARNING] Task $task_id PR targets $base instead of $feature_branch"
+      fi
+
+      if [ "$state" = "MERGED" ]; then
+        # Task complete
+        update_status "$task_id" "done"
+      else
+        labels=$(gh pr view "$branch" --json labels --jq '.labels[].name')
+        if echo "$labels" | grep -q "needs-revision"; then
+          update_status "$task_id" "needs-revision"
+        else
+          update_status "$task_id" "in-review"
+        fi
+      fi
+    else
+      # Branch exists, no PR → agent crashed mid-execution
+      echo "[RECONCILE] $task_id: branch exists but no PR → marking crashed"
+      git push origin --delete "$branch" 2>/dev/null || true
+      update_status "$task_id" "queued"
+    fi
+  else
+    # No branch = check status.json
+    current_status=$(get_status "$task_id")
+    if [ "$current_status" = "done" ]; then
+      # Trust status.json (branch was cleaned up after merge)
+      :
+    else
+      update_status "$task_id" "queued"
+    fi
+  fi
+done
+```
+
+### 7. Phase 2: Spawn PM Agent
+
+Hand off to the PM agent for execution:
+
+```
+@karimo-pm.md
+```
+
+Pass:
+- Project configuration from `.karimo/config.yaml` and `.karimo/learnings.md`
+- PRD status (approved tasks, excluded tasks)
+- Brief file paths for each task
+- Execution plan from `execution_plan.yaml`
+- **Execution mode: feature-branch** (PM will read from status.json)
+
+**PM Agent Behavior:**
+- Detects `execution_mode: "feature-branch"` from status.json
+- Creates PRs targeting feature branch (not main)
+- Executes waves sequentially within feature branch
+- On completion: Sets status to `ready-for-merge` (does NOT finalize)
+- Preserves feature branch and task branches for `/karimo-merge`
+
+### 8. Completion
+
+When PM Agent completes all waves:
+
+```
+╭──────────────────────────────────────────────────────────────╮
+│  Orchestration Complete: user-profiles                       │
+╰──────────────────────────────────────────────────────────────╯
+
+Status: ready-for-merge
+
+Tasks Complete: 5/5
+  ✓ [1a] Create UserProfile component (PR #42)
+  ✓ [1b] Add user type definitions (PR #43)
+  ✓ [2a] Implement profile edit form (PR #44)
+  ✓ [2b] Add avatar upload (PR #45)
+  ✓ [3a] Integration tests (PR #46)
+
+All PRs merged to: feature/user-profiles
+
+Model Usage:
+  Sonnet: 4 tasks
+  Opus:   1 task (0 escalations)
+
+Duration: 45 minutes
+
+Next Step: /karimo-merge --prd user-profiles
+This will create the final PR: feature/user-profiles → main
+```
+
+### 9. Post-Orchestration Actions
+
+**After orchestration completes:**
+
+1. **status.json** updated to `status: "ready-for-merge"` by PM
+2. **Feature branch** preserved (contains all task commits)
+3. **Task branches** preserved (for reference, cleaned up after final merge)
+4. **metrics.json** generated by PM
+
+**User runs `/karimo-merge` for final consolidation and PR to main.**
+
+---
+
+## Error Handling
+
+### Feature Branch Already Exists
+
+```bash
+if git ls-remote --heads origin "$feature_branch" | grep -q "$feature_branch"; then
+  echo "⚠ Feature branch already exists: $feature_branch"
+  echo "Options:"
+  echo "  1. Resume execution (if PRD is active)"
+  echo "  2. Delete and recreate (if you want to start fresh)"
+  echo "  3. Cancel"
+  read -p "Your choice: " choice
+fi
+```
+
+### Git State Conflicts
+
+If main has diverged from feature branch during execution:
+
+```
+⚠ Main branch has new commits since feature branch creation.
+
+Feature branch: feature/user-profiles (created 2 hours ago)
+Main branch: 3 new commits since then
+
+Recommendation: Complete current orchestration, then rebase feature branch
+before running /karimo-merge.
+
+Continue orchestration?
+```
+
+### Partial Completion
+
+If some tasks fail or are blocked:
+
+```
+Orchestration Incomplete: user-profiles
+
+Completed: 3/5 tasks
+Blocked: 2 tasks
+
+  ✓ [1a] Create UserProfile component (PR #42)
+  ✓ [1b] Add user type definitions (PR #43)
+  ✓ [2a] Implement profile edit form (PR #44)
+  ✗ [2b] Add avatar upload (failed)
+  ○ [3a] Integration tests (blocked by 2b)
+
+Options:
+  - Fix task 2b manually and re-run: /karimo-orchestrate --prd user-profiles
+  - Skip task 2b and unblock 3a: Requires manual intervention
+  - Review failed task logs and retry
+```
+
+---
+
+## Notes
+
+- **v5.0 feature:** Feature branch orchestration is the default and recommended workflow.
+- **Backward compatibility:** Use `/karimo-execute` for v4.0 direct-to-main mode.
+- **Feature branch lifecycle:** Created by `/karimo-orchestrate`, merged by `/karimo-merge`, cleaned up after final merge.
+- **No production deployments until final merge:** Task PRs target feature branch, avoiding deployment spam.
+
+---
+
+*Generated by [KARIMO v5](https://github.com/opensesh/KARIMO)*
