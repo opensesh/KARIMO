@@ -117,16 +117,25 @@ KARIMO is an autonomous development **methodology** delivered via Claude Code co
 | Command | Purpose |
 |---------|---------|
 | `/karimo-plan` | Start PRD interview with interactive approval |
-| `/karimo-overview` | Cross-PRD oversight dashboard |
-| `/karimo-execute --prd {slug}` | Execute tasks from a PRD (brief gen + execution) |
+| `/karimo-run --prd {slug}` | Execute tasks from a PRD (feature branch workflow, **recommended**) |
+| `/karimo-finish --prd {slug}` | Create final PR to main after execution completes |
 | `/karimo-modify --prd {slug}` | Modify an approved PRD before execution |
-| `/karimo-status` | View execution state and progress |
+| `/karimo-status [--prd {slug}]` | View execution state (no arg = all PRDs, with arg = details) |
 | `/karimo-configure` | Create or update project configuration (~5 min) |
 | `/karimo-cd-config` | Configure CD provider to skip KARIMO branch previews |
 | `/karimo-update` | Check for and apply KARIMO updates from GitHub |
 | `/karimo-feedback` | Intelligent feedback with auto-detection (simple or complex) |
 | `/karimo-doctor` | Check installation health and diagnose issues |
 | `/karimo-test` | Verify installation works end-to-end |
+
+### Deprecated Commands
+
+| Command | Use Instead |
+|---------|-------------|
+| `/karimo-execute` | `/karimo-run` (v5.0 feature branch workflow) |
+| `/karimo-orchestrate` | `/karimo-run` (same command, clearer name) |
+| `/karimo-merge` | `/karimo-finish` (same command, clearer name) |
+| `/karimo-overview` | `/karimo-status` (with no arguments) |
 
 ---
 
@@ -161,8 +170,7 @@ Both providers support:
 
 ### Phase 3: Monitor & Review
 GitHub-native monitoring — no separate dashboard needed:
-- `/karimo-status` — Execution state per PRD
-- `/karimo-overview` — Cross-PRD oversight
+- `/karimo-status` — Smart monitoring (no arg = all PRDs, with arg = specific details)
 - GitHub — PR comments, labels, activity
 - Claude Code analytics — Review usage (if using Code Review)
 
@@ -222,7 +230,7 @@ When you run `install.sh`, these files are added:
 | Location | Contents |
 |----------|----------|
 | `.claude/agents/` | 13 agent definitions (7 coordination + 6 task agents) |
-| `.claude/commands/` | 12 slash commands (plan, overview, execute, modify, status, configure, cd-config, update, feedback, learn, doctor, test) |
+| `.claude/commands/` | 14 slash commands (plan, run, finish, modify, status, configure, cd-config, update, feedback, doctor, test + 3 deprecated) |
 | `.claude/skills/` | 4 skills (1 coordination + 3 task agent skills) |
 | `.claude/KARIMO_RULES.md` | Agent behavior rules |
 | `.karimo/templates/` | 10 templates (PRD, interview, task, status, dependencies, DAG, learn-interview, findings, task-brief, metrics) |

@@ -6,22 +6,41 @@ Reference for all KARIMO slash commands available in Claude Code.
 
 ## Command Summary
 
+### Core Workflow (Recommended)
+
 | Command | Purpose |
 |---------|---------|
 | `/karimo-plan` | Start PRD interview with interactive approval |
-| `/karimo-dashboard` | Comprehensive CLI dashboard for KARIMO monitoring |
-| `/karimo-overview` | **DEPRECATED** — Use `/karimo-dashboard` instead |
-| `/karimo-execute` | Execute tasks from PRD (brief gen + execution) |
-| `/karimo-modify` | Modify approved PRD before execution |
-| `/karimo-orchestrate` | Create feature branch and execute tasks (v5.0 feature branch mode) |
-| `/karimo-merge` | Consolidate feature branch and create final PR to main (v5.0) |
-| `/karimo-status` | View execution progress |
+| `/karimo-run --prd {slug}` | Execute tasks (feature branch workflow, **recommended**) |
+| `/karimo-finish --prd {slug}` | Create final PR to main after execution |
+| `/karimo-modify --prd {slug}` | Modify approved PRD before execution |
+| `/karimo-status [--prd {slug}]` | Monitor progress (no arg = all PRDs, with arg = details) |
+| `/karimo-feedback` | Intelligent feedback capture with auto-detection (simple or complex) |
+
+### Setup & Maintenance
+
+| Command | Purpose |
+|---------|---------|
 | `/karimo-configure` | Create or update project configuration |
 | `/karimo-cd-config` | Configure CD provider to skip KARIMO branch previews |
-| `/karimo-update` | Check for and apply KARIMO updates |
-| `/karimo-feedback` | Intelligent feedback capture with auto-detection (simple or complex) |
 | `/karimo-doctor` | Check installation health |
 | `/karimo-test` | Installation smoke test |
+| `/karimo-update` | Check for and apply KARIMO updates |
+
+### Advanced
+
+| Command | Purpose |
+|---------|---------|
+| `/karimo-dashboard` | Comprehensive CLI dashboard for KARIMO monitoring |
+
+### Deprecated Commands
+
+| Command | Use Instead | Notes |
+|---------|-------------|-------|
+| `/karimo-execute` | `/karimo-run` | v4.0 direct-to-main workflow |
+| `/karimo-orchestrate` | `/karimo-run` | Same command, clearer name |
+| `/karimo-merge` | `/karimo-finish` | Same command, clearer name |
+| `/karimo-overview` | `/karimo-status` or `/karimo-dashboard` | Functionality merged |
 
 ---
 

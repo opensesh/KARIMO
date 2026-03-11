@@ -181,18 +181,18 @@ Choose Greptile or Claude Code Review. See [Adoption Phases](.karimo/docs/PHASES
 | Command | What it does |
 |---------|--------------|
 | `/karimo-plan` | Interactive PRD creation (~10 min) |
-| `/karimo-orchestrate --prd {slug}` | Feature branch execution (v5.0) |
-| `/karimo-execute --prd {slug}` | Run tasks from a PRD |
-| `/karimo-merge --prd {slug}` | Create final PR to main (v5.0) |
-| `/karimo-status` | View execution progress |
-| `/karimo-overview` | Dashboard across all PRDs |
+| `/karimo-run --prd {slug}` | Execute tasks (feature branch workflow, **recommended**) |
+| `/karimo-finish --prd {slug}` | Create final PR to main after execution |
+| `/karimo-status [--prd {slug}]` | Monitor progress (no arg = all PRDs, with arg = details) |
 | `/karimo-modify --prd {slug}` | Edit an approved PRD |
-| `/karimo-doctor` | Diagnose installation issues |
 | `/karimo-feedback` | Intelligent feedback (simple or complex path) |
 | `/karimo-configure` | Create or update project configuration |
 | `/karimo-cd-config` | Configure CD provider to skip task branch previews |
+| `/karimo-doctor` | Diagnose installation issues |
 | `/karimo-update` | Update KARIMO to latest version |
 | `/karimo-test` | Verify installation works end-to-end |
+
+**Deprecated:** `/karimo-execute` (use `/karimo-run`), `/karimo-orchestrate` (use `/karimo-run`), `/karimo-merge` (use `/karimo-finish`), `/karimo-overview` (use `/karimo-status`)
 
 Full reference: [COMMANDS.md](.karimo/docs/COMMANDS.md)
 
@@ -207,9 +207,9 @@ KARIMO v5.0 supports two execution models:
 ```bash
 /karimo-plan              # Generate PRD
 # User approves
-/karimo-orchestrate       # Creates feature branch, executes tasks
+/karimo-run               # Creates feature branch, executes tasks
 # Autonomous execution
-/karimo-merge             # Final PR to main
+/karimo-finish            # Final PR to main
 ```
 
 **Benefits:**
