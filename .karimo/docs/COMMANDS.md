@@ -12,7 +12,7 @@ Reference for all KARIMO slash commands available in Claude Code.
 |---------|---------|
 | `/karimo-plan` | Start PRD interview with interactive approval |
 | `/karimo-run --prd {slug}` | Execute tasks (feature branch workflow, **recommended**) |
-| `/karimo-finish --prd {slug}` | Create final PR to main after execution |
+| `/karimo-merge --prd {slug}` | Create final PR to main after execution |
 | `/karimo-modify --prd {slug}` | Modify approved PRD before execution |
 | `/karimo-status [--prd {slug}]` | Monitor progress (no arg = all PRDs, with arg = details) |
 | `/karimo-feedback` | Intelligent feedback capture with auto-detection (simple or complex) |
@@ -39,7 +39,6 @@ Reference for all KARIMO slash commands available in Claude Code.
 |---------|-------------|-------|
 | `/karimo-execute` | `/karimo-run` | v4.0 direct-to-main workflow |
 | `/karimo-orchestrate` | `/karimo-run` | Same command, clearer name |
-| `/karimo-merge` | `/karimo-finish` | Same command, clearer name |
 | `/karimo-overview` | `/karimo-status` or `/karimo-dashboard` | Functionality merged |
 
 ---
