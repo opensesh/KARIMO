@@ -364,6 +364,8 @@ On approval, save to `.karimo/prds/{NNN}_{slug}/`:
 ```json
 {
   "prd_slug": "feature-slug",
+  "version": "5.0",
+  "execution_mode": "direct-to-main",
   "status": "ready",
   "created_at": "ISO timestamp",
   "tasks": {}
