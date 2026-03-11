@@ -129,14 +129,6 @@ KARIMO is an autonomous development **methodology** delivered via Claude Code co
 | `/karimo-doctor` | Check installation health and diagnose issues |
 | `/karimo-test` | Verify installation works end-to-end |
 
-### Deprecated Commands
-
-| Command | Use Instead |
-|---------|-------------|
-| `/karimo-execute` | `/karimo-run` (v5.0 feature branch workflow) |
-| `/karimo-orchestrate` | `/karimo-run` (same command, clearer name) |
-| `/karimo-cd-config` | `/karimo-configure --cd` (CD configuration consolidated) |
-
 ---
 
 ## Adoption Phases

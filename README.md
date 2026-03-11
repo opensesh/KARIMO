@@ -191,9 +191,7 @@ Choose Greptile or Claude Code Review. See [Adoption Phases](.karimo/docs/PHASES
 | `/karimo-update` | Update KARIMO to latest version |
 | `/karimo-test` | Verify installation works end-to-end |
 
-**Deprecated:** `/karimo-execute` (use `/karimo-run`), `/karimo-orchestrate` (use `/karimo-run`), `/karimo-overview` (use `/karimo-dashboard`), `/karimo-cd-config` (use `/karimo-configure --cd`)
-
-Full reference: [COMMANDS.md](.karimo/docs/COMMANDS.md)
+See [COMMANDS.md](.karimo/docs/COMMANDS.md) for full command reference.
 
 ---
 

@@ -32,13 +32,6 @@ Reference for all KARIMO slash commands available in Claude Code.
 |---------|---------|
 | `/karimo-dashboard` | Comprehensive CLI dashboard for KARIMO monitoring |
 
-### Deprecated Commands
-
-| Command | Use Instead | Notes |
-|---------|-------------|-------|
-| `/karimo-execute` | `/karimo-run` | v4.0 direct-to-main workflow |
-| `/karimo-orchestrate` | `/karimo-run` | Same command, clearer name |
-
 ---
 
 ## /karimo-plan
