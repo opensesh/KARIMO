@@ -10,6 +10,8 @@ Create or update KARIMO configuration in `.karimo/config.yaml`. Use this when yo
 /karimo-configure --greptile   # Install Greptile workflow only
 /karimo-configure --code-review  # Setup Claude Code Review (instructions only)
 /karimo-configure --review       # Choose between review providers (interactive)
+/karimo-configure --cd           # Configure CD provider to skip KARIMO branches
+/karimo-configure --check        # Show current configuration status
 ```
 
 **This command writes configuration to `.karimo/config.yaml` (single source of truth).**
@@ -188,6 +190,247 @@ options:
 - Exit
 
 **Exit after selection.** The `--review` flag is a provider choice shortcut.
+
+---
+
+### Quick Install: `--cd` Flag (CD Provider Configuration)
+
+When the `--cd` flag is passed, skip the full configuration flow and configure CD provider directly:
+
+**Prerequisites:**
+- `.karimo/config.yaml` must exist. If not, show error: "Run /karimo-configure first to set up project configuration."
+
+**Step 1: Auto-detect CD provider**
+
+```bash
+# Detection priority
+if [ -f "vercel.json" ] || [ -f "vercel.ts" ] || [ -d ".vercel" ]; then
+  PROVIDER="vercel"
+elif [ -f "netlify.toml" ]; then
+  PROVIDER="netlify"
+elif [ -f "render.yaml" ]; then
+  PROVIDER="render"
+elif [ -f "railway.json" ] || [ -f "railway.toml" ]; then
+  PROVIDER="railway"
+elif [ -f "fly.toml" ]; then
+  PROVIDER="fly"
+else
+  PROVIDER="none"
+fi
+```
+
+**Step 2: Present options**
+
+Use AskUserQuestion:
+
+```
+header: "CD Config"
+question: "Which CD provider would you like to configure?"
+options:
+  - label: "Vercel (Detected)"
+    description: "Add ignoreCommand to vercel.json to skip KARIMO branches"
+  - label: "Netlify"
+    description: "Add ignore rule to netlify.toml"
+  - label: "Render"
+    description: "Show dashboard configuration instructions"
+  - label: "Railway"
+    description: "Show dashboard configuration instructions"
+  - label: "Fly.io"
+    description: "Show configuration guidance"
+  - label: "Skip / None"
+    description: "No CD provider, or I'll configure manually"
+```
+
+Note: The "(Detected)" label should only appear on the detected provider option.
+
+**Step 3: Apply configuration based on selection**
+
+**For Vercel:**
+
+Check if `vercel.json` exists. If not, create it.
+
+```json
+{
+  "ignoreCommand": "[[ \"$VERCEL_GIT_COMMIT_REF\" =~ ^feature/|-[0-9]+[a-z]?$ ]] && exit 0 || exit 1"
+}
+```
+
+If `vercel.json` already exists:
+- Parse existing JSON
+- Add or update the `ignoreCommand` field
+- Preserve all other fields
+
+Display confirmation:
+```
+✓ Updated vercel.json with KARIMO ignore rule
+  KARIMO task branches will skip preview deployments
+```
+
+**For Netlify:**
+
+Check if `netlify.toml` exists. If not, create it with:
+
+```toml
+[build]
+  ignore = "[[ \"$HEAD\" =~ ^feature/|-[0-9]+[a-z]?$ ]] && exit 0 || exit 1"
+```
+
+If `netlify.toml` already exists:
+- Check if `[build]` section exists
+- Add `ignore` command to `[build]` section
+
+Display confirmation:
+```
+✓ Updated netlify.toml with KARIMO ignore rule
+  KARIMO task branches will skip preview deployments
+```
+
+**For Render:**
+
+Add comment to `render.yaml`:
+
+```yaml
+# KARIMO: Configure "Auto-Deploy" in dashboard to exclude branches matching: (^feature/|-[0-9]+[a-z]?$)
+# See: https://render.com/docs/deploys#skip-deploys
+```
+
+Display instructions:
+```
+Render requires dashboard configuration for branch filtering.
+
+In the Render dashboard:
+1. Go to your service settings
+2. Under "Auto-Deploy", configure branch patterns to exclude:
+   - feature/* (feature branches)
+   - *-[0-9]+[a-z]$ (task branches)
+
+Added comment to render.yaml as a reminder.
+```
+
+**For Railway:**
+
+Add comment to `railway.toml` (or create file):
+
+```toml
+# KARIMO: Railway requires dashboard configuration
+# Settings → Deploys → Watch Patterns
+# Exclude: feature/* and *-[0-9]+[a-z]$
+```
+
+Display instructions:
+```
+Railway requires dashboard configuration for branch filtering.
+
+In the Railway dashboard:
+1. Go to project settings → Deploys → Watch Patterns
+2. Add exclude patterns:
+   - feature/* (feature branches)
+   - *-[0-9]+[a-z]$ (task branches)
+```
+
+**For Fly.io:**
+
+Display instructions:
+```
+Fly.io doesn't auto-deploy on PR branches by default.
+
+If you've configured GitHub Actions for Fly deployment:
+- Add branch condition to skip KARIMO branches
+- Patterns to exclude:
+  - feature/* (feature branches)
+  - *-[0-9]+[a-z]$ (task branches)
+
+No configuration needed if using default Fly.io setup.
+```
+
+**For Skip/None:**
+
+Display message:
+```
+Skipped CD configuration. Run /karimo-configure --cd anytime to configure.
+```
+
+**Step 4: Update config.yaml with CD section**
+
+For all providers (except "Skip/None"), update `.karimo/config.yaml` to add CD section:
+
+```yaml
+cd:
+  provider: vercel  # vercel | netlify | render | railway | fly | none
+  status: configured  # configured | skipped | pending
+  pattern: "^feature/|-[0-9]+[a-z]?$"
+  configured_at: "2026-03-11T10:30:00Z"
+```
+
+For "Skip/None" selection, update config.yaml:
+
+```yaml
+cd:
+  provider: none
+  status: skipped
+  configured_at: "2026-03-11T10:30:00Z"
+```
+
+**Display final confirmation:**
+
+```
+╭──────────────────────────────────────────────────────────────╮
+│  CD Configuration Complete                                   │
+╰──────────────────────────────────────────────────────────────╯
+
+✅ Provider: vercel
+✅ Status: configured
+✅ Pattern: ^feature/|-[0-9]+[a-z]?$
+
+Updated .karimo/config.yaml with CD configuration.
+
+Test by pushing:
+  - A feature branch: feature/test
+  - A task branch: test-1a
+```
+
+**Exit after configuration.** The `--cd` flag is a quick-configuration shortcut.
+
+---
+
+### Quick Check: `--check` Flag (View Configuration Status)
+
+When the `--check` flag is passed, display current configuration without making changes:
+
+**Prerequisites:**
+- `.karimo/config.yaml` must exist. If not, show message: "No configuration found. Run /karimo-configure to set up."
+
+**Display configuration summary:**
+
+```
+╭──────────────────────────────────────────────────────────────╮
+│  KARIMO Configuration Status                                 │
+╰──────────────────────────────────────────────────────────────╯
+
+Project:        my-project
+Runtime:        Node.js 20
+Framework:      Next.js 14
+Package Mgr:    pnpm
+
+GitHub:         opensesh/my-project
+Review Provider: greptile
+CD Provider:    vercel (configured)
+
+Last Updated:   2026-03-11 10:30 AM
+```
+
+Read values from `.karimo/config.yaml`:
+- Project name, runtime, framework, package_manager
+- GitHub owner/repository
+- Review provider (none, greptile, code-review)
+- CD provider and status from `cd` section (if exists)
+- Last modified timestamp of config.yaml file
+
+**If CD section doesn't exist in config.yaml:**
+
+Display `CD Provider: not configured` in the status output.
+
+**Exit after displaying status.** The `--check` flag is informational only.
 
 ---
 
@@ -702,17 +945,29 @@ Apply the appropriate configuration based on detected provider:
 **Vercel** — Add `ignoreCommand` to `vercel.json`:
 ```json
 {
-  "ignoreCommand": "[[ \"$VERCEL_GIT_COMMIT_REF\" =~ -[0-9]+[a-z]?$ ]] && exit 0 || exit 1"
+  "ignoreCommand": "[[ \"$VERCEL_GIT_COMMIT_REF\" =~ ^feature/|-[0-9]+[a-z]?$ ]] && exit 0 || exit 1"
 }
 ```
 
 **Netlify** — Add `ignore` to `netlify.toml`:
 ```toml
 [build]
-  ignore = "[[ \"$HEAD\" =~ -[0-9]+[a-z]?$ ]] && exit 0 || exit 1"
+  ignore = "[[ \"$HEAD\" =~ ^feature/|-[0-9]+[a-z]?$ ]] && exit 0 || exit 1"
 ```
 
-**Render/Railway** — Add comment noting dashboard configuration required.
+**Render** — Add comment to `render.yaml`:
+```yaml
+# KARIMO: Configure "Auto-Deploy" in dashboard to exclude branches matching: (^feature/|-[0-9]+[a-z]?$)
+```
+
+**Railway** — Add comment to `railway.toml`:
+```toml
+# KARIMO: Railway requires dashboard configuration
+# Settings → Deploys → Watch Patterns
+# Exclude: feature/* and *-[0-9]+[a-z]$
+```
+
+**Fly.io** — Display instructions only (no file changes).
 
 Display confirmation:
 ```
@@ -720,17 +975,60 @@ Display confirmation:
   KARIMO task branches will skip preview deployments
 ```
 
+**Update config.yaml with CD section:**
+
+After applying configuration, add CD section to `.karimo/config.yaml`:
+
+```yaml
+cd:
+  provider: vercel  # vercel | netlify | render | railway | fly | none
+  status: configured
+  pattern: "^feature/|-[0-9]+[a-z]?$"
+  configured_at: "2026-03-11T10:30:00Z"
+```
+
 **If "Skip for now" selected:**
 
-Note in final summary: "CD integration: skipped (run /karimo-cd-config later)"
+Update config.yaml to mark CD as skipped:
+
+```yaml
+cd:
+  provider: [detected-provider or none]
+  status: skipped
+  configured_at: "2026-03-11T10:30:00Z"
+```
+
+Note in final summary: "CD integration: skipped (run /karimo-configure --cd later)"
 
 **If "Learn more" selected:**
 
-Display brief explanation, then re-prompt with options 1 and 2.
+Display brief explanation:
+```
+KARIMO task branches contain partial code:
+- Task 1a adds types
+- Task 1b uses those types
+- Building 1b alone fails (types don't exist yet)
+
+This is expected. The code works once all wave tasks merge to main.
+
+Configuring your CD provider to skip KARIMO branches prevents noise
+from these expected failures.
+```
+
+Then re-prompt with options 1 and 2.
 
 **If no CD provider detected:**
 
-Skip this step silently and proceed to Step 8.
+Update config.yaml to indicate no provider:
+
+```yaml
+cd:
+  provider: none
+  status: pending
+  configured_at: "2026-03-11T10:30:00Z"
+```
+
+Skip this step in the UI and proceed to Step 8.
 
 ---
 
@@ -842,6 +1140,13 @@ cost:
 
 # Review provider: none | greptile | code-review
 review_provider: none
+
+# CD provider configuration (optional)
+cd:
+  provider: vercel  # vercel | netlify | render | railway | fly | none
+  status: configured  # configured | skipped | pending
+  pattern: "^feature/|-[0-9]+[a-z]?$"
+  configured_at: "2026-03-11T10:30:00Z"
 ```
 
 ---
@@ -920,7 +1225,7 @@ Section 9 of 9: Update CLAUDE.md
 
 ## config.yaml Structure
 
-The command writes to `.karimo/config.yaml`. See the YAML structure in Step 7 above.
+The command writes to `.karimo/config.yaml`. See the YAML structure in Step 8 above.
 
 **Key sections:**
 - `mode` — Execution mode (`full` or `fast-track`)
@@ -931,6 +1236,7 @@ The command writes to `.karimo/config.yaml`. See the YAML structure in Step 7 ab
 - `execution` — Default model, max parallel, pre-PR checks
 - `cost` — Escalation settings
 - `review_provider` — Automated review provider (`none`, `greptile`, `code-review`)
+- `cd` — CD provider configuration (provider, status, pattern, configured_at)
 
 ---
 
