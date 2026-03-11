@@ -221,17 +221,17 @@ When you run `install.sh`, these files are added:
 
 | Location | Contents |
 |----------|----------|
-| `.claude/agents/` | 13 agent definitions (7 coordination + 6 task agents) |
-| `.claude/commands/` | 13 slash commands (plan, run, merge, modify, status, configure, cd-config, update, feedback, doctor, test + 3 deprecated) |
+| `.claude/agents/` | **15** agent definitions (7 coordination + 8 task agents) |
+| `.claude/commands/` | **11** slash commands (plan, run, merge, modify, status, configure, update, feedback, doctor, test, dashboard) |
 | `.claude/skills/` | 4 skills (1 coordination + 3 task agent skills) |
 | `.claude/KARIMO_RULES.md` | Agent behavior rules |
-| `.karimo/templates/` | 10 templates (PRD, interview, task, status, dependencies, DAG, learn-interview, findings, task-brief, metrics) |
+| `.karimo/templates/` | **12** templates (PRD, interview, task, status, dependencies, DAG, learn-interview, findings, task-brief, metrics, feedback, review) |
 
 **Optional:** Run `/karimo-configure --review` to choose and configure your automated code review provider (Greptile or Claude Code Review).
 
 ### Agent Types
 
-**Coordination agents:** interviewer, investigator, reviewer, brief-writer, pm, review-architect, feedback-auditor
+**Coordination agents:** interviewer, investigator, reviewer, brief-reviewer, brief-corrector, brief-writer, pm, review-architect, feedback-auditor
 
 **Task agents:** implementer, tester, documenter (each with Sonnet and Opus variants)
 
