@@ -12,6 +12,8 @@ Reference for all KARIMO slash commands available in Claude Code.
 | `/karimo-overview` | Cross-PRD oversight dashboard |
 | `/karimo-execute` | Execute tasks from PRD (brief gen + execution) |
 | `/karimo-modify` | Modify approved PRD before execution |
+| `/karimo-orchestrate` | Create feature branch and execute tasks (v5.0 feature branch mode) |
+| `/karimo-merge` | Consolidate feature branch and create final PR to main (v5.0) |
 | `/karimo-status` | View execution progress |
 | `/karimo-configure` | Create or update project configuration |
 | `/karimo-cd-config` | Configure CD provider to skip KARIMO branch previews |
@@ -273,6 +275,141 @@ Modify an approved PRD before execution — add, remove, or change tasks with au
 | PRD in draft, needs changes | `/karimo-plan --resume {slug}` |
 | PRD approved, needs structural changes | `/karimo-modify --prd {slug}` |
 | PRD executing, needs task adjustments | Adjust briefs in execute, or pause and modify |
+
+---
+
+## /karimo-orchestrate
+
+Create feature branch and execute all tasks with PRs targeting the feature branch (v5.0 feature branch mode).
+
+### Usage
+
+```
+/karimo-orchestrate --prd {slug}
+/karimo-orchestrate --prd {slug} --dry-run
+```
+
+### What It Does
+
+1. **Creates feature branch** — `feature/{prd-slug}` from main
+2. **Updates status.json** — Sets `execution_mode: "feature-branch"` and `feature_branch: "feature/{prd-slug}"`
+3. **Spawns PM agent** — Executes tasks in wave order with PRs targeting feature branch
+4. **Pauses at completion** — Sets status to `ready-for-merge` when all tasks done
+
+### When to Use
+
+**Use feature branch mode for:**
+- Most PRDs (5+ tasks)
+- Complex features requiring consolidated review
+- When you want single production deployment (prevents 15+ preview deployments)
+- When you want to review all changes together before merging to main
+
+**Use direct-to-main mode (`/karimo-execute`) for:**
+- Simple PRDs (1-3 tasks)
+- Hotfixes or urgent changes
+- Existing v4.0 workflows
+
+### Arguments
+
+| Flag | Required | Description |
+|------|----------|-------------|
+| `--prd {slug}` | Yes | PRD slug to orchestrate |
+| `--dry-run` | No | Preview feature branch plan without execution |
+
+### Output
+
+```
+╭──────────────────────────────────────────────────────────────╮
+│  Feature Branch Orchestration: user-auth                     │
+╰──────────────────────────────────────────────────────────────╯
+
+✓ Created feature branch: feature/user-auth
+✓ Updated status.json with execution mode
+✓ Spawned PM agent for wave-based execution
+
+Task PRs will target: feature/user-auth
+Final PR will be created with: /karimo-merge --prd user-auth
+
+Execution started in background...
+```
+
+### Next Step
+
+When all tasks complete and status is `ready-for-merge`:
+
+```
+/karimo-merge --prd {slug}
+```
+
+---
+
+## /karimo-merge
+
+Consolidate feature branch changes and create final PR to main (completes v5.0 workflow).
+
+### Usage
+
+```
+/karimo-merge --prd {slug}
+```
+
+### What It Does
+
+1. **Validates completion** — All task PRs merged to feature branch
+2. **Generates diff** — Shows consolidated changes vs main
+3. **Runs validation** — build, lint, typecheck, test suite
+4. **Presents review** — Comprehensive summary for human approval
+5. **Creates final PR** — `feature/{prd-slug}` → main
+6. **Handles cleanup** — Post-merge branch cleanup
+
+### Validation Checks
+
+Before creating PR:
+- ✓ All tasks marked `done` in status.json
+- ✓ All task PRs merged to feature branch
+- ✓ Build passes
+- ✓ Linter passes
+- ✓ Type checker passes
+- ✓ Test suite passes
+- ✓ No merge conflicts with main
+
+### When to Use
+
+Only use after:
+- `/karimo-orchestrate` completed successfully
+- PRD status is `ready-for-merge`
+- You've reviewed the feature branch changes
+
+### Output
+
+```
+╭──────────────────────────────────────────────────────────────╮
+│  Feature Branch Merge: user-auth                             │
+╰──────────────────────────────────────────────────────────────╯
+
+✓ Validation passed:
+  - All 6 tasks complete
+  - All PRs merged to feature/user-auth
+  - Build ✓  Lint ✓  Types ✓  Tests ✓
+
+📊 Consolidated Changes:
+  - 15 files changed
+  - 842 insertions, 213 deletions
+  - 8 new components, 3 updated
+
+Created PR #127: feature/user-auth → main
+Review: https://github.com/owner/repo/pull/127
+```
+
+### Benefits vs Direct-to-Main
+
+| Metric | Feature Branch | Direct-to-Main |
+|--------|----------------|----------------|
+| Production deployments | 1 (final PR) | 15+ (one per task) |
+| Preview deployment emails | ~2 events | ~38 events |
+| Git history | Clean (1 feature commit) | Verbose (15+ task commits) |
+| Review consolidation | Single comprehensive review | Scattered across task PRs |
+| Rollback | Single revert | Multiple reverts needed |
 
 ---
 
