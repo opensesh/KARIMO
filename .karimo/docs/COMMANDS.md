@@ -18,8 +18,7 @@ Reference for all KARIMO slash commands available in Claude Code.
 | `/karimo-configure` | Create or update project configuration |
 | `/karimo-cd-config` | Configure CD provider to skip KARIMO branch previews |
 | `/karimo-update` | Check for and apply KARIMO updates |
-| `/karimo-feedback` | Quick capture of single learnings |
-| `/karimo-learn` | Deep learning cycle (3 modes) |
+| `/karimo-feedback` | Intelligent feedback capture with auto-detection (simple or complex) |
 | `/karimo-doctor` | Check installation health |
 | `/karimo-test` | Installation smoke test |
 
@@ -768,23 +767,85 @@ If GitHub is unreachable:
 
 ## /karimo-feedback
 
-Capture learnings to improve future agent execution.
+Intelligent feedback capture with automatic complexity detection and adaptive investigation.
 
 ### Usage
 
 ```
-/karimo-feedback                           # Interactive single capture
+/karimo-feedback                           # Interactive with auto-detection
 /karimo-feedback --from-metrics {slug}     # Batch from PRD metrics
+/karimo-feedback --undo                    # Remove recent learnings
 
 > {your observation}
 ```
 
 ### What It Does
 
-1. **Receives** your observation
-2. **Analyzes** and classifies
-3. **Generates** actionable rule
+**Auto-detects complexity** and adapts approach:
+
+**Simple Path (70% of cases, < 5 min):**
+1. **Analyzes** feedback for clarity
+2. **Asks** 0-3 clarifying questions (if needed)
+3. **Generates** actionable rule immediately
 4. **Appends** to `.karimo/learnings.md`
+
+**Complex Path (30% of cases, 10-20 min):**
+1. **Detects** investigation needed
+2. **Conducts** adaptive interview (3-7 questions)
+3. **Spawns** feedback-auditor for evidence gathering
+4. **Creates** feedback document with findings
+5. **Presents** recommended changes for approval
+6. **Applies** approved changes to multiple files
+
+### Complexity Detection
+
+Analyzes your feedback for signals:
+
+**Simple signals** (quick path):
+- Specific file, component, or pattern mentioned
+- Clear root cause stated
+- Straightforward fix ("never do X", "always use Y")
+- Single, well-defined issue
+
+**Complex signals** (investigation path):
+- Vague symptoms ("something's wrong", "keeps failing")
+- Scope indicators ("all tests", "system-wide", "deployment")
+- Investigation language ("figure out why", "not sure what's causing")
+- Multiple related issues tangled together
+
+### Simple Path Example
+
+```
+/karimo-feedback
+
+> "Never use inline styles — always use Tailwind classes"
+```
+
+**Result:** Rule generated immediately and appended to `.karimo/learnings.md`:
+
+```markdown
+**Anti-pattern:** Never use inline styles. Always use Tailwind utility classes.
+Reference existing components for class patterns.
+
+**Context:** Inline styles bypass the design system.
+**Added:** 2026-03-11
+```
+
+### Complex Path Example
+
+```
+/karimo-feedback
+
+> "Tests failing on deploy but passing locally — investigate why"
+```
+
+**Result:** Adaptive interview → evidence gathering → feedback document created:
+
+1. Interview asks 3-7 questions about problem scope, evidence, root cause, desired state
+2. Feedback-auditor investigates CI/CD workflows, test config, PR history
+3. Creates `.karimo/feedback/deploy-test-failures.md` with findings
+4. Presents recommended changes (e.g., missing env vars in GitHub Actions)
+5. Applies approved changes to multiple files
 
 ### Learning Categories
 
@@ -794,29 +855,6 @@ Capture learnings to improve future agent execution.
 | **Anti-Patterns to Avoid** | Mistakes to prevent |
 | **Rules** | Mandatory guidelines |
 | **Gotchas** | Non-obvious constraints |
-
-### Example
-
-```
-/karimo-feedback
-
-> "The agent kept using inline styles instead of Tailwind classes"
-```
-
-Generates:
-
-```markdown
-### Anti-Patterns to Avoid
-
-- **Never use inline styles** — Always use Tailwind utility classes.
-  First flagged: 2026-02-19
-```
-
-### Tips
-
-- Be specific about what went wrong
-- Include file paths when relevant
-- Mention the desired behavior
 
 ### Batch Mode: `--from-metrics`
 
@@ -845,76 +883,6 @@ This reads `.karimo/prds/user-profiles/metrics.json` and presents each candidate
 ```
 
 Approved rules are batch-appended to `.karimo/learnings.md`.
-
----
-
-## /karimo-learn
-
-Conduct a comprehensive three-mode learning cycle.
-
-### Usage
-
-```
-/karimo-learn
-```
-
-### What It Does
-
-Unlike `/karimo-feedback` (quick, single-rule capture), `/karimo-learn` is a deep investigation:
-
-1. **Mode 1: Interview** (~25 min) — Opus-guided conversation
-2. **Mode 2: Audit** (~10 min) — Agent investigates with evidence
-3. **Mode 3: Review & Act** (~10 min) — Apply approved changes
-
-### Learn Cycle Flow
-
-```
-INIT: Create .karimo/learn/{timestamp}/
-    ↓
-MODE 1: Interview (5 rounds)
-  Pain points → Configuration → Workflow → Deep dive → Audit directives
-    ↓
-MODE 2: Audit (karimo-learn-auditor)
-  Evidence from status.json, PR history, codebase
-    ↓
-MODE 3: Review & Act
-  Present changes → Human approval → Apply to config/docs
-    ↓
-COMPLETE: Summary + commit
-```
-
-### Output
-
-Creates `.karimo/learn/{timestamp}/`:
-- `interview.md` — Pain points, audit directives
-- `findings.md` — Evidence, root causes
-- `action-plan.md` — Proposed changes
-- `changes-applied.md` — What was applied
-
-### When to Use
-
-| Use `/karimo-feedback` | Use `/karimo-learn` |
-|------------------------|---------------------|
-| Single observation | Multiple issues |
-| Immediate capture | Periodic review |
-| ~2 minutes | ~45 minutes |
-| No investigation | Evidence-based audit |
-
-### Example
-
-```
-/karimo-learn
-
-# Mode 1 Interview begins...
-# 5 rounds of structured questions
-# Produces audit directives
-
-# Mode 2 Audit runs...
-# Investigates with real evidence
-
-# Mode 3 Review...
-# Each change presented for approval
-```
 
 ---
 
@@ -1063,7 +1031,6 @@ Commands are defined in `.claude/commands/`:
 | `karimo-cd-config.md` | `/karimo-cd-config` |
 | `karimo-update.md` | `/karimo-update` |
 | `karimo-feedback.md` | `/karimo-feedback` |
-| `karimo-learn.md` | `/karimo-learn` |
 | `karimo-doctor.md` | `/karimo-doctor` |
 | `karimo-test.md` | `/karimo-test` |
 
