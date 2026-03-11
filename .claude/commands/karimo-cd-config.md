@@ -107,9 +107,14 @@ Check if `vercel.json` exists. If not, create it.
 
 ```json
 {
-  "ignoreCommand": "[[ \"$VERCEL_GIT_COMMIT_REF\" =~ -[0-9]+[a-z]?$ ]] && exit 0 || exit 1"
+  "ignoreCommand": "[[ \"$VERCEL_GIT_COMMIT_REF\" =~ ^feature/|-[0-9]+[a-z]?$ ]] && exit 0 || exit 1"
 }
 ```
+
+**Pattern breakdown:**
+- `^feature/` — Skip all feature branches (v5.0 feature branch mode)
+- `|` — OR
+- `-[0-9]+[a-z]?$` — Skip task branches (both v4.0 and v5.0)
 
 If `vercel.json` already exists:
 - Parse existing JSON
@@ -122,8 +127,13 @@ Check if `netlify.toml` exists. If not, create it with:
 
 ```toml
 [build]
-  ignore = "[[ \"$HEAD\" =~ -[0-9]+[a-z]?$ ]] && exit 0 || exit 1"
+  ignore = "[[ \"$HEAD\" =~ ^feature/|-[0-9]+[a-z]?$ ]] && exit 0 || exit 1"
 ```
+
+**Pattern breakdown:**
+- `^feature/` — Skip all feature branches (v5.0 feature branch mode)
+- `|` — OR
+- `-[0-9]+[a-z]?$` — Skip task branches (both v4.0 and v5.0)
 
 If `netlify.toml` already exists:
 - Check if `[build]` section exists
@@ -135,7 +145,8 @@ If `netlify.toml` already exists:
 Add a comment to `render.yaml` (Render requires dashboard config):
 
 ```yaml
-# KARIMO: Configure "Auto-Deploy" in dashboard to exclude branches matching: -[0-9]+[a-z]?$
+# KARIMO: Configure "Auto-Deploy" in dashboard to exclude branches matching: (^feature/|-[0-9]+[a-z]?$)
+# This skips: feature/* (feature branches) and *-1a, *-2b (task branches)
 # See: https://render.com/docs/deploys#skip-deploys
 ```
 
@@ -146,7 +157,9 @@ Render requires dashboard configuration for branch filtering.
 In the Render dashboard:
 1. Go to your service settings
 2. Under "Auto-Deploy", set to "No"
-3. Or configure a branch pattern to exclude: -[0-9]+[a-z]?$
+3. Or configure branch patterns to exclude:
+   - feature/* (feature branches)
+   - *-[0-9]+[a-z]$ (task branches)
 
 Added comment to render.yaml as a reminder.
 ```
@@ -158,7 +171,9 @@ Check if `railway.toml` exists. If not, create it with:
 ```toml
 # KARIMO: Railway doesn't support branch-level ignore via config
 # Configure in dashboard: Settings → Deploys → Watch Patterns
-# Exclude pattern: *-[0-9]+[a-z]$
+# Exclude patterns:
+#   - feature/* (feature branches)
+#   - *-[0-9]+[a-z]$ (task branches)
 ```
 
 Display message:
@@ -168,7 +183,9 @@ Railway requires dashboard configuration for branch filtering.
 In the Railway dashboard:
 1. Go to your project settings
 2. Under "Deploys", find "Watch Patterns"
-3. Add an exclude pattern: *-[0-9]+[a-z]$
+3. Add exclude patterns:
+   - feature/* (feature branches)
+   - *-[0-9]+[a-z]$ (task branches)
 ```
 
 **Fly.io:**
@@ -180,7 +197,9 @@ Fly.io doesn't auto-deploy on PR branches by default.
 
 If you've configured GitHub Actions for Fly deployment:
 - Add a branch condition to skip KARIMO branches
-- Pattern: branches ending with -[digit][letter] (e.g., -1a, -2b)
+- Patterns to exclude:
+  - feature/* (feature branches)
+  - *-[0-9]+[a-z]$ (task branches ending with -1a, -2b, etc.)
 
 No configuration needed if using default Fly.io setup.
 ```
@@ -192,10 +211,15 @@ After applying, show confirmation:
 ```
 ✓ Updated vercel.json with KARIMO ignore rule
 
-KARIMO task branches (e.g., user-profiles-1a) will skip preview deployments.
-Non-KARIMO branches (feature/*, fix/*, etc.) will deploy normally.
+KARIMO branches will skip preview deployments:
+  - feature/* (feature branches for v5.0 feature branch mode)
+  - *-1a, *-2b (task branches for all execution modes)
 
-Test by pushing a branch ending with -1a or -2b.
+Non-KARIMO branches (main, dev, custom-feature/*, etc.) will deploy normally.
+
+Test by pushing:
+  - A feature branch: feature/test
+  - A task branch: test-1a
 ```
 
 ## The Pattern
