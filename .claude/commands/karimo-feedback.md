@@ -1,177 +1,344 @@
-# /karimo-feedback — Compound Learning Command
+# /karimo-feedback — Unified Feedback Command
 
-Capture learnings from execution to improve future agent behavior.
+Intelligent feedback capture with automatic complexity detection and adaptive investigation.
 
 ## Purpose
 
-Simple compound learning: you describe what went wrong or what worked well, and KARIMO processes it into rules that are appended to `.karimo/learnings.md`.
+Unified command for capturing feedback about KARIMO or Claude Code operation. Auto-detects whether feedback needs quick rule creation (simple) or deep investigation (complex).
+
+**Key Principle:** Focus on "what's broken" not "what are we building."
+
+---
 
 ## Usage
 
-```
-/karimo-feedback                           # Interactive mode
+```bash
+/karimo-feedback                           # Interactive mode with auto-detection
 /karimo-feedback --from-metrics {prd-slug} # Batch mode from execution metrics
 /karimo-feedback --undo                    # Remove recent learnings
 ```
 
-### Interactive Mode
+---
+
+## Adaptive Flow
 
 ```
-/karimo-feedback
-
-> "The agent kept using inline styles instead of Tailwind classes"
+Initial Feedback
+    │
+    ▼
+Complexity Detection
+    │
+    ├─► SIMPLE PATH (70% of cases, < 5 min)
+    │   │
+    │   ├─ Ask 0-3 clarifying questions (if needed)
+    │   ├─ Generate rule immediately
+    │   ├─ Confirm with user
+    │   └─ Append to .karimo/learnings.md
+    │
+    └─► COMPLEX PATH (30% of cases, 10-20 min)
+        │
+        ├─ Notify: "This needs investigation. Starting adaptive interview..."
+        │
+        ├─ Adaptive interview (3-7 questions)
+        │   - Problem Scoping
+        │   - Evidence
+        │   - Root Cause
+        │   - Desired State
+        │
+        ├─ Spawn @karimo-feedback-auditor for evidence gathering
+        │
+        ├─ Create feedback document (.karimo/feedback/{slug}.md)
+        │
+        └─ Present recommended changes → Apply approved changes
 ```
 
-### Batch Mode from Metrics
+---
 
-```
-/karimo-feedback --from-metrics user-profiles
-```
+## Interactive Mode
 
-Reads `metrics.json` from the specified PRD and presents suggested learnings for batch capture.
-
-## Behavior
-
-### 1. Collect Feedback
+### Step 1: Collect Initial Feedback
 
 Prompt the user:
 
-> "What feedback do you have from the recent execution? Describe what went wrong, what worked well, or patterns you want agents to follow."
+> "What feedback do you have about how KARIMO or Claude Code is working? Describe what's broken, what's suboptimal, or patterns you want changed."
 
 Accept free-form input. Examples:
-- "The agent used deprecated API methods"
-- "Error handling was inconsistent — some used try/catch, others didn't"
-- "Great job following the existing component patterns"
-- "Tests were too brittle — they relied on implementation details"
+- **Simple:** "Never use inline styles — always use Tailwind classes"
+- **Simple:** "Components should have dev props like in UserCard.tsx"
+- **Complex:** "Tests failing on deploy but passing locally — investigate why"
+- **Complex:** "Agents keep making the same mistake but I don't know what pattern they're missing"
 
-### 2. Categorize Feedback
+### Step 2: Complexity Detection
 
-Classify the feedback as:
+Analyze the feedback for signals:
 
-| Category | Example |
-|----------|---------|
-| `anti-pattern` | "Don't use inline styles" |
-| `pattern` | "Always use existing component patterns" |
-| `rule` | "Error handling must use structured error types" |
-| `gotcha` | "The auth middleware has a race condition on first load" |
-| `praise` | "Good job with test coverage" |
+#### Simple Signals (Quick Path)
+- Specific file, component, or pattern mentioned
+- Clear root cause stated ("because X", "always do Y")
+- Straightforward fix ("never do X", "use Y pattern")
+- Single, well-defined issue
+- User confident about what went wrong
 
-### 3. Generate Rule
+**Example:** "Never let agents use `any` types — use proper TypeScript interfaces"
 
-Transform feedback into an actionable rule:
+#### Complex Signals (Investigation Path)
+- Vague symptoms ("something's wrong", "keeps failing", "not working right")
+- Scope indicators ("all tests", "system-wide", "deployment", "CI/CD")
+- Investigation language ("figure out why", "not sure what's causing", "investigate")
+- Multiple related issues tangled together
+- Unclear root cause
 
-**Input:** "The agent kept using inline styles instead of Tailwind classes"
+**Example:** "Tests are failing when we deploy but pass locally — investigate why"
+
+---
+
+## Simple Path (<  min)
+
+When simple signals detected:
+
+### 1. Clarifying Questions (0-3 questions, only if needed)
+
+**If file/component not specific enough:**
+> "Which file or component? Can you point me to an example?"
+
+**If rule scope unclear:**
+> "Should this apply to all components or specific areas?"
+
+**If fix ambiguous:**
+> "What should the ideal behavior be?"
+
+### 2. Generate Rule
+
+Transform feedback into actionable rule:
+
+**Input:** "Never use inline styles — use Tailwind classes"
 
 **Output:**
 ```markdown
-- **Anti-pattern:** Never use inline styles. Always use Tailwind utility classes. Reference existing components for class patterns.
+**Anti-pattern:** Never use inline styles. Always use Tailwind utility classes.
+Reference existing components for class patterns.
+
+**Context:** Inline styles bypass the design system and make components harder to theme.
+**Added:** 2024-03-11
 ```
 
-**Input:** "Error handling was inconsistent"
-
-**Output:**
-```markdown
-- **Rule:** All error handling must use structured error types from `src/utils/errors.ts`. Never use bare try/catch without proper error classification.
-```
-
-### 4. Confirm with User
-
-Present the generated rule:
+### 3. Confirm with User
 
 > "Adding to `.karimo/learnings.md`:
 >
 > ```
-> - **Anti-pattern:** Never use inline styles. Always use Tailwind utility classes.
+> **Anti-pattern:** Never use inline styles. Always use Tailwind utility classes.
+> Reference existing components for class patterns.
+>
+> **Context:** Inline styles bypass the design system and make components harder to theme.
+> **Added:** 2024-03-11
 > ```
 >
 > Correct? [Y/n/edit]"
 
-Allow user to:
-- Confirm as-is
-- Edit the rule
-- Cancel
+### 4. Append to .karimo/learnings.md
 
-### 5. Append to .karimo/learnings.md
+Add under appropriate section:
+- Patterns to Follow
+- Anti-Patterns to Avoid
+- Rules
+- Gotchas
 
-Add the rule under the appropriate section in `.karimo/learnings.md`:
+### 5. Commit
 
-```markdown
-# KARIMO Learnings
+```bash
+git add .karimo/learnings.md
+git commit -m "chore(feedback): add rule - no inline styles
 
-_Rules learned from execution feedback via `/karimo-feedback` and `/karimo-learn`._
-
-## Patterns to Follow
-
-- Always use existing component patterns from `src/components/`
-
-## Anti-Patterns to Avoid
-
-- **Never use inline styles.** Always use Tailwind utility classes. Reference existing components for class patterns.
-
-## Rules
-
-- All error handling must use structured error types from `src/utils/errors.ts`.
-
-## Gotchas
-
-- The auth middleware has a race condition on first load. Always check auth state before rendering protected routes.
+Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
 ```
 
-### 6. Update Boundaries (Optional)
+### 6. Confirm
 
-If the feedback suggests a boundary change:
-
-**Input:** "Don't let agents touch the middleware file"
-
-**Action:** Add to `.karimo/config.yaml` boundaries section:
-```yaml
-boundaries:
-  require_review:
-    - middleware.ts  # Added from feedback
-```
-
-### 7. Confirm
-
-> "Learning captured. This will be applied to future agent tasks.
->
-> Updated:
-> - `.karimo/learnings.md` (added anti-pattern rule)
-> - `.karimo/config.yaml` boundaries (added middleware.ts to require_review)"
-
-## Output Format
-
-### .karimo/learnings.md Structure
-
-```markdown
-# KARIMO Learnings
-
-_Rules learned from execution feedback via `/karimo-feedback` and `/karimo-learn`._
-
-## Patterns to Follow
-
-{positive patterns}
-
-## Anti-Patterns to Avoid
-
-{things to never do}
-
-## Rules
-
-{explicit rules}
-
-## Gotchas
-
-{project-specific quirks}
+> "Learning captured. Agents will see this rule on next task."
 
 ---
-*Last updated: {date}*
+
+## Complex Path (10-20 min)
+
+When complex signals detected:
+
+### 1. Notify User
+
+> "This needs investigation. Starting adaptive interview to gather details..."
+
+### 2. Spawn Interviewer in Feedback Mode
+
+```yaml
+agent: @karimo-interviewer.md
+mode: feedback
+model: opus  # Recommended for adaptive questioning
+protocol: .karimo/templates/FEEDBACK_INTERVIEW_PROTOCOL.md
 ```
+
+### 3. Adaptive Interview (3-7 questions)
+
+The interviewer conducts adaptive questioning across 4 categories:
+
+**Category 1: Problem Scoping (1-2 questions)**
+- When does this occur?
+- Which files/components/areas affected?
+- Recent change or ongoing issue?
+
+**Category 2: Evidence (1-2 questions)**
+- Which PRDs, tasks, or PRs show this?
+- What should have happened instead?
+- Patterns in status.json, logs, reviews?
+
+**Category 3: Root Cause (1-2 questions)**
+- What do you think is causing this?
+- Missing information agents need?
+- Behavior, workflow, or tooling issue?
+
+**Category 4: Desired State (1-2 questions)**
+- What should ideal behavior be?
+- What prevents this in future?
+- Hard rule or guideline?
+
+**Stop conditions:**
+- All 4 categories have at least 1 answer
+- Enough info for investigation directives
+- 7 questions reached (hard limit)
+- Problem becomes simple (switch to simple path)
+
+### 4. Generate Investigation Directives
+
+Interviewer produces structured directives:
+
+```yaml
+investigation:
+  problem: "Tests failing on deploy but passing locally"
+  slug: "deploy-test-failures"
+  scope:
+    - CI/CD workflows
+    - Test environment configuration
+    - Deployment scripts
+  data_sources:
+    status_json:
+      - user-profiles
+      - payment-flow
+    pr_history:
+      - "#123"
+      - "#127"
+    file_patterns:
+      - ".github/workflows/*.yml"
+      - "tests/**/*.test.ts"
+    config_files:
+      - ".karimo/config.yaml"
+      - "package.json"
+  question_to_answer: "Why do tests pass locally but fail in CI/CD?"
+  hypothesis: "Environment variable or dependency difference between local and CI"
+  desired_state: "Tests pass consistently in all environments"
+```
+
+### 5. Spawn Feedback Auditor
+
+```yaml
+agent: @karimo-feedback-auditor.md
+input: investigation directives from interviewer
+tools: Read, Grep, Glob, Bash (gh CLI)
+time_budget: 5-10 minutes
+```
+
+Auditor investigates and returns:
+- Evidence from status files, PR history, codebase
+- Root cause analysis
+- Recommended changes with confidence levels
+
+### 6. Create Feedback Document
+
+Generate `.karimo/feedback/deploy-test-failures.md` using template:
+
+```markdown
+# Feedback: deploy-test-failures
+
+**Type:** tooling
+**Status:** investigating → resolved (after changes applied)
+**Created:** 2024-03-11
+
+## Problem Statement
+Tests pass locally but fail in CI/CD
+
+## Evidence Gathered
+{From feedback-auditor}
+
+## Root Cause Analysis
+{From feedback-auditor}
+
+## Recommended Changes
+{From feedback-auditor}
+
+## Applied Changes
+{Tracked after user approval}
+
+## Verification
+{Success criteria for future PRDs}
+```
+
+### 7. Present Recommended Changes
+
+Show user the proposed changes:
+
+> "Investigation complete. Found root cause: missing environment variables in GitHub Actions.
+>
+> Recommended changes:
+>
+> 1. **Update** `.github/workflows/test.yml`
+>    - Add DATABASE_URL env var
+>    - Confidence: High
+>
+> 2. **Add rule** to `.karimo/learnings.md`
+>    - "Always verify test environment parity between local and CI"
+>    - Confidence: High
+>
+> 3. **Update** `.karimo/config.yaml` boundaries
+>    - Add `.github/workflows/` to `require_review`
+>    - Confidence: Medium
+>
+> Apply these changes? [all/1,2/none/edit]"
+
+### 8. Apply Approved Changes
+
+For each approved change:
+- Update target files
+- Track in feedback document under "Applied Changes"
+
+### 9. Commit
+
+```bash
+git add .karimo/feedback/deploy-test-failures.md .karimo/learnings.md .karimo/config.yaml .github/workflows/test.yml
+git commit -m "chore(feedback): fix deploy test failures
+
+Investigation findings:
+- Root cause: missing DATABASE_URL in CI
+- Added env var to GitHub Actions workflow
+- Added rule to verify test environment parity
+- Added CI workflows to require_review boundary
+
+See .karimo/feedback/deploy-test-failures.md for full investigation.
+
+Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
+```
+
+### 10. Confirm
+
+> "Feedback captured and changes applied.
+>
+> Created: `.karimo/feedback/deploy-test-failures.md`
+> Updated: `.karimo/learnings.md`, `.karimo/config.yaml`, `.github/workflows/test.yml`
+>
+> Future PRDs will include this fix."
 
 ---
 
 ## Batch Mode: --from-metrics
 
-Batch mode reads execution metrics and presents suggested learnings automatically.
+Preserved from previous version with no changes.
 
 ### Usage
 
@@ -181,16 +348,15 @@ Batch mode reads execution metrics and presents suggested learnings automaticall
 
 ### Behavior
 
-1. **Read metrics.json:**
+1. **Read metrics.json**
    ```bash
-   # Read from PRD folder
    METRICS_FILE=".karimo/prds/${prd_slug}/metrics.json"
    ```
 
 2. **Extract learning candidates:**
    - High-loop tasks (loops > 3)
    - Escalated tasks (Sonnet → Opus)
-   - Hard gate tasks (failed 3 Greptile attempts)
+   - Hard gate tasks (failed 3 review attempts)
    - Runtime dependency tasks
 
 3. **Present suggested learnings:**
@@ -211,7 +377,7 @@ Batch mode reads execution metrics and presents suggested learnings automaticall
       → "Tasks involving complex state management should start at complexity 5+"
       Category: rule
 
-   4. [4a] Hard gate (3 Greptile failures)
+   4. [4a] Hard gate (3 review failures)
       → "Integration tests for external services need mocking patterns"
       Category: gotcha
 
@@ -220,72 +386,66 @@ Batch mode reads execution metrics and presents suggested learnings automaticall
 
 4. **Capture selected learnings:**
    - Append to `.karimo/learnings.md` under appropriate sections
-   - Update metrics.json to mark learnings as captured
-
-### Output Example
-
-```
-✓ Captured 3 learnings from user-profiles execution
-
-Added to .karimo/learnings.md:
-  - [gotcha] Profile form validation patterns...
-  - [rule] Always check authentication requirements...
-  - [gotcha] Integration tests for external services...
-
-Skipped: 1 (Model escalation — declined by user)
-```
-
-### Metrics Source
-
-Learning candidates come from `metrics.json.learning_candidates.suggested_learnings`:
-
-```json
-{
-  "learning_candidates": {
-    "suggested_learnings": [
-      {
-        "task_id": "2a",
-        "reason": "high_loops",
-        "details": "5 loops before passing validation",
-        "suggested_learning": "Profile form validation patterns..."
-      }
-    ]
-  }
-}
-```
-
-**Reference:** `.karimo/templates/METRICS_SCHEMA.md`
+   - Update metrics.json to mark as captured
+   - Commit: `chore(feedback): batch capture from {prd-slug} metrics`
 
 ---
 
-## Multiple Feedback Items
+## Edge Cases
 
-Users can provide multiple items:
+### Multiple Distinct Issues
 
+**User provides:** "Three things: agents use inline styles, tests are flaky, and deployment fails"
+
+**Response:**
 ```
-/karimo-feedback
+I'm seeing three distinct issues:
+1. Inline styles (simple)
+2. Flaky tests (complex - needs investigation)
+3. Deployment failures (complex - needs investigation)
 
-> "Several things:
-> 1. Agents should always add JSDoc comments to exported functions
-> 2. Don't use deprecated React lifecycle methods
-> 3. The database connection pool has a 10-second timeout"
+Options:
+A) Handle inline styles now (simple path), investigate others separately
+B) Pick one complex issue to investigate now
+C) Quick rules for all three (if you know the fixes)
+
+What would you prefer?
 ```
 
-Process each item separately, confirm all at once:
+### Complexity Changes Mid-Feedback
 
-> "Adding these learnings:
->
-> 1. **Rule:** Add JSDoc comments to all exported functions
-> 2. **Anti-pattern:** Never use deprecated React lifecycle methods (componentWillMount, etc.)
-> 3. **Gotcha:** Database connection pool has a 10-second timeout — handle connection errors gracefully
->
-> Correct? [Y/n]"
+**Starts simple:** "Agents should add JSDoc comments"
+**Becomes complex:** "...but I'm not sure which functions need it or if there's a pattern"
+
+**Response:**
+```
+This is more complex than I initially thought. I recommend switching to investigation
+mode to determine the right pattern by looking at existing code.
+
+Should I start an adaptive interview to gather details?
+```
+
+### Vague Feedback
+
+**User:** "Something's not working right"
+
+**Response:**
+```
+Can you be more specific? For example:
+- Which PRD or task showed the problem?
+- What did you expect vs what happened?
+- Is this about agent behavior, code quality, or workflow?
+
+Even if you don't know the root cause, specific examples help me investigate.
+```
+
+---
 
 ## Undo
 
-If a rule was added incorrectly:
+Preserved from previous version with no changes.
 
-```
+```bash
 /karimo-feedback --undo
 ```
 
@@ -293,7 +453,62 @@ Shows recent learnings and allows removal:
 
 > "Recent learnings:
 >
-> 1. [2024-02-19] Anti-pattern: Never use inline styles
-> 2. [2024-02-18] Rule: Add JSDoc to exported functions
+> 1. [2024-03-11] Anti-pattern: Never use inline styles
+> 2. [2024-03-10] Rule: Add JSDoc to exported functions
 >
 > Which would you like to remove?"
+
+---
+
+## File Structure
+
+### Created/Modified Files
+
+**Simple Path:**
+- `.karimo/learnings.md` (appended)
+
+**Complex Path:**
+- `.karimo/feedback/{slug}.md` (created)
+- `.karimo/learnings.md` (appended)
+- `.karimo/config.yaml` (if boundaries updated)
+- `.claude/KARIMO_RULES.md` (if rules updated)
+- Other files (as recommended by investigation)
+
+**Batch Mode:**
+- `.karimo/learnings.md` (appended)
+- `.karimo/prds/{prd-slug}/metrics.json` (updated with captured flag)
+
+---
+
+## Protocol References
+
+**Simple path:** Direct rule generation (no protocol)
+**Complex path:** `.karimo/templates/FEEDBACK_INTERVIEW_PROTOCOL.md`
+**Feedback auditor:** `.claude/agents/karimo-feedback-auditor.md`
+**Feedback document template:** `.karimo/templates/FEEDBACK_DOCUMENT_TEMPLATE.md`
+
+---
+
+## Success Criteria
+
+**Simple path complete when:**
+- ✅ Rule appended to `.karimo/learnings.md`
+- ✅ Changes committed
+- ✅ User confirms capture
+
+**Complex path complete when:**
+- ✅ Feedback document created
+- ✅ Evidence gathered and analyzed
+- ✅ Recommended changes presented
+- ✅ Approved changes applied
+- ✅ Changes committed
+- ✅ User confirms resolution
+
+**Batch mode complete when:**
+- ✅ All selected learnings appended to `.karimo/learnings.md`
+- ✅ Metrics updated with captured flags
+- ✅ Changes committed
+
+---
+
+*This unified command replaces the legacy `/karimo-learn` workflow. All learning capture now flows through `/karimo-feedback` with intelligent complexity detection.*
