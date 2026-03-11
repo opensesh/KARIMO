@@ -214,23 +214,62 @@ task-branch-1b ─┘         ▲                  ▲
 - `status.json` — Execution tracking (status: `ready` when approved)
 - `findings.md` — Cross-task discoveries (populated during execution)
 
-### Execution Phase (`/karimo-execute`)
+### Execution Phase (`/karimo-run`)
 
 **Phase 1: Brief Generation**
 1. Brief Writer generates self-contained briefs per task
-2. User reviews briefs, can adjust or exclude tasks
-3. Briefs saved to `.karimo/prds/{slug}/briefs/`
+2. Briefs committed to git atomically: `.karimo/prds/{slug}/briefs/`
+
+**Phase 1.5: Pre-Execution Review Gate (v5.1)**
+
+Two-stage optional validation before execution begins:
+
+**Stage 1: Investigation**
+1. User chooses: Review briefs (recommended) | Skip review | Cancel
+2. If review chosen: Brief Reviewer agent spawns
+3. Agent validates briefs against codebase reality:
+   - Assumption validation (current file states)
+   - Success criteria feasibility (cross-task contradictions)
+   - Configuration prerequisites (vitest projects, ESLint rules, etc.)
+   - File structure validation (paths, imports)
+   - Dependency state (wave ordering vs file overlaps)
+   - Version consistency (with existing patterns)
+4. Produces findings document: `.karimo/prds/{slug}/review/PRD_REVIEW_pre-orchestration.md`
+5. Findings committed to git atomically
+
+**Stage 2: Correction (Conditional)**
+1. User chooses: Apply corrections (recommended) | Skip corrections | Cancel
+2. If apply chosen: Brief Corrector agent spawns
+3. Agent reads findings document and applies fixes:
+   - Modifies task briefs (success criteria, context notes, file paths)
+   - Updates PRD (clarifies requirements, adds constraints)
+   - Creates new task briefs (if findings reveal missing work)
+   - Updates tasks.yaml (if task structure changes)
+4. Corrections committed to git atomically
+
+**Benefits:**
+- Catches incorrect assumptions before execution (saves tokens/time)
+- Prevents contradictory success criteria
+- Validates configuration prerequisites exist
+- Significantly increases execution success rate
+- Reduces automated review failures (Greptile/Code Review)
+
+**Flags:**
+- `--skip-review`: Skip Phase 1.5 entirely, execute immediately
+- `--review-only`: Run Phase 1.5 then stop (no Phase 2 execution)
 
 **Phase 2: Task Execution**
 
 1. PM Agent reads `execution_plan.yaml` for wave-based scheduling
-2. PM Agent reads pre-generated briefs from `.karimo/prds/{slug}/briefs/`
+2. PM Agent reads pre-generated (and corrected) briefs from `.karimo/prds/{slug}/briefs/`
 3. Creates worktrees at `.worktrees/{prd-slug}/{task-id}`
 4. Spawns agents for ready tasks (respects `max_parallel`)
 5. Propagates findings between dependent tasks
 6. Creates PRs when tasks complete
 
-**Output**: `.karimo/prds/{slug}/briefs/{task_id}.md` for each approved task
+**Output**:
+- `.karimo/prds/{slug}/briefs/{task_id}.md` for each task
+- `.karimo/prds/{slug}/review/PRD_REVIEW_pre-orchestration.md` (if review ran)
 
 ### Review Phase (Phase 2)
 
@@ -277,6 +316,8 @@ This is the primary human oversight touchpoint — check it each morning or afte
 | **Investigator** | Scans codebase for patterns | Sonnet | No |
 | **Reviewer** | Validates PRD, generates DAG | Opus | No |
 | **Brief Writer** | Generates task briefs | Sonnet | No |
+| **Brief Reviewer** | Pre-execution validation of briefs (v5.1) | Sonnet | No (findings doc only) |
+| **Brief Corrector** | Applies corrections from review findings (v5.1) | Sonnet | No (modifies briefs/PRD) |
 | **PM Agent** | Coordinates task execution | Sonnet | No |
 | **Review/Architect** | Code-level integration and merge quality | Sonnet | Conflict resolution only |
 | **Feedback Auditor** | Investigates complex feedback issues | Sonnet | No |
