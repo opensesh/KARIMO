@@ -110,16 +110,12 @@ Updated `.karimo/MANIFEST.json`:
 
 **Simplified Command Names (Phase 1: Aliases)**
 
-New, more intuitive command names for the core KARIMO workflow:
+New, more intuitive command name for the core KARIMO workflow:
 
 - `/karimo-run` — Execute PRD with feature branch workflow (alias for `/karimo-orchestrate`)
   - More intuitive name following "plan → run" mental model
   - Same proven orchestration logic
   - Clearly marked as **recommended** execution method
-- `/karimo-finish` — Complete PRD implementation with final PR to main (alias for `/karimo-merge`)
-  - Clearer intent: "finish this PRD" vs technical "merge"
-  - Completes the linear workflow: plan → run → finish
-  - Same consolidation and validation logic
 
 **Smart Status Command**
 
@@ -137,7 +133,6 @@ Enhanced `/karimo-status` with intelligent behavior:
   - Remains functional for backward compatibility
   - Will be removed in v6.0
 - `/karimo-orchestrate` — Still works, but `/karimo-run` is preferred name
-- `/karimo-merge` — Still works, but `/karimo-finish` is preferred name
 - `/karimo-overview` — Functionality merged into `/karimo-status` (no arguments)
 
 **Documentation Updates**
@@ -153,9 +148,9 @@ All documentation updated to prefer new command names:
 New recommended workflow is clearer and more linear:
 
 ```
-Plan → Run → Status → Finish → Feedback
-  ↓      ↓       ↓        ↓         ↓
-/plan  /run  /status  /finish  /feedback
+Plan → Run → Status → Merge → Feedback
+  ↓      ↓       ↓       ↓         ↓
+/plan  /run  /status  /merge  /feedback
 ```
 
 **Before (v5.1):**
@@ -165,7 +160,7 @@ Plan → Run → Status → Finish → Feedback
 - Three-step execution unclear
 
 **After (v5.2):**
-- 11 core commands (14 total including aliases)
+- 11 core commands (13 total including aliases)
 - Clear workflow with intuitive verbs
 - Single smart status command
 - Explicit deprecation guidance
@@ -174,7 +169,7 @@ Plan → Run → Status → Finish → Feedback
 
 Updated `.karimo/MANIFEST.json`:
 - Version: 5.1.0 → 5.2.0
-- Commands: Added `karimo-run.md`, `karimo-finish.md`
+- Commands: Added `karimo-run.md`
 - Removed: `karimo-overview.md` (never implemented)
 
 ### Migration Path
