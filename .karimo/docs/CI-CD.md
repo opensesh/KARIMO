@@ -41,19 +41,19 @@ Or manually configure:
 **Vercel** — Add to `vercel.json`:
 ```json
 {
-  "ignoreCommand": "[[ \"$VERCEL_GIT_COMMIT_REF\" =~ -[0-9]+[a-z]?$ ]] && exit 0 || exit 1"
+  "ignoreCommand": "[[ \"$VERCEL_GIT_COMMIT_REF\" =~ (^feature/|-[0-9]+[a-z]?$) ]] && exit 0 || exit 1"
 }
 ```
 
 **Netlify** — Add to `netlify.toml`:
 ```toml
 [build]
-  ignore = "[[ \"$HEAD\" =~ -[0-9]+[a-z]?$ ]] && exit 0 || exit 1"
+  ignore = "[[ \"$HEAD\" =~ (^feature/|-[0-9]+[a-z]?$) ]] && exit 0 || exit 1"
 ```
 
-**Render** — In dashboard, set Auto-Deploy to exclude branches matching: `-[0-9]+[a-z]?$`
+**Render** — In dashboard, set Auto-Deploy to exclude branches matching: `(^feature/|-[0-9]+[a-z]?$)`
 
-**The Pattern:** KARIMO task branches end with `-{digit}{letter}` (e.g., `-1a`, `-2b`). The regex `-[0-9]+[a-z]?$` matches this.
+**The Pattern:** KARIMO creates feature branches (`feature/{prd-slug}`) and task branches (`{prd-slug}-{task-id}`). The regex `(^feature/|-[0-9]+[a-z]?$)` matches both patterns.
 
 #### Option 2: Accept the Noise
 
@@ -82,17 +82,35 @@ Examples:
 - `auth-refactor-3a`
 - `payment-flow-10a` (multi-digit task IDs supported)
 
-### Regex Pattern
+### Ignore Pattern Breakdown (v5.0)
 
 ```regex
--[0-9]+[a-z]?$
+(^feature/|-[0-9]+[a-z]?$)
 ```
 
-**Breakdown:**
-- `-` — Literal dash
-- `[0-9]+` — One or more digits (handles task IDs like 1, 10, 100)
-- `[a-z]?` — Optional lowercase letter (wave suffix)
-- `$` — End of string
+This pattern skips two types of KARIMO branches:
+
+1. **Feature branches** (`^feature/`):
+   - `feature/user-auth` ✓ Skip
+   - `feature/token-studio` ✓ Skip
+   - Used in v5.0 feature branch mode
+   - Aggregate multiple task PRs before main merge
+
+2. **Task branches** (`-[0-9]+[a-z]?$`):
+   - `user-auth-1a` ✓ Skip
+   - `user-auth-2b` ✓ Skip
+   - Used in both v5.0 and v4.0 modes
+   - Individual task implementation branches
+
+**Why skip these?**
+- Feature branches: Aggregate review happens before main merge
+- Task branches: Individual PRs reviewed separately
+- Only deploy to production when changes merge to main
+- Prevents 15+ preview deployments per PRD (v5.0) or per task (v4.0)
+
+**What gets deployed?**
+- PRs to `main` (final feature merge in v5.0, or direct task merge in v4.0)
+- Direct pushes to `main` (emergency hotfixes)
 
 ### Pattern Validation
 
