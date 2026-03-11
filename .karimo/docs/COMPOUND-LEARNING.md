@@ -1,6 +1,6 @@
 # KARIMO Compound Learning
 
-KARIMO has a two-scope compound learning system that makes agents smarter over time. This closes the gap between "agents made a mistake" and "agents never make that mistake again."
+KARIMO has an intelligent compound learning system with automatic complexity detection that makes agents smarter over time. This closes the gap between "agents made a mistake" and "agents never make that mistake again."
 
 ---
 
@@ -8,33 +8,37 @@ KARIMO has a two-scope compound learning system that makes agents smarter over t
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
-│                      COMPOUND LEARNING                               │
+│                  UNIFIED FEEDBACK COMMAND                            │
+│                   /karimo-feedback                                   │
 ├─────────────────────────────────────────────────────────────────────┤
 │                                                                     │
-│   Scope 1: Quick Capture (/karimo-feedback)                         │
-│   ┌─────────────────────────────────────────────────────────────┐   │
-│   │  Single observation → Single rule                            │   │
-│   │  Time: ~2 minutes                                            │   │
-│   │  Use: Immediate capture of patterns/anti-patterns            │   │
-│   │  Output: Appends rule to .karimo/learnings.md                 │   │
-│   └─────────────────────────────────────────────────────────────┘   │
+│   Initial Feedback → Complexity Detection                            │
+│                           ↓                                         │
+│            ┌──────────────┴──────────────┐                          │
+│            ↓                             ↓                          │
 │                                                                     │
-│   Scope 2: Deep Learning (/karimo-learn)                            │
+│   SIMPLE PATH (70% of cases)      COMPLEX PATH (30% of cases)       │
+│   ┌───────────────────────┐      ┌───────────────────────────┐     │
+│   │ < 5 minutes            │      │ 10-20 minutes              │     │
+│   │                       │      │                           │     │
+│   │ 0-3 clarifying Qs     │      │ Adaptive interview (3-7 Q) │     │
+│   │ ↓                     │      │ ↓                         │     │
+│   │ Generate rule         │      │ Evidence gathering        │     │
+│   │ ↓                     │      │ ↓                         │     │
+│   │ Append to             │      │ Create feedback document   │     │
+│   │ learnings.md          │      │ ↓                         │     │
+│   │                       │      │ Present changes           │     │
+│   │                       │      │ ↓                         │     │
+│   │                       │      │ Apply approved changes     │     │
+│   │                       │      │ (learnings.md + config +  │     │
+│   │                       │      │  other files)             │     │
+│   └───────────────────────┘      └───────────────────────────┘     │
+│                                                                     │
+│   BATCH MODE: --from-metrics                                        │
 │   ┌─────────────────────────────────────────────────────────────┐   │
-│   │  Three-mode investigation cycle                              │   │
-│   │  Time: ~45 minutes                                           │   │
-│   │  Use: Periodic deep dive (every 2-4 weeks)                   │   │
-│   │                                                              │   │
-│   │  Mode 1: Interview (Opus)                                    │   │
-│   │    Pain points → Audit directives                            │   │
-│   │                                                              │   │
-│   │  Mode 2: Audit (karimo-learn-auditor)                        │   │
-│   │    Evidence gathering → Root cause analysis                  │   │
-│   │                                                              │   │
-│   │  Mode 3: Review & Act                                        │   │
-│   │    Action plan → Human approval → Apply changes              │   │
-│   │                                                              │   │
-│   │  Output: Multiple config/doc changes with evidence           │   │
+│   │ Post-PRD retrospective from metrics.json                     │   │
+│   │ Pre-identified candidates → Quick review → Batch append      │   │
+│   │ Time: 5-10 minutes                                           │   │
 │   └─────────────────────────────────────────────────────────────┘   │
 │                                                                     │
 └─────────────────────────────────────────────────────────────────────┘
@@ -42,358 +46,417 @@ KARIMO has a two-scope compound learning system that makes agents smarter over t
 
 ---
 
-## Scope 1: Quick Capture
+## Complexity Detection
 
-The `/karimo-feedback` command captures single observations immediately.
+The `/karimo-feedback` command auto-detects whether feedback needs quick capture or deep investigation.
+
+### Simple Signals (Quick Path - 70%)
+
+- Specific file, component, or pattern mentioned
+- Clear root cause stated
+- Straightforward fix ("never do X", "always use Y")
+- Single, well-defined issue
+- User confident about what went wrong
+
+**Examples:**
+- "Never use inline styles — always use Tailwind classes"
+- "Components should have dev props like UserCard.tsx"
+- "Don't let agents touch the middleware file"
+
+### Complex Signals (Investigation Path - 30%)
+
+- Vague symptoms ("something's wrong", "keeps failing")
+- Scope indicators ("all tests", "system-wide", "deployment")
+- Investigation language ("figure out why", "not sure what's causing")
+- Multiple related issues tangled together
+- Unclear root cause
+
+**Examples:**
+- "Tests failing on deploy but passing locally — investigate why"
+- "Agents keep making the same mistake but I don't know what pattern they're missing"
+- "CI/CD is broken — not sure what changed"
+
+---
+
+## Simple Path
+
+Quick capture for well-defined feedback (70% of cases, < 5 min).
 
 ### How It Works
 
-1. **Developer observes** — Notices an agent pattern or mistake
-2. **Runs `/karimo-feedback`** — Describes the observation
-3. **Agent analyzes** — Classifies as pattern, anti-pattern, rule, or gotcha
-4. **Generates rule** — Creates actionable instruction
-5. **Appends to `.karimo/learnings.md`** — Under appropriate category
-6. **Future agents read** — Apply rule to subsequent tasks
+1. **Developer provides feedback** — Clear observation or rule
+2. **Optional clarifying questions** — 0-3 questions if needed
+3. **Generate rule** — Transform feedback into actionable instruction
+4. **Confirm with user** — Present rule for approval
+5. **Append to `.karimo/learnings.md`** — Under appropriate category
+6. **Commit** — `chore(feedback): add rule - {summary}`
+7. **Future agents read** — Apply rule to subsequent tasks
 
 ### Example Usage
 
 ```
 /karimo-feedback
 
-> "The agent kept using inline styles instead of Tailwind classes"
+> "Never use inline styles — always use Tailwind classes"
 ```
 
-Generates:
+**Result:**
 
 ```markdown
-### Anti-Patterns to Avoid
+**Anti-pattern:** Never use inline styles. Always use Tailwind utility classes.
+Reference existing components for class patterns.
 
-- **Never use inline styles** — Always use Tailwind utility classes.
-  First flagged: 2024-02-19
+**Context:** Inline styles bypass the design system.
+**Added:** 2026-03-11
 ```
 
-### When to Use Scope 1
+Appended to `.karimo/learnings.md` immediately.
 
-- Immediate capture after observing an issue
+### When to Use Simple Path
+
+- Immediate capture after observing clear issue
 - Quick patterns worth reinforcing
 - Non-obvious constraints discovered
-- Single, isolated observations
+- Single, isolated observations with known fix
+
+---
+
+## Complex Path
+
+Deep investigation for unclear or systemic issues (30% of cases, 10-20 min).
+
+### How It Works
+
+1. **Developer provides vague/systemic feedback** — Problem description without clear fix
+2. **Notify investigation mode** — "This needs investigation. Starting adaptive interview..."
+3. **Adaptive interview (3-7 questions):**
+   - **Problem Scoping:** When does this occur? Which areas affected?
+   - **Evidence:** Which PRDs/tasks/PRs show this? What went wrong?
+   - **Root Cause:** What's causing this? Missing information?
+   - **Desired State:** What should ideal behavior be?
+4. **Spawn feedback-auditor agent:**
+   - Investigates status.json files, PR history, codebase patterns
+   - Gathers evidence relevant to specific problem
+   - Analyzes root cause
+   - Generates recommended changes
+5. **Create feedback document:**
+   - `.karimo/feedback/{slug}.md` with problem statement, evidence, analysis, recommendations
+6. **Present recommended changes:**
+   - Show each change with target file, confidence level, rationale
+   - User approves/rejects/edits
+7. **Apply approved changes:**
+   - Update `.karimo/learnings.md`, `.karimo/config.yaml`, `.claude/KARIMO_RULES.md`, or other files
+   - Track in feedback document under "Applied Changes"
+8. **Commit** — `chore(feedback): {summary from investigation}`
+
+### Example Usage
+
+```
+/karimo-feedback
+
+> "Tests failing on deploy but passing locally — investigate why"
+```
+
+**Result:**
+
+1. Adaptive interview determines scope (CI/CD workflows, test environment)
+2. Feedback-auditor investigates:
+   - Reviews GitHub Actions workflows
+   - Checks environment variables in status.json
+   - Examines PR history for similar failures
+   - Analyzes test configuration
+3. Creates `.karimo/feedback/deploy-test-failures.md` with findings:
+   - **Root Cause:** Missing DATABASE_URL in GitHub Actions
+   - **Evidence:** 3 PRs (#123, #127, #131) failed with same error
+   - **Recommended Changes:**
+     - Add DATABASE_URL to `.github/workflows/test.yml`
+     - Add rule to `.karimo/learnings.md` about env var parity
+     - Add `.github/workflows/` to `require_review` boundary
+4. User approves changes
+5. Changes applied to multiple files
+6. Feedback document tracks resolution
+
+### When to Use Complex Path
+
+- Systemic issues affecting multiple PRDs/tasks
+- Unclear root cause requiring investigation
+- Deployment, CI/CD, or environment issues
+- Patterns that need evidence gathering
+- Problems where you know "something's wrong" but not what
 
 ---
 
 ## Batch Mode: --from-metrics
 
-After PRD execution completes, KARIMO generates `metrics.json` with auto-identified learning candidates. Use batch mode to process them efficiently.
-
-### Workflow
-
-```
-PRD Execution → metrics.json generated → /karimo-feedback --from-metrics
-```
+Post-PRD retrospective using automatically identified learning candidates.
 
 ### How It Works
 
-1. **Metrics generated** — PM Agent creates `metrics.json` at PRD completion
-2. **Candidates identified** — High loop counts, model escalations, low scores
-3. **Run batch mode** — `/karimo-feedback --from-metrics {prd-slug}`
-4. **Review each candidate** — Add, skip, or edit suggested rules
-5. **Batch append** — All approved rules added to `.karimo/learnings.md`
+After PRD execution completes, KARIMO generates `metrics.json` with auto-identified learning candidates based on:
+- High loop counts (loops > 3)
+- Model escalations (Sonnet → Opus)
+- Hard gate tasks (failed 3 review attempts)
+- Runtime dependencies
 
-### Learning Candidate Types
+### Workflow
 
-| Trigger | Reason | Example |
-|---------|--------|---------|
-| Loop count ≥ 3 | `high_loop_count` | Task required 4 revision attempts |
-| Model escalation | `model_escalation` | Task upgraded from Sonnet to Opus |
-| Initial score < 2 | `low_greptile_score` | Greptile flagged significant issues |
+```bash
+# After PRD completion
+/karimo-feedback --from-metrics {prd-slug}
+```
 
-### Example Session
+**Process:**
+1. Read `metrics.json` from `.karimo/prds/{prd-slug}/`
+2. Extract learning candidates with suggested rules
+3. Present each candidate for review
+4. User selects which to capture (all/specific/none)
+5. Batch append approved rules to `.karimo/learnings.md`
+6. Update `metrics.json` with captured flags
+7. Commit: `chore(feedback): batch capture from {prd-slug} metrics`
+
+### Example Output
 
 ```
-/karimo-feedback --from-metrics user-profiles
+📊 Learnings from: user-profiles
 
-╭──────────────────────────────────────────────────────────────╮
-│  Learning Candidate 1 of 3                                   │
-├──────────────────────────────────────────────────────────────┤
-│  Task: 2a (Profile edit form)                                │
-│  Reason: high_loop_count (4 loops)                           │
-│  Context: Greptile flagged missing error handling            │
-│                                                              │
-│  Suggested rule:                                             │
-│  "Form components must include error state handling"         │
-│                                                              │
-├──────────────────────────────────────────────────────────────┤
-│  [A]dd  [S]kip  [E]dit                                       │
-╰──────────────────────────────────────────────────────────────╯
+Found 4 learning candidates in metrics.json:
+
+1. [2a] High loops (5)
+   → "Profile form validation patterns may be more complex than estimated"
+   Category: gotcha
+
+2. [2a] Runtime dependency
+   → "Always check authentication requirements for API tasks during PRD planning"
+   Category: rule
+
+3. [3b] Model escalation (Sonnet → Opus)
+   → "Tasks involving complex state management should start at complexity 5+"
+   Category: rule
+
+4. [4a] Hard gate (3 review failures)
+   → "Integration tests for external services need mocking patterns"
+   Category: gotcha
+
+Select learnings to capture: [all/1,2,4/none]
 ```
 
 ### When to Use Batch Mode
 
-- After every PRD completion (part of retrospective)
-- When `metrics.json` shows multiple learning candidates
-- For systematic capture vs ad-hoc feedback
+- After completing a PRD
+- Regular retrospectives (weekly/bi-weekly)
+- Processing multiple learnings efficiently
+- Metrics-driven improvement
 
 ---
 
-## Scope 2: Deep Learning
+## File Structure
 
-The `/karimo-learn` command conducts a comprehensive three-mode investigation.
+### .karimo/learnings.md
 
-### The Three Modes
+Single source of truth for accumulated rules. Read by all agents before task execution.
 
-#### Mode 1: Interview (~25 min)
+**Structure:**
+```markdown
+# KARIMO Learnings
 
-Opus-guided conversation following `LEARN_INTERVIEW_PROTOCOL.md`:
+_Rules learned from execution feedback via `/karimo-feedback`._
 
-| Round | Focus | Output |
-|-------|-------|--------|
-| 1 | What's Hurting | Pain points with severity |
-| 2 | Configuration Health | Config gaps and issues |
-| 3 | Workflow and Process | Workflow friction points |
-| 4 | Deep Dive | Top 2-3 priorities with specifics |
-| 5 | Summary | Audit directives for Mode 2 |
+## Patterns to Follow
 
-**Output:** `.karimo/learn/{timestamp}/interview.md`
+{positive practices}
 
-#### Mode 2: Audit (~10 min)
+## Anti-Patterns to Avoid
 
-`karimo-learn-auditor` agent investigates each directive:
+{things to never do}
 
-- **Status files:** Task completion, loop counts, model usage, failures
-- **PR history:** Reviews, revisions, patterns via `gh` CLI
-- **Codebase:** Pattern verification, boundary compliance
-- **Config:** Rule accuracy, boundary effectiveness
+## Rules
 
-**Output:** `.karimo/learn/{timestamp}/findings.md`
+{explicit rules}
 
-#### Mode 3: Review & Act (~10 min)
+## Gotchas
 
-Interactive change approval:
+{project-specific quirks}
 
-```
-╭─────────────────────────────────────────────────────────────╮
-│  Change 1 of 4                                              │
-├─────────────────────────────────────────────────────────────┤
-│  Target: .karimo/learnings.md                               │
-│  Type: Add rule to Anti-Patterns                            │
-│  Evidence: PR #42, #45, #51 all had inline styles reverted │
-│                                                              │
-│  + - **Never use inline styles.** Always use Tailwind       │
-│  +   utility classes. Reference existing components.        │
-│                                                              │
-├─────────────────────────────────────────────────────────────┤
-│  [A]pprove  [R]eject  [E]dit  [S]kip                        │
-╰─────────────────────────────────────────────────────────────╯
+---
+*Last updated: {date}*
 ```
 
-**Output:**
-- `.karimo/learn/{timestamp}/action-plan.md`
-- `.karimo/learn/{timestamp}/changes-applied.md`
-- Git commit with all approved changes
+**Updated by:**
+- Simple path: direct append
+- Complex path: append from feedback investigation
+- Batch mode: batch append from metrics
 
-### When to Use Scope 2
+### .karimo/feedback/
 
-- After completing several PRDs
-- When agents repeatedly make the same mistakes
-- When configuration feels out of sync
-- Periodically (every 2-4 weeks) for system health
-- When onboarding new team members
+Investigation artifacts from complex path (created on-demand).
+
+**Structure:**
+```
+.karimo/feedback/
+├── deploy-test-failures.md
+├── ci-cd-environment-issues.md
+└── agent-behavior-patterns.md
+```
+
+**Each feedback document contains:**
+- Problem statement with scope and occurrence
+- Evidence gathered by feedback-auditor
+- Root cause analysis with impact quantification
+- Recommended changes with confidence levels
+- Applied changes tracking
+- Verification criteria
+
+**Purpose:**
+- Preserve evidence and analysis
+- Link back to learnings added
+- Reference for future feedback cycles
+- Track resolution of complex issues
 
 ---
 
-## Learn Cycle Flow
+## Relationship: Simple vs Complex
 
-```
-/karimo-learn
-    │
-    ▼
-INIT: Create .karimo/learn/{timestamp}/, load context
-    │
-    ▼
-MODE 1: INTERVIEW (Opus, ~25 min)
-  Round 1: What's Hurting
-  Round 2: Configuration Health
-  Round 3: Workflow and Process
-  Round 4: Deep Dive (top 2-3 priorities)
-  Round 5: Summary + Audit Directives
-  → Save interview.md
-    │
-    ▼
-MODE 2: AUDIT (karimo-learn-auditor, ~10 min)
-  For each directive:
-    - Gather evidence (status.json, gh pr, codebase)
-    - Analyze patterns, find root cause
-    - Produce recommended fix
-  → Save findings.md
-    │
-    ▼
-MODE 3: REVIEW & ACT (~10 min)
-  Generate action-plan.md from interview + findings
-  For each proposed change:
-    - Show file, diff, evidence
-    - Human: approve / reject / edit
-  Apply approved changes directly
-  Commit: "chore(karimo): apply learning - {summary}"
-  → Save changes-applied.md
-    │
-    ▼
-COMPLETE: Summary of applied vs rejected changes
-```
-
----
-
-## Learn Cycle Artifacts
-
-```
-.karimo/learn/{timestamp}/
-├── interview.md        # Mode 1: Pain points, audit directives
-├── findings.md         # Mode 2: Evidence, root causes
-├── action-plan.md      # Mode 3: Proposed changes
-└── changes-applied.md  # Mode 3: What was actually applied
-```
+| Aspect | Simple Path | Complex Path |
+|--------|-------------|--------------|
+| **Trigger** | Clear feedback with known fix | Vague symptoms or systemic issues |
+| **Time** | < 5 minutes | 10-20 minutes |
+| **Questions** | 0-3 (if needed) | 3-7 (adaptive) |
+| **Investigation** | None | Evidence gathering via feedback-auditor |
+| **Output Files** | `.karimo/learnings.md` only | `.karimo/feedback/{slug}.md` + multiple config files |
+| **Changes** | Single rule append | Multiple file updates |
+| **Frequency** | After each observation | Periodic or when needed |
+| **User Effort** | Minimal | Guided by adaptive interview |
 
 ---
 
 ## Learning Categories
 
-Both scopes use the same rule categories:
+All learnings (simple and complex) are classified into:
 
-| Category | Purpose | Example |
+| Category | Use For | Example |
 |----------|---------|---------|
-| **Patterns to Follow** | Positive practices | "Use existing component patterns from `src/components/`" |
-| **Anti-Patterns to Avoid** | Mistakes to prevent | "Never use inline styles — use Tailwind" |
-| **Rules** | Mandatory guidelines | "All API calls must include error handling" |
-| **Gotchas** | Non-obvious constraints | "Supabase auth requires server-side session refresh" |
+| **Patterns to Follow** | Positive practices to replicate | "Always use existing component patterns from `src/components/`" |
+| **Anti-Patterns to Avoid** | Mistakes to prevent | "Never use inline styles — use Tailwind classes" |
+| **Rules** | Mandatory guidelines | "All error handling must use structured error types from `src/utils/errors.ts`" |
+| **Gotchas** | Non-obvious constraints | "The auth middleware has a race condition on first load" |
 
 ---
 
-## Learning Storage
+## Learning Provenance
 
-### .karimo/learnings.md
-
-Learnings are stored in a dedicated file:
+Complex path learnings include provenance linking back to feedback documents:
 
 ```markdown
-# KARIMO Learnings
-
-_Rules learned from execution feedback via `/karimo-feedback` and `/karimo-learn`._
-
-## Patterns to Follow
-
-- Always use existing component patterns from `src/components/`
-- Reference established utility functions before creating new ones
-
 ## Anti-Patterns to Avoid
 
-- Never use inline styles — use Tailwind utility classes
-- Don't create new button variants — use the Button component
-
-## Rules
-
-- Error handling must use structured error types from `src/utils/errors.ts`
-- All database queries must include proper error handling
-
-## Gotchas
-
-- Supabase auth requires server-side session refresh on route change
-- Environment variables need restart to take effect
+- **Never deploy without running build locally first.** CI/CD catches
+  different errors than local dev server.
+  See `.karimo/feedback/deploy-failures.md` for investigation.
+  (Added: 2024-03-11)
 ```
 
-### Why a Separate File?
-
-Storing learnings in `.karimo/learnings.md`:
-- Keeps CLAUDE.md minimal (Anthropic best practice)
-- All agents read learnings.md during task execution
-- Version controlled with the project
-- Human-readable and editable
-- Separate from configuration (which lives in config.yaml)
+This enables:
+- Tracing rules back to root cause analysis
+- Re-evaluating rules if context changes
+- Understanding why rules exist
+- Building institutional knowledge
 
 ---
 
-## Continuity Across Cycles
+## Usage Patterns
 
-Learn cycles build on each other:
+### Recommended Workflow
 
-- **Opening questions** reference past issues: "Last time you flagged X..."
-- **Audit** checks if previous changes resolved issues
-- **Changes-applied.md** tracks what was fixed and when
-- **Patterns emerge** over multiple cycles
+**Daily:**
+- Use `/karimo-feedback` for immediate observations (simple path)
+- Quick capture as patterns emerge
 
-### Example Continuity
+**After Each PRD:**
+- Run `/karimo-feedback --from-metrics {prd-slug}` for batch capture
+- Review learning candidates from execution
 
+**Weekly/Bi-weekly:**
+- Review complex issues that accumulated
+- Use `/karimo-feedback` with complex path for systemic problems
+- Periodic check of `.karimo/feedback/` for unresolved issues
+
+**Monthly:**
+- Review `.karimo/learnings.md` for outdated or conflicting rules
+- Consolidate learnings if needed
+- Archive resolved feedback documents
+
+---
+
+## Edge Cases
+
+### Multiple Distinct Issues
+
+**User provides:** "Three things: agents use inline styles, tests are flaky, and deployment fails"
+
+**Handling:**
 ```
-Learn Cycle 1 (Feb 1):
-  - Flagged: Agents using inline styles
-  - Applied: Added anti-pattern rule
+I'm seeing three distinct issues:
+1. Inline styles (simple)
+2. Flaky tests (complex - needs investigation)
+3. Deployment failures (complex - needs investigation)
 
-Learn Cycle 2 (Feb 15):
-  - Interview: "Has the inline styles issue improved?"
-  - Developer: "Yes, but now they're using wrong Tailwind classes"
-  - Applied: Added specific Tailwind conventions to learnings.md
+Options:
+A) Handle inline styles now (simple path), investigate others separately
+B) Pick one complex issue to investigate now
+C) Quick rules for all three (if you know the fixes)
+```
+
+### Complexity Changes Mid-Feedback
+
+**Starts simple:** "Agents should add JSDoc comments"
+**Becomes complex:** "...but I'm not sure which functions need it or if there's a pattern"
+
+**Handling:**
+```
+This is more complex than I initially thought. I recommend switching to investigation
+mode to determine the right pattern by looking at existing code.
+
+Should I start an adaptive interview to gather details?
+```
+
+### Vague Feedback
+
+**User:** "Something's not working right"
+
+**Handling:**
+```
+Can you be more specific? For example:
+- Which PRD or task showed the problem?
+- What did you expect vs what happened?
+- Is this about agent behavior, code quality, or workflow?
+
+Even if you don't know the root cause, specific examples help me investigate.
 ```
 
 ---
 
-## Scope Comparison
+## Success Metrics
 
-| Aspect | Scope 1: /karimo-feedback | Scope 2: /karimo-learn |
-|--------|---------------------------|------------------------|
-| **Time** | ~2 minutes | ~45 minutes |
-| **Trigger** | Single observation | Periodic review |
-| **Investigation** | None | Evidence-based audit |
-| **Output** | One rule | Multiple changes |
-| **Approval** | Single confirm | Per-change approval |
-| **Evidence** | Developer's word | PR history, status files, codebase |
-| **Best for** | Quick captures | Systemic improvements |
+### Simple Path
+- ✅ Rule appended to `.karimo/learnings.md`
+- ✅ Changes committed
+- ✅ User confirms capture
+- ✅ Completed in < 5 minutes
 
----
+### Complex Path
+- ✅ Feedback document created
+- ✅ Evidence gathered and analyzed
+- ✅ Recommended changes presented
+- ✅ Approved changes applied to multiple files
+- ✅ Changes committed
+- ✅ User confirms resolution
+- ✅ Completed in 10-20 minutes
 
-## Integration with Other Systems
-
-### Boundaries
-
-Learnings can inform config.yaml boundaries section:
-- Repeated caution file triggers → add to Require Review
-- Critical failure patterns → add to Never Touch
-
-### Task Context
-
-PRD tasks can reference learned patterns:
-```yaml
-agent_context: |
-  Reference the token-service.ts pattern from Phase 1.
-  Follow the Button component style established in learnings.
-```
-
-### Investigation
-
-The investigator agent surfaces relevant learnings when scanning:
-- "Previous tasks had issues with X — be aware of Y"
-
----
-
-## Best Practices
-
-### For Scope 1 (/karimo-feedback)
-
-- Be specific about what went wrong
-- Include file paths when relevant
-- Mention the desired behavior
-- Capture immediately after observation
-
-### For Scope 2 (/karimo-learn)
-
-- Run every 2-4 weeks
-- Come prepared with specific examples
-- Be honest about what's not working
-- Review and maintain accumulated rules
-
-### Rule Maintenance
-
-- Periodically review accumulated rules
-- Remove rules that no longer apply
-- Consolidate similar rules
-- Add context when rules become unclear
+### Batch Mode
+- ✅ All selected learnings appended to `.karimo/learnings.md`
+- ✅ Metrics updated with captured flags
+- ✅ Changes committed
+- ✅ Completed in 5-10 minutes
 
 ---
 
@@ -401,6 +464,10 @@ The investigator agent surfaces relevant learnings when scanning:
 
 | Document | Purpose |
 |----------|---------|
-| [ARCHITECTURE.md](ARCHITECTURE.md) | System design |
-| [COMMANDS.md](COMMANDS.md) | Slash command reference |
-| [SAFEGUARDS.md](SAFEGUARDS.md) | Code quality practices |
+| [COMMANDS.md](COMMANDS.md) | `/karimo-feedback` command reference |
+| [ARCHITECTURE.md](ARCHITECTURE.md) | System design and folder structure |
+| [GETTING-STARTED.md](GETTING-STARTED.md) | Installation and first feedback capture |
+
+---
+
+*This unified feedback system replaces the legacy two-scope model (/karimo-feedback + /karimo-learn). All learning capture now flows through `/karimo-feedback` with intelligent complexity detection.*
