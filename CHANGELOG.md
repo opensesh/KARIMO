@@ -7,6 +7,103 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [5.3.0] - 2026-03-11
+
+### Added
+
+**CLI-Based Dashboard for KARIMO Phase 3 Monitoring**
+
+New `/karimo-dashboard` command replaces the planned web dashboard with a comprehensive CLI-native solution:
+
+- **Executive Summary** — System health score (0-100), quick stats, next completions
+  - Health score based on task success (30%), review efficiency (25%), stalled penalty (20%), parallel utilization (15%), blocked penalty (10%)
+  - Cross-PRD totals: all PRDs, tasks, completion percentages
+  - Model distribution: Sonnet vs Opus counts, escalation rate
+  - ETA projections based on current velocity
+
+- **Critical Alerts** — Tasks needing immediate intervention
+  - BLOCKED — Failed 3 Greptile attempts, needs manual review
+  - STALE — Running > 4h or in-review > 48h
+  - CRASHED — Branch exists without PR (agent crashed mid-execution)
+  - CONFLICTS — PR has merge conflicts
+
+- **Execution Velocity** — Completion rate, loop efficiency, and project ETAs
+  - Completion rate: tasks/day average over last 7 days
+  - Loop efficiency: average loops per task (lower is better)
+  - First-time pass: % of tasks completing in 1 loop
+  - Review pass rate: % passing Greptile on first attempt
+  - Wave progress per PRD
+  - ETA projections based on current velocity
+
+- **Resource Usage** — Model distribution, loop patterns, parallel capacity
+  - Model distribution: Sonnet vs Opus task counts and percentages
+  - Escalations: tasks that escalated from Sonnet to Opus
+  - Parallel capacity: active tasks vs `max_parallel` config
+  - Loop distribution: histogram of tasks by loop count
+
+- **Recent Activity** — Timeline of events across all PRDs
+  - Task completions, revision requests, wave completions
+  - Model escalations, task starts, PR creations
+  - Default: last 10 events, `--activity` flag shows last 50
+
+**New Command Flags:**
+
+- `--alerts` — Show only Critical Alerts section (minimal mode)
+- `--activity` — Extended activity feed (50 events instead of 10)
+- `--prd {slug}` — PRD-specific dashboard (combines status + metrics)
+- `--json` — JSON output for scripting/automation
+- `--refresh` — Force refresh (bypass cache)
+
+**Preserved Flags from `/karimo-overview`:**
+
+- `--blocked` — Show only blocked tasks
+- `--active` — Show only active PRDs
+- `--deps` — Show cross-PRD dependency graph
+
+**Performance Optimizations:**
+
+- 2-minute caching strategy (< 1s with valid cache)
+- Performance targets: < 2s with 3 active PRDs, < 5s with 10+ PRDs
+- Cache location: `.karimo/dashboard-cache.json`
+- Cache invalidation: on execution, status updates, manual refresh, or age > 2 minutes
+
+### Changed
+
+**Phase 3 Architecture Shift**
+
+- CLI dashboard replaces planned web dashboard
+- Simplified monitoring architecture (no separate web server needed)
+- Enhanced developer experience with unified monitoring command
+- Focus shifted from web-based monitoring to CLI-native analytics
+
+**Documentation Updates**
+
+All documentation updated to reference the new dashboard:
+
+- `COMMANDS.md` — Added comprehensive `/karimo-dashboard` entry, deprecated `/karimo-overview`
+- `PHASES.md` — Updated Phase 3 to reference CLI dashboard with 5 sections
+- `DASHBOARD.md` — Complete rewrite focusing on CLI dashboard features and workflow
+- `README.md` — Updated monitoring references from overview to dashboard
+
+**Migration Path for Users**
+
+Replace `/karimo-overview` calls with `/karimo-dashboard`:
+- All existing flags (`--active`, `--blocked`, `--deps`) continue to work
+- Enhanced functionality includes new sections (Summary, Velocity, Resources)
+- Overview functionality preserved in the Critical Alerts section
+
+### Deprecated
+
+- `/karimo-overview` — Use `/karimo-dashboard` instead (functionality preserved and enhanced)
+
+### Manifest Changes
+
+Updated `.karimo/MANIFEST.json`:
+- Version: 5.2.0 → 5.3.0
+- Commands: Added `karimo-dashboard.md`
+
+---
+
 ## [5.2.0] - 2026-03-11
 
 ### Added
