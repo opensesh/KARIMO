@@ -7,6 +7,130 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [5.0.0] - 2026-03-10
+
+### Added
+
+**Feature Branch Execution Model**
+
+New v5.0 feature branch aggregation workflow solves production deployment spam and Vercel/Netlify email flood:
+
+- `/karimo-orchestrate` — Create feature branch and execute all tasks
+  - Creates `feature/{prd-slug}` from main
+  - Updates `status.json` with execution mode
+  - Task PRs target feature branch (not main)
+  - Pauses at `ready-for-merge` status for final review
+
+- `/karimo-merge` — Consolidate feature branch and create final PR to main
+  - Validates all task PRs merged to feature branch
+  - Generates consolidated diff vs main
+  - Runs full validation suite (build/lint/typecheck/test)
+  - Presents comprehensive review
+  - Creates final PR with task summary and labels
+  - Handles post-merge cleanup (branch deletion)
+
+**Status Schema Extensions**
+
+New fields in `STATUS_SCHEMA.md` (v5.0):
+- `execution_mode`: "feature-branch" or "direct-to-main"
+- `feature_branch`: Branch name for feature branch mode (e.g., "feature/user-profiles")
+- `ready_for_merge_at`: Timestamp when ready-for-merge status set
+- `merged_to_main_at`: Timestamp when final PR merged to main
+- Task field `pr_target`: Tracks PR base branch (feature branch or main)
+
+**New PRD Status Values**
+
+- `ready-for-merge`: All tasks merged to feature branch, awaiting `/karimo-merge` (v5.0, feature-branch mode only)
+- `merging`: `/karimo-merge` in progress (v5.0, feature-branch mode only)
+
+**Benefits**
+
+- **Single production deployment per PRD** (vs 15+ in v4.0 direct-to-main)
+- **No Vercel/Netlify email flood** (~2 events vs ~38 per PRD)
+- **Consolidated review before main merge** (feature-level visibility)
+- **Clean git history** (1 feature commit vs 15+ task commits in main)
+
+### Changed
+
+**PM Agent**
+
+Updated `.claude/agents/karimo-pm.md` for dual execution mode support:
+- Feature branch detection from `status.json` at spawn
+- Dynamic PR base selection (feature branch or main)
+- Wave transition verification against correct target branch
+- Finalization logic per mode:
+  - Feature-branch mode: Pause at `ready-for-merge`
+  - Direct-to-main mode: Complete and clean up
+
+**KARIMO Rules**
+
+Updated `.claude/KARIMO_RULES.md` with dual execution model documentation:
+- Feature Branch Model (v5.0) — Recommended for most PRDs
+- Direct-to-Main Model (v4.0) — Backward compatible, use for simple PRDs
+- Updated branch discipline to describe dynamic PR targets
+- Updated validation checklist for target branch rebasing
+
+**Brief Writer**
+
+Updated `.claude/agents/karimo-brief-writer.md`:
+- Removed legacy feature branch path references (`feature/{prd-slug}/{task-id}`)
+- Updated GitHub context with dynamic target
+- Updated validation checklist to reference target branch
+
+**Vercel/Netlify Ignore Patterns**
+
+Updated `.claude/commands/karimo-cd-config.md` patterns:
+- **Old pattern:** `-[0-9]+[a-z]?$` (task branches only)
+- **New pattern:** `(^feature/|-[0-9]+[a-z]?$)` (feature branches + task branches)
+
+**Pattern breakdown:**
+- `^feature/` — Skip all feature branches (v5.0 feature branch mode)
+- `|` — OR
+- `-[0-9]+[a-z]?$` — Skip task branches (both v4.0 and v5.0)
+
+Updated for:
+- Vercel (`vercel.json` ignoreCommand)
+- Netlify (`netlify.toml` build.ignore)
+- Render (dashboard configuration comment)
+- Railway (dashboard configuration comment)
+- Fly.io (GitHub Actions guidance)
+
+**Status/Overview Commands**
+
+Updated `.claude/commands/karimo-status.md` and `.claude/commands/karimo-overview.md`:
+- Display execution mode and feature branch in PRD views
+- Show PR targets (feature branch vs main)
+- Display next steps based on execution mode
+- New overview section for PRDs ready for final merge
+
+### Deprecated
+
+**Review Architect Agent**
+
+Marked `.claude/agents/karimo-review-architect.md` as deprecated in v5.0+:
+- Feature branch aggregation with `/karimo-merge` handles consolidation
+- Kept for v4.0 direct-to-main backward compatibility
+- Migration path documented
+
+### Backward Compatibility
+
+**v4.0 Direct-to-Main Mode Still Works**
+
+No migration required for existing v4.0 PRDs:
+- Missing `execution_mode` field defaults to "direct-to-main"
+- PM agent detects missing field and uses v4.0 behavior
+- `/karimo-execute` continues working as-is
+- Task PRs target main directly
+- Wave ordering preserved
+- Finalization completes as before
+
+**Use Cases**
+
+- **Feature Branch Mode (v5.0):** Most PRDs (5+ tasks), complex features, coordinated releases
+- **Direct-to-Main Mode (v4.0):** Simple PRDs (1-3 tasks), hotfixes, urgent changes
+
+---
+
 ## [4.3.0] - 2026-03-10
 
 ### Added
