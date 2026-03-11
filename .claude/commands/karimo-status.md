@@ -2,14 +2,21 @@
 
 Display the current status of KARIMO PRDs and task execution with git state reconstruction.
 
+> **Smart Command:** No arguments shows all PRDs (overview). With `--prd {slug}` shows detailed status for specific PRD.
+
 ## Usage
 
 ```
-/karimo-status                  # Show all PRDs
+/karimo-status                  # Show all PRDs (overview)
 /karimo-status --prd {slug}     # Show specific PRD details
 /karimo-status --active         # Show only active PRDs
 /karimo-status --reconcile      # Force git state reconstruction
 ```
+
+## Replaces
+
+This command provides all monitoring functionality. The following commands are deprecated:
+- `/karimo-overview` — Use `/karimo-status` (no arguments) instead
 
 ## v4.0 Model
 
@@ -109,7 +116,7 @@ PRDs:
     Models: 5 sonnet, 1 opus • Loops: 14
     Finalized: 3 days ago
 
-Run /karimo-status --prd {slug} for details.
+Showing all PRDs. Use /karimo-status --prd {slug} for detailed view.
 ```
 
 ### 3. Detailed PRD Display (--prd {slug})

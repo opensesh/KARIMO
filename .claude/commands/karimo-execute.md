@@ -1,6 +1,24 @@
 # /karimo-execute — PRD Execution Command
 
-Start autonomous execution of an approved PRD using the PM agent and worker team.
+> **⚠️ DEPRECATED:** This command uses the v4.0 direct-to-main workflow.
+>
+> **Recommended:** Use `/karimo-run` for the v5.0 feature branch workflow instead.
+>
+> **Why switch:**
+> - Single production deployment (vs 15+ with direct-to-main)
+> - No Vercel/Netlify email spam
+> - Consolidated review before main merge
+> - Clean git history
+>
+> **To use v5.0 workflow:**
+> 1. Run `/karimo-run --prd {slug}` to execute tasks
+> 2. Run `/karimo-finish --prd {slug}` to create final PR
+>
+> This command remains available for backward compatibility but will be removed in v6.0.
+
+---
+
+Start autonomous execution of an approved PRD using the PM agent and worker team (v4.0 direct-to-main mode).
 
 ## Arguments
 
