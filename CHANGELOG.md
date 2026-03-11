@@ -7,6 +7,112 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [5.5.0] - 2026-03-11
+
+### Added
+
+**Pre-Execution Review Gate (Phase 1.5)**
+
+New two-stage validation workflow that catches issues before task execution begins:
+
+**Stage 1: Investigation**
+- New `karimo-brief-reviewer` agent validates task briefs against actual codebase state
+- Systematic validation checklist:
+  - Assumption validation (current file states vs brief claims)
+  - Success criteria feasibility (cross-task contradictions)
+  - Configuration prerequisites (vitest projects, ESLint rules, etc.)
+  - File structure validation (paths, imports)
+  - Dependency state (wave ordering vs file overlaps)
+  - Version consistency (with existing patterns)
+- Produces findings document: `.karimo/prds/{NNN}_{slug}/review/PRD_REVIEW_pre-orchestration.md`
+- Findings committed to git atomically for traceability
+
+**Stage 2: Correction (Conditional)**
+- New `karimo-brief-corrector` agent applies fixes based on review findings
+- Capabilities:
+  - Modifies task briefs (success criteria, context notes, file paths)
+  - Updates PRD (clarifies requirements, adds constraints)
+  - Creates new task briefs (if findings reveal missing work)
+  - Updates tasks.yaml (if task structure changes)
+- Corrections committed to git atomically
+- User control: Apply corrections | Skip corrections | Cancel
+
+**New Command Flags**
+
+- `--skip-review` flag for `/karimo-run` and `/karimo-orchestrate`
+  - Bypasses review gate entirely
+  - Executes immediately after brief generation
+  - Use case: Already reviewed PRD, low-risk briefs, quick testing
+
+- `--review-only` flag for `/karimo-run` and `/karimo-orchestrate`
+  - Runs review then stops without executing
+  - Allows manual correction before proceeding
+  - Use case: Validate briefs, gather findings, improve PRDs
+
+**New Template**
+
+- `PRE_EXECUTION_REVIEW_TEMPLATE.md` — Structure for documenting brief validation findings
+  - Sections: Purpose, Critical Findings, Secondary Observations, Correction Summary, Execution Clearance
+  - Finding categories: Critical (will cause failures), Warning (may cause issues), Observation (context only)
+
+### Changed
+
+**Execution Flow Updates**
+
+- `/karimo-run` and `/karimo-orchestrate` now include Phase 1.5 after brief generation
+- Default behavior prompts user: Review briefs (recommended) | Skip review | Cancel
+- Briefs committed atomically before review (preserves work if session interrupted)
+- PM agent now reads corrected briefs (if corrections were applied)
+
+**Documentation Updates**
+
+All documentation updated to reference new review workflow:
+
+- `COMMANDS.md` — Added comprehensive `/karimo-run` section with review workflow documentation
+- `ARCHITECTURE.md` — Added Phase 1.5 execution flow, updated agent roles table
+- `CLAUDE.md` — Added review flags to command reference table
+- `karimo-run.md` — Added Pre-Execution Review Workflow section with use cases
+- `karimo-orchestrate.md` — Added Phase 1.5 implementation details and flags
+
+### Benefits
+
+**Significantly Increased Execution Success Rate**
+- Catches incorrect assumptions before wasting agent time/tokens
+- Prevents contradictory success criteria across tasks
+- Validates configuration prerequisites exist before execution
+- Reduces automated review failures (Greptile/Code Review)
+
+**Enhanced User Trust and Confidence**
+- Transparent validation of execution plan
+- User control over correction application
+- Findings preserved for future reference and learning
+- Early error detection builds confidence in KARIMO's thoroughness
+
+**Cost and Time Savings**
+- Prevents execution failures from bad assumptions
+- Reduces revision loops from incorrect briefs
+- Saves tokens by catching issues early
+- Increases first-pass success rate
+
+### Technical Details
+
+**New Agents**
+- `karimo-brief-reviewer.md` (Sonnet) — Investigation-only validation agent
+- `karimo-brief-corrector.md` (Sonnet) — Correction agent for applying fixes
+
+**Commit Atomicity**
+Three distinct git commits preserve each stage:
+1. Briefs commit — Task briefs generated
+2. Findings commit — Review investigation results
+3. Corrections commit — Applied fixes to briefs/PRD
+
+**Context Efficiency**
+- Reviewer focuses on investigation (reads briefs + codebase samples)
+- Corrector only reads findings document + target files
+- No duplicate investigation, keeps context usage optimized
+
+---
+
 ## [5.4.0] - 2026-03-11
 
 ### Added

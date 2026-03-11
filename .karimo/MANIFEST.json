@@ -1,6 +1,8 @@
 {
-  "version": "5.4.0",
+  "version": "5.5.0",
   "agents": [
+    "karimo-brief-corrector.md",
+    "karimo-brief-reviewer.md",
     "karimo-brief-writer.md",
     "karimo-documenter.md",
     "karimo-documenter-opus.md",
@@ -45,6 +47,7 @@
     "INTERVIEW_PROTOCOL.md",
     "METRICS_SCHEMA.md",
     "PRD_TEMPLATE.md",
+    "PRE_EXECUTION_REVIEW_TEMPLATE.md",
     "REVIEW_TEMPLATE.md",
     "STATUS_SCHEMA.md",
     "TASK_BRIEF_TEMPLATE.md",
