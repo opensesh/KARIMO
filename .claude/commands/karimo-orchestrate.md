@@ -6,6 +6,8 @@ Start autonomous execution of an approved PRD using feature branch aggregation (
 
 - `--prd {slug}` (optional): The PRD slug to orchestrate. If not provided, lists available PRDs.
 - `--dry-run` (optional): Preview the execution plan without making changes.
+- `--skip-review` (optional): Skip pre-execution review and execute immediately after brief generation.
+- `--review-only` (optional): Generate briefs and run review, then stop without executing. Allows manual correction before proceeding.
 
 ## Prerequisites
 
@@ -223,10 +225,10 @@ After brief generation, present review options:
 
 ```
 ╭──────────────────────────────────────────────────────────────╮
-│  Brief Review: user-profiles                                 │
+│  Briefs Generated: user-profiles                             │
 ╰──────────────────────────────────────────────────────────────╯
 
-Generated: 5 briefs
+5 task briefs created
 
   Wave 1:
     [1a] Create UserProfile component      complexity: 4  model: sonnet
@@ -240,13 +242,16 @@ Generated: 5 briefs
     [3a] Integration tests                 complexity: 3  model: sonnet
 
 Options:
-  1. Execute all — Begin autonomous execution
-  2. Adjust briefs — Modify scope, add criteria
-  3. Exclude tasks — Remove specific tasks from execution
-  4. Cancel — Return without executing
+  1. Review briefs (recommended) — Validate against codebase
+  2. Skip review — Execute immediately
+  3. Cancel — Exit without executing
 
 Your choice:
 ```
+
+**Flag behavior:**
+- If `--skip-review` provided: Skip to Phase 2 (PM agent spawn) immediately
+- If `--review-only` provided: Continue to Phase 1.5 but stop after review (don't execute)
 
 ### 4a. Commit Task Briefs
 
@@ -269,6 +274,201 @@ Co-Authored-By: Claude <noreply@anthropic.com>"
 **Rationale:** Brief generation is a distinct logical unit from PRD creation and from task execution. If the session is interrupted after briefs are generated but before workers start, the briefs are safely committed.
 
 **Note:** Briefs use slug-based naming for searchability: `{task_id}_{slug}.md` (e.g., `1a_user-profiles.md`).
+
+### 4b. Phase 1.5: Pre-Execution Review Gate (Two-Stage)
+
+After briefs are committed, offer pre-execution review to validate briefs against codebase reality.
+
+**Skip if `--skip-review` flag provided.**
+
+#### Stage 1: Investigation
+
+If user chooses "Review briefs" (option 1):
+
+1. **Create review directory:**
+   ```bash
+   mkdir -p .karimo/prds/{NNN}_{slug}/review/
+   ```
+
+2. **Spawn karimo-brief-reviewer agent:**
+   ```
+   @karimo-brief-reviewer.md
+   ```
+
+3. **Pass context to reviewer:**
+   - PRD path: `.karimo/prds/{NNN}_{slug}/PRD_{slug}.md`
+   - Briefs directory: `.karimo/prds/{NNN}_{slug}/briefs/`
+   - Config path: `.karimo/config.yaml`
+   - Learnings path: `.karimo/learnings.md` (if exists)
+
+4. **Agent investigates and produces:**
+   - Findings document: `.karimo/prds/{NNN}_{slug}/review/PRD_REVIEW_pre-orchestration.md`
+   - Uses template: `.karimo/templates/PRE_EXECUTION_REVIEW_TEMPLATE.md`
+
+5. **Commit findings immediately (atomic):**
+   ```bash
+   git add .karimo/prds/{NNN}_{slug}/review/
+   git commit -m "docs(karimo): pre-execution review for {slug}
+
+   Found {critical_count} critical findings, {warning_count} warnings.
+
+   See review/PRD_REVIEW_pre-orchestration.md for details.
+
+   Co-Authored-By: Claude <noreply@anthropic.com>"
+   ```
+
+6. **Show findings summary to user:**
+   ```
+   ╭──────────────────────────────────────────────────────────────╮
+   │  Review Complete: user-profiles                              │
+   ╰──────────────────────────────────────────────────────────────╯
+
+   Findings:
+     Critical: 3 — Will likely cause execution failures
+     Warnings: 2 — May cause issues
+     Observations: 1 — FYI only
+
+   Critical findings:
+   - Finding 1: ESLint rule already at 'error' (Task 1a assumption incorrect)
+   - Finding 2: Contradictory lint success criteria across Wave 1
+   - Finding 3: Vitest projects not configured (Task 2b will fail)
+
+   See: .karimo/prds/{NNN}_{slug}/review/PRD_REVIEW_pre-orchestration.md
+   ```
+
+#### Stage 2: Correction (Conditional)
+
+After review commit, present correction options:
+
+```
+Options:
+  1. Apply corrections (recommended) — Fix briefs automatically
+  2. Skip corrections — Execute anyway (failures expected)
+  3. Cancel — Exit for manual review
+
+Your choice:
+```
+
+**If user chooses "Apply corrections" (option 1):**
+
+1. **Spawn karimo-brief-corrector agent:**
+   ```
+   @karimo-brief-corrector.md
+   ```
+
+2. **Pass context to corrector:**
+   - Findings path: `.karimo/prds/{NNN}_{slug}/review/PRD_REVIEW_pre-orchestration.md`
+   - Briefs directory: `.karimo/prds/{NNN}_{slug}/briefs/`
+   - PRD path: `.karimo/prds/{NNN}_{slug}/PRD_{slug}.md`
+   - Tasks path: `.karimo/prds/{NNN}_{slug}/tasks.yaml`
+
+3. **Agent applies corrections:**
+   - Modifies task briefs based on findings
+   - Updates PRD if needed
+   - Creates new tasks if findings reveal missing work
+   - Updates `tasks.yaml` if task structure changes
+
+4. **Commit corrections (atomic):**
+   ```bash
+   git add .karimo/prds/{NNN}_{slug}/
+   git commit -m "fix(karimo): apply pre-execution corrections for {slug}
+
+   Applied {correction_count} corrections from review findings:
+   - {correction_1_summary}
+   - {correction_2_summary}
+   - ...
+
+   Modified:
+   - {count} task briefs
+   - {count} PRD sections (if any)
+   - {count} new tasks created (if any)
+
+   Co-Authored-By: Claude <noreply@anthropic.com>"
+   ```
+
+5. **Show correction summary:**
+   ```
+   Corrections Applied:
+
+   Modified files:
+   - BRIEF_1a.md (success criteria updated)
+   - BRIEF_2b.md (config prerequisites added)
+   - tasks.yaml (1 new task added: 1c-setup-vitest)
+
+   Changes:
+   - Finding 1: Updated Task 1a success criteria to reflect current state
+   - Finding 2: Added timing qualifiers to Wave 1 success criteria
+   - Finding 3: Created new Task 1c to configure vitest projects
+
+   Skipped:
+   - None (all critical findings corrected)
+
+   Ready to proceed with execution.
+   ```
+
+6. **Proceed to Phase 2** (PM agent spawn)
+
+**If user chooses "Skip corrections" (option 2):**
+
+1. **Show warning:**
+   ```
+   ⚠️  Warning: Proceeding with {critical_count} critical findings
+
+   Execution may fail due to unresolved issues. Findings are preserved
+   in review/ directory for reference.
+
+   Continue anyway?
+   ```
+
+2. **If confirmed:** Proceed to Phase 2 (PM agent spawn)
+
+**If user chooses "Cancel" (option 3):**
+
+Exit with message:
+```
+Review findings committed to git.
+
+Next steps:
+- Review findings: .karimo/prds/{NNN}_{slug}/review/PRD_REVIEW_pre-orchestration.md
+- Edit briefs manually or re-run: /karimo-orchestrate --prd {slug}
+```
+
+**If `--review-only` flag provided:**
+
+Stop after Stage 1 (findings commit), don't offer Stage 2 or execution.
+
+Exit with message:
+```
+✓ Review complete
+
+Findings: .karimo/prds/{NNN}_{slug}/review/PRD_REVIEW_pre-orchestration.md
+
+Critical: {count} | Warnings: {count} | Observations: {count}
+
+Next steps:
+- Review findings document
+- Apply corrections: /karimo-orchestrate --prd {slug}
+- Or skip review: /karimo-orchestrate --prd {slug} --skip-review
+```
+
+#### Investigation Checklist (for Brief Reviewer)
+
+The reviewer agent systematically checks:
+
+1. **Assumption Validation:** Claims about current file states vs actual codebase
+2. **Success Criteria Feasibility:** Cross-reference criteria for contradictions
+3. **Configuration Prerequisites:** Verify configs exist (vitest projects, ESLint rules, etc.)
+4. **File Structure:** Validate paths mentioned in briefs
+5. **Dependency State:** Check wave ordering vs file overlaps
+6. **Version Consistency:** Compare versions with existing patterns
+
+#### Benefits of Pre-Execution Review
+
+- **Early error detection:** Catch issues before wasting agent time/tokens
+- **Higher success rate:** Workers start with accurate briefs
+- **Reduced revision loops:** Fewer automated review failures from bad assumptions
+- **Trust building:** Users gain confidence in KARIMO's thoroughness
+- **Learning opportunity:** Findings feed into `.karimo/learnings.md` for future PRDs
 
 ### 5. Dry Run Mode
 
