@@ -53,15 +53,35 @@ The `/karimo-execute` command spawns you with:
 
 ---
 
-## v4.0 Execution Model
+## Execution Model (v5.0)
 
-**Key differences from v3.x:**
-- PRs target `main` directly (no feature branch)
-- Tasks execute in wave order (wave 2 waits for wave 1 to merge)
-- Claude Code manages worktrees via `isolation: worktree` on task agents
-- PR labels replace GitHub Projects for tracking
-- No GitHub Issues — PRs are the source of truth
+KARIMO supports two execution modes, detected automatically from `status.json`:
+
+### Feature Branch Mode (v5.0) — Default
+
+**Workflow:**
+- Feature branch: `feature/{prd-slug}` created by `/karimo-orchestrate`
+- Task PRs target feature branch (not main)
+- Wave execution within feature branch
+- Final PR: feature branch → main (ONE production deployment)
 - Branch naming: `{prd-slug}-{task-id}`
+
+**Detection:** `execution_mode: "feature-branch"` in status.json
+
+### Direct-to-Main Mode (v4.0) — Backward Compatible
+
+**Workflow:**
+- No feature branch
+- Task PRs target main directly
+- Wave execution sequenced by main merge status
+- Branch naming: `{prd-slug}-{task-id}`
+
+**Detection:** `execution_mode: "direct-to-main"` OR field missing (default)
+
+**Common across both modes:**
+- Claude Code manages worktrees via `isolation: worktree` on task agents
+- PR labels for tracking
+- No GitHub Issues — PRs are the source of truth
 
 ---
 
@@ -89,15 +109,38 @@ The `/karimo-execute` command spawns you with:
 - Tasks exceeding complexity threshold (>8 without split discussion)
 - Missing success criteria on any task
 
+**Detect execution mode:**
+
+Read execution mode from status.json to determine PR target branch:
+
+```bash
+# Read execution mode from status.json
+execution_mode=$(grep -o '"execution_mode"[[:space:]]*:[[:space:]]*"[^"]*"' status.json | \
+  sed 's/.*"\([^"]*\)"$/\1/')
+
+if [ "$execution_mode" = "feature-branch" ]; then
+  base_branch=$(grep -o '"feature_branch"[[:space:]]*:[[:space:]]*"[^"]*"' status.json | \
+    sed 's/.*"\([^"]*\)"$/\1/')
+  echo "Mode: Feature Branch (PRs target $base_branch)"
+else
+  # Default to v4.0 direct-to-main mode (backward compatible)
+  base_branch="main"
+  echo "Mode: Direct-to-Main (PRs target main)"
+fi
+```
+
+Store `base_branch` for use in PR creation and wave verification.
+
 **Present execution plan:**
 
 ```
 Execution Plan for: {slug}
+Mode: {execution_mode} (PRs → {base_branch})
 
 Waves (from execution_plan.yaml):
   Wave 1: [1a, 1b] — No dependencies, starting immediately
-  Wave 2: [2a, 2b] — After wave 1 merges to main
-  Wave 3: [3a] — After wave 2 merges to main
+  Wave 2: [2a, 2b] — After wave 1 merges to {base_branch}
+  Wave 3: [3a] — After wave 2 merges to {base_branch}
 
 Model Assignment:
   Sonnet: 1a (c:4), 1b (c:2), 2b (c:4)
@@ -187,18 +230,18 @@ WHILE waves remain:
   current_wave = next wave with unfinished tasks
 
   FOR EACH task in current_wave (parallel, max 3):
-    1. Verify all dependencies merged to main
-    2. Pull latest main
+    1. Verify all dependencies merged to target branch (base_branch)
+    2. Pull latest target branch
     3. Read task brief from briefs/{task-id}_{slug}.md
     4. Select worker type (implementer/tester/documenter)
     5. Spawn worker agent via Task tool
     6. Worker operates in worktree (Claude Code handles via isolation: worktree)
     7. Worker completes → commits pushed to {prd-slug}-{task-id} branch
-    8. Create PR to main
+    8. Create PR to target branch (base_branch)
     9. Run Greptile review (if configured)
     10. On merge → update status.json, proceed to next wave
 
-  WAIT for all wave tasks to merge before next wave
+  WAIT for all wave tasks to merge to target branch before next wave
 ```
 
 #### 3a. Model Assignment
@@ -247,7 +290,7 @@ When worker completes:
      title: "feat({prd-slug}): [{task-id}] {task-title}",
      body: "{pr_body}",
      head: "{prd-slug}-{task-id}",
-     base: "main"
+     base: base_branch  // Dynamic: feature branch or main (from Step 1)
    })
    ```
 
@@ -263,6 +306,7 @@ When worker completes:
        "1a": {
          "status": "in-review",
          "pr_number": 42,
+         "pr_target": "feature/user-profiles",  // or "main" in direct-to-main mode
          "pr_labels": ["karimo", "wave-1"],
          "completed_at": "ISO timestamp"
        }
@@ -409,26 +453,92 @@ Code Review posts findings as inline PR comments with severity markers. PM Agent
 
 When all tasks in a wave have merged PRs:
 
-1. **Update findings.md:**
+1. **Verify PRs merged to correct target:**
+   ```bash
+   for task_id in wave_tasks; do
+     branch="{prd-slug}-${task_id}"
+     merged_to=$(gh pr view "$branch" --json baseRefName --jq '.baseRefName')
+
+     if [ "$merged_to" != "$base_branch" ]; then
+       echo "Error: Task $task_id PR merged to $merged_to instead of $base_branch"
+       exit 1
+     fi
+   done
+   ```
+
+2. **Update findings.md:**
    - Read merged PRs from the wave (file diffs, PR descriptions)
    - Append summary to `.karimo/prds/{slug}/findings.md`:
      - Files modified and patterns established
      - Architectural decisions for next wave
      - Known issues or TODOs
 
-2. **Verify main is stable:**
+3. **Verify target branch is stable:**
    ```bash
-   git checkout main && git pull origin main
+   git checkout $base_branch && git pull origin $base_branch
    # Run validation commands from config.yaml
    ```
 
-3. **Proceed to next wave**
+4. **Proceed to next wave**
 
 ---
 
 ### Step 4: Finalization
 
-**Trigger:** All task PRs merged to main.
+**Trigger:** All task PRs merged to target branch (base_branch).
+
+**The finalization flow depends on execution mode:**
+
+---
+
+#### Feature Branch Mode (execution_mode = "feature-branch")
+
+**Goal:** Pause at ready-for-merge status. User will run `/karimo-merge` for final PR to main.
+
+1. **Verify all tasks merged to feature branch:**
+   ```bash
+   # No open task PRs for this PRD
+   gh pr list --label karimo-{slug} --state open
+   # Should return empty (or only final PR if already created)
+   ```
+
+2. **Update status.json:**
+   ```json
+   {
+     "status": "ready-for-merge",
+     "completed_at": "ISO timestamp",
+     "ready_for_merge_at": "ISO timestamp"
+   }
+   ```
+
+3. **DO NOT delete feature branch or task branches** (preserved for /karimo-merge)
+
+4. **Generate metrics.json** (same format, update version to "5.0")
+
+5. **Post completion summary:**
+   ```
+   All Tasks Complete: {prd_slug}
+
+   Tasks: {done}/{total} merged to feature branch
+   Feature Branch: {feature_branch}
+   PRs Merged: {pr_count}
+     - #{pr} [{task_id}] {title} ✓
+
+   Model Usage:
+     Sonnet: {count} tasks
+     Opus:   {count} tasks ({escalation_count} escalations)
+
+   Duration: {total_minutes} minutes
+
+   Next Step: /karimo-merge --prd {slug}
+   This will create the final PR: {feature_branch} → main
+   ```
+
+---
+
+#### Direct-to-Main Mode (execution_mode = "direct-to-main" or missing)
+
+**Goal:** Complete execution and clean up.
 
 1. **Verify completion:**
    ```bash
@@ -458,7 +568,8 @@ When all tasks in a wave have merged PRs:
    ```json
    {
      "prd_slug": "{slug}",
-     "version": "4.0",
+     "version": "5.0",
+     "execution_mode": "direct-to-main",
      "generated_at": "ISO timestamp",
      "duration": {
        "total_minutes": 45,
