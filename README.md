@@ -181,7 +181,9 @@ Choose Greptile or Claude Code Review. See [Adoption Phases](.karimo/docs/PHASES
 | Command | What it does |
 |---------|--------------|
 | `/karimo-plan` | Interactive PRD creation (~10 min) |
+| `/karimo-orchestrate --prd {slug}` | Feature branch execution (v5.0) |
 | `/karimo-execute --prd {slug}` | Run tasks from a PRD |
+| `/karimo-merge --prd {slug}` | Create final PR to main (v5.0) |
 | `/karimo-status` | View execution progress |
 | `/karimo-overview` | Dashboard across all PRDs |
 | `/karimo-modify --prd {slug}` | Edit an approved PRD |
@@ -194,6 +196,41 @@ Choose Greptile or Claude Code Review. See [Adoption Phases](.karimo/docs/PHASES
 | `/karimo-test` | Verify installation works end-to-end |
 
 Full reference: [COMMANDS.md](.karimo/docs/COMMANDS.md)
+
+---
+
+## Choosing Your Workflow
+
+KARIMO v5.0 supports two execution models:
+
+### Feature Branch Mode (Recommended)
+
+```bash
+/karimo-plan              # Generate PRD
+# User approves
+/karimo-orchestrate       # Creates feature branch, executes tasks
+# Autonomous execution
+/karimo-merge             # Final PR to main
+```
+
+**Benefits:**
+- Single production deployment per PRD
+- No Vercel/Netlify email flood (~2 events vs ~38)
+- Consolidated review before main merge
+- Clean git history (1 feature commit vs 15+)
+
+**Use for:** Most PRDs (5+ tasks), complex features
+
+### Direct-to-Main Mode (v4.0)
+
+```bash
+/karimo-plan              # Generate PRD
+# User approves
+/karimo-execute           # PRs target main directly
+# Autonomous execution
+```
+
+**Use for:** Simple PRDs (1-3 tasks), hotfixes, urgent changes
 
 ---
 
