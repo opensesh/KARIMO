@@ -38,7 +38,6 @@ Reference for all KARIMO slash commands available in Claude Code.
 |---------|-------------|-------|
 | `/karimo-execute` | `/karimo-run` | v4.0 direct-to-main workflow |
 | `/karimo-orchestrate` | `/karimo-run` | Same command, clearer name |
-| `/karimo-overview` | `/karimo-status` or `/karimo-dashboard` | Functionality merged |
 
 ---
 
@@ -220,7 +219,6 @@ The dashboard has 5 comprehensive sections:
 This is the **primary monitoring touchpoint** for KARIMO:
 - **Active monitoring** during execution — Check health, view alerts, track progress
 - **Post-execution analysis** — Review velocity metrics, resource usage, activity timeline
-- **Replaces `/karimo-overview`** — All overview functionality preserved and enhanced
 
 Check this each morning or after execution runs complete.
 
@@ -239,18 +237,6 @@ Check this each morning or after execution runs complete.
 /karimo-dashboard --prd X    # PRD-specific metrics and insights
 /karimo-feedback             # Capture learnings
 ```
-
----
-
-## /karimo-overview (DEPRECATED)
-
-> **⚠️ DEPRECATED:** Use `/karimo-dashboard` instead.
->
-> All functionality from `/karimo-overview` has been merged into `/karimo-dashboard` with enhanced capabilities.
->
-> - `--blocked` → Use `/karimo-dashboard --blocked`
-> - `--active` → Use `/karimo-dashboard --active`
-> - `--deps` → Use `/karimo-dashboard --deps`
 
 ---
 
@@ -1290,7 +1276,6 @@ Commands are defined in `.claude/commands/`:
 |------|---------|
 | `karimo-plan.md` | `/karimo-plan` |
 | `karimo-dashboard.md` | `/karimo-dashboard` |
-| `karimo-overview.md` | `/karimo-overview` (deprecated) |
 | `karimo-execute.md` | `/karimo-execute` |
 | `karimo-modify.md` | `/karimo-modify` |
 | `karimo-status.md` | `/karimo-status` |

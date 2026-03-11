@@ -135,7 +135,6 @@ KARIMO is an autonomous development **methodology** delivered via Claude Code co
 |---------|-------------|
 | `/karimo-execute` | `/karimo-run` (v5.0 feature branch workflow) |
 | `/karimo-orchestrate` | `/karimo-run` (same command, clearer name) |
-| `/karimo-overview` | `/karimo-status` (with no arguments) |
 | `/karimo-cd-config` | `/karimo-configure --cd` (CD configuration consolidated) |
 
 ---
