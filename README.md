@@ -41,7 +41,7 @@ KARIMO is a **framework and Claude Code plugin** for PRD-driven autonomous devel
 | **Execute** | Agents work in parallel isolation | Git worktrees, feature branches, findings propagation |
 | **Review** | Automated code review (Greptile or Code Review) | Revision loops, model escalation, quality gates (optional) |
 | **Merge** | Clear audit trail at both levels | Task PRs target main directly, wave-ordered merges |
-| **Monitor** | Real-time visibility into progress | `/karimo-status`, `/karimo-overview`, PR labels |
+| **Monitor** | Real-time visibility into progress | `/karimo-dashboard`, `/karimo-status`, PR labels |
 
 ---
 
@@ -192,7 +192,7 @@ Choose Greptile or Claude Code Review. See [Adoption Phases](.karimo/docs/PHASES
 | `/karimo-update` | Update KARIMO to latest version |
 | `/karimo-test` | Verify installation works end-to-end |
 
-**Deprecated:** `/karimo-execute` (use `/karimo-run`), `/karimo-orchestrate` (use `/karimo-run`), `/karimo-merge` (use `/karimo-finish`), `/karimo-overview` (use `/karimo-status`)
+**Deprecated:** `/karimo-execute` (use `/karimo-run`), `/karimo-orchestrate` (use `/karimo-run`), `/karimo-merge` (use `/karimo-finish`), `/karimo-overview` (use `/karimo-dashboard`)
 
 Full reference: [COMMANDS.md](.karimo/docs/COMMANDS.md)
 
@@ -239,7 +239,7 @@ KARIMO v5.0 supports two execution models:
 |-------|--------------|
 | **Phase 1: Execute PRD** | PRD interviews, agent execution, worktrees, PRs — fully functional out of the box |
 | **Phase 2: Automate Review** | Choose Greptile ($30/mo) or Claude Code Review ($15-25/PR) for quality gates, revision loops, model escalation |
-| **Phase 3: Monitor & Review** | GitHub-native monitoring via `/karimo-status`, `/karimo-overview`, and PR labels |
+| **Phase 3: Monitor & Review** | CLI dashboard with health scoring, velocity metrics, and alerts via `/karimo-dashboard` |
 
 Everyone starts at Phase 1. Add phases as you build trust with the system.
 
