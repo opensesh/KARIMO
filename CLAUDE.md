@@ -118,7 +118,7 @@ KARIMO is an autonomous development **methodology** delivered via Claude Code co
 |---------|---------|
 | `/karimo-plan` | Start PRD interview with interactive approval |
 | `/karimo-run --prd {slug}` | Execute tasks from a PRD (feature branch workflow, **recommended**) |
-| `/karimo-finish --prd {slug}` | Create final PR to main after execution completes |
+| `/karimo-merge --prd {slug}` | Create final PR to main after execution completes |
 | `/karimo-modify --prd {slug}` | Modify an approved PRD before execution |
 | `/karimo-status [--prd {slug}]` | View execution state (no arg = all PRDs, with arg = details) |
 | `/karimo-configure` | Create or update project configuration (~5 min) |
@@ -134,7 +134,6 @@ KARIMO is an autonomous development **methodology** delivered via Claude Code co
 |---------|-------------|
 | `/karimo-execute` | `/karimo-run` (v5.0 feature branch workflow) |
 | `/karimo-orchestrate` | `/karimo-run` (same command, clearer name) |
-| `/karimo-merge` | `/karimo-finish` (same command, clearer name) |
 | `/karimo-overview` | `/karimo-status` (with no arguments) |
 
 ---
@@ -230,7 +229,7 @@ When you run `install.sh`, these files are added:
 | Location | Contents |
 |----------|----------|
 | `.claude/agents/` | 13 agent definitions (7 coordination + 6 task agents) |
-| `.claude/commands/` | 14 slash commands (plan, run, finish, modify, status, configure, cd-config, update, feedback, doctor, test + 3 deprecated) |
+| `.claude/commands/` | 13 slash commands (plan, run, merge, modify, status, configure, cd-config, update, feedback, doctor, test + 3 deprecated) |
 | `.claude/skills/` | 4 skills (1 coordination + 3 task agent skills) |
 | `.claude/KARIMO_RULES.md` | Agent behavior rules |
 | `.karimo/templates/` | 10 templates (PRD, interview, task, status, dependencies, DAG, learn-interview, findings, task-brief, metrics) |
