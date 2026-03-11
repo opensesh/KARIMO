@@ -187,12 +187,11 @@ Choose Greptile or Claude Code Review. See [Adoption Phases](.karimo/docs/PHASES
 | `/karimo-modify --prd {slug}` | Edit an approved PRD |
 | `/karimo-feedback` | Intelligent feedback (simple or complex path) |
 | `/karimo-configure` | Create or update project configuration |
-| `/karimo-cd-config` | Configure CD provider to skip task branch previews |
 | `/karimo-doctor` | Diagnose installation issues |
 | `/karimo-update` | Update KARIMO to latest version |
 | `/karimo-test` | Verify installation works end-to-end |
 
-**Deprecated:** `/karimo-execute` (use `/karimo-run`), `/karimo-orchestrate` (use `/karimo-run`), `/karimo-overview` (use `/karimo-dashboard`)
+**Deprecated:** `/karimo-execute` (use `/karimo-run`), `/karimo-orchestrate` (use `/karimo-run`), `/karimo-overview` (use `/karimo-dashboard`), `/karimo-cd-config` (use `/karimo-configure --cd`)
 
 Full reference: [COMMANDS.md](.karimo/docs/COMMANDS.md)
 
