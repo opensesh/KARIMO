@@ -118,6 +118,8 @@ KARIMO is an autonomous development **methodology** delivered via Claude Code co
 |---------|---------|
 | `/karimo-plan` | Start PRD interview with interactive approval |
 | `/karimo-run --prd {slug}` | Execute tasks from a PRD (feature branch workflow, **recommended**) |
+| `/karimo-run --review-only` | Generate briefs and review, then stop (no execution) |
+| `/karimo-run --skip-review` | Skip pre-execution review and execute immediately |
 | `/karimo-merge --prd {slug}` | Create final PR to main after execution completes |
 | `/karimo-modify --prd {slug}` | Modify an approved PRD before execution |
 | `/karimo-status [--prd {slug}]` | View execution state (no arg = all PRDs, with arg = details) |
