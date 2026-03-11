@@ -145,8 +145,8 @@ Tasks that depend on this one: {list or "None — no downstream dependencies"}
 
 **Issue:** #{issue_number}
 **Feature Issue (Parent):** #{feature_issue_number}
-**Branch:** `feature/{prd-slug}/{task-id}`
-**Target:** `feature/{prd-slug}` (feature branch, NOT main)
+**Branch:** `{prd-slug}-{task-id}`
+**Target:** Determined by PM Agent based on execution mode (feature branch or main)
 
 ---
 
@@ -171,7 +171,7 @@ Before creating PR:
 - [ ] Type check passes: `{config.commands.typecheck}`
 - [ ] No `never_touch` files modified
 - [ ] Tests added/updated
-- [ ] Branch rebased on feature branch
+- [ ] Branch rebased on target branch (feature branch or main)
 
 ---
 

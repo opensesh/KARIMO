@@ -12,16 +12,45 @@ KARIMO agents execute tasks defined in PRDs. The human architect designs the fea
 
 ---
 
-## v4.0 Execution Model
+## Execution Models
 
-KARIMO v4.0 uses a simplified PR-centric workflow:
-- PRs target `main` directly (no feature branches)
-- Tasks execute in wave order (wave 2 waits for wave 1 to merge)
-- Claude Code manages worktrees via `isolation: worktree`
-- PR labels replace GitHub Projects for tracking
-- Branch naming: `{prd-slug}-{task-id}`
+KARIMO v5.0 supports two execution models:
 
-**Requirements:**
+### Feature Branch Model (v5.0) — Recommended
+
+PRs target a feature branch, which merges to main after all tasks complete:
+
+- **Feature branch:** `feature/{prd-slug}` (created by `/karimo-orchestrate`)
+- **Task PRs:** Target feature branch
+- **Wave execution:** Within feature branch (wave 2 waits for wave 1 to merge to feature branch)
+- **Final PR:** `feature/{prd-slug}` → main (one production deployment)
+- **Branch naming:** `{prd-slug}-{task-id}`
+- **Cleanup:** Feature branch deleted after merge to main
+
+**Benefits:**
+- Single production deployment per PRD
+- No Vercel/Netlify spam
+- Consolidated review before main merge
+- Clean git history with feature-level commits
+
+**Use for:** Most PRDs (5+ tasks), complex features, coordinated releases
+
+### Direct-to-Main Model (v4.0) — Backward Compatible
+
+PRs target main directly:
+
+- **No feature branch:** Tasks merge directly to main
+- **Task PRs:** Target main
+- **Wave execution:** Sequenced by main merge status
+- **Production deployments:** One per task (15+ per PRD)
+- **Branch naming:** `{prd-slug}-{task-id}`
+
+**Use when:**
+- Simple PRDs (1-3 tasks)
+- Hotfixes or urgent changes
+- Existing v4.0 workflows
+
+**Requirements (both models):**
 - GitHub MCP server configured in Claude Code
 - gh CLI authenticated with `repo` scope
 
@@ -81,9 +110,13 @@ KARIMO v4.0 uses a simplified PR-centric workflow:
 
 ### 2. Branch Discipline
 
-- **Push to your assigned branch.** Branch name: `{prd-slug}-{task-id}`
-- **Claude Code handles worktrees.** Task agents use `isolation: worktree` — worktree creation/cleanup is automatic.
-- **Commit frequently.** Make atomic commits that can be understood independently.
+- **Push to your assigned branch:** `{prd-slug}-{task-id}`
+- **Claude Code handles worktrees:** Task agents use `isolation: worktree`
+- **Commit frequently:** Make atomic commits
+- **PR target branch:**
+  - Feature branch mode: Target `feature/{prd-slug}`
+  - Direct-to-main mode: Target `main`
+  - PM Agent determines target based on `status.json` execution mode
 
 ### 3. Pre-PR Validation
 
@@ -92,7 +125,7 @@ Before the PM creates a PR, verify:
 - [ ] Type check passes (from CLAUDE.md Commands table)
 - [ ] Lint passes (from CLAUDE.md Commands table)
 - [ ] No `Never Touch` files modified (from CLAUDE.md Boundaries)
-- [ ] Branch based on latest main
+- [ ] Branch based on latest target branch (feature branch or main)
 
 ### 4. PR Standards
 
