@@ -55,7 +55,7 @@ KARIMO is a **framework and Claude Code plugin** for PRD-driven autonomous devel
 | **Structured interviews** | Multi-round PRD questions following user-controlled templates |
 | **Two-tier planning** | PRDs decomposed into self-contained task briefs |
 | **Wave-based execution** | Dependency graph determines parallel vs sequential tasks |
-| **Compound learning** | `/karimo-feedback` and `/karimo-learn` capture patterns for future agents |
+| **Compound learning** | `/karimo-feedback` captures patterns with intelligent complexity detection |
 | **PR-centric workflow** | Full auditability via PRs targeting main with wave-ordered merges |
 | **Flexible code review** | Choose Greptile ($30/mo) or Claude Code Review ($15-25/PR) for automated review |
 
@@ -188,8 +188,7 @@ Choose Greptile or Claude Code Review. See [Adoption Phases](.karimo/docs/PHASES
 | `/karimo-overview` | Dashboard across all PRDs |
 | `/karimo-modify --prd {slug}` | Edit an approved PRD |
 | `/karimo-doctor` | Diagnose installation issues |
-| `/karimo-feedback` | Capture a single learning (~2 min) |
-| `/karimo-learn` | Deep learning cycle (~45 min) |
+| `/karimo-feedback` | Intelligent feedback (simple or complex path) |
 | `/karimo-configure` | Create or update project configuration |
 | `/karimo-cd-config` | Configure CD provider to skip task branch previews |
 | `/karimo-update` | Update KARIMO to latest version |
@@ -259,7 +258,7 @@ KARIMO includes 13 specialized agents in two categories:
 - `karimo-brief-writer` — Creates self-contained task briefs
 - `karimo-pm` — Coordinates execution, spawns task agents
 - `karimo-review-architect` — Resolves merge conflicts
-- `karimo-learn-auditor` — Investigates learnings from feedback
+- `karimo-feedback-auditor` — Investigates complex feedback issues
 
 **Task agents** write and modify code:
 - `karimo-implementer` — Writes production code (Sonnet + Opus)

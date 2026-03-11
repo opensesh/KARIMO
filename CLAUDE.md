@@ -124,8 +124,7 @@ KARIMO is an autonomous development **methodology** delivered via Claude Code co
 | `/karimo-configure` | Create or update project configuration (~5 min) |
 | `/karimo-cd-config` | Configure CD provider to skip KARIMO branch previews |
 | `/karimo-update` | Check for and apply KARIMO updates from GitHub |
-| `/karimo-feedback` | Quick capture of single learnings (~2 min) |
-| `/karimo-learn` | Deep learning cycle with investigation (~45 min) |
+| `/karimo-feedback` | Intelligent feedback with auto-detection (simple or complex) |
 | `/karimo-doctor` | Check installation health and diagnose issues |
 | `/karimo-test` | Verify installation works end-to-end |
 
@@ -263,4 +262,4 @@ All skills use the `karimo-*` prefix for reliable update management and clear di
 
 ## Learnings
 
-Project-specific learnings are stored in `.karimo/learnings.md` and populated via `/karimo-feedback` or `/karimo-learn`. This keeps CLAUDE.md minimal while providing agents with accumulated knowledge._
+Project-specific learnings are stored in `.karimo/learnings.md` and populated via `/karimo-feedback`. This keeps CLAUDE.md minimal while providing agents with accumulated knowledge._
