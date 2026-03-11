@@ -18,15 +18,12 @@
     "karimo-tester-opus.md"
   ],
   "commands": [
-    "karimo-cd-config.md",
     "karimo-configure.md",
     "karimo-dashboard.md",
     "karimo-doctor.md",
-    "karimo-execute.md",
     "karimo-feedback.md",
     "karimo-merge.md",
     "karimo-modify.md",
-    "karimo-orchestrate.md",
     "karimo-plan.md",
     "karimo-run.md",
     "karimo-status.md",
