@@ -7,6 +7,107 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [5.2.0] - 2026-03-11
+
+### Added
+
+**Simplified Command Names (Phase 1: Aliases)**
+
+New, more intuitive command names for the core KARIMO workflow:
+
+- `/karimo-run` — Execute PRD with feature branch workflow (alias for `/karimo-orchestrate`)
+  - More intuitive name following "plan → run" mental model
+  - Same proven orchestration logic
+  - Clearly marked as **recommended** execution method
+- `/karimo-finish` — Complete PRD implementation with final PR to main (alias for `/karimo-merge`)
+  - Clearer intent: "finish this PRD" vs technical "merge"
+  - Completes the linear workflow: plan → run → finish
+  - Same consolidation and validation logic
+
+**Smart Status Command**
+
+Enhanced `/karimo-status` with intelligent behavior:
+- No arguments: Shows overview of all PRDs (replaces `/karimo-overview`)
+- With `--prd {slug}`: Shows detailed status for specific PRD
+- Includes helpful hint: "Showing all PRDs. Use /karimo-status --prd {slug} for detailed view."
+
+### Changed
+
+**Deprecation Warnings**
+
+- `/karimo-execute` — Now shows deprecation notice recommending `/karimo-run`
+  - Lists benefits of v5.0 feature branch workflow
+  - Remains functional for backward compatibility
+  - Will be removed in v6.0
+- `/karimo-orchestrate` — Still works, but `/karimo-run` is preferred name
+- `/karimo-merge` — Still works, but `/karimo-finish` is preferred name
+- `/karimo-overview` — Functionality merged into `/karimo-status` (no arguments)
+
+**Documentation Updates**
+
+All documentation updated to prefer new command names:
+- `CLAUDE.md` — Updated command table with recommended names and deprecation table
+- `README.md` — Updated quick reference and workflow examples
+- `.karimo/docs/COMMANDS.md` — Reorganized with Core Workflow / Setup / Advanced / Deprecated sections
+- Command files — Added cross-references and deprecation notices
+
+**Improved Mental Model**
+
+New recommended workflow is clearer and more linear:
+
+```
+Plan → Run → Status → Finish → Feedback
+  ↓      ↓       ↓        ↓         ↓
+/plan  /run  /status  /finish  /feedback
+```
+
+**Before (v5.1):**
+- 12 commands with confusion points
+- "Execute or orchestrate? Which one?"
+- "Status or overview? When to use which?"
+- Three-step execution unclear
+
+**After (v5.2):**
+- 11 core commands (14 total including aliases)
+- Clear workflow with intuitive verbs
+- Single smart status command
+- Explicit deprecation guidance
+
+### Manifest Changes
+
+Updated `.karimo/MANIFEST.json`:
+- Version: 5.1.0 → 5.2.0
+- Commands: Added `karimo-run.md`, `karimo-finish.md`
+- Removed: `karimo-overview.md` (never implemented)
+
+### Migration Path
+
+**Phase 1 (v5.2 - Current):**
+- New commands available as aliases
+- Old commands work with deprecation warnings
+- Documentation prefers new names
+- Zero breaking changes
+
+**Phase 2 (Future - v5.3):**
+- Smart defaults and helpful migration messages
+- Deprecation notices with examples
+- Batch migration guides
+
+**Phase 3 (Future - v6.0):**
+- Remove deprecated commands entirely
+- Clean up file structure
+- Update install scripts
+
+### Benefits
+
+- **23% fewer user-facing commands** (13 → 10 core workflow + setup commands)
+- **Clearer workflow** with intuitive verb sequence
+- **No decision fatigue** between execute/orchestrate or status/overview
+- **Better discoverability** with grouped command reference
+- **Gentle migration** with aliases and deprecation warnings
+
+---
+
 ## [5.1.0] - 2026-03-11
 
 ### Added

@@ -1,5 +1,5 @@
 {
-  "version": "5.1.0",
+  "version": "5.2.0",
   "agents": [
     "karimo-brief-writer.md",
     "karimo-documenter.md",
@@ -21,12 +21,12 @@
     "karimo-doctor.md",
     "karimo-execute.md",
     "karimo-feedback.md",
-    "karimo-learn.md",
+    "karimo-finish.md",
     "karimo-merge.md",
     "karimo-modify.md",
     "karimo-orchestrate.md",
-    "karimo-overview.md",
     "karimo-plan.md",
+    "karimo-run.md",
     "karimo-status.md",
     "karimo-test.md",
     "karimo-update.md"
