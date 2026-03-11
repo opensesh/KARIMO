@@ -78,7 +78,7 @@ Target Project/
 │   │   ├── karimo-brief-writer.md   # Task brief generator
 │   │   ├── karimo-pm.md             # Task coordination (never writes code)
 │   │   ├── karimo-review-architect.md # Code-level integration
-│   │   ├── karimo-learn-auditor.md  # Learning investigation agent
+│   │   ├── karimo-feedback-auditor.md # Feedback investigation agent
 │   │   ├── karimo-implementer.md    # Task agent: coding (Sonnet)
 │   │   ├── karimo-implementer-opus.md # Task agent: coding (Opus)
 │   │   ├── karimo-tester.md         # Task agent: tests (Sonnet)
@@ -283,7 +283,7 @@ This is the primary human oversight touchpoint — check it each morning or afte
 
 #### Task Agents
 
-KARIMO uses a dual-model system for task agents. Each agent type has a Sonnet variant (complexity 1-4) and an Opus variant (complexity 5+):
+KARIMO uses a dual-model system for task agents. Each agent type has a Sonnet variant (complexity 1-3) and an Opus variant (complexity 4+):
 
 | Agent | Complexity | Purpose | Model | Writes Code? |
 |-------|------------|---------|-------|--------------|
@@ -653,15 +653,16 @@ Rollback events are tracked in `status.json`:
 
 ## Learning Architecture
 
-KARIMO uses a two-scope compound learning system:
+KARIMO uses a unified feedback command with intelligent complexity detection:
 
-### Scope 1: Quick Capture (`/karimo-feedback`)
+### Simple Path (`/karimo-feedback`)
 
-Immediate capture of single observations:
+Quick capture for well-defined feedback (70% of cases):
 - Developer describes pattern or mistake
+- 0-3 clarifying questions (if needed)
 - Agent generates actionable rule
 - Rule appended to `.karimo/learnings.md`
-- Time: ~2 minutes
+- Time: < 5 minutes
 
 ### Complex Path (Investigation Mode)
 

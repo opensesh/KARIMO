@@ -99,12 +99,12 @@ Templates live in `.karimo/templates/`:
 | Template | Purpose |
 |----------|---------|
 | `PRD_TEMPLATE.md` | PRD output format |
-| `INTERVIEW_PROTOCOL.md` | Interview flow |
+| `INTERVIEW_PROTOCOL.md` | PRD interview flow |
 | `TASK_SCHEMA.md` | Task definition format |
 | `STATUS_SCHEMA.md` | Status tracking format |
 | `DEPENDENCIES_TEMPLATE.md` | Runtime dependency tracking |
-| `LEARN_INTERVIEW_PROTOCOL.md` | /karimo-learn interview flow |
-| `FINDINGS_TEMPLATE.md` | Cross-task discoveries |
+| `FEEDBACK_INTERVIEW_PROTOCOL.md` | Feedback interview flow (adaptive) |
+| `FEEDBACK_DOCUMENT_TEMPLATE.md` | Feedback investigation artifacts |
 | `TASK_BRIEF_TEMPLATE.md` | Self-contained task briefs |
 
 When updating templates, ensure backward compatibility with existing PRDs.

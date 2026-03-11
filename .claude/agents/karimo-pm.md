@@ -248,8 +248,8 @@ WHILE waves remain:
 
 | Complexity | Model | Agent |
 |------------|-------|-------|
-| 1–4 | Sonnet | karimo-implementer, karimo-tester, karimo-documenter |
-| 5–10 | Opus | karimo-implementer-opus, karimo-tester-opus, karimo-documenter-opus |
+| 1–3 | Sonnet | karimo-implementer, karimo-tester, karimo-documenter |
+| 4–10 | Opus | karimo-implementer-opus, karimo-tester-opus, karimo-documenter-opus |
 
 #### 3b. Spawn Worker
 
@@ -263,7 +263,7 @@ Workers use Claude Code's native `isolation: worktree`. The PM specifies the bra
 > Task: [{task-id}] {task-title}
 > Complexity: {complexity}/10
 
-For **complexity 5+** tasks, use the Opus variant.
+For **complexity 4+** tasks, use the Opus variant.
 
 **After spawning:**
 - Update `status.json`: task status → `running`, record `started_at`, `model`, `loop_count: 1`

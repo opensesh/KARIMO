@@ -20,8 +20,7 @@ Agents are spawned by these primary commands:
 - `/karimo-execute` — Spawns PM agent (v4.0 or as called by orchestrate)
 - `/karimo-merge` — Final PR creation after feature branch execution (v5.0)
 - `/karimo-modify` — Spawns interviewer to modify approved PRD
-- `/karimo-feedback` — Quick learning capture (single finding)
-- `/karimo-learn` — Deep learning cycle with investigation
+- `/karimo-feedback` — Intelligent feedback with auto-detection (simple or complex path)
 
 Task agents (implementer, tester, documenter) are spawned by PM agent, not directly by commands.
 

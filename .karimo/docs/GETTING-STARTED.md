@@ -497,7 +497,7 @@ All detailed configuration is stored in `.karimo/config.yaml` and learnings in `
 
 ### What if I have agents with the same names?
 
-KARIMO agents are named `karimo-interviewer`, `karimo-investigator`, `karimo-reviewer`, `karimo-pm`, and `karimo-learn-auditor`. If you have agents with these exact names, rename yours before installing. This is rare since KARIMO uses a consistent prefix.
+KARIMO agents are named `karimo-interviewer`, `karimo-investigator`, `karimo-reviewer`, `karimo-pm`, and `karimo-feedback-auditor`. If you have agents with these exact names, rename yours before installing. This is rare since KARIMO uses a consistent prefix.
 
 ### Can I uninstall KARIMO?
 

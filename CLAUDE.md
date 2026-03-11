@@ -231,7 +231,7 @@ When you run `install.sh`, these files are added:
 
 ### Agent Types
 
-**Coordination agents:** interviewer, investigator, reviewer, brief-writer, pm, review-architect, learn-auditor
+**Coordination agents:** interviewer, investigator, reviewer, brief-writer, pm, review-architect, feedback-auditor
 
 **Task agents:** implementer, tester, documenter (each with Sonnet and Opus variants)
 

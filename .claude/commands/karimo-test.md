@@ -100,10 +100,12 @@ Test 2: Template Parsing
 
   ✅ EXECUTION_PLAN_SCHEMA.md       Valid structure
   ✅ DEPENDENCIES_TEMPLATE.md       Valid structure
-  ✅ FINDINGS_TEMPLATE.md           Valid structure
+  ✅ FEEDBACK_DOCUMENT_TEMPLATE.md  Valid structure
+  ✅ FEEDBACK_INTERVIEW_PROTOCOL.md Valid structure
   ✅ INTERVIEW_PROTOCOL.md          Valid structure
-  ✅ LEARN_INTERVIEW_PROTOCOL.md    Valid structure
+  ✅ METRICS_SCHEMA.md              Valid structure
   ✅ PRD_TEMPLATE.md                Valid structure
+  ✅ REVIEW_TEMPLATE.md             Valid structure
   ✅ STATUS_SCHEMA.md               Valid structure
   ✅ TASK_BRIEF_TEMPLATE.md         Valid structure
   ✅ TASK_SCHEMA.md                 Valid structure

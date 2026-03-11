@@ -1,6 +1,6 @@
 # KARIMO Learnings
 
-_Rules learned from execution feedback via `/karimo-feedback` and `/karimo-learn`._
+_Rules learned from execution feedback via `/karimo-feedback`._
 
 ## Patterns to Follow
 
