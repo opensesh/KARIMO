@@ -8,7 +8,7 @@
 ```
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
-[![Version](https://img.shields.io/badge/version-v5.0.0-blue)]()
+[![Version](https://img.shields.io/badge/version-v5.5.0-blue)]()
 [![Claude Code](https://img.shields.io/badge/Claude%20Code-Framework-blueviolet.svg)]()
 
 ---
