@@ -248,15 +248,46 @@ tasks:
 
 ## Executing Tasks
 
-### 1. Run the Execute Command
+### Your First Execution
 
+KARIMO v5.0 offers two execution workflows:
+
+#### Feature Branch Mode (Recommended)
+
+For most PRDs, use feature branch aggregation:
+
+```bash
+/karimo-orchestrate --prd {slug}
 ```
+
+This will:
+1. Create `feature/{prd-slug}` from main
+2. Update status.json with execution mode
+3. Spawn PM agent for wave-based execution
+4. Create task PRs targeting feature branch
+5. Pause at `ready-for-merge` status
+
+When all tasks complete, consolidate:
+
+```bash
+/karimo-merge --prd {slug}
+```
+
+This creates final PR: `feature/{prd-slug}` → main
+
+#### Direct-to-Main Mode (v4.0)
+
+For simple PRDs (1-3 tasks) or hotfixes:
+
+```bash
 /karimo-execute --prd {slug}
 ```
 
-Replace `{slug}` with your PRD slug (e.g., `user-profiles`).
+This creates task PRs directly to main (multiple production deployments).
 
-### 2. What Happens During Execution
+**Recommendation:** Start with feature branch mode unless you have a specific reason to use direct-to-main.
+
+### What Happens During Execution
 
 **Phase 1: Brief Generation** (~2 min)
 - Generates self-contained briefs for each task
@@ -264,17 +295,16 @@ Replace `{slug}` with your PRD slug (e.g., `user-profiles`).
 
 **Phase 2: Wave-Ordered Execution** (varies by PRD size)
 - PM Agent executes tasks wave by wave
-- Wave 2 waits for all wave 1 PRs to merge
+- Wave 2 waits for all wave 1 PRs to merge to base branch
 - Claude Code manages worktrees automatically via `isolation: worktree`
-- PRs target main directly with labels for tracking
 - Branch naming: `{prd-slug}-{task-id}`
 
 Example wave structure:
 
 ```
-Wave 1: [1a, 1b] — Execute in parallel, PRs to main
+Wave 1: [1a, 1b] — Execute in parallel
         ↓ (wait for merge)
-Wave 2: [2a, 2b] — Execute in parallel, PRs to main
+Wave 2: [2a, 2b] — Execute in parallel
         ↓ (wait for merge)
 Wave 3: [3a] — Final task
 ```
