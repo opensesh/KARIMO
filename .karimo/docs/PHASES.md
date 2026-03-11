@@ -224,21 +224,24 @@ Both providers support automated revision loops with model escalation:
 
 ## Phase 3: Monitor & Review
 
-**GitHub-native oversight for team-wide visibility.**
+**CLI-based monitoring with comprehensive insights and analytics.**
 
-Phase 3 uses existing GitHub infrastructure and KARIMO commands for monitoring — no separate dashboard needed.
+Phase 3 uses KARIMO's CLI dashboard for monitoring — no separate web dashboard needed.
 
 ### What You Get
 
-- **`/karimo-status`** — Execution state per PRD
+- **`/karimo-dashboard`** — Comprehensive CLI dashboard
+  - **Executive Summary** — System health score, quick stats, next completions
+  - **Critical Alerts** — Blocked, stale, crashed tasks needing intervention
+  - **Execution Velocity** — Completion rate, loop efficiency, wave progress, ETAs
+  - **Resource Usage** — Model distribution, loop distribution, parallel capacity
+  - **Recent Activity** — Timeline of events across all PRDs
+  - Replaces `/karimo-overview` with enhanced capabilities
+
+- **`/karimo-status`** — PRD-specific deep dive
   - Task progress, wave status, PR links
   - Loop counts and model usage
   - Blocked tasks and error details
-
-- **`/karimo-overview`** — Cross-PRD oversight
-  - All active PRDs and their status
-  - Team-wide execution summary
-  - Stalled or blocked work
 
 - **GitHub PR Dashboard**
   - `gh pr list --label karimo` — All KARIMO PRs
@@ -290,7 +293,7 @@ gh pr list --label blocked-needs-human
 | Automated Review | — | Yes (choice) | Yes |
 | Revision Loops | — | Yes | Yes |
 | /karimo-status | Yes | Yes | Yes |
-| /karimo-overview | Yes | Yes | Yes |
+| /karimo-dashboard | Yes | Yes | Yes |
 | GitHub Queries | Yes | Yes | Yes |
 
 ---
@@ -318,8 +321,8 @@ Run `/karimo-configure --review` to choose interactively, or:
 ### Phase 2 → Phase 3
 
 Phase 3 uses existing tooling — no upgrade required:
-- `/karimo-status` for per-PRD state
-- `/karimo-overview` for cross-PRD oversight
+- `/karimo-dashboard` for comprehensive monitoring and analytics
+- `/karimo-status` for per-PRD deep dives
 - `gh pr list --label karimo` for GitHub queries
 
 ---
