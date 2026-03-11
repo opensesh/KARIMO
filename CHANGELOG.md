@@ -7,6 +7,126 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [5.1.0] - 2026-03-11
+
+### Added
+
+**Unified Feedback Command with Intelligent Complexity Detection**
+
+The `/karimo-feedback` command now automatically detects complexity and adapts its approach:
+
+- **Auto-detection:** Analyzes feedback for simple vs complex signals
+- **Simple path (70% of cases):** 0-3 clarifying questions → direct rule → < 5 min
+- **Complex path (30% of cases):** 3-7 adaptive questions → investigation → feedback document → 10-20 min
+- **Batch mode:** Preserved `--from-metrics` for post-PRD retrospectives (unchanged)
+
+**New Complex Path Features**
+
+When investigation is needed:
+- Spawns `karimo-interviewer` in feedback mode (adaptive questioning, not rigid rounds)
+- Spawns `karimo-feedback-auditor` for evidence gathering
+- Creates `.karimo/feedback/{slug}.md` with:
+  - Problem statement with scope and occurrence
+  - Evidence from status.json, PR history, codebase patterns
+  - Root cause analysis with impact quantification
+  - Recommended changes with confidence levels
+  - Applied changes tracking and verification criteria
+- Supports multiple file updates (learnings.md, config.yaml, KARIMO_RULES.md, etc.)
+- Learning provenance (links rules back to investigations)
+
+**New Templates**
+
+- `FEEDBACK_INTERVIEW_PROTOCOL.md` — Adaptive feedback interviews (replaces LEARN_INTERVIEW_PROTOCOL.md)
+- `FEEDBACK_DOCUMENT_TEMPLATE.md` — Investigation artifact structure
+
+**Renamed Agents**
+
+- `karimo-learn-auditor.md` → `karimo-feedback-auditor.md` (refocused for scoped investigations)
+
+**Renamed Templates**
+
+- `LEARN_INTERVIEW_PROTOCOL.md` → `FEEDBACK_INTERVIEW_PROTOCOL.md`
+- `FINDINGS_TEMPLATE.md` → incorporated into `FEEDBACK_DOCUMENT_TEMPLATE.md`
+
+**Updated Interviewer Agent**
+
+- `karimo-interviewer` now mode-aware (supports both PRD and feedback modes)
+- PRD mode: Follow INTERVIEW_PROTOCOL.md (unchanged)
+- Feedback mode: Follow FEEDBACK_INTERVIEW_PROTOCOL.md (new)
+
+### Changed
+
+**Complexity Detection Heuristics**
+
+Simple signals (quick path):
+- Specific file, component, or pattern mentioned
+- Clear root cause stated
+- Straightforward fix ("never do X", "always use Y")
+- Single, well-defined issue
+
+Complex signals (investigation path):
+- Vague symptoms ("something's wrong", "keeps failing")
+- Scope indicators ("all tests", "system-wide", "deployment")
+- Investigation language ("figure out why", "not sure what's causing")
+- Multiple related issues tangled together
+- Unclear root cause
+
+**Adaptive Questioning**
+
+Complex path uses 4 categories (not rigid 5 rounds):
+1. **Problem Scoping:** When does this occur? Which areas affected?
+2. **Evidence:** Which PRDs/tasks/PRs show this? What went wrong?
+3. **Root Cause:** What's causing this? Missing information?
+4. **Desired State:** What should ideal behavior be?
+
+Stops when: All 4 categories answered OR 7 questions reached OR problem becomes simple
+
+**Edge Case Handling**
+
+- Multiple distinct issues → Offer split/together/pick options
+- Complexity changes mid-feedback → Offer investigation mode
+- Vague feedback → Ask clarifying questions with examples
+
+### Removed
+
+**Deprecated Command**
+
+- `/karimo-learn` — Functionality merged into `/karimo-feedback` with auto-detection
+
+**Removed Legacy Workflow**
+
+Old two-scope model:
+- Scope 1: /karimo-feedback (quick capture, ~2 min)
+- Scope 2: /karimo-learn (rigid 3-mode cycle, ~45 min)
+
+New unified model:
+- /karimo-feedback with auto-detection (simple or complex path)
+
+**Removed Templates**
+
+- `LEARN_INTERVIEW_PROTOCOL.md` — Replaced with `FEEDBACK_INTERVIEW_PROTOCOL.md`
+- `FINDINGS_TEMPLATE.md` — Replaced with `FEEDBACK_DOCUMENT_TEMPLATE.md`
+
+### Documentation
+
+**Updated:**
+- `COMMANDS.md` — Unified feedback documentation with complexity detection
+- `COMPOUND-LEARNING.md` — Complete rewrite for complexity-based approach
+- `ARCHITECTURE.md` — Updated folder structure and compound learning section
+- `CLAUDE.md` — Removed /karimo-learn, updated /karimo-feedback description
+- `README.md` — Updated command table and compound learning description
+
+**Benefits**
+
+- **Simpler mental model:** One command instead of two
+- **Faster simple feedback:** No overhead for clear observations
+- **Better investigation:** Adaptive questioning vs rigid rounds
+- **Evidence preservation:** Feedback documents track investigations
+- **Learning provenance:** Link rules back to root cause analysis
+- **Time savings:** 10-20 min for complex (vs 45 min rigid cycle)
+
+---
+
 ## [5.0.0] - 2026-03-10
 
 ### Added
