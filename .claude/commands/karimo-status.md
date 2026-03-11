@@ -83,19 +83,29 @@ Show all PRDs with wave-based summary:
 
 PRDs:
 
-  001_user-profiles          active     ████████░░ 80%
+  001_user-profiles          ready-for-merge     ██████████ 100%
+    Mode: Feature Branch (feature/user-profiles)
+    All waves complete
+    Tasks: 5/5 done (merged to feature branch)
+    Models: 4 sonnet, 1 opus • Loops: 9
+    Next: /karimo-merge --prd user-profiles
+
+  002_token-studio           active              ████████░░ 80%
+    Mode: Direct-to-Main
     Wave 2 of 3 in progress
     Tasks: 4/5 done, 1 in-review
-    PRs: #42 #43 #44 #45 merged, #46 open
+    PRs: #42 #43 #44 #45 merged to main, #46 open
     Models: 4 sonnet, 1 opus • Loops: 10
 
-  002_token-studio           ready      ░░░░░░░░░░ 0%
+  003_auth-refactor          ready               ░░░░░░░░░░ 0%
+    Mode: Feature Branch (feature/auth-refactor)
     Tasks: 0/8 queued
-    Ready for execution
+    Ready to orchestrate
 
-  003_auth-refactor          complete   ██████████ 100%
+  004_legacy-cleanup         complete            ██████████ 100%
+    Mode: Direct-to-Main
     All 3 waves complete
-    Tasks: 6/6 done
+    Tasks: 6/6 done (merged to main)
     Models: 5 sonnet, 1 opus • Loops: 14
     Finalized: 3 days ago
 
@@ -106,12 +116,57 @@ Run /karimo-status --prd {slug} for details.
 
 Show full task breakdown by wave:
 
+**Feature Branch Mode Example:**
+
+```
+╭──────────────────────────────────────────────────────────────╮
+│  PRD: user-profiles                                          │
+╰──────────────────────────────────────────────────────────────╯
+
+Status: ready-for-merge
+Execution Mode: Feature Branch
+Feature Branch: feature/user-profiles
+Started: 2026-02-19 10:30 (2h 15m ago)
+PR Dashboard: gh pr list --label karimo-user-profiles
+
+Waves:
+
+  Wave 1 ━━━━━━━━━━ complete
+
+    ✓ [1a] Create UserProfile component
+      PR #42 merged to feature branch • sonnet • 2 loops
+
+    ✓ [1b] Add user type definitions
+      PR #43 merged to feature branch • sonnet • 1 loop
+
+  Wave 2 ━━━━━━━━━━ complete
+
+    ✓ [2a] Implement profile edit form
+      PR #44 merged to feature branch • opus • 3 loops
+
+    ✓ [2b] Add avatar upload
+      PR #45 merged to feature branch • sonnet • 2 loops
+
+  Wave 3 ━━━━━━━━━━ complete
+
+    ✓ [3a] Integration tests
+      PR #46 merged to feature branch • opus • 1 loop
+
+Progress: ██████████ 100% (5/5 tasks)
+Models: 4 sonnet, 1 opus • Total Loops: 9
+
+Next Step: /karimo-merge --prd user-profiles
+```
+
+**Direct-to-Main Mode Example:**
+
 ```
 ╭──────────────────────────────────────────────────────────────╮
 │  PRD: user-profiles                                          │
 ╰──────────────────────────────────────────────────────────────╯
 
 Status: active
+Execution Mode: Direct-to-Main
 Started: 2026-02-19 10:30 (2h 15m ago)
 PR Dashboard: gh pr list --label karimo-user-profiles
 

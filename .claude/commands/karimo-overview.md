@@ -33,17 +33,17 @@ Shows:
 🚫 Blocked — Needs Human Review
 ───────────────────────────────
 
-  PRD: user-profiles
-  Board: https://github.com/orgs/{org}/projects/{number}
+  PRD: user-profiles (Mode: Feature Branch)
+  Feature Branch: feature/user-profiles
 
     [2a] Implement profile edit form
-         PR #44 · Greptile: 2/5, 2/5, 2/5 (3 attempts)
+         PR #44 → feature branch · Greptile: 2/5, 2/5, 2/5 (3 attempts)
          Model: escalated sonnet → opus
          Blocked since: 2h ago
          → Review PR: https://github.com/{owner}/{repo}/pull/44
 
     [3b] Add notification preferences
-         PR #47 · Greptile: 1/5, 2/5, 1/5 (3 attempts)
+         PR #47 → feature branch · Greptile: 1/5, 2/5, 1/5 (3 attempts)
          Model: opus (no escalation — complexity 8)
          Blocked since: 45m ago
          → Review PR: https://github.com/{owner}/{repo}/pull/47
@@ -52,11 +52,10 @@ Shows:
 ⚠️  In Revision — Active Loops
 ────────────────────────────────
 
-  PRD: token-studio
-  Board: https://github.com/orgs/{org}/projects/{number}
+  PRD: token-studio (Mode: Direct-to-Main)
 
     [1c] Token validation logic
-         PR #51 · Greptile: 2/5 (attempt 1 of 3)
+         PR #51 → main · Greptile: 2/5 (attempt 1 of 3)
          Model: escalated sonnet → opus
          → PR: https://github.com/{owner}/{repo}/pull/51
 
@@ -64,33 +63,44 @@ Shows:
 🔀 Needs Human Rebase
 ──────────────────────
 
-  PRD: user-profiles
-  Board: https://github.com/orgs/{org}/projects/{number}
+  PRD: user-profiles (Mode: Feature Branch)
+  Feature Branch: feature/user-profiles
 
     [2b] Add avatar upload
          Conflict files: src/types/index.ts, src/components/UserProfile.tsx
-         → Branch: feature/user-profiles/2b
+         → Branch: user-profiles-2b
 
 
 ✅ Recently Completed
 ─────────────────────
 
-  PRD: user-profiles (4/6 tasks done — 67%)
-  Board: https://github.com/orgs/{org}/projects/{number}
+  PRD: user-profiles (4/6 tasks done — 67%) — Feature Branch Mode
+  Status: active (all tasks will merge to feature/user-profiles)
 
     [1a] Create UserProfile component        ✓ merged 3h ago   PR #42
     [1b] Add user type definitions           ✓ merged 2h ago   PR #43
     [2c] Profile API endpoints               ✓ merged 1h ago   PR #45
     [2d] Profile page layout                 ✓ merged 30m ago  PR #46
 
-  PRD: token-studio (2/8 tasks done — 25%)
-  Board: https://github.com/orgs/{org}/projects/{number}
+  PRD: token-studio (2/8 tasks done — 25%) — Direct-to-Main Mode
+  Status: active
 
     [1a] Token schema types                  ✓ merged 4h ago   PR #49
     [1b] Token CRUD operations               ✓ merged 3h ago   PR #50
 
 
-Summary: 2 blocked · 1 in revision · 1 needs rebase · 6 recently completed
+🎯 Ready for Final Merge
+─────────────────────────
+
+  PRD: auth-system (5/5 tasks done — 100%) — Feature Branch Mode
+  Feature Branch: feature/auth-system
+  Status: ready-for-merge
+
+    All tasks merged to feature branch ✓
+    Next: /karimo-merge --prd auth-system
+
+
+Summary: 2 blocked · 1 in revision · 1 needs rebase · 6 recently completed · 1 ready for merge
 ```
 
 ---
