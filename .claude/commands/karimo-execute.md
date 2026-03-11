@@ -377,6 +377,54 @@ Finalization:
 Consider running /karimo-feedback to capture learnings.
 ```
 
+## Dual Execution Mode Support
+
+`/karimo-execute` works with **both** v5.0 and v4.0 execution modes:
+
+### Feature Branch Mode (v5.0)
+
+When `status.json` contains `"execution_mode": "feature-branch"`:
+- PRs target `feature/{prd-slug}`
+- PM agent uses feature branch as base
+- Wave transitions check merges to feature branch
+- Execution pauses at `ready-for-merge` status
+- Use `/karimo-merge` to create final PR to main
+
+**Created by:** `/karimo-orchestrate` (sets execution_mode automatically)
+
+### Direct-to-Main Mode (v4.0)
+
+When `status.json` is missing `execution_mode` or contains `"execution_mode": "direct-to-main"`:
+- PRs target `main` directly
+- PM agent uses main as base
+- Wave transitions check merges to main
+- Execution completes when all tasks done
+- No feature branch created
+
+**Created by:** Manual status.json creation or legacy `/karimo-execute` without orchestrate
+
+### When to Use Each Mode
+
+**Use Feature Branch Mode (v5.0) for:**
+- Most PRDs (5+ tasks)
+- Complex features
+- When you want single production deployment
+- When you want consolidated review before main merge
+
+**Use Direct-to-Main Mode (v4.0) for:**
+- Simple PRDs (1-3 tasks)
+- Hotfixes
+- Urgent changes
+- Existing v4.0 workflows
+
+### Command Usage
+
+`/karimo-execute` is typically called by:
+- `/karimo-orchestrate` (for feature branch mode)
+- Manual invocation (for direct-to-main mode)
+
+**For new PRDs, prefer `/karimo-orchestrate` over direct `/karimo-execute`.**
+
 ## Worker Flow (v4.0)
 
 ```
