@@ -540,6 +540,90 @@ CLAUDEEOF
 fi
 
 # ==============================================================================
+# GIT AUTO-COMMIT
+# ==============================================================================
+
+attempt_git_commit() {
+    # Check if this is a git repository
+    if [ ! -d "$PROJECT_ROOT/.git" ]; then
+        return 0  # Silent skip if not a git repo
+    fi
+
+    # Check if there are KARIMO-related changes
+    cd "$PROJECT_ROOT"
+    if ! git status --porcelain | grep -q -E "^\s*(M|A|D)\s+(.claude/|.karimo/|CLAUDE.md)"; then
+        return 0  # No KARIMO changes to commit
+    fi
+
+    # Count updated components for commit message
+    local updated_count=0
+    updated_count=$((UPDATED_AGENTS + UPDATED_COMMANDS + UPDATED_SKILLS + UPDATED_TEMPLATES + UPDATED_WORKFLOWS))
+
+    # Build commit message
+    local commit_message="chore(karimo): update to v${LATEST_VERSION}
+
+Auto-update via update.sh from v${CURRENT_VERSION} to v${LATEST_VERSION}
+
+Updated components:
+- ${UPDATED_AGENTS} agents
+- ${UPDATED_COMMANDS} commands
+- ${UPDATED_SKILLS} skills
+- ${UPDATED_TEMPLATES} templates
+- ${UPDATED_WORKFLOWS} workflows
+- KARIMO_RULES.md
+- VERSION, MANIFEST.json
+
+Co-Authored-By: KARIMO Update Script <noreply@opensession.co>"
+
+    # Interactive prompt unless in CI mode
+    if [ "$CI_MODE" != "true" ]; then
+        echo
+        echo -e "${YELLOW}╭──────────────────────────────────────────────────────────────╮${NC}"
+        echo -e "${YELLOW}│  Git Commit KARIMO Updates?                                  │${NC}"
+        echo -e "${YELLOW}╰──────────────────────────────────────────────────────────────╯${NC}"
+        echo
+        echo "Commit message preview:"
+        echo -e "${DIM}─────────────────────────────────────────────────────────────${NC}"
+        echo "chore(karimo): update to v${LATEST_VERSION}"
+        echo
+        echo "Auto-update via update.sh from v${CURRENT_VERSION} to v${LATEST_VERSION}"
+        echo -e "${DIM}─────────────────────────────────────────────────────────────${NC}"
+        echo
+        read -p "Commit KARIMO updates? [Y/n] " -n 1 -r
+        echo
+        if [[ ! $REPLY =~ ^[Yy]$ ]] && [[ -n $REPLY ]]; then
+            echo -e "${DIM}Skipping git commit.${NC}"
+            return 0
+        fi
+    fi
+
+    # Stage only KARIMO files
+    git add \
+        .claude/agents/ \
+        .claude/commands/ \
+        .claude/skills/ \
+        .claude/KARIMO_RULES.md \
+        .karimo/templates/ \
+        .karimo/VERSION \
+        .karimo/MANIFEST.json \
+        .karimo/update.sh \
+        .github/workflows/karimo-*.yml \
+        CLAUDE.md 2>/dev/null || true
+
+    # Create commit
+    if git commit -m "$commit_message" 2>/dev/null; then
+        echo -e "${GREEN}✓${NC} Committed KARIMO updates to git"
+    else
+        # Commit failed (pre-commit hook, etc.) - show warning but don't fail update
+        echo -e "${YELLOW}⚠${NC}  Git commit failed, but update completed successfully"
+        echo -e "${DIM}   You may need to commit the changes manually.${NC}"
+    fi
+}
+
+# Attempt to commit KARIMO updates
+attempt_git_commit
+
+# ==============================================================================
 # COMPLETE
 # ==============================================================================
 
