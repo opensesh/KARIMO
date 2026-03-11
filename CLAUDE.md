@@ -122,7 +122,6 @@ KARIMO is an autonomous development **methodology** delivered via Claude Code co
 | `/karimo-modify --prd {slug}` | Modify an approved PRD before execution |
 | `/karimo-status [--prd {slug}]` | View execution state (no arg = all PRDs, with arg = details) |
 | `/karimo-configure` | Create or update project configuration (~5 min) |
-| `/karimo-cd-config` | Configure CD provider to skip KARIMO branch previews |
 | `/karimo-update` | Check for and apply KARIMO updates from GitHub |
 | `/karimo-feedback` | Intelligent feedback with auto-detection (simple or complex) |
 | `/karimo-doctor` | Check installation health and diagnose issues |
@@ -135,6 +134,7 @@ KARIMO is an autonomous development **methodology** delivered via Claude Code co
 | `/karimo-execute` | `/karimo-run` (v5.0 feature branch workflow) |
 | `/karimo-orchestrate` | `/karimo-run` (same command, clearer name) |
 | `/karimo-overview` | `/karimo-status` (with no arguments) |
+| `/karimo-cd-config` | `/karimo-configure --cd` (CD configuration consolidated) |
 
 ---
 
