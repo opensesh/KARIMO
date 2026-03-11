@@ -34,7 +34,7 @@ If Vercel builds Task 1b before Task 1a merges, the build fails because `UserPro
 
 #### Option 1: Skip KARIMO Branches (Recommended)
 
-Run `/karimo-cd-config` to auto-configure your deployment provider.
+Run `/karimo-configure --cd` to auto-configure your deployment provider.
 
 Or manually configure:
 
@@ -329,7 +329,7 @@ jobs:
 
 ### "Preview builds failing on KARIMO PRs"
 
-This is expected for partial code. Run `/karimo-cd-config` to skip previews.
+This is expected for partial code. Run `/karimo-configure --cd` to skip previews.
 
 ### "Previews still building after configuration"
 
