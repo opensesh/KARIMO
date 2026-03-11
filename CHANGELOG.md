@@ -7,6 +7,49 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [5.5.1] - 2026-03-11
+
+### Changed
+
+**Documentation Cleanup**
+
+- Removed "Deprecated Commands" sections from user-facing documentation
+  - Removed from `.karimo/docs/COMMANDS.md` (lines 35-41)
+  - Removed from `CLAUDE.md` (lines 132-139)
+  - Simplified `README.md` command list (line 194)
+- Deprecated command files remain functional for backward compatibility
+  - `/karimo-execute` → use `/karimo-run`
+  - `/karimo-orchestrate` → use `/karimo-run`
+  - `/karimo-cd-config` → use `/karimo-configure --cd`
+
+**Update Script Improvements**
+
+- Auto-commit after successful update
+  - Creates commit: `chore(karimo): update to v{VERSION}`
+  - Includes component update summary in commit body
+  - Stages only KARIMO-related files
+  - Preserves non-KARIMO changes in working tree
+- Edge case handling
+  - Silently skips if not a git repository
+  - Prompts in interactive mode, auto-commits in CI mode
+  - Gracefully handles commit failures
+  - Shows warning but allows update to complete
+
+### Benefits
+
+**Cleaner Onboarding**
+- New users see current command set only
+- No historical context clutter
+- Single source of truth for command reference
+
+**Improved Developer Experience**
+- Clean git state after updates
+- No forgotten commits after update
+- Better remote/origin sync
+- Proper attribution via Co-Authored-By
+
+---
+
 ## [5.5.0] - 2026-03-11
 
 ### Added
