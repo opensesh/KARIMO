@@ -182,7 +182,7 @@ Choose Greptile or Claude Code Review. See [Adoption Phases](.karimo/docs/PHASES
 |---------|--------------|
 | `/karimo-plan` | Interactive PRD creation (~10 min) |
 | `/karimo-run --prd {slug}` | Execute tasks (feature branch workflow, **recommended**) |
-| `/karimo-finish --prd {slug}` | Create final PR to main after execution |
+| `/karimo-merge --prd {slug}` | Create final PR to main after execution |
 | `/karimo-status [--prd {slug}]` | Monitor progress (no arg = all PRDs, with arg = details) |
 | `/karimo-modify --prd {slug}` | Edit an approved PRD |
 | `/karimo-feedback` | Intelligent feedback (simple or complex path) |
@@ -192,7 +192,7 @@ Choose Greptile or Claude Code Review. See [Adoption Phases](.karimo/docs/PHASES
 | `/karimo-update` | Update KARIMO to latest version |
 | `/karimo-test` | Verify installation works end-to-end |
 
-**Deprecated:** `/karimo-execute` (use `/karimo-run`), `/karimo-orchestrate` (use `/karimo-run`), `/karimo-merge` (use `/karimo-finish`), `/karimo-overview` (use `/karimo-dashboard`)
+**Deprecated:** `/karimo-execute` (use `/karimo-run`), `/karimo-orchestrate` (use `/karimo-run`), `/karimo-overview` (use `/karimo-dashboard`)
 
 Full reference: [COMMANDS.md](.karimo/docs/COMMANDS.md)
 
@@ -209,7 +209,7 @@ KARIMO v5.0 supports two execution models:
 # User approves
 /karimo-run               # Creates feature branch, executes tasks
 # Autonomous execution
-/karimo-finish            # Final PR to main
+/karimo-merge             # Final PR to main
 ```
 
 **Benefits:**
