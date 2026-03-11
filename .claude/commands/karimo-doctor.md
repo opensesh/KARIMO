@@ -315,6 +315,55 @@ Check 2: Installation Integrity
       Missing: doctor.md, test.md
 ```
 
+### Check 2.5: Deprecated Files
+
+Scan for deprecated files that should be removed.
+
+**Deprecated Commands:**
+
+```bash
+# Check for deprecated command files
+DEPRECATED_FOUND=0
+
+[ -f ".claude/commands/karimo-cd-config.md" ] && DEPRECATED_FOUND=$((DEPRECATED_FOUND + 1))
+[ -f ".claude/commands/karimo-execute.md" ] && DEPRECATED_FOUND=$((DEPRECATED_FOUND + 1))
+[ -f ".claude/commands/karimo-orchestrate.md" ] && DEPRECATED_FOUND=$((DEPRECATED_FOUND + 1))
+```
+
+**Deprecated command mapping:**
+- `karimo-cd-config.md` → Use `/karimo-configure --cd` instead
+- `karimo-execute.md` → Use `/karimo-run` instead
+- `karimo-orchestrate.md` → Use `/karimo-run` instead
+
+**Example output (deprecated files found):**
+
+```
+Check 2.5: Deprecated Files
+───────────────────────────
+
+  ⚠️  Deprecated commands found (3)
+      • karimo-cd-config.md
+      • karimo-execute.md
+      • karimo-orchestrate.md
+
+  Action:
+    These will be removed automatically on next /karimo-update
+
+  Manual removal:
+    rm -f .claude/commands/karimo-cd-config.md
+    rm -f .claude/commands/karimo-execute.md
+    rm -f .claude/commands/karimo-orchestrate.md
+```
+
+**Example output (no deprecated files):**
+
+```
+Check 2.5: Deprecated Files
+───────────────────────────
+
+  ✅ No deprecated files found
+```
+
 ### Check 3: Configuration Validation
 
 Validate KARIMO configuration files exist and detect drift from actual project state.
