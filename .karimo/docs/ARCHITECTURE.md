@@ -62,6 +62,105 @@ Everything is installed into your project via `install.sh` — no binaries, no b
 
 ---
 
+## Context Architecture
+
+KARIMO uses layered context management inspired by the [OpenViking Protocol](https://github.com/ArcadeAI/OpenViking) for efficient token usage and quick context scanning.
+
+### Three-Layer System
+
+| Layer | Size | Purpose | Files |
+|-------|------|---------|-------|
+| **L0 Abstracts** | ~100 tokens | Quick scanning, agent/skill selection | `*.abstract.md` |
+| **L1 Overviews** | ~2K tokens | Category summaries with navigation tables | `*.overview.md` |
+| **L2 Full Definitions** | Variable | Complete agent/skill/brief content | `*.md` (full files) |
+
+### Agent & Skill Abstracts
+
+Each agent and skill has a compact abstract for quick context loading:
+
+```
+.claude/
+├── agents/
+│   ├── karimo-pm.md              # L2: Full definition (830 lines)
+│   ├── karimo-pm.abstract.md     # L0: Quick summary (~100 tokens)
+│   └── ...
+├── skills/
+│   ├── karimo-code-standards.md         # L2: Full definition
+│   ├── karimo-code-standards.abstract.md # L0: Quick summary
+│   └── ...
+├── agents.overview.md             # L1: All agents at a glance
+└── skills.overview.md             # L1: All skills at a glance
+```
+
+**Abstract Template (~100 tokens):**
+```markdown
+# {Component Name}
+
+**Type:** Agent | Skill
+**Model:** sonnet | opus
+**Trigger:** {When this activates}
+**Purpose:** {One sentence from description}
+
+## Key Capabilities
+- {Capability 1}
+- {Capability 2}
+- {Capability 3}
+
+## Tools
+{Comma-separated list}
+
+---
+*Full definition: `.claude/agents/{name}.md` ({N} lines)*
+```
+
+### Brief Abstracts
+
+Task briefs also use the L0/L1/L2 pattern:
+
+```
+.karimo/prds/{slug}/briefs/
+├── 1a_{slug}.md              # L2: Full brief
+├── 1a_{slug}.abstract.md     # L0: Abstract (~50 tokens)
+├── briefs.overview.md        # L1: All briefs summary
+└── ...
+```
+
+### Categorized Learnings
+
+Learnings are organized by category for efficient retrieval:
+
+```
+.karimo/learnings/
+├── index.md              # Master overview + navigation
+├── TEMPLATE.md           # Template for new entries
+├── patterns/             # Positive practices
+├── anti-patterns/        # Mistakes to avoid
+├── project-notes/        # Project-specific context
+└── execution-rules/      # Mandatory guidelines
+```
+
+### Cross-PRD Findings
+
+Patterns discovered during execution are indexed for reuse:
+
+```
+.karimo/findings/
+├── index.md              # Cross-PRD patterns overview
+├── PROMOTION_GUIDE.md    # How patterns get promoted
+├── by-prd/               # PRD-specific findings
+└── by-pattern/           # Pattern-based index
+```
+
+**Benefits:**
+- Reduced context loading (read L0 first, L2 only when needed)
+- Quick agent/skill discovery via overview tables
+- Efficient pattern reuse across PRDs
+- Categorized learnings for targeted retrieval
+
+For projects wanting vector-enhanced search, see the [OpenViking repository](https://github.com/ArcadeAI/OpenViking) for embedding setup guidance.
+
+---
+
 ## Installation Architecture
 
 ### What Gets Installed
@@ -127,7 +226,8 @@ Target Project/
 │   │   └── TASK_BRIEF_TEMPLATE.md
 │   ├── prds/                        # Created PRDs stored here
 │   ├── feedback/                    # Feedback investigation documents (complex path)
-│   └── learnings.md                 # Accumulated rules from feedback
+│   ├── learnings/                   # Categorized learnings (patterns, anti-patterns, etc.)
+│   └── findings/                    # Cross-PRD pattern index
 │
 ├── .github/
 │   └── ISSUE_TEMPLATE/
@@ -148,8 +248,9 @@ KARIMO follows Anthropic's best practice of keeping CLAUDE.md minimal. `install.
 
 1. **Copies** `KARIMO_RULES.md` to `.claude/KARIMO_RULES.md` (agent behavior rules)
 2. **Creates** `.karimo/config.yaml` (project configuration — filled by `/karimo-configure`)
-3. **Creates** `.karimo/learnings.md` (compound learnings — filled by `/karimo-feedback`)
-4. **Appends** a minimal reference block (~8 lines) to `CLAUDE.md`:
+3. **Creates** `.karimo/learnings/` directory (categorized learnings — filled by `/karimo-feedback`)
+4. **Creates** `.karimo/findings/` directory (cross-PRD patterns — populated during execution)
+5. **Appends** a minimal reference block (~8 lines) to `CLAUDE.md`:
 
 ```markdown
 ---
@@ -160,7 +261,7 @@ This project uses [KARIMO](https://github.com/opensesh/KARIMO) for PRD-driven au
 
 - **Agent rules:** `.claude/KARIMO_RULES.md`
 - **Config & PRDs:** `.karimo/`
-- **Learnings:** `.karimo/learnings.md`
+- **Learnings:** `.karimo/learnings/`
 - **All commands prefixed** `karimo:` — type `/karimo-` to see available commands
 ```
 
@@ -1039,7 +1140,7 @@ Key features:
 - Creates feedback document for provenance
 - Time: 10-20 minutes
 
-Learnings are stored in `.karimo/learnings.md`, making them available to all future agent invocations. Investigation artifacts are preserved in `.karimo/feedback/` for reference.
+Learnings are stored in `.karimo/learnings/` (categorized by type: patterns, anti-patterns, project-notes, execution-rules), making them available to all future agent invocations. Investigation artifacts are preserved in `.karimo/feedback/` for reference.
 
 See [COMPOUND-LEARNING.md](COMPOUND-LEARNING.md) for full documentation.
 

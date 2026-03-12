@@ -286,6 +286,27 @@ Behavior rules: [`KARIMO_RULES.md`](.claude/KARIMO_RULES.md)
 
 ---
 
+## Context Architecture
+
+KARIMO uses the [OpenViking Protocol](https://github.com/ArcadeAI/OpenViking) for efficient context management:
+
+| Layer | Size | Purpose |
+|-------|------|---------|
+| **L0 Abstracts** | ~100 tokens | Quick agent/skill/brief scanning |
+| **L1 Overviews** | ~2K tokens | Category summaries with navigation |
+| **L2 Full Definitions** | Variable | Complete agent/skill/brief content |
+
+**Key files:**
+- `.claude/agents.overview.md` — All agents at a glance
+- `.claude/skills.overview.md` — All skills at a glance
+- `.claude/agents/*.abstract.md` — Per-agent L0 summaries
+- `.karimo/learnings/` — Categorized project learnings
+- `.karimo/findings/` — Cross-PRD pattern index
+
+For projects wanting vector-enhanced search, see the OpenViking repository for embedding setup guidance.
+
+---
+
 ## Documentation
 
 | Document | Description |
@@ -308,7 +329,7 @@ Configuration lives in `.karimo/config.yaml` (run `/karimo-configure` after inst
 - **Framework** — Next.js, React, Vue, FastAPI, etc.
 - **Commands** — build, lint, test, typecheck
 - **Boundaries** — Files agents must not touch
-- **Learnings** — Stored separately in `.karimo/learnings.md`
+- **Learnings** — Stored in `.karimo/learnings/` (categorized by type)
 
 CLAUDE.md contains only a minimal reference block (~8 lines).
 

@@ -26,11 +26,11 @@ KARIMO has an intelligent compound learning system with automatic complexity det
 │   │ Generate rule         │      │ Evidence gathering        │     │
 │   │ ↓                     │      │ ↓                         │     │
 │   │ Append to             │      │ Create feedback document   │     │
-│   │ learnings.md          │      │ ↓                         │     │
+│   │ learnings/            │      │ ↓                         │     │
 │   │                       │      │ Present changes           │     │
 │   │                       │      │ ↓                         │     │
 │   │                       │      │ Apply approved changes     │     │
-│   │                       │      │ (learnings.md + config +  │     │
+│   │                       │      │ (learnings/ + config +    │     │
 │   │                       │      │  other files)             │     │
 │   └───────────────────────┘      └───────────────────────────┘     │
 │                                                                     │
@@ -88,7 +88,7 @@ Quick capture for well-defined feedback (70% of cases, < 5 min).
 2. **Optional clarifying questions** — 0-3 questions if needed
 3. **Generate rule** — Transform feedback into actionable instruction
 4. **Confirm with user** — Present rule for approval
-5. **Append to `.karimo/learnings.md`** — Under appropriate category
+5. **Create entry in `.karimo/learnings/`** — Under appropriate category directory
 6. **Commit** — `chore(feedback): add rule - {summary}`
 7. **Future agents read** — Apply rule to subsequent tasks
 
@@ -110,7 +110,7 @@ Reference existing components for class patterns.
 **Added:** 2026-03-11
 ```
 
-Appended to `.karimo/learnings.md` immediately.
+Created in `.karimo/learnings/anti-patterns/` immediately.
 
 ### When to Use Simple Path
 
@@ -145,7 +145,7 @@ Deep investigation for unclear or systemic issues (30% of cases, 10-20 min).
    - Show each change with target file, confidence level, rationale
    - User approves/rejects/edits
 7. **Apply approved changes:**
-   - Update `.karimo/learnings.md`, `.karimo/config.yaml`, `.claude/KARIMO_RULES.md`, or other files
+   - Update `.karimo/learnings/`, `.karimo/config.yaml`, `.claude/KARIMO_RULES.md`, or other files
    - Track in feedback document under "Applied Changes"
 8. **Commit** — `chore(feedback): {summary from investigation}`
 
@@ -170,7 +170,7 @@ Deep investigation for unclear or systemic issues (30% of cases, 10-20 min).
    - **Evidence:** 3 PRs (#123, #127, #131) failed with same error
    - **Recommended Changes:**
      - Add DATABASE_URL to `.github/workflows/test.yml`
-     - Add rule to `.karimo/learnings.md` about env var parity
+     - Add rule to `.karimo/learnings/execution-rules/` about env var parity
      - Add `.github/workflows/` to `require_review` boundary
 4. User approves changes
 5. Changes applied to multiple files
@@ -210,7 +210,7 @@ After PRD execution completes, KARIMO generates `metrics.json` with auto-identif
 2. Extract learning candidates with suggested rules
 3. Present each candidate for review
 4. User selects which to capture (all/specific/none)
-5. Batch append approved rules to `.karimo/learnings.md`
+5. Batch create approved entries in `.karimo/learnings/`
 6. Update `metrics.json` with captured flags
 7. Commit: `chore(feedback): batch capture from {prd-slug} metrics`
 
@@ -251,40 +251,65 @@ Select learnings to capture: [all/1,2,4/none]
 
 ## File Structure
 
-### .karimo/learnings.md
+### .karimo/learnings/
 
-Single source of truth for accumulated rules. Read by all agents before task execution.
+Categorized learnings directory for efficient retrieval. Read by all agents before task execution.
 
-**Structure:**
+**Directory Structure:**
+```
+.karimo/learnings/
+├── index.md              # Master overview + navigation + stats
+├── TEMPLATE.md           # Template for new learning entries
+├── patterns/
+│   └── index.md          # Positive practices to replicate
+├── anti-patterns/
+│   └── index.md          # Mistakes to avoid
+├── project-notes/
+│   └── index.md          # Project-specific context
+└── execution-rules/
+    └── index.md          # Mandatory guidelines
+```
+
+**Category Index Structure:**
 ```markdown
-# KARIMO Learnings
+# {Category Name}
 
-_Rules learned from execution feedback via `/karimo-feedback`._
+_Description of this category_
 
-## Patterns to Follow
+## Entries
 
-{positive practices}
+| Title | Severity | Added | Source |
+|-------|----------|-------|--------|
+| [Entry Title](entry-slug.md) | critical | 2026-03-12 | /karimo-feedback |
 
-## Anti-Patterns to Avoid
+## Quick Reference
 
-{things to never do}
+{Most important rules for quick scanning}
+```
 
-## Rules
+**Learning Entry Template:**
+```markdown
+# {Learning Title}
 
-{explicit rules}
+**Category:** pattern | anti-pattern | project-note | execution-rule
+**Severity:** info | important | critical
+**Added:** {ISO date}
+**Source:** {/karimo-feedback | PRD-{slug} | manual}
 
-## Gotchas
+## Description
+{What this learning teaches}
 
-{project-specific quirks}
+## Context
+{Why this matters, when it applies}
 
----
-*Last updated: {date}*
+## Example
+{Code example or scenario}
 ```
 
 **Updated by:**
-- Simple path: direct append
-- Complex path: append from feedback investigation
-- Batch mode: batch append from metrics
+- Simple path: creates entry in appropriate category directory
+- Complex path: creates entry from feedback investigation
+- Batch mode: batch creates entries from metrics
 
 ### .karimo/feedback/
 
@@ -322,7 +347,7 @@ Investigation artifacts from complex path (created on-demand).
 | **Time** | < 5 minutes | 10-20 minutes |
 | **Questions** | 0-3 (if needed) | 3-7 (adaptive) |
 | **Investigation** | None | Evidence gathering via feedback-auditor |
-| **Output Files** | `.karimo/learnings.md` only | `.karimo/feedback/{slug}.md` + multiple config files |
+| **Output Files** | `.karimo/learnings/{category}/` only | `.karimo/feedback/{slug}.md` + multiple config files |
 | **Changes** | Single rule append | Multiple file updates |
 | **Frequency** | After each observation | Periodic or when needed |
 | **User Effort** | Minimal | Guided by adaptive interview |
@@ -381,7 +406,7 @@ This enables:
 - Periodic check of `.karimo/feedback/` for unresolved issues
 
 **Monthly:**
-- Review `.karimo/learnings.md` for outdated or conflicting rules
+- Review `.karimo/learnings/` for outdated or conflicting rules
 - Consolidate learnings if needed
 - Archive resolved feedback documents
 
@@ -438,7 +463,7 @@ Even if you don't know the root cause, specific examples help me investigate.
 ## Success Metrics
 
 ### Simple Path
-- ✅ Rule appended to `.karimo/learnings.md`
+- ✅ Entry created in `.karimo/learnings/{category}/`
 - ✅ Changes committed
 - ✅ User confirms capture
 - ✅ Completed in < 5 minutes
@@ -453,7 +478,7 @@ Even if you don't know the root cause, specific examples help me investigate.
 - ✅ Completed in 10-20 minutes
 
 ### Batch Mode
-- ✅ All selected learnings appended to `.karimo/learnings.md`
+- ✅ All selected learnings created in `.karimo/learnings/`
 - ✅ Metrics updated with captured flags
 - ✅ Changes committed
 - ✅ Completed in 5-10 minutes

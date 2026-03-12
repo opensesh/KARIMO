@@ -70,7 +70,7 @@ show_help() {
     echo ""
     echo "Files preserved (never modified):"
     echo "  - .karimo/config.yaml     (project configuration)"
-    echo "  - .karimo/learnings.md    (compound learnings)"
+    echo "  - .karimo/learnings/      (compound learnings)"
     echo "  - .karimo/prds/*          (your PRD files)"
     echo "  - CLAUDE.md               (user-customized)"
 }
@@ -379,7 +379,7 @@ echo "  • Update GitHub workflow files (existing ones only)"
 echo ""
 echo "These files are ${GREEN}preserved${NC} (never modified):"
 echo "  • .karimo/config.yaml"
-echo "  • .karimo/learnings.md"
+echo "  • .karimo/learnings/  (your accumulated learnings)"
 echo "  • .karimo/prds/*"
 echo "  • CLAUDE.md (your content outside KARIMO markers)"
 echo
@@ -450,8 +450,71 @@ mkdir -p "$PROJECT_ROOT/.claude/agents"
 mkdir -p "$PROJECT_ROOT/.claude/commands"
 mkdir -p "$PROJECT_ROOT/.claude/skills"
 mkdir -p "$PROJECT_ROOT/.karimo/templates"
+mkdir -p "$PROJECT_ROOT/.karimo/learnings/patterns"
+mkdir -p "$PROJECT_ROOT/.karimo/learnings/anti-patterns"
+mkdir -p "$PROJECT_ROOT/.karimo/learnings/project-notes"
+mkdir -p "$PROJECT_ROOT/.karimo/learnings/execution-rules"
+mkdir -p "$PROJECT_ROOT/.karimo/findings/by-prd"
+mkdir -p "$PROJECT_ROOT/.karimo/findings/by-pattern"
 mkdir -p "$PROJECT_ROOT/.github/workflows"
 mkdir -p "$PROJECT_ROOT/.github/ISSUE_TEMPLATE"
+
+# Migrate flat learnings.md to directory structure if needed
+if [ -f "$PROJECT_ROOT/.karimo/learnings.md" ] && [ ! -f "$PROJECT_ROOT/.karimo/learnings/index.md" ]; then
+    echo "  Migrating learnings.md to directory structure..."
+    # Create index.md with migration note
+    cat > "$PROJECT_ROOT/.karimo/learnings/index.md" << 'LEARNEOF'
+# KARIMO Learnings Index
+
+_Categorized learnings for efficient retrieval. Migrated from learnings.md._
+
+## Categories
+
+| Category | Description | Entries |
+|----------|-------------|---------|
+| [patterns](patterns/) | Positive practices to replicate | 0 |
+| [anti-patterns](anti-patterns/) | Mistakes to avoid | 0 |
+| [project-notes](project-notes/) | Project-specific context | 0 |
+| [execution-rules](execution-rules/) | Mandatory guidelines | 0 |
+
+## Migration Note
+
+The previous `learnings.md` content has been preserved at `.karimo/learnings.md.bak`.
+Review and migrate entries to appropriate category directories using `/karimo-feedback`.
+
+---
+*Last updated: $(date +%Y-%m-%d)*
+LEARNEOF
+    # Backup old file
+    mv "$PROJECT_ROOT/.karimo/learnings.md" "$PROJECT_ROOT/.karimo/learnings.md.bak"
+    echo "    Backed up old learnings.md to learnings.md.bak"
+fi
+
+# Ensure learnings directory has required files
+if [ ! -f "$PROJECT_ROOT/.karimo/learnings/index.md" ]; then
+    cp "$KARIMO_SOURCE/.karimo/learnings/index.md" "$PROJECT_ROOT/.karimo/learnings/" 2>/dev/null || true
+fi
+if [ ! -f "$PROJECT_ROOT/.karimo/learnings/TEMPLATE.md" ]; then
+    cp "$KARIMO_SOURCE/.karimo/learnings/TEMPLATE.md" "$PROJECT_ROOT/.karimo/learnings/" 2>/dev/null || true
+fi
+for category in patterns anti-patterns project-notes execution-rules; do
+    if [ ! -f "$PROJECT_ROOT/.karimo/learnings/$category/index.md" ]; then
+        cp "$KARIMO_SOURCE/.karimo/learnings/$category/index.md" "$PROJECT_ROOT/.karimo/learnings/$category/" 2>/dev/null || true
+    fi
+done
+
+# Ensure findings directory has required files
+if [ ! -f "$PROJECT_ROOT/.karimo/findings/index.md" ]; then
+    cp "$KARIMO_SOURCE/.karimo/findings/index.md" "$PROJECT_ROOT/.karimo/findings/" 2>/dev/null || true
+fi
+if [ ! -f "$PROJECT_ROOT/.karimo/findings/PROMOTION_GUIDE.md" ]; then
+    cp "$KARIMO_SOURCE/.karimo/findings/PROMOTION_GUIDE.md" "$PROJECT_ROOT/.karimo/findings/" 2>/dev/null || true
+fi
+for subdir in by-prd by-pattern; do
+    if [ ! -f "$PROJECT_ROOT/.karimo/findings/$subdir/index.md" ]; then
+        cp "$KARIMO_SOURCE/.karimo/findings/$subdir/index.md" "$PROJECT_ROOT/.karimo/findings/$subdir/" 2>/dev/null || true
+    fi
+done
 
 # Update agents
 echo "  Updating agents..."
@@ -618,7 +681,7 @@ This project uses [KARIMO](https://github.com/opensesh/KARIMO) for PRD-driven au
 - **Commands:** Type `/karimo-` to see all commands
 - **Agent rules:** `.claude/KARIMO_RULES.md`
 - **Configuration:** `.karimo/config.yaml`
-- **Learnings:** `.karimo/learnings.md`
+- **Learnings:** `.karimo/learnings/`
 
 ### GitHub Configuration
 
@@ -725,7 +788,7 @@ fi
 echo
 echo "Preserved (not modified):"
 echo "  • .karimo/config.yaml"
-echo "  • .karimo/learnings.md"
+echo "  • .karimo/learnings/  (your accumulated learnings)"
 echo "  • .karimo/prds/*"
 echo "  • CLAUDE.md (your content outside KARIMO markers)"
 echo
