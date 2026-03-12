@@ -24,6 +24,49 @@ Phases are **optional progression**, not requirements. Phase 1 is fully function
 | **2** | Automate Review | Choose Greptile or Code Review | Optional |
 | **3** | Monitor & Review | GitHub-native oversight | Optional |
 
+**Phase Progression Flow:**
+
+```mermaid
+graph TB
+    subgraph "Phase 1: Execute PRD"
+        A[/karimo-plan] --> B[Interview + Investigation]
+        B --> C[Task Execution]
+        C --> D[PRs to main]
+        D --> E{Manual<br/>Review}
+        E -->|Approved| F[Merge]
+        E -->|Changes| G[Manual Fix]
+        G --> E
+    end
+
+    subgraph "Phase 2: Automate Review"
+        H[/karimo-execute] --> I[Task Execution]
+        I --> J[PRs to main]
+        J --> K{Automated<br/>Review}
+        K -->|Pass| L[Merge]
+        K -->|Issues Found| M[Agent Revises]
+        M --> K
+        K -->|3+ Loops| N[Hard Gate:<br/>Human Review]
+    end
+
+    subgraph "Phase 3: Monitor & Review"
+        O[/karimo-dashboard] --> P[Execution Metrics]
+        O --> Q[Review Analytics]
+        O --> R[Task Timeline]
+        O --> S[Model Usage]
+        P --> T[Insights:<br/>Bottlenecks, Patterns]
+        Q --> T
+        R --> T
+        S --> T
+    end
+
+    F -.->|"Upgrade:<br/>/karimo-configure --review"| H
+    L -.->|"Monitor:<br/>/karimo-dashboard"| O
+
+    style A fill:#e1f5ff
+    style H fill:#fff4e1
+    style O fill:#e8f5e9
+```
+
 ---
 
 ## Phase 1: Execute PRD
