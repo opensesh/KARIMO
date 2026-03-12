@@ -7,6 +7,8 @@ Create or update KARIMO configuration in `.karimo/config.yaml`. Use this when yo
 ```
 /karimo-configure              # Create new config or update existing
 /karimo-configure --reset      # Start fresh, ignore existing config
+/karimo-configure --preview    # Preview auto-detected config without saving
+/karimo-configure --validate   # Validate existing config against current project
 /karimo-configure --greptile   # Install Greptile workflow only
 /karimo-configure --code-review  # Setup Claude Code Review (instructions only)
 /karimo-configure --review       # Choose between review providers (interactive)
@@ -156,6 +158,157 @@ Next steps:
 ```
 
 **Exit after instructions.** The `--code-review` flag is a setup guide, not a configuration flow.
+
+---
+
+### Preview Mode: `--preview` Flag
+
+When the `--preview` flag is passed, run auto-detection and show what would be configured WITHOUT saving to config.yaml:
+
+**Step 1: Spawn investigator agent**
+
+Use Task tool to spawn the investigator agent:
+
+```
+Spawn karimo-investigator agent to detect:
+- Runtime (Node.js, Python, Ruby, etc.)
+- Framework (Next.js, Django, Rails, etc.)
+- Package manager (npm, yarn, pnpm, pip, etc.)
+- Build/test/lint commands from project files
+
+Do NOT save results. Just return detected values.
+```
+
+**Step 2: Display preview**
+
+```
+╭──────────────────────────────────────────────────────────────╮
+│  Configuration Preview (NOT SAVED)                            │
+╰──────────────────────────────────────────────────────────────╯
+
+Auto-detected settings:
+
+Project:
+  Runtime: node
+  Framework: next
+  Package manager: pnpm
+
+Commands:
+  Build: pnpm build
+  Test: pnpm test
+  Lint: pnpm lint
+  Typecheck: pnpm typecheck
+
+Suggested Boundaries:
+  never_touch:
+    - "node_modules/**"
+    - ".next/**"
+    - "*.lock"
+    - ".env*"
+
+  require_review:
+    - "package.json"
+    - "next.config.js"
+    - "tsconfig.json"
+
+To save this configuration, run:
+  /karimo-configure
+
+To customize settings, run:
+  /karimo-configure --advanced
+```
+
+**Exit without saving.** The `--preview` flag is for inspection only.
+
+---
+
+### Validate Mode: `--validate` Flag
+
+When the `--validate` flag is passed, compare existing config.yaml against current project state:
+
+**Step 1: Check if config exists**
+
+```bash
+if [ ! -f ".karimo/config.yaml" ]; then
+    echo "❌ Error: No configuration found"
+    echo ""
+    echo "Create configuration first:"
+    echo "  /karimo-configure"
+    exit 1
+fi
+```
+
+**Step 2: Read existing config**
+
+Read current values from `.karimo/config.yaml`:
+- Runtime
+- Framework
+- Package manager
+- Build/test/lint commands
+- Boundaries
+
+**Step 3: Spawn investigator to detect current state**
+
+Use Task tool to spawn investigator agent (same as --preview).
+
+**Step 4: Compare and report drift**
+
+```
+╭──────────────────────────────────────────────────────────────╮
+│  Configuration Validation                                     │
+╰──────────────────────────────────────────────────────────────╯
+
+Checking .karimo/config.yaml against current project...
+
+✅ Runtime: node (matches)
+✅ Framework: next (matches)
+❌ Package manager: npm → pnpm (DRIFT DETECTED)
+❌ Build command: npm run build → pnpm build (DRIFT DETECTED)
+✅ Test command: pnpm test (matches)
+✅ Lint command: pnpm lint (matches)
+✅ Boundaries: No changes detected
+
+Summary:
+  • 4 settings match current project
+  • 2 settings have drifted
+  • Last configured: 2026-01-15 (57 days ago)
+
+Recommended action:
+  Run /karimo-configure to update configuration
+
+Specific fixes needed:
+  1. Package manager changed from npm to pnpm
+     → Update: project.package_manager: "pnpm"
+  2. Build command references old package manager
+     → Update: commands.build: "pnpm build"
+
+Auto-fix available:
+  /karimo-configure
+  → Will detect current state and update config
+```
+
+**If no drift detected:**
+
+```
+╭──────────────────────────────────────────────────────────────╮
+│  Configuration Validation                                     │
+╰──────────────────────────────────────────────────────────────╯
+
+✅ All settings match current project state
+
+Configuration is up to date:
+  • Runtime: node
+  • Framework: next
+  • Package manager: pnpm
+  • All commands valid
+  • Boundaries align with project structure
+
+Last configured: 2026-03-11 (today)
+
+No action needed.
+```
+
+**Exit after validation.** The `--validate` flag is for checking only, not updating.
 
 ---
 
