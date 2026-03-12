@@ -231,85 +231,53 @@ Error boundaries handle errors in child components during rendering and lifecycl
 **Documentation:** {URL}
 ```
 
-## MCP Tool Usage (Optional)
+## Firecrawl (Recommended)
 
-### Firecrawl (Deep Documentation Scraping)
+Firecrawl is the **recommended tool** for external research when available. It provides deep documentation scraping, library evaluation, and multi-page research capabilities.
 
-**Use Case:** Extract structured content from multi-page documentation
+**Full Reference:** See `.claude/skills/karimo-firecrawl-web-tools.md` for:
+- Complete 12-tool decision tree
+- Escalation ladder (scrape → waitFor → map → browser → agent)
+- Detailed tool reference with JSON examples
+- KARIMO-specific patterns for research workflows
 
-**When to Use:**
-- Library has extensive multi-page docs
-- Need to scrape multiple related pages
-- Want structured extraction (headings, code blocks)
+### Quick Reference
 
-**How to Use:**
-```
-If Firecrawl MCP is available:
-- Set max_pages limit (avoid scraping entire site)
-- Target specific documentation sections
-- Extract examples and patterns
-- Maintain source attribution
-```
+| Need | Tool |
+|------|------|
+| Read documentation page | `firecrawl_scrape` with `formats: ["markdown"]` |
+| Extract library metadata | `firecrawl_scrape` with `formats: ["json"]` |
+| Compare multiple packages | `firecrawl_extract` with schema |
+| Find docs pages | `firecrawl_map` with `search` |
+| Web search | `firecrawl_search` |
 
-**Example:**
-```
-Firecrawl query: "React error boundary documentation"
-Max pages: 5
-Target: react.dev/reference/react/Component#error-boundaries
-Extract: Examples, API details, best practices
-```
+### Fallback (When Firecrawl Not Available)
 
-### Exa (Semantic Code Search)
+If Firecrawl MCP is not configured, fall back to:
+- `WebSearch` — Basic web search for best practices
+- `WebFetch` — Single page fetch with AI processing
 
-**Use Case:** Find similar implementations or code patterns
-
-**When to Use:**
-- Looking for real-world implementations
-- Need code examples beyond docs
-- Researching how others solve specific problems
-
-**How to Use:**
-```
-If Exa MCP is available:
-- Semantic search for code patterns
-- Filter by language (TypeScript, JavaScript)
-- Focus on high-quality repositories
-- Extract patterns, not full files
-```
-
-**Example:**
-```
-Exa query: "React file upload with preview component"
-Language: TypeScript
-Results: Find pattern examples from popular repos
-Extract: Component structure, state management approach
-```
+**Note:** These fallback tools have limitations compared to Firecrawl:
+- No structured extraction (JSON schemas)
+- No multi-page operations
+- No caching or proxy support
 
 ### Browser Automation
 
-**Use Case:** Interactive documentation, live examples
+**Use Case:** Interactive documentation, login-gated content
 
 **When to Use:**
 - Documentation has interactive examples
 - Need to explore framework playgrounds
-- Extracting from demo applications
+- Content behind login walls
 
-**How to Use:**
-```
-If browser automation MCP is available:
+If browser automation (Claude in Chrome or Firecrawl browser tools) is available:
 - Navigate to interactive docs/playgrounds
 - Interact with examples to understand behavior
 - Extract code from live examples
 - Screenshot interesting patterns
-```
 
-**Example:**
-```
-Navigate to: codesandbox.io/s/react-dropzone-example
-Interact with: File upload demo
-Extract: Component code, configuration
-Screenshot: UI interaction pattern
-```
+See `.claude/skills/karimo-firecrawl-web-tools.md` for browser tool details.
 
 ## Source Attribution
 
