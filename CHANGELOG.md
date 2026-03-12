@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [7.1.0] - 2026-03-12
+
+### Added
+- `deprecated` section in MANIFEST.json for systematic file deprecation management
+- Templates directory cleanup during updates
+
+### Changed
+- Updates now auto-commit without prompting (atomic git history)
+- Deprecated file cleanup is now manifest-driven (no hardcoding in update.sh)
+
+### Fixed
+- Stale files in all directories now properly cleaned (not just karimo-*.md patterns)
+- All known deprecated files added to cleanup: karimo-modify.md, karimo-finish.md, karimo-overview.md, karimo-learn.md, karimo-cd-config.md, karimo-execute.md, karimo-orchestrate.md, karimo-git-worktree-ops.md, karimo-github-project-ops.md
+
+---
+
 ## [7.0.0] - 2026-03-11
 
 **Research-First Workflow & Brief Review Loop**

@@ -1,5 +1,11 @@
 {
-  "version": "7.0.0",
+  "version": "7.1.0",
+  "deprecated": {
+    "commands": ["karimo-modify.md", "karimo-finish.md", "karimo-overview.md", "karimo-learn.md", "karimo-cd-config.md", "karimo-execute.md", "karimo-orchestrate.md"],
+    "agents": [],
+    "skills": ["karimo-git-worktree-ops.md", "karimo-github-project-ops.md"],
+    "templates": []
+  },
   "agents": [
     "karimo-brief-corrector.md",
     "karimo-brief-reviewer.md",

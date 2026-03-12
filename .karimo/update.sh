@@ -111,23 +111,25 @@ manifest_get() {
         grep "\"$child\"" | head -1 | sed 's/.*"'"$child"'"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/'
 }
 
-# Remove karimo-* files not in manifest (handles renames/deletions)
+# Remove files not in manifest (handles renames/deletions)
 cleanup_stale_files() {
     local dir="$1"
     local manifest_key="$2"
     local manifest_file="$3"
+    local pattern="${4:-*.md}"  # Default to all .md files
     local removed=0
 
     # Get list of files that SHOULD exist (from manifest)
     local expected_files=$(manifest_list "$manifest_key" "$manifest_file")
 
-    # Check each karimo-*.md file in directory
-    for file in "$dir"/karimo-*.md; do
+    # Check each file matching pattern in directory
+    for file in "$dir"/$pattern; do
         [ -f "$file" ] || continue
         local filename=$(basename "$file")
 
         # If not in manifest, remove it
         if ! echo "$expected_files" | grep -qx "$filename"; then
+            echo "    Removing stale: $filename"
             rm "$file"
             removed=$((removed + 1))
         fi
@@ -136,26 +138,43 @@ cleanup_stale_files() {
     echo $removed
 }
 
-# Remove deprecated files that are no longer needed
-cleanup_deprecated_files() {
+# Remove deprecated files listed in MANIFEST.json deprecated section
+cleanup_deprecated() {
     local target_dir="$1"
+    local manifest_file="$2"
     local removed=0
 
     echo "  Cleaning up deprecated files..."
 
-    # Remove deprecated commands
-    if [ -f "$target_dir/.claude/commands/karimo-cd-config.md" ]; then
-        rm -f "$target_dir/.claude/commands/karimo-cd-config.md"
-        removed=$((removed + 1))
-    fi
-    if [ -f "$target_dir/.claude/commands/karimo-execute.md" ]; then
-        rm -f "$target_dir/.claude/commands/karimo-execute.md"
-        removed=$((removed + 1))
-    fi
-    if [ -f "$target_dir/.claude/commands/karimo-orchestrate.md" ]; then
-        rm -f "$target_dir/.claude/commands/karimo-orchestrate.md"
-        removed=$((removed + 1))
-    fi
+    # Parse deprecated section from manifest for each category
+    for category in commands agents skills; do
+        local deprecated=$(sed -n '/"deprecated"/,/^[[:space:]]*}/p' "$manifest_file" | \
+            sed -n "/\"$category\"/,/]/p" | grep '"' | grep -v "\"$category\"" | \
+            sed 's/.*"\([^"]*\)".*/\1/')
+
+        for file in $deprecated; do
+            local path="$target_dir/.claude/$category/$file"
+            if [ -f "$path" ]; then
+                echo "    Removing deprecated: $file"
+                rm "$path"
+                removed=$((removed + 1))
+            fi
+        done
+    done
+
+    # Handle templates separately (different path)
+    local deprecated_templates=$(sed -n '/"deprecated"/,/^[[:space:]]*}/p' "$manifest_file" | \
+        sed -n '/"templates"/,/]/p' | grep '"' | grep -v '"templates"' | \
+        sed 's/.*"\([^"]*\)".*/\1/')
+
+    for file in $deprecated_templates; do
+        local path="$target_dir/.karimo/templates/$file"
+        if [ -f "$path" ]; then
+            echo "    Removing deprecated template: $file"
+            rm "$path"
+            removed=$((removed + 1))
+        fi
+    done
 
     # Remove empty worktrees directory if it exists
     if [ -d "$target_dir/.claude/worktrees" ]; then
@@ -174,7 +193,7 @@ cleanup_deprecated_files() {
     fi
 
     if [ $removed -gt 0 ]; then
-        echo "    Removed $removed deprecated command(s)"
+        echo "    Removed $removed deprecated file(s)"
     fi
 }
 
@@ -448,17 +467,18 @@ done
 
 # Cleanup stale files (handles renames/deletions)
 echo "  Cleaning up stale files..."
-CLEANED_AGENTS=$(cleanup_stale_files "$PROJECT_ROOT/.claude/agents" "agents" "$MANIFEST")
-CLEANED_COMMANDS=$(cleanup_stale_files "$PROJECT_ROOT/.claude/commands" "commands" "$MANIFEST")
-CLEANED_SKILLS=$(cleanup_stale_files "$PROJECT_ROOT/.claude/skills" "skills" "$MANIFEST")
+CLEANED_AGENTS=$(cleanup_stale_files "$PROJECT_ROOT/.claude/agents" "agents" "$MANIFEST" "karimo-*.md")
+CLEANED_COMMANDS=$(cleanup_stale_files "$PROJECT_ROOT/.claude/commands" "commands" "$MANIFEST" "karimo-*.md")
+CLEANED_SKILLS=$(cleanup_stale_files "$PROJECT_ROOT/.claude/skills" "skills" "$MANIFEST" "karimo-*.md")
+CLEANED_TEMPLATES=$(cleanup_stale_files "$PROJECT_ROOT/.karimo/templates" "templates" "$MANIFEST" "*.md")
 
-TOTAL_CLEANED=$((CLEANED_AGENTS + CLEANED_COMMANDS + CLEANED_SKILLS))
+TOTAL_CLEANED=$((CLEANED_AGENTS + CLEANED_COMMANDS + CLEANED_SKILLS + CLEANED_TEMPLATES))
 if [ $TOTAL_CLEANED -gt 0 ]; then
-    echo "    Removed $CLEANED_AGENTS stale agents, $CLEANED_COMMANDS commands, $CLEANED_SKILLS skills"
+    echo "    Removed $CLEANED_AGENTS stale agents, $CLEANED_COMMANDS commands, $CLEANED_SKILLS skills, $CLEANED_TEMPLATES templates"
 fi
 
-# Remove deprecated files
-cleanup_deprecated_files "$PROJECT_ROOT"
+# Remove deprecated files (manifest-driven)
+cleanup_deprecated "$PROJECT_ROOT" "$MANIFEST"
 
 # Update templates
 echo "  Updating templates..."
@@ -635,27 +655,8 @@ Updated components:
 
 Co-Authored-By: KARIMO Update Script <noreply@opensession.co>"
 
-    # Interactive prompt unless in CI mode
-    if [ "$CI_MODE" != "true" ]; then
-        echo
-        echo -e "${YELLOW}╭──────────────────────────────────────────────────────────────╮${NC}"
-        echo -e "${YELLOW}│  Git Commit KARIMO Updates?                                  │${NC}"
-        echo -e "${YELLOW}╰──────────────────────────────────────────────────────────────╯${NC}"
-        echo
-        echo "Commit message preview:"
-        echo -e "${DIM}─────────────────────────────────────────────────────────────${NC}"
-        echo "chore(karimo): update to v${LATEST_VERSION}"
-        echo
-        echo "Auto-update via update.sh from v${CURRENT_VERSION} to v${LATEST_VERSION}"
-        echo -e "${DIM}─────────────────────────────────────────────────────────────${NC}"
-        echo
-        read -p "Commit KARIMO updates? [Y/n] " -n 1 -r
-        echo
-        if [[ ! $REPLY =~ ^[Yy]$ ]] && [[ -n $REPLY ]]; then
-            echo -e "${DIM}Skipping git commit.${NC}"
-            return 0
-        fi
-    fi
+    # Auto-commit (no prompt needed)
+    echo "  Committing KARIMO updates..."
 
     # Stage only KARIMO files
     git add \
