@@ -1,99 +1,220 @@
 # /karimo-run — Execute PRD (Recommended)
 
-Execute an approved PRD using feature branch workflow (v5.6). This is the recommended execution command that consolidates execution and orchestration with research integration.
+Execute an approved PRD using feature branch workflow (v7.0). This command generates briefs, auto-reviews them, allows user iteration, and then orchestrates execution.
 
 ## Usage
 
 ```bash
-/karimo-run [--prd {slug}] [--dry-run] [--skip-review] [--review-only] [--brief-only] [--resume] [--skip-research] [--require-research] [--task {id}]
+/karimo-run --prd {slug} [--dry-run] [--skip-review] [--review-only] [--brief-only] [--resume] [--task {id}]
 ```
 
 ## Arguments
 
-- `--prd {slug}` (optional): The PRD slug to execute. If not provided, lists available PRDs.
-- `--dry-run` (optional): Preview the execution plan without making changes.
-- `--skip-review` (optional): Skip pre-execution brief review and execute immediately after brief generation.
-- `--review-only` (optional): Generate briefs and run review, then stop without executing. Allows manual correction before proceeding.
-- `--brief-only` (optional): Generate briefs and stop before execution. Use --resume to continue later.
-- `--resume` (optional): Resume execution after pausing at brief generation.
-- `--skip-research` (optional): Skip research recommendation if no research exists. Not recommended.
-- `--require-research` (optional): Enforce research requirement, fail if no research found.
-- `--task {id}` (optional): Execute only a specific task by ID.
+- `--prd {slug}` (required): The PRD slug to execute
+- `--dry-run` (optional): Preview the execution plan without making changes
+- `--skip-review` (optional): Skip brief review and execute immediately
+- `--review-only` (optional): Generate briefs and review, stop without executing
+- `--brief-only` (optional): Generate briefs only, stop before review
+- `--resume` (optional): Resume execution after pausing
+- `--task {id}` (optional): Execute only a specific task by ID
 
-## What This Command Does
+## What This Command Does (4 Phases)
 
-1. **Checks for research** — Verifies PRD has research findings (recommended)
-2. **Creates feature branch** — `feature/{prd-slug}` from main
-3. **Generates task briefs** — Self-contained instructions for each task (inherits PRD research)
-4. **Reviews briefs (optional)** — Validates briefs against codebase reality
-5. **Applies corrections (optional)** — Fixes issues found during review
-6. **Executes tasks in waves** — Parallel execution where possible
-7. **Creates PRs** — Task PRs target feature branch (not main)
-8. **Prepares for final merge** — Run `/karimo-merge` when complete
+KARIMO v7.0 introduces a 4-phase execution model with user iteration:
 
-## Research Integration (v5.6)
-
-**Before brief generation**, KARIMO checks for PRD research to ensure high-quality briefs.
-
-### Research Check Logic
-
-When `/karimo-run --prd {slug}` is executed:
-
-1. **Check PRD for Research Findings section**
-   - Read `PRD_{slug}.md`
-   - Look for `## Research Findings` section
-
-2. **If research exists:**
-   - ✓ Proceed with brief generation
-   - Briefs will inherit research context from PRD
-   - Research-informed patterns, libraries, issues embedded in briefs
-
-3. **If no research found:**
-   - Display recommendation prompt:
-     ```
-     ⚠️  No research found for this PRD.
-
-     KARIMO works best with research-informed briefs.
-     Research discovers patterns, identifies issues, and provides
-     concrete implementation guidance.
-
-     Recommendation: /karimo-research --prd {slug}
-
-     Options:
-       1. Run research now (recommended)
-       2. Continue without research
-
-     Choice [1/2]:
-     ```
-
-4. **If user chooses "Run research now" (1):**
-   - Execute `/karimo-research --prd {slug}`
-   - Research completes and enhances PRD
-   - Continue to brief generation with research context
-
-5. **If user chooses "Continue without research" (2):**
-   - Warn: "⚠️  Continuing without research. This may result in lower-quality briefs and increased execution errors."
-   - Proceed to brief generation without research context
-
-### Bypass Research Requirement
-
-Use `--skip-research` to bypass the research prompt:
-
-```bash
-/karimo-run --prd user-profiles --skip-research
+```
+┌─────────────────────────────────────────────────────────────┐
+│  Phase 1: Brief Generation                                  │
+│    Read research + PRD → Generate task briefs               │
+└─────────────────────────────────────────────────────────────┘
+                           │
+                           ↓
+┌─────────────────────────────────────────────────────────────┐
+│  Phase 2: Auto-Review                                       │
+│    Validate briefs → Challenge order/deps → Find gaps       │
+└─────────────────────────────────────────────────────────────┘
+                           │
+                           ↓
+┌─────────────────────────────────────────────────────────────┐
+│  Phase 3: User Iterate                                      │
+│    Present recommendations → User feedback → Adjust briefs  │
+│                    ↺ (loop until approved)                  │
+└─────────────────────────────────────────────────────────────┘
+                           │
+                           ↓
+┌─────────────────────────────────────────────────────────────┐
+│  Phase 4: Orchestrate                                       │
+│    Execute tasks in waves → Create PRs → Validate           │
+└─────────────────────────────────────────────────────────────┘
 ```
 
-**Note:** Not recommended. Research significantly improves brief quality and reduces execution errors.
+---
 
-### Enforce Research Requirement
+## Phase 1: Brief Generation
 
-Use `--require-research` to fail if no research exists:
+1. **Load Research Context**
+   - Read research findings from `.karimo/prds/{NNN}_{slug}/research/findings.md`
+   - If missing: Warning but continue (legacy PRDs)
 
-```bash
-/karimo-run --prd user-profiles --require-research
+2. **Load PRD**
+   - Read PRD from `.karimo/prds/{NNN}_{slug}/PRD_{slug}.md`
+   - Load tasks from `tasks.yaml`
+
+3. **Generate Task Briefs**
+   - Spawn `karimo-brief-writer` agent
+   - Generate briefs: `.karimo/prds/{NNN}_{slug}/briefs/*.md`
+   - Each brief inherits research context
+
+4. **Commit Briefs**
+   ```bash
+   git add .karimo/prds/{NNN}_{slug}/briefs/
+   git commit -m "docs(karimo): generate task briefs for {slug}
+
+   Generated {count} briefs with research context.
+
+   Co-Authored-By: Claude <noreply@anthropic.com>"
+   ```
+
+---
+
+## Phase 2: Auto-Review
+
+1. **Spawn Brief-Reviewer Agent**
+   ```
+   @karimo-brief-reviewer.md
+   ```
+
+2. **Challenge Briefs**
+   - Task order makes sense?
+   - Dependencies correctly specified?
+   - File boundaries respected?
+   - Gaps in coverage?
+   - Conflicts between tasks?
+
+3. **Generate Recommendations**
+   - Create `recommendations.md` with findings
+   - Categorize: Critical, Warning, Observation
+   - Include suggested fixes
+
+---
+
+## Phase 3: User Iterate
+
+Present findings and allow user iteration:
+
+```
+╭──────────────────────────────────────────────────────────────╮
+│  Brief Review Complete: {slug}                               │
+╰──────────────────────────────────────────────────────────────╯
+
+Generated {count} task briefs.
+
+┌─────────────────────────────────────────────────────────────┐
+│  Recommendations                                             │
+├─────────────────────────────────────────────────────────────┤
+│                                                              │
+│  ⚠️  Critical ({n}):                                        │
+│      • Task T002 should run before T001 (dependency issue)  │
+│      • Task T004 references non-existent file               │
+│                                                              │
+│  ⚡ Warnings ({n}):                                         │
+│      • Task T003 complexity may be underestimated           │
+│                                                              │
+│  ℹ️  Observations ({n}):                                    │
+│      • Consider adding test for edge case X                 │
+│                                                              │
+└─────────────────────────────────────────────────────────────┘
+
+Options:
+  1. Approve — Execute tasks as-is
+  2. Apply fixes — Auto-correct critical issues, then execute
+  3. Modify — Adjust briefs manually (opens editor)
+  4. More research — Need additional context
+  5. Cancel — Exit without executing
+
+Your choice:
 ```
 
-Fails with error if `## Research Findings` section not found in PRD.
+**Option 1 — Approve:**
+- Proceed to Phase 4 (Orchestrate)
+
+**Option 2 — Apply fixes:**
+- Spawn `karimo-brief-corrector` to apply fixes
+- Commit corrections
+- Proceed to Phase 4 (Orchestrate)
+
+**Option 3 — Modify:**
+- Accept user input for changes
+- Regenerate affected briefs
+- Loop back to Phase 2 (Auto-Review)
+
+**Option 4 — More research:**
+- Print: "Run `/karimo-research --prd {slug}` to add research context"
+- Note: "Resume with `/karimo-run --prd {slug} --resume` after research completes"
+
+**Option 5 — Cancel:**
+- Exit without executing
+- Briefs remain generated for later
+
+---
+
+## Phase 4: Orchestrate
+
+After user approval:
+
+1. **Create Feature Branch**
+   - Branch: `feature/{prd-slug}` from main
+   - Update `status.json` with `execution_mode: "feature-branch"`
+
+2. **Execute Tasks in Waves**
+   - Spawn `karimo-pm` agent
+   - Execute Wave 1 tasks in parallel (worktree isolation)
+   - Wait for Wave 1 to complete
+   - Execute Wave 2, etc.
+
+3. **Create Task PRs**
+   - Task PRs target feature branch (not main)
+   - Labels: `karimo`, `karimo-{slug}`, `wave-{n}`, `complexity-{n}`
+
+4. **Validate Integration**
+   - Run build/lint/test after each wave
+   - Flag issues for human review
+
+5. **Completion**
+   - Set status to `ready-for-merge` when all tasks done
+   - Print: "Run `/karimo-merge --prd {slug}` to create final PR"
+
+---
+
+## Research Integration
+
+**Before brief generation**, KARIMO loads PRD research to inform briefs.
+
+### Research Loading
+
+1. Check PRD for `## Research Findings` section
+2. Check for `research/findings.md` file
+3. If found: Load into brief generation context
+4. If missing: Warning but proceed (legacy PRDs)
+
+### Legacy PRD Support
+
+For PRDs created before v7.0 (without research):
+
+```
+⚠️  No research found for this PRD.
+
+This PRD was created before v7.0 (research-first workflow).
+Brief quality may be reduced.
+
+Options:
+  1. Continue without research
+  2. Add research now (recommended)
+
+Choice [1/2]:
+```
+
+---
 
 ## Benefits Over Direct-to-Main
 
@@ -102,58 +223,56 @@ Fails with error if `## Research Findings` section not found in PRD.
 - **Consolidated review** before main merge
 - **Clean git history** with wave-based commits
 
-## Pre-Execution Review Workflow
+---
 
-After generating task briefs, KARIMO offers an optional pre-execution review to validate briefs against codebase reality:
+## Skip Review
 
-### Default Behavior (Recommended)
-
-```
-Options:
-  1. Review briefs (recommended) — Validate against codebase
-  2. Skip review — Execute immediately
-  3. Cancel — Exit without executing
-```
-
-**If you choose "Review briefs":**
-
-1. **Investigation:** Agent validates assumptions, success criteria, and configurations against actual codebase
-2. **Findings:** Produces document with critical/warning/observation categories
-3. **Correction:** Choose to apply fixes automatically or proceed anyway
-
-**Benefits:**
-- Catches incorrect assumptions before execution
-- Prevents contradictory success criteria
-- Validates configuration prerequisites
-- Significantly increases execution success rate
-
-### Skip Review
-
-Use `--skip-review` to bypass the review gate entirely:
+Use `--skip-review` to bypass brief review entirely:
 
 ```bash
 /karimo-run --prd feature-name --skip-review
 ```
+
+Execution proceeds directly from Phase 1 to Phase 4.
 
 **When to skip:**
 - You've already reviewed the PRD thoroughly
 - Briefs are simple and low-risk
 - You want to test the execution flow quickly
 
-### Review Only
+---
 
-Use `--review-only` to review briefs without executing:
+## Review Only
+
+Use `--review-only` to stop after Phase 3:
 
 ```bash
 /karimo-run --prd feature-name --review-only
 ```
 
 **Use case:**
-- Want to see potential issues before committing to execution
-- Need to manually review findings before proceeding
-- Want to gather validation data for PRD improvements
+- Want to see potential issues before execution
+- Need to manually review findings
+- Gathering validation data for PRD improvements
 
-After reviewing, run without `--review-only` to apply corrections and execute.
+After reviewing, run without `--review-only` to execute.
+
+---
+
+## Brief Only
+
+Use `--brief-only` to stop after Phase 1:
+
+```bash
+/karimo-run --prd feature-name --brief-only
+```
+
+**Use case:**
+- Just generate briefs for review
+- Manual inspection before automated review
+- Resume later with `--resume`
+
+---
 
 ## Example
 
@@ -166,7 +285,15 @@ After reviewing, run without `--review-only` to apply corrections and execute.
 
 # Preview execution plan
 /karimo-run --prd user-profiles --dry-run
+
+# Generate briefs only
+/karimo-run --prd user-profiles --brief-only
+
+# Review but don't execute
+/karimo-run --prd user-profiles --review-only
 ```
+
+---
 
 ## After Execution
 
@@ -177,22 +304,7 @@ When all tasks complete, the feature branch is ready for final review:
 /karimo-merge --prd user-profiles
 ```
 
-## Technical Details
-
-This command (v5.6+) consolidates execution and orchestration logic:
-- **Research integration:** Checks for PRD research before brief generation
-- **Brief generation:** Spawns brief-writer agent with PRD research context
-- **Feature branch workflow:** Uses v5.0 feature branch aggregation model
-- **PM orchestration:** Spawns PM agent for autonomous wave-based execution
-- **Git state reconciliation:** Handles resume from any execution state
-- **Wave-based parallelization:** Executes independent tasks in parallel waves
-- **PR creation:** Task PRs target feature branch (consolidated with /karimo-merge)
-
-**Legacy commands (deprecated in v5.7):**
-- `/karimo-execute` → Use `/karimo-run` instead
-- `/karimo-orchestrate` → Use `/karimo-run` instead
-
-**Note:** For v5.6, `/karimo-run` still delegates to `/karimo-orchestrate` internally but adds research checking. Full consolidation in v6.0.
+---
 
 ## Error Messages
 
@@ -208,7 +320,7 @@ Possible causes:
 
 How to fix:
   • List all PRDs: /karimo-status
-  • Create new PRD: /karimo-plan
+  • Start new feature: /karimo-research "user-auth"
   • Check PRD folder: ls .karimo/prds/
 
 Need help? Run /karimo-help or check TROUBLESHOOTING.md
@@ -229,9 +341,9 @@ Possible causes:
   3. PRD was modified after approval
 
 How to fix:
-  • Complete approval: /karimo-plan --resume user-auth
-  • Check status: cat .karimo/prds/user-auth/status.json
-  • View PRD: cat .karimo/prds/user-auth/prd.md
+  • Complete approval: /karimo-plan --prd user-auth
+  • Check status: cat .karimo/prds/*_user-auth/status.json
+  • View PRD: cat .karimo/prds/*_user-auth/PRD_user-auth.md
 
 A PRD must have status: ready before execution.
 ```
@@ -260,28 +372,6 @@ How to fix:
 
 ---
 
-### Research Required But Missing
-
-```
-❌ Error: Research required but not found for PRD 'user-auth'
-
-The --require-research flag was used, but this PRD has no research findings.
-
-How to fix:
-  1. Run research: /karimo-research --prd user-auth
-  2. Remove --require-research flag to proceed without research (not recommended)
-
-Why research matters:
-  • Discovers existing patterns and conventions
-  • Identifies potential implementation issues
-  • Provides library and dependency recommendations
-  • Significantly improves brief quality and reduces errors
-
-Recommendation: Run /karimo-research before execution
-```
-
----
-
 ### Brief Generation Failed
 
 ```
@@ -296,9 +386,9 @@ Possible causes:
   4. Agent timeout or resource limits
 
 How to fix:
-  • Check task definition: cat .karimo/prds/user-auth/tasks.yaml | grep -A 10 "T001"
-  • View PRD: cat .karimo/prds/user-auth/prd.md
-  • Improve task description: /karimo-modify --prd user-auth
+  • Check task definition: cat .karimo/prds/*_user-auth/tasks.yaml | grep -A 10 "T001"
+  • View PRD: cat .karimo/prds/*_user-auth/PRD_user-auth.md
+  • Add research context: /karimo-research --prd user-auth
   • Check agent logs for specific error
 
 If error persists:
@@ -309,12 +399,12 @@ If error persists:
 
 ---
 
-### Pre-Execution Review Failed
+### Brief Review Found Critical Issues
 
 ```
-❌ Error: Pre-execution review found critical issues
+❌ Error: Brief review found critical issues
 
-Review findings require correction before execution can proceed.
+Review findings require correction before execution.
 
 Critical issues found: 3
   1. Task T001 references non-existent file: src/auth/login.ts
@@ -322,11 +412,9 @@ Critical issues found: 3
   3. Task T004 success criteria contradicts existing auth pattern
 
 How to fix:
-  • View findings: cat .karimo/prds/user-auth/findings.md
-  • Apply corrections automatically: (re-run /karimo-run, choose "apply corrections")
-  • Or fix manually: /karimo-modify --prd user-auth
-
-After fixing, run again: /karimo-run --prd user-auth
+  • View findings: cat .karimo/prds/*_user-auth/recommendations.md
+  • Choose "Apply fixes" to auto-correct
+  • Or choose "Modify" for manual adjustment
 
 To skip review (not recommended):
   /karimo-run --prd user-auth --skip-review
@@ -347,9 +435,9 @@ Possible causes:
   3. Task generation failed during interview
 
 How to fix:
-  • View tasks file: cat .karimo/prds/user-auth/tasks.yaml
-  • Re-run interview: /karimo-plan --resume user-auth
-  • Or modify PRD: /karimo-modify --prd user-auth
+  • View tasks file: cat .karimo/prds/*_user-auth/tasks.yaml
+  • Re-run interview: /karimo-plan --prd user-auth
+  • Or add tasks manually to tasks.yaml
 
 A PRD must have at least 1 task to execute.
 ```
@@ -417,11 +505,33 @@ Need help? Run /karimo-doctor
 
 | Command | Purpose |
 |---------|---------|
+| `/karimo-research` | Run research before planning (required) |
 | `/karimo-plan` | Create PRD (before running) |
 | `/karimo-merge` | Create final PR to main (after running) |
 | `/karimo-status` | Monitor execution progress |
-| `/karimo-orchestrate` | Original command name (equivalent) |
 
 ---
 
-*Generated by [KARIMO v5.2](https://github.com/opensesh/KARIMO)*
+## Technical Details
+
+This command (v7.0) implements the 4-phase execution model:
+
+- **Phase 1 — Brief Generation:** Spawns brief-writer with research context
+- **Phase 2 — Auto-Review:** Spawns brief-reviewer for validation
+- **Phase 3 — User Iterate:** Interactive approval/modification loop
+- **Phase 4 — Orchestrate:** PM agent executes tasks in waves
+
+**Key features:**
+- Research-informed briefs from PRD research context
+- Wave-based parallelization with worktree isolation
+- User iteration loop before execution
+- Git state reconciliation for crash recovery
+- Task PRs target feature branch (consolidated with /karimo-merge)
+
+**Legacy commands (deprecated):**
+- `/karimo-execute` → Use `/karimo-run` instead
+- `/karimo-orchestrate` → Use `/karimo-run` instead
+
+---
+
+*Generated by [KARIMO v7.0](https://github.com/opensesh/KARIMO)*
