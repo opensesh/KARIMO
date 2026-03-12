@@ -1,0 +1,36 @@
+# KARIMO General Research Index
+#
+# This file catalogs general research documents that are not tied to specific PRDs.
+# General research can be imported into PRD-scoped research during /karimo-plan or /karimo-research.
+#
+# Schema:
+#   - id: Sequential number (001, 002, etc.)
+#     topic: Research topic/title
+#     filename: Markdown filename (topic-{id}.md)
+#     created: ISO timestamp
+#     tags: Array of tags for categorization
+#     summary: Brief summary of research findings
+#     status: draft | approved
+#     rounds: Number of refinement rounds (if any)
+#
+# Example:
+#   - id: "001"
+#     topic: "React Authentication Patterns"
+#     filename: "react-auth-patterns-001.md"
+#     created: "2026-03-11T14:30:00Z"
+#     tags: ["react", "authentication", "patterns"]
+#     summary: "Discovered requireAuth() wrapper pattern, JWT vs session considerations, error boundary requirements for auth failures."
+#     status: "approved"
+#     rounds: 2
+#
+# Usage:
+#   - karimo-researcher agent updates this file when creating general research
+#   - karimo-plan displays research from this index for import
+#   - Research files are stored in .karimo/research/{filename}
+#
+# Migration Notes:
+#   - This file is created automatically on first /karimo-research invocation
+#   - If missing, karimo-research will initialize it with empty array
+#   - Manual editing is safe (YAML format)
+
+research: []
