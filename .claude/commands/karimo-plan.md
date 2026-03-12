@@ -332,6 +332,102 @@ Co-Authored-By: Claude <noreply@anthropic.com>"
 
 **Rationale:** Atomic commits keep PRD generation separate from brief generation and task execution. If the session is interrupted after PRD approval but before execution, the PRD artifacts are safely committed.
 
+---
+
+### Step 9: Research Prompt (After Approval)
+
+**After PRD is committed and approved**, automatically prompt for research integration:
+
+#### Step 9a: Import Existing General Research
+
+Check if `.karimo/research/` contains any general research files:
+
+```bash
+ls .karimo/research/*.md 2>/dev/null
+```
+
+**If general research files exist:**
+
+Present import prompt:
+
+```
+╭──────────────────────────────────────────────────────────╮
+│  General Research Available                              │
+╰──────────────────────────────────────────────────────────╯
+
+Found {count} general research document(s):
+
+  1. {topic-001.md} — {summary from index.yaml}
+  2. {topic-002.md} — {summary from index.yaml}
+  ...
+
+Import any into this PRD? [y/n or select numbers]:
+```
+
+**If user selects research to import:**
+- Copy selected files to `.karimo/prds/{NNN}_{slug}/research/imported/`
+- Update `.karimo/prds/{NNN}_{slug}/research/imported/index.yaml` with import tracking
+- Note: "Imported {count} research document(s)"
+
+**If no general research exists or user declines:**
+- Continue to Step 9b
+
+#### Step 9b: Offer PRD-Scoped Research
+
+Present research recommendation:
+
+```
+╭──────────────────────────────────────────────────────────╮
+│  Run Research on This PRD? (Recommended)                 │
+╰──────────────────────────────────────────────────────────╯
+
+Research will:
+  • Discover patterns in your codebase
+  • Find best practices from documentation
+  • Identify potential issues
+  • Recommend libraries and approaches
+  • Enhance PRD with concrete implementation context
+
+This helps agents generate better task briefs and reduces
+execution errors.
+
+Run research? [Y/n]:
+```
+
+**If user accepts (Y or Enter):**
+
+1. Execute `/karimo-research --prd {slug}` command
+2. Research agent conducts PRD-scoped research:
+   - Interactive questions about research focus
+   - Internal codebase research
+   - External web/documentation research
+   - PRD enhancement with findings
+3. After research completes:
+   ```
+   ✓ PRD enhanced with research findings
+
+   Research details saved to:
+     .karimo/prds/{NNN}_{slug}/research/
+
+   PRD updated with Research Findings section.
+   Briefs will inherit this context during /karimo-run.
+   ```
+
+**If user declines (n):**
+
+```
+⚠️  Skipped research. You can run later with:
+     /karimo-research --prd {slug}
+
+Note: Research is highly recommended before execution.
+      It provides agents with implementation context and
+      reduces brief validation failures.
+```
+
+Continue to final output (Step 10).
+
+---
+
 ## Output
 
 ### On Approval (Option 1)
@@ -349,9 +445,9 @@ Ready tasks: {ready_count} (no dependencies)
 
 The PRD is ready for execution. Run:
 
-  /karimo-execute --prd {slug}
+  /karimo-run --prd {slug}
 
-Tip: Need to adjust later? Run /karimo-modify --prd {slug}
+Tip: Need research? Run /karimo-research --prd {slug}
 ```
 
 ### On Save as Draft (Option 3)
