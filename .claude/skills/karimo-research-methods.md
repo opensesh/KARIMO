@@ -2,9 +2,15 @@
 
 ## Purpose
 
-This skill provides systematic research methodologies for discovering codebase patterns, identifying gaps, and gathering implementation context.
+This skill provides systematic methodologies for **internal (codebase) research** — discovering patterns, identifying gaps, and gathering implementation context from the existing codebase.
+
+**Scope:** Internal research only (Phase 1 of two-phase model)
+**External Research:** See `.claude/skills/karimo-external-research.md`
+**Firecrawl Tools:** See `.claude/skills/karimo-firecrawl-web-tools.md`
 
 **Applies to:** karimo-researcher, karimo-refiner agents
+
+**Output:** `research/internal/findings.md` (consolidated output using `INTERNAL_FINDINGS_TEMPLATE.md`)
 
 ## Internal Research Strategies
 
@@ -155,127 +161,24 @@ This skill provides systematic research methodologies for discovering codebase p
    - Component organization (atomic, feature-based)
    - State management approach
 
-## External Research Strategies
+## External Research (Phase 2)
 
-### Web Search Best Practices
+**Note:** External research is covered in Phase 2 of the two-phase model.
 
-**Objective:** Find current best practices and recommendations
+**See:**
+- `.claude/skills/karimo-external-research.md` — External research strategies
+- `.claude/skills/karimo-firecrawl-web-tools.md` — Firecrawl tool reference
 
-**Query Patterns:**
+**Output:** `research/external/findings.md` (consolidated output using `EXTERNAL_FINDINGS_TEMPLATE.md`)
 
-```
-# Best practices
-"{technology} {feature} best practices 2026"
-"React file upload best practices 2026"
+### Quick Reference
 
-# Library comparisons
-"{library1} vs {library2} 2026"
-"react-dropzone vs react-file-drop 2026"
-
-# Current recommendations
-"{framework} {feature} recommended approach 2026"
-"Next.js authentication recommended approach 2026"
-
-# Performance
-"{technology} {feature} performance optimization"
-"React form validation performance optimization"
-
-# Security
-"{technology} {feature} security considerations"
-"file upload security best practices 2026"
-```
-
-**Source Quality:**
-
-- **Prefer:** Official docs, MDN, established blogs (LogRocket, Smashing Magazine)
-- **Consider:** Stack Overflow (for specific issues), GitHub discussions
-- **Avoid:** Outdated tutorials (pre-2024), unmaintained resources
-
-**Information Synthesis:**
-
-- Extract key points (paraphrase, don't quote large blocks)
-- Compare multiple sources for validation
-- Note consensus vs. conflicting opinions
-- Provide source attribution for all claims
-
-### Documentation Scraping
-
-**Objective:** Extract relevant information from official documentation
-
-**Approach:**
-
-1. **Identify Official Docs**
-   - Framework docs (React, Next.js, Vue, etc.)
-   - Library docs (official README, doc sites)
-   - API references (npm packages)
-
-2. **Targeted Reading**
-   - Use table of contents to find relevant sections
-   - Focus on: Getting Started, Best Practices, Examples, API Reference
-   - Avoid: Marketing content, irrelevant features
-
-3. **Example Extraction**
-   - Find minimal working examples
-   - Note official patterns and conventions
-   - Extract configuration recommendations
-
-4. **Copyright Compliance**
-   - **Maximum ONE quote per document, under 15 words**
-   - Paraphrase and synthesize instead of quoting
-   - Link to source instead of reproducing
-   - Attribute all information to source
-
-### Library Evaluation
-
-**Objective:** Recommend libraries based on research
-
-**Evaluation Criteria:**
-
-1. **Maintenance**
-   - Last updated (within 6 months = active)
-   - Open issues vs. closed (ratio)
-   - Community activity (GitHub stars, npm downloads)
-
-2. **Quality**
-   - TypeScript support (built-in types?)
-   - Documentation quality (clear examples?)
-   - Test coverage (if public)
-
-3. **Compatibility**
-   - Works with project's tech stack?
-   - Peer dependencies acceptable?
-   - Bundle size impact (use Bundlephobia)
-
-4. **License**
-   - MIT, Apache 2.0 = safe for commercial use
-   - GPL = may require legal review
-   - Custom license = review carefully
-
-**Recommendation Format:**
-
-```markdown
-### Library Name (`npm-package-name`)
-
-**Purpose:** {What problem it solves}
-**Version:** {Current stable version}
-**Bundle Size:** {Size} (minified + gzipped)
-**License:** {License type}
-
-**Pros:**
-- Active maintenance (updated {date})
-- Excellent TypeScript support
-- Small bundle size
-- Well-documented with examples
-
-**Cons:**
-- Lacks {specific feature}
-- {Trade-off or limitation}
-
-**Documentation:** {URL}
-**npm:** https://www.npmjs.com/package/{package-name}
-
-**Alternative:** {Alternative library} if {reason}
-```
+| Need | Skill |
+|------|-------|
+| Web search queries | `karimo-external-research.md` |
+| Source evaluation | `karimo-external-research.md` |
+| Library evaluation | `karimo-external-research.md` |
+| Firecrawl tools | `karimo-firecrawl-web-tools.md` |
 
 ## Research Quality Standards
 
@@ -389,6 +292,9 @@ Every finding should inform implementation:
 
 - Agent: `.claude/agents/karimo-researcher.md`
 - Agent: `.claude/agents/karimo-refiner.md`
-- Skill: `.claude/skills/karimo-external-research.md`
-- Templates: `.karimo/templates/GENERAL_RESEARCH_TEMPLATE.md`
-- Templates: `.karimo/templates/PRD_RESEARCH_SECTION_TEMPLATE.md`
+- Skill: `.claude/skills/karimo-external-research.md` (Phase 2)
+- Skill: `.claude/skills/karimo-firecrawl-web-tools.md` (Firecrawl reference)
+- Templates:
+  - `.karimo/templates/INTERNAL_FINDINGS_TEMPLATE.md` (consolidated output)
+  - `.karimo/templates/GENERAL_RESEARCH_TEMPLATE.md`
+  - `.karimo/templates/PRD_RESEARCH_SECTION_TEMPLATE.md`
