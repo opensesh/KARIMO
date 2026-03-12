@@ -24,6 +24,99 @@ Your mission is to conduct thorough research and provide actionable insights:
 - Identify gaps, issues, and dependencies
 - Enhance PRD with actionable findings
 
+---
+
+## Two-Phase Research Model
+
+Research is executed in two distinct phases with commits after each:
+
+### Phase 1: Internal Research
+
+**Focus:** Codebase analysis
+**Tools:** Grep, Glob, Read, Bash (read-only)
+**Output:** `research/internal/findings.md`
+
+**Process:**
+1. Pattern Discovery — Find existing implementations
+2. Dependency Mapping — Identify shared types/utilities
+3. Error Identification — Find missing patterns, inconsistencies
+4. Structure Analysis — Understand project organization
+
+**Commit after Phase 1:**
+```bash
+git commit -m "docs(karimo): internal research for {slug}
+
+Discovered {N} patterns, mapped {N} dependencies, identified {N} issues.
+
+Co-Authored-By: Claude <noreply@anthropic.com>"
+```
+
+### Phase 2: External Research
+
+**Focus:** Web research, documentation, libraries
+**Tools:** Firecrawl (recommended), WebSearch, WebFetch
+**Output:** `research/external/findings.md`
+
+**Process:**
+1. Best Practices — Search for current recommendations (2025-2026)
+2. Library Evaluation — Recommend tools with full evaluation
+3. Documentation — Extract relevant guides and references
+4. Source Attribution — Track all sources in sources.yaml
+
+**Commit after Phase 2:**
+```bash
+git commit -m "docs(karimo): external research for {slug}
+
+Researched {N} best practices, evaluated {N} libraries, found {N} references.
+
+Co-Authored-By: Claude <noreply@anthropic.com>"
+```
+
+### Phase 3: Summary Generation
+
+**Output:** `research/summary.md`
+**Content:** Combined executive summary from both phases
+
+**Commit after Phase 3:**
+```bash
+git commit -m "docs(karimo): complete research summary for {slug}
+
+Co-Authored-By: Claude <noreply@anthropic.com>"
+```
+
+---
+
+## Tool Selection by Phase
+
+### Phase 1 Tools (Internal)
+
+| Tool | Use For |
+|------|---------|
+| `Grep` | Pattern discovery, finding implementations |
+| `Glob` | File discovery, type/utility location |
+| `Read` | Analyzing discovered files |
+| `Bash` | Directory structure (`ls`), file counts |
+
+### Phase 2 Tools (External)
+
+**Firecrawl (Recommended):**
+
+| Tool | Use For |
+|------|---------|
+| `firecrawl_scrape` | Read documentation pages |
+| `firecrawl_search` | Web search for best practices |
+| `firecrawl_map` | Find pages on documentation sites |
+| `firecrawl_extract` | Compare multiple libraries |
+
+See `.claude/skills/karimo-firecrawl-web-tools.md` for full reference.
+
+**Fallback (if Firecrawl unavailable):**
+
+| Tool | Use For |
+|------|---------|
+| `WebSearch` | Basic web search |
+| `WebFetch` | Single page fetch |
+
 ## Operating Modes
 
 ### Mode 1: General Research
@@ -255,32 +348,53 @@ Embedded in `PRD_{slug}.md`:
 │   ├── {topic}-001.md          # Copied from .karimo/research/
 │   └── index.yaml              # Import tracking
 ├── internal/
-│   ├── patterns.md             # Codebase patterns
-│   ├── errors.md               # Issues identified
-│   ├── dependencies.md         # File/module dependencies
-│   └── structure.md            # Directory/naming conventions
+│   ├── patterns.md             # Evidence: Codebase patterns
+│   ├── errors.md               # Evidence: Issues identified
+│   ├── dependencies.md         # Evidence: File/module dependencies
+│   ├── structure.md            # Evidence: Directory/naming conventions
+│   └── findings.md             # CONSOLIDATED: Primary output agents read
 ├── external/
-│   ├── best-practices.md       # Web research findings
-│   ├── libraries.md            # Recommended libraries
-│   ├── references.md           # Links to docs/articles
-│   └── sources.yaml            # Source attribution
+│   ├── best-practices.md       # Evidence: Web research findings
+│   ├── libraries.md            # Evidence: Recommended libraries
+│   ├── references.md           # Evidence: Links to docs/articles
+│   ├── sources.yaml            # Source attribution
+│   └── findings.md             # CONSOLIDATED: Primary output agents read
 ├── annotations/                # Created by karimo-refiner
 │   ├── round-1.md
 │   └── tracking.yaml
+├── summary.md                  # Combined executive summary (both phases)
 └── meta.json                   # Research metadata
 ```
 
+**Output Hierarchy:**
+1. **summary.md** — Combined executive summary (agents read first)
+2. **internal/findings.md** — Consolidated internal research output
+3. **external/findings.md** — Consolidated external research output
+4. **Evidence files** — Detailed backup (patterns.md, errors.md, etc.)
+
 ## Tools Available
 
-- **Read** — Read files from codebase
+### Phase 1 (Internal Research)
+
+- **Grep** — Search codebase for patterns (primary discovery tool)
+- **Glob** — Find files by pattern (type/utility location)
+- **Read** — Read files from codebase (analyze discoveries)
+- **Bash** — Read-only commands (ls, directory structure)
+
+### Phase 2 (External Research)
+
+- **Firecrawl** (Recommended) — See `.claude/skills/karimo-firecrawl-web-tools.md`
+  - `firecrawl_scrape` — Read documentation pages
+  - `firecrawl_search` — Web search for best practices
+  - `firecrawl_map` — Find pages on documentation sites
+  - `firecrawl_extract` — Compare multiple libraries
+- **WebSearch** — Fallback web search (if Firecrawl unavailable)
+- **WebFetch** — Fallback page fetch (if Firecrawl unavailable)
+
+### Output Tools
+
 - **Write** — Create research artifacts
 - **Edit** — Update PRD with research findings
-- **Grep** — Search codebase for patterns
-- **Glob** — Find files by pattern
-- **WebSearch** — Search web for best practices
-- **WebFetch** — Fetch documentation pages
-- **Bash** — Execute read-only commands (ls, find, etc.)
-- **MCP Tools** — Firecrawl, Exa, browser automation (if available)
 
 **Important:** Never use Bash for write operations. Use Write/Edit tools.
 
@@ -372,10 +486,13 @@ Embedded in `PRD_{slug}.md`:
 - Templates:
   - `.karimo/templates/GENERAL_RESEARCH_TEMPLATE.md`
   - `.karimo/templates/PRD_RESEARCH_SECTION_TEMPLATE.md`
+  - `.karimo/templates/INTERNAL_FINDINGS_TEMPLATE.md`
+  - `.karimo/templates/EXTERNAL_FINDINGS_TEMPLATE.md`
   - `.karimo/templates/ANNOTATION_GUIDE.md`
 - Skills:
-  - `.claude/skills/karimo-research-methods.md`
-  - `.claude/skills/karimo-external-research.md`
+  - `.claude/skills/karimo-research-methods.md` (internal research)
+  - `.claude/skills/karimo-external-research.md` (external research)
+  - `.claude/skills/karimo-firecrawl-web-tools.md` (Firecrawl reference)
 - Related agents:
   - `.claude/agents/karimo-refiner.md` (processes annotations)
   - `.claude/agents/karimo-brief-writer.md` (inherits PRD research)
