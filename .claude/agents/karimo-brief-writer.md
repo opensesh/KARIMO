@@ -269,6 +269,122 @@ If available:
 - `context_additions` → Implementation Guidance
 - `warnings` → Boundaries or special notes
 
+### 5. Inherit Research Context from PRD (v5.6+)
+
+**CRITICAL:** Always check for PRD research before generating briefs.
+
+**Process:**
+
+1. **Check for Research Findings section in PRD**
+   ```bash
+   grep -q "## Research Findings" .karimo/prds/{NNN}_{slug}/PRD_{slug}.md
+   ```
+
+2. **If research exists:**
+   - Read the `## Research Findings` section from PRD
+   - Extract task-specific research notes for this task
+   - Parse patterns, issues, libraries, dependencies relevant to this task
+   - Embed in brief's Implementation Guidance section
+
+3. **What to extract:**
+   - **Patterns to Follow:** Existing patterns from internal research (with file:line refs)
+   - **Known Issues to Address:** Issues identified that this task should fix/avoid
+   - **Recommended Approach:** Libraries, architectural decisions, best practices
+   - **Dependencies:** File dependencies (shared types, utilities) and library dependencies
+
+4. **Where to embed in brief:**
+
+   Add a **Research Context** section after **Context** section, before **Requirements**:
+
+   ```markdown
+   ## Research Context
+
+   {If PRD has research findings for this task:}
+
+   ### Patterns to Follow
+
+   - **Pattern Name:** Description (path/to/file.ts:42)
+   - ...
+
+   ### Known Issues to Address
+
+   - ⚠️ **Issue:** Description and recommended solution
+   - ...
+
+   ### Recommended Approach
+
+   - Library recommendations
+   - Architectural decisions
+   - Best practices to apply
+
+   ### Dependencies
+
+   **File Dependencies:**
+   - Shared types: path/to/types.ts (created by Task X, imported by this task)
+
+   **Library Dependencies:**
+   - npm-package-name (version X.Y.Z recommended)
+
+   {If no research exists or no task-specific notes for this task:}
+   No research available for this task. Proceed with standard investigation during implementation.
+   ```
+
+5. **Graceful handling:**
+   - If no research section exists in PRD: Brief generation works normally
+   - If research exists but no task-specific notes: State "No research available for this task"
+   - Never fail brief generation due to missing research
+
+**Benefits:**
+- Worker agents receive concrete patterns to follow
+- Issues are identified before implementation starts
+- Library recommendations reduce decision time
+- File dependencies prevent coordination failures
+
+**Example Research Inheritance:**
+
+If PRD contains:
+```markdown
+## Research Findings
+
+### Task-Specific Research Notes
+
+**Task 1a: Add authentication middleware**
+
+**Patterns to Follow:**
+- Use requireAuth() wrapper from src/lib/auth/middleware.ts:42
+- Follow existing middleware pattern
+
+**Known Issues:**
+- No error boundaries exist (create shared ErrorBoundary component)
+
+**Libraries:**
+- zod (already installed, use for validation)
+```
+
+Then brief for Task 1a should include:
+```markdown
+## Research Context
+
+### Patterns to Follow
+
+- **requireAuth() wrapper:** Use existing pattern from src/lib/auth/middleware.ts:42 for route protection
+- **Middleware pattern:** Follow existing middleware structure in src/lib/
+
+### Known Issues to Address
+
+- ⚠️ **Missing Error Boundaries:** No error boundaries exist in codebase. Create shared ErrorBoundary component as part of this task.
+
+### Recommended Approach
+
+- Use Zod for request schema validation (already installed in project)
+- Follow existing middleware pattern for consistency
+
+### Dependencies
+
+**Library Dependencies:**
+- zod (already installed, v3.x)
+```
+
 ## Determining Model Assignment
 
 Use complexity threshold (default: 5):
