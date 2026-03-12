@@ -18,7 +18,7 @@ The `/karimo-dashboard` command replaces the planned web dashboard with a fast, 
 |---------|-------------|
 | **Zero setup** | Built into KARIMO, no server deployment required |
 | **Fast** | < 2s render with caching, < 1s with valid cache |
-| **Integrated** | Same terminal as `/karimo-status`, `/karimo-execute` |
+| **Integrated** | Same terminal as `/karimo-status`, `/karimo-run` |
 | **Scriptable** | JSON output for automation (`--json` flag) |
 | **Offline capable** | Works without network (except GitHub API calls) |
 
@@ -86,7 +86,7 @@ Tasks requiring immediate human intervention.
 
   [token-studio / 1c] STALE — Running for 6h 23m
     → Agent may have crashed
-    → Action: /karimo-execute --prd token-studio --task 1c
+    → Action: /karimo-run --prd token-studio --task 1c
 
   Total: 2 items requiring human intervention
 ```
@@ -237,7 +237,7 @@ Timeline of events across all PRDs.
 ### Cache Invalidation
 
 Cache is invalidated on:
-- Any `/karimo-execute` run
+- Any `/karimo-run` run
 - Any `status.json` update
 - Manual `--refresh` flag
 - Cache age > 2 minutes
@@ -251,7 +251,7 @@ Cache is invalidated on:
 ```bash
 /karimo-dashboard           # System health, alerts, progress
 /karimo-status --prd X      # Wave-level task details (deep dive)
-/karimo-execute --prd X     # Resume/start execution
+/karimo-run --prd X     # Resume/start execution
 ```
 
 ### Post-Execution Analysis

@@ -317,10 +317,11 @@ Comprehensive solutions for common KARIMO issues across installation, configurat
    # See findings without starting execution
    ```
 
-3. **Modify PRD to fix issues:**
+3. **Edit PRD files to fix issues:**
    ```bash
-   /karimo-modify --prd {slug}
-   # Update PRD based on findings
+   # Edit PRD and tasks directly:
+   # .karimo/prds/{slug}/PRD_{slug}.md
+   # .karimo/prds/{slug}/tasks.yaml
    ```
 
 4. **Re-run with corrections:**
@@ -460,10 +461,10 @@ Comprehensive solutions for common KARIMO issues across installation, configurat
      depends_on: [task-1]  # Ensure task-1 creates the file
    ```
 
-3. **Update brief with correct path:**
+3. **Edit PRD with correct path:**
    ```bash
-   /karimo-modify --prd {slug}
-   # Correct file path in PRD, then regenerate briefs
+   # Edit: .karimo/prds/{slug}/PRD_{slug}.md
+   # Correct file path, then re-run /karimo-run to regenerate briefs
    ```
 
 4. **Check wave ordering:**
@@ -496,8 +497,8 @@ Comprehensive solutions for common KARIMO issues across installation, configurat
 
 2. **Improve task description:**
    ```bash
-   /karimo-modify --prd {slug}
-   # Add more details or clarify scope to help reviewer
+   # Edit: .karimo/prds/{slug}/PRD_{slug}.md
+   # Add more details or clarify scope
    ```
 
 3. **Re-run reviewer:**
@@ -750,7 +751,7 @@ Comprehensive solutions for common KARIMO issues across installation, configurat
 
 4. **Improve dependency graph:**
    ```bash
-   /karimo-modify --prd {slug}
+   # Edit: .karimo/prds/{slug}/tasks.yaml
    # Add explicit dependency: Wave 2 task depends on Wave 1 task
    ```
 

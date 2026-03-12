@@ -70,7 +70,7 @@ Pre-execution validation agent that investigates PRD and task briefs against cod
 Applies fixes to task briefs and PRD based on review findings. Modifies `prd.md`, `tasks.yaml`, and briefs as needed to resolve critical issues.
 
 #### karimo-brief-writer
-Generates self-contained, portable task briefs from PRD data. Spawned during Phase 1 of `/karimo-execute` for each task.
+Generates self-contained, portable task briefs from PRD data. Spawned during Phase 1 of `/karimo-run` for each task.
 
 #### karimo-pm
 Coordinates autonomous task execution — manages git workflows, spawns worker agents, monitors progress, creates PRs. **Never writes code.** Acts as orchestrator only.
@@ -194,7 +194,6 @@ Tasks and PRDs progress through defined lifecycle states:
 - **`/karimo-configure --validate`** — Validate existing config against codebase
 
 ### Management
-- **`/karimo-modify --prd {slug}`** — Edit approved PRD before execution
 - **`/karimo-feedback`** — Capture learnings (auto-detects simple vs. complex feedback)
 
 ### Diagnostics
@@ -204,7 +203,7 @@ Tasks and PRDs progress through defined lifecycle states:
 
 ### Maintenance
 - **`/karimo-update`** — Update to latest KARIMO version from GitHub
-- **`/karimo-cd-config`** — Configure preview deployment providers (Vercel, Netlify, etc.)
+- **`/karimo-configure --cd`** — Configure preview deployment providers (Vercel, Netlify, etc.)
 
 ---
 
@@ -228,7 +227,7 @@ Tasks and PRDs progress through defined lifecycle states:
 - Rollback entire feature if needed
 
 ### Direct-to-Main Model (Legacy, v4.0)
-**Command:** `/karimo-execute --prd {slug}`
+**Command:** `/karimo-run --prd {slug}`
 
 **Workflow:**
 1. Tasks create PRs directly to main

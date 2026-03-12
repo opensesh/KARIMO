@@ -48,11 +48,16 @@ Visual guides to help you choose the right command, configuration, or workflow f
 
 ### Need to change an approved PRD?
 
+**Edit PRD files directly:**
 ```
-→ /karimo-modify --prd {slug}
+.karimo/prds/{slug}/PRD_{slug}.md   # Requirements
+.karimo/prds/{slug}/tasks.yaml      # Task definitions
 ```
 
-**Edits PRD before or during execution.**
+**Then re-run:**
+```
+→ /karimo-run --prd {slug}
+```
 
 Use cases:
 - Fix requirements before execution starts
@@ -208,7 +213,7 @@ graph TD
     C -->|3+ tasks,<br/>new feature| D
 
     D --> F[/karimo-run --prd {slug}]
-    E --> G[/karimo-execute --prd {slug}]
+    E --> G[/karimo-run --prd {slug}]
 
     F --> H[Benefits:<br/>- Complete isolation<br/>- Parallel execution<br/>- Independent review<br/>- Easy rollback]
 
@@ -235,7 +240,7 @@ graph TD
 
 ---
 
-### Use `/karimo-execute` (Direct-to-Main) if:
+### Use `/karimo-run` (Direct-to-Main) if:
 
 ✅ Solo developer
 ✅ Hotfix or urgent change
@@ -244,7 +249,7 @@ graph TD
 ✅ Comfortable with PRs directly to main
 
 **Workflow:**
-1. `/karimo-execute --prd {slug}`
+1. `/karimo-run --prd {slug}`
 2. Tasks create PRs → main
 3. Waves execute (Wave 2 waits for Wave 1)
 4. PRs merge directly to main (no final merge step)
@@ -501,7 +506,7 @@ Most users don't invoke agents directly — PM Agent coordinates them. But under
 | **Brief Writer** | `/karimo-run` (Phase 1) | Generates task briefs |
 | **Brief Reviewer** | `/karimo-run` (before execution) | Pre-execution validation |
 | **Brief Corrector** | `/karimo-run` (after review) | Applies corrections from findings |
-| **PM Agent** | `/karimo-run` or `/karimo-execute` | Coordinates task execution |
+| **PM Agent** | `/karimo-run` or `/karimo-run` | Coordinates task execution |
 | **Review Architect** | PM Agent (on conflicts) | Resolves merge conflicts |
 | **Feedback Auditor** | `/karimo-feedback` (complex mode) | Investigates feedback issues |
 

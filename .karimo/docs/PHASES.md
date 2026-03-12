@@ -39,7 +39,7 @@ graph TB
     end
 
     subgraph "Phase 2: Automate Review"
-        H[/karimo-execute] --> I[Task Execution]
+        H[/karimo-run] --> I[Task Execution]
         I --> J[PRs to main]
         J --> K{Automated<br/>Review}
         K -->|Pass| L[Merge]
@@ -83,7 +83,7 @@ This is where everyone starts. Phase 1 provides everything needed to go from ide
   - Task decomposition with dependencies
   - Automated DAG generation
 
-- **Task Execution** (`/karimo-execute`)
+- **Task Execution** (`/karimo-run`)
   - PM Agent coordinates wave-ordered execution
   - Claude Code handles worktrees via `isolation: worktree`
   - PRs target main directly
@@ -125,7 +125,7 @@ claude
 /karimo-plan
 
 # Execute tasks
-/karimo-execute --prd {slug}
+/karimo-run --prd {slug}
 ```
 
 ---
