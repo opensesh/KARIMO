@@ -89,17 +89,20 @@ Target Project/
 │   │   ├── karimo-tester-opus.md    # Task agent: tests (Opus)
 │   │   ├── karimo-documenter.md     # Task agent: docs (Sonnet)
 │   │   └── karimo-documenter-opus.md # Task agent: docs (Opus)
-│   ├── commands/                    # 14 commands from manifest
-│   │   ├── plan.md                  # /karimo-plan (with interactive review)
-│   │   ├── overview.md              # /karimo-overview (cross-PRD oversight)
-│   │   ├── execute.md               # /karimo-execute (brief gen + execution)
-│   │   ├── modify.md                # /karimo-modify (modify PRD before execution)
-│   │   ├── status.md                # /karimo-status
-│   │   ├── configure.md             # /karimo-configure
-│   │   ├── update.md                # /karimo-update
-│   │   ├── feedback.md              # /karimo-feedback (unified with complexity detection)
-│   │   ├── doctor.md                # /karimo-doctor
-│   │   └── test.md                  # /karimo-test
+│   ├── commands/                    # 13 commands from manifest
+│   │   ├── karimo-configure.md      # /karimo-configure
+│   │   ├── karimo-dashboard.md      # /karimo-dashboard
+│   │   ├── karimo-doctor.md         # /karimo-doctor
+│   │   ├── karimo-feedback.md       # /karimo-feedback (unified with complexity detection)
+│   │   ├── karimo-help.md           # /karimo-help
+│   │   ├── karimo-merge.md          # /karimo-merge (final PR to main)
+│   │   ├── karimo-plan.md           # /karimo-plan (with interactive review)
+│   │   ├── karimo-plugin.md         # /karimo-plugin
+│   │   ├── karimo-research.md       # /karimo-research (required first step)
+│   │   ├── karimo-run.md            # /karimo-run (brief gen + execution)
+│   │   ├── karimo-status.md         # /karimo-status
+│   │   ├── karimo-test.md           # /karimo-test
+│   │   └── karimo-update.md         # /karimo-update
 │   ├── skills/                      # 6 skills from manifest
 │   │   ├── karimo-bash-utilities.md       # Bash utilities
 │   │   ├── karimo-research-methods.md     # Research methodology
