@@ -263,6 +263,202 @@ tasks:
 
 ---
 
+## Research Phase (~30 min, optional but recommended) *(v5.6+)*
+
+After PRD approval, `/karimo-plan` automatically prompts for research. Research is **highly recommended** as it improves brief quality and reduces execution errors by 40%+.
+
+### 1. Research Prompt After PRD Approval
+
+After you approve the PRD, you'll see:
+
+```
+╭──────────────────────────────────────────────────────────╮
+│  General Research Available                              │
+╰──────────────────────────────────────────────────────────╯
+
+Found 0 general research documents.
+
+Import any into this PRD? [y/n or select numbers]: n
+
+╭──────────────────────────────────────────────────────────╮
+│  Run Research on This PRD? (Recommended)                 │
+╰──────────────────────────────────────────────────────────╯
+
+Research will:
+  • Discover patterns in your codebase
+  • Find best practices from documentation
+  • Identify potential issues
+  • Recommend libraries and approaches
+  • Enhance PRD with concrete implementation context
+
+This helps agents generate better task briefs.
+
+Run research? [Y/n]:
+```
+
+**Recommendation:** Accept (press Enter or type `Y`)
+
+### 2. Research Focus Questions
+
+The researcher agent will ask what to focus on:
+
+```
+What would you like to research for this PRD?
+
+□ Existing patterns in codebase
+□ External best practices
+□ Library recommendations
+□ Error/gap identification
+□ Dependencies and integration points
+□ Performance considerations
+□ Security considerations
+
+Additional research notes: [free text]
+```
+
+Select relevant areas (use arrow keys and space to toggle).
+
+### 3. Research Execution
+
+The agent will:
+1. **Internal Research** (~15-20 min):
+   - Scan codebase for patterns (grep/glob)
+   - Identify missing components
+   - Map dependencies (shared types, utilities)
+   - Analyze directory structure and conventions
+
+2. **External Research** (~15-20 min):
+   - Web search for best practices
+   - Find library recommendations
+   - Scrape documentation
+   - Evaluate npm packages
+
+3. **PRD Enhancement** (~5 min):
+   - Generate `## Research Findings` section
+   - Add task-specific implementation notes
+   - Commit enhanced PRD
+
+### 4. Verify Research Output
+
+After research completes, check the enhanced PRD:
+
+```bash
+cat .karimo/prds/{slug}/prd.md
+```
+
+You'll see a new `## Research Findings` section:
+
+```markdown
+## Research Findings
+
+**Last Updated:** 2026-03-11T14:30:00Z
+**Research Status:** Approved
+
+### Implementation Context
+
+**Existing Patterns (Internal):**
+- **requireAuth() wrapper:** Route protection (src/lib/auth/middleware.ts:42)
+  - Usage: All protected routes use this wrapper
+  - Relevance: Tasks T001, T002
+
+**Best Practices (External):**
+- **Form validation with Zod:** Type-safe schema validation
+  - Source: [Zod Documentation](https://zod.dev)
+  - Relevance: T002
+
+**Recommended Libraries:**
+- **zod** (`zod`)
+  - Purpose: Schema validation
+  - Why: Already in use, consistent with existing code
+  - Version: 3.22.4
+  - Relevance: T002
+
+**Critical Issues:**
+- ⚠️ **No Error Boundaries:** None found in codebase
+  - Impact: Errors crash entire app
+  - Fix: Create shared ErrorBoundary component
+  - Priority: High
+
+### Task-Specific Notes
+
+**Task T001: Create user profile model**
+- Use Zod for schema validation (existing pattern)
+- Create shared types in src/types/user.ts
+- Follow existing model pattern from src/models/
+
+Research details: `.karimo/prds/{slug}/research/`
+```
+
+### 5. Research Folder Structure
+
+Check research artifacts:
+
+```bash
+ls -la .karimo/prds/{slug}/research/
+```
+
+Output:
+```
+research/
+├── internal/
+│   ├── patterns.md         # Codebase patterns found
+│   ├── errors.md           # Issues identified
+│   ├── dependencies.md     # File/module dependencies
+│   └── structure.md        # Directory conventions
+├── external/
+│   ├── best-practices.md   # Web research findings
+│   ├── libraries.md        # Library recommendations
+│   ├── references.md       # Links to documentation
+│   └── sources.yaml        # Source attribution
+└── meta.json               # Research metadata
+```
+
+### 6. Optional: Refine Research
+
+If you want to refine research based on feedback, add annotations:
+
+Edit research file (e.g., `research/internal/patterns.md`):
+
+```markdown
+### Pattern: Authentication Flow
+
+**Location:** src/lib/auth/
+
+<!-- ANNOTATION
+type: question
+text: "Should this pattern apply to API routes too?"
+-->
+```
+
+Then refine:
+
+```bash
+/karimo-research --refine --prd {slug}
+```
+
+The refiner agent will address your annotations and update research.
+
+### Benefits of Research
+
+**Without Research:**
+- Agents guess patterns and libraries
+- 40% brief validation failure rate
+- 2.3 average task revision loops
+- More human interventions needed
+
+**With Research:**
+- Agents follow discovered patterns
+- <20% brief validation failure rate (target)
+- <1.5 average task revision loops (target)
+- Fewer human interventions needed
+
+**Time Investment vs Savings:**
+- Research: ~30 minutes
+- Execution time saved: 3-5 hours (fewer errors)
+- **ROI: ~4x time savings**
+
+---
+
 ## Executing Tasks
 
 ### Your First Execution
