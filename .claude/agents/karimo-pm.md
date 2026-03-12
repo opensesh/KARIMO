@@ -85,6 +85,77 @@ KARIMO supports two execution modes, detected automatically from `status.json`:
 
 ---
 
+## Lifecycle Hooks
+
+KARIMO supports optional lifecycle hooks that trigger at key execution points. Hooks are executable scripts in `.karimo/hooks/` that receive context via environment variables.
+
+**Hook Detection:**
+```bash
+# Check if hook exists and is executable
+run_hook() {
+    local hook_name="$1"
+    local hook_path=".karimo/hooks/${hook_name}.sh"
+
+    if [ -x "$hook_path" ]; then
+        echo "Running hook: $hook_name"
+        # Export context as environment variables (see below)
+        "$hook_path"
+        local exit_code=$?
+
+        case $exit_code in
+            0) echo "Hook completed successfully" ;;
+            1) echo "Warning: Hook reported soft failure" ;;
+            2) echo "ERROR: Hook reported hard failure, aborting"; return 2 ;;
+        esac
+
+        return $exit_code
+    else
+        # Hook not found or not executable, skip silently
+        return 0
+    fi
+}
+```
+
+**Environment Variables for Hooks:**
+```bash
+# Task context (for task-level hooks)
+export TASK_ID="{task_id}"
+export PRD_SLUG="{prd_slug}"
+export TASK_NAME="{task_name}"
+export TASK_TYPE="{task_type}"  # implementation, testing, documentation
+export COMPLEXITY="{complexity}"
+export WAVE="{wave_number}"
+export BRANCH_NAME="{prd-slug}-{task-id}"
+export PR_NUMBER="{pr_number}"  # if PR created
+export PR_URL="{pr_url}"        # if PR created
+export PROJECT_ROOT="$(pwd)"
+export KARIMO_VERSION="$(cat .karimo/VERSION)"
+
+# Failure context (for on-failure hook)
+export FAILURE_REASON="{error_message}"
+export ATTEMPT="{loop_count}"
+export MAX_ATTEMPTS="3"
+export ESCALATED_MODEL="{model}"  # sonnet, opus
+
+# Merge context (for on-merge hook)
+export MERGE_SHA="{merge_commit_sha}"
+```
+
+**Hook Invocation Points:**
+1. **pre-wave.sh** — Before wave starts (Step 3: Wave Execution Loop)
+2. **pre-task.sh** — Before spawning worker (Step 3b: Spawn Worker)
+3. **post-task.sh** — After PR created (Step 3c: Create PR)
+4. **post-wave.sh** — After wave completes (Step 3e: Wave Transition)
+5. **on-failure.sh** — When task fails or needs revision (Step 3d, Step 5)
+6. **on-merge.sh** — After PR merges (Step 3e: Wave Transition)
+
+**Exit Codes:**
+- `0` — Success, continue execution
+- `1` — Soft failure, log warning but continue
+- `2` — Hard failure, abort current task/wave
+
+---
+
 ## 5-Step Execution Flow
 
 ### Step 1: Parse, Validate & Plan
@@ -229,6 +300,10 @@ Execute tasks wave by wave. Within a wave, tasks run in parallel. Between waves,
 WHILE waves remain:
   current_wave = next wave with unfinished tasks
 
+  # Run pre-wave hook
+  run_hook pre-wave (export WAVE, PRD_SLUG, TASK_IDS for wave, etc.)
+  if exit_code == 2: abort wave
+
   FOR EACH task in current_wave (parallel, max 3):
     1. Verify all dependencies merged to target branch (base_branch)
     2. Pull latest target branch
@@ -254,6 +329,28 @@ WHILE waves remain:
 #### 3b. Spawn Worker
 
 Workers use Claude Code's native `isolation: worktree`. The PM specifies the branch name.
+
+**Before spawning worker:**
+
+1. **Run pre-task hook:**
+   ```bash
+   export TASK_ID="{task_id}"
+   export PRD_SLUG="{prd_slug}"
+   export TASK_NAME="{task_name}"
+   export TASK_TYPE="{task_type}"
+   export COMPLEXITY="{complexity}"
+   export WAVE="{wave}"
+   export BRANCH_NAME="{prd-slug}-{task-id}"
+   export PROJECT_ROOT="$(pwd)"
+   export KARIMO_VERSION="$(cat .karimo/VERSION)"
+
+   run_hook pre-task
+   if [ $? -eq 2 ]; then
+       echo "Pre-task hook aborted task $TASK_ID"
+       mark_task_failed "$TASK_ID" "Pre-task hook failure"
+       continue
+   fi
+   ```
 
 **Spawn using Task tool:**
 
@@ -314,6 +411,25 @@ When worker completes:
    }
    ```
 
+5. **Run post-task hook:**
+   ```bash
+   export TASK_ID="{task_id}"
+   export PRD_SLUG="{prd_slug}"
+   export TASK_NAME="{task_name}"
+   export TASK_TYPE="{task_type}"
+   export COMPLEXITY="{complexity}"
+   export WAVE="{wave}"
+   export BRANCH_NAME="{prd-slug}-{task-id}"
+   export PR_NUMBER="{pr_number}"
+   export PR_URL="{pr_url}"
+   export PROJECT_ROOT="$(pwd)"
+   export KARIMO_VERSION="$(cat .karimo/VERSION)"
+
+   run_hook post-task
+   # Soft failures (exit 1) logged, but don't abort wave
+   # Hard failures (exit 2) are rare for post-task hooks
+   ```
+
 **PR Body Template:**
 
 ```markdown
@@ -365,10 +481,34 @@ When PR receives `needs-revision` label (score < 3):
 
 **Model escalation:** If task was Sonnet and Greptile flags architectural issues, escalate to Opus for retry.
 
+**After each failed attempt:**
+1. **Run on-failure hook:**
+   ```bash
+   export TASK_ID="{task_id}"
+   export PRD_SLUG="{prd_slug}"
+   export TASK_NAME="{task_name}"
+   export TASK_TYPE="{task_type}"
+   export COMPLEXITY="{complexity}"
+   export WAVE="{wave}"
+   export BRANCH_NAME="{prd-slug}-{task-id}"
+   export PR_NUMBER="{pr_number}"
+   export PR_URL="{pr_url}"
+   export FAILURE_REASON="{greptile_feedback_summary}"
+   export ATTEMPT="{loop_count}"
+   export MAX_ATTEMPTS="3"
+   export ESCALATED_MODEL="{model}"
+   export PROJECT_ROOT="$(pwd)"
+   export KARIMO_VERSION="$(cat .karimo/VERSION)"
+
+   run_hook on-failure
+   # Typically logs/alerts, rarely aborts
+   ```
+
 **After 3 failed attempts:**
-1. Mark task `needs-human-review`
-2. Add `blocked-needs-human` label
-3. Continue with other tasks
+1. Run on-failure hook with `ATTEMPT=3` (final failure)
+2. Mark task `needs-human-review`
+3. Add `blocked-needs-human` label
+4. Continue with other tasks
 
 ---
 
@@ -442,10 +582,33 @@ Code Review posts findings as inline PR comments with severity markers. PM Agent
 - "dependency injection", "abstraction"
 - "type system", "interface", "contract"
 
+**After each failed attempt:**
+1. **Run on-failure hook:**
+   ```bash
+   export TASK_ID="{task_id}"
+   export PRD_SLUG="{prd_slug}"
+   export TASK_NAME="{task_name}"
+   export TASK_TYPE="{task_type}"
+   export COMPLEXITY="{complexity}"
+   export WAVE="{wave}"
+   export BRANCH_NAME="{prd-slug}-{task-id}"
+   export PR_NUMBER="{pr_number}"
+   export PR_URL="{pr_url}"
+   export FAILURE_REASON="{code_review_findings_summary}"
+   export ATTEMPT="{loop_count}"
+   export MAX_ATTEMPTS="3"
+   export ESCALATED_MODEL="{model}"
+   export PROJECT_ROOT="$(pwd)"
+   export KARIMO_VERSION="$(cat .karimo/VERSION)"
+
+   run_hook on-failure
+   ```
+
 **After 3 failed attempts:**
-1. Mark task `needs-human-review`
-2. Add `blocked-needs-human` label to PR
-3. Continue with other tasks
+1. Run on-failure hook with `ATTEMPT=3` (final failure)
+2. Mark task `needs-human-review`
+3. Add `blocked-needs-human` label to PR
+4. Continue with other tasks
 
 **Key difference from Greptile:** Code Review auto-resolves threads when issues are fixed. PM Agent should check remaining *unresolved* threads for 🔴 findings.
 
@@ -466,20 +629,60 @@ When all tasks in a wave have merged PRs:
    done
    ```
 
-2. **Update findings.md:**
+2. **Run on-merge hook for each merged PR:**
+   ```bash
+   for task_id in wave_tasks; do
+     branch="{prd-slug}-${task_id}"
+     merge_sha=$(gh pr view "$branch" --json mergeCommit --jq '.mergeCommit.oid')
+     pr_number=$(gh pr view "$branch" --json number --jq '.number')
+     pr_url=$(gh pr view "$branch" --json url --jq '.url')
+
+     export TASK_ID="$task_id"
+     export PRD_SLUG="{prd_slug}"
+     export TASK_NAME="{task_name}"
+     export TASK_TYPE="{task_type}"
+     export COMPLEXITY="{complexity}"
+     export WAVE="{wave}"
+     export BRANCH_NAME="$branch"
+     export PR_NUMBER="$pr_number"
+     export PR_URL="$pr_url"
+     export MERGE_SHA="$merge_sha"
+     export PROJECT_ROOT="$(pwd)"
+     export KARIMO_VERSION="$(cat .karimo/VERSION)"
+
+     run_hook on-merge
+     # Continue even if hook fails (soft/hard failures logged)
+   done
+   ```
+
+3. **Update findings.md:**
    - Read merged PRs from the wave (file diffs, PR descriptions)
    - Append summary to `.karimo/prds/{slug}/findings.md`:
      - Files modified and patterns established
      - Architectural decisions for next wave
      - Known issues or TODOs
 
-3. **Verify target branch is stable:**
+4. **Verify target branch is stable:**
    ```bash
    git checkout $base_branch && git pull origin $base_branch
    # Run validation commands from config.yaml
    ```
 
-4. **Proceed to next wave**
+5. **Run post-wave hook:**
+   ```bash
+   export WAVE="{wave}"
+   export PRD_SLUG="{prd_slug}"
+   export WAVE_TASK_COUNT="{number of tasks in wave}"
+   export WAVE_SUCCESS_COUNT="{number of successful merges}"
+   export WAVE_FAILURE_COUNT="{number of failed tasks}"
+   export PROJECT_ROOT="$(pwd)"
+   export KARIMO_VERSION="$(cat .karimo/VERSION)"
+
+   run_hook post-wave
+   # Continue even if hook fails (typically for cleanup/notifications)
+   ```
+
+6. **Proceed to next wave**
 
 ---
 

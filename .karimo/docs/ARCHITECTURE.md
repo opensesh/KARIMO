@@ -162,6 +162,154 @@ If the user already has a `## KARIMO` section in their `CLAUDE.md`, `install.sh`
 
 ---
 
+## Lifecycle Hooks
+
+KARIMO supports optional lifecycle hooks that execute custom scripts at key points during task execution. Hooks enable integration with external systems (Slack, Jira, PagerDuty), custom validation, deployment triggers, and monitoring.
+
+### Hook System Architecture
+
+**Location:** `.karimo/hooks/`
+
+**Hook Types:**
+
+| Hook | Trigger Point | Purpose |
+|------|--------------|---------|
+| `pre-wave.sh` | Before wave starts | Reserve resources, notify team, prepare infrastructure |
+| `pre-task.sh` | Before spawning task agent | Send notifications, create tracking tickets, validate preconditions |
+| `post-task.sh` | After PR created | Update project management tools, trigger deployments, send completion alerts |
+| `post-wave.sh` | After wave completes | Clean up resources, send batch reports, trigger CI/CD |
+| `on-failure.sh` | When task fails or needs revision | Alert on-call engineers, create incidents, log failures |
+| `on-merge.sh` | After PR merges to target branch | Trigger production deployments, update changelogs, notify stakeholders |
+
+**Hook Interface:**
+
+Hooks receive context via environment variables:
+
+```bash
+# Task context (all hooks)
+export TASK_ID="{task_id}"
+export PRD_SLUG="{prd_slug}"
+export TASK_NAME="{task_name}"
+export TASK_TYPE="{task_type}"  # implementation, testing, documentation
+export COMPLEXITY="{complexity}"
+export WAVE="{wave}"
+export BRANCH_NAME="{prd-slug}-{task-id}"
+export PROJECT_ROOT="$(pwd)"
+export KARIMO_VERSION="$(cat .karimo/VERSION)"
+
+# PR context (post-task, on-merge, on-failure)
+export PR_NUMBER="{pr_number}"
+export PR_URL="{pr_url}"
+
+# Failure context (on-failure only)
+export FAILURE_REASON="{error_message}"
+export ATTEMPT="{loop_count}"
+export MAX_ATTEMPTS="3"
+export ESCALATED_MODEL="{model}"
+
+# Merge context (on-merge only)
+export MERGE_SHA="{merge_commit_sha}"
+```
+
+**Exit Codes:**
+
+| Code | Meaning | Effect |
+|------|---------|--------|
+| `0` | Success | Continue execution |
+| `1` | Soft failure | Log warning, continue execution |
+| `2` | Hard failure | Abort current task/wave |
+
+**Hook Execution Flow:**
+
+```
+Wave Start
+  │
+  └─► pre-wave.sh (exit 2 aborts wave)
+       │
+       └─► For each task in wave:
+            │
+            ├─► pre-task.sh (exit 2 skips task)
+            │    │
+            │    └─► Task agent executes
+            │         │
+            │         └─► PR created
+            │              │
+            │              └─► post-task.sh (failures logged)
+            │                   │
+            │                   └─► Review cycle
+            │                        │
+            │                        ├─► (if fails) on-failure.sh
+            │                        │
+            │                        └─► (if merges) on-merge.sh
+            │
+            └─► After all tasks merge:
+                 │
+                 └─► post-wave.sh
+```
+
+**Creating Hooks:**
+
+1. Copy example hook:
+   ```bash
+   cp .karimo/hooks/pre-task.example.sh .karimo/hooks/pre-task.sh
+   ```
+
+2. Make executable:
+   ```bash
+   chmod +x .karimo/hooks/pre-task.sh
+   ```
+
+3. Customize logic:
+   ```bash
+   #!/bin/bash
+   # Send Slack notification
+   curl -X POST $SLACK_WEBHOOK \
+     -d "{\"text\": \"Task started: $TASK_NAME\"}"
+   exit 0
+   ```
+
+**Multi-Language Hooks:**
+
+Hooks can be written in any language. The filename must end in `.sh` and be executable:
+
+```bash
+# Python hook
+#!/usr/bin/env python3
+import os, requests
+webhook = os.getenv('SLACK_WEBHOOK_URL')
+# ... logic ...
+
+# Node.js hook
+#!/usr/bin/env node
+const webhook = process.env.SLACK_WEBHOOK_URL;
+// ... logic ...
+
+# Make executable and symlink
+chmod +x pre-task.py
+ln -s pre-task.py pre-task.sh
+```
+
+**Disabling Hooks:**
+
+```bash
+# Remove execute permission
+chmod -x .karimo/hooks/pre-task.sh
+
+# Or rename
+mv .karimo/hooks/pre-task.sh .karimo/hooks/pre-task.sh.disabled
+```
+
+**Security:**
+
+- Never commit secrets to hook files
+- Use environment variables for sensitive data
+- Validate external inputs
+- Test hooks independently before PRD execution
+
+**Documentation:** See `.karimo/hooks/README.md` for comprehensive examples including Slack, Jira, PagerDuty, and deployment integrations.
+
+---
+
 ## System Flow
 
 ```
