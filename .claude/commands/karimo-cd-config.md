@@ -6,7 +6,7 @@
 - `/karimo-cd-config` → `/karimo-configure --cd` (configure CD provider)
 - `/karimo-cd-config --check` → `/karimo-configure --check` (view configuration)
 
-**This command will be removed in v6.0.**
+**This command is deprecated and will be removed in v8.0.**
 
 ---
 
@@ -46,7 +46,7 @@ Use instead:
   • /karimo-configure --cd    (configure CD provider)
   • /karimo-configure --check (view current config)
 
-This command will be removed in v6.0.
+This command is deprecated and will be removed in v8.0.
 
 Continuing with legacy flow...
 ```

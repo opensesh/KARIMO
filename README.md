@@ -72,9 +72,9 @@ KARIMO is a **framework and Claude Code plugin** for PRD-driven autonomous devel
 
 ---
 
-## v4.0 Execution Model
+## Execution Model
 
-KARIMO v4.0 uses a simplified PR-centric workflow:
+KARIMO uses a PR-centric workflow with wave-based execution:
 
 ```
 Wave 1: [task-1a, task-1b] ─── parallel execution, PRs to main

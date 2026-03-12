@@ -168,9 +168,9 @@ GitHub-native monitoring — no separate dashboard needed:
 
 ---
 
-## Execution Model (v4.0)
+## Execution Model
 
-KARIMO v4.0 uses a simplified PR-centric workflow:
+KARIMO uses a PR-centric workflow with wave-based execution:
 
 **Key Features:**
 - PRs target `main` directly (no feature branches)

@@ -14,7 +14,7 @@
 > - Standard git workflow (clear diff, atomic commits)
 > - No complex modification protocol
 >
-> This command remains available for backward compatibility but will be removed in v6.0.
+> This command remains available for backward compatibility but will be removed in v8.0.
 
 ---
 

@@ -1032,7 +1032,7 @@ When config already exists, shows current vs new values:
 - `/karimo-cd-config` → `/karimo-configure --cd` (configure CD provider)
 - `/karimo-cd-config --check` → `/karimo-configure --check` (view configuration)
 
-**This command will be removed in v6.0.**
+**This command is deprecated and will be removed in v8.0.**
 
 ---
 
