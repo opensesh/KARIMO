@@ -26,28 +26,32 @@ KARIMO is a **framework and Claude Code plugin** for PRD-driven autonomous devel
 ## How It Works
 
 ```
-┌──────────┐   ┌──────────┐   ┌──────────┐   ┌──────────┐   ┌─────────────┐   ┌──────────┐
-│ RESEARCH │──▸│   PLAN   │──▸│   RUN    │──▸│  TASKS   │──▸│ ORCHESTRATE │──▸│  MERGE   │
-└──────────┘   └──────────┘   └──────────┘   └──────────┘   └─────────────┘   └──────────┘
-      │                                            │               │               │
-      ▼                                            ▼               │               ▼
-┌──────────┐                                ┌─────────────┐        │         ┌──────────┐
-│  ITERATE │                                │ AUTO-REVIEW │        │         │  MONITOR │
-└──────────┘                                └─────────────┘        │         └──────────┘
-      ▲                                            ▲               │
-      └────────────────────────────────────────────┴───────────────┘
-                                iterate
+┌──────────┐   ┌──────────┐        ┌──────────┐   ┌──────────┐        ┌─────────────┐   ┌──────────┐
+│ RESEARCH │──▸│   PLAN   │───────▸│   RUN    │──▸│  TASKS   │───────▸│ ORCHESTRATE │──▸│  MERGE   │
+└──────────┘   └──────────┘        └──────────┘   └──────────┘        └─────────────┘   └──────────┘
+      │              │                                  │                                     │
+      └──────┬───────┘                                  │                                     │
+             │                                          │                                     │
+        ┌────▼────┐                               ┌─────▼─────┐                          ┌────▼────┐
+        │ ITERATE │                               │AUTO-REVIEW│                          │ MONITOR │
+        └─────────┘                               └───────────┘                          └─────────┘
 ```
 
-| Step | What Happens | Key Details |
-|------|--------------|-------------|
-| **Research** | Discover patterns, libraries, and gaps **(v7.0, required first step)** | Creates PRD folder, internal codebase scan, external best practices |
-| **Plan** | Structured PRD interview captures requirements | 4-round interview, research-informed, uses `--prd` flag |
-| **Run** | Generate task briefs from research + PRD | Brief composition with research context |
-| **Tasks** | Auto-review challenges briefs, user iterates | Order, dependencies, gaps, conflicts checked |
-| **Orchestrate** | Execute tasks in waves after approval | Implementer, tester, documenter agents |
-| **Merge** | Create final PR to main | Feature branch aggregation |
-| **Monitor** | Real-time visibility into progress | `/karimo-status`, PR labels |
+**Two gates before execution:**
+- **Research ↔ Plan** — Iterate until PRD is ready (at least one research pass required)
+- **Tasks ↔ Auto-Review** — Iterate until briefs are approved
+
+**Once you hit Orchestrate, you're on the path.** Tasks execute in waves, PRs get created, and you proceed to merge.
+
+| Step | What Happens |
+|------|--------------|
+| **Research** | Discover patterns, libraries, and gaps — creates PRD folder |
+| **Plan** | Structured interview captures requirements — uses research context |
+| **Run** | Generate task briefs from research + PRD |
+| **Tasks** | Auto-review challenges briefs, user iterates until approved |
+| **Orchestrate** | Execute tasks in waves — no turning back |
+| **Merge** | Create final PR to main |
+| **Monitor** | Real-time visibility into progress |
 
 ---
 
