@@ -4,6 +4,45 @@
 
 {Relevant sections from PRD.md — executive summary, the requirement(s) this task fulfills, UX notes if applicable}
 
+## Research Context
+
+{If PRD has "## Research Findings" section, extract and embed task-specific research here. Otherwise, state "No research available for this PRD."}
+
+### Patterns to Follow
+
+{List existing patterns from PRD research that apply to this task, with file:line references}
+
+- **Pattern Name:** Brief description (path/to/file.ts:42)
+- ...
+
+### Known Issues to Address
+
+{List issues from PRD research that this task should address or be aware of}
+
+- ⚠️ **Issue:** Description and recommended solution
+- ...
+
+### Recommended Approach
+
+{Implementation guidance from PRD research specific to this task}
+
+- Library recommendations with rationale
+- Architectural decisions that affect this task
+- Best practices to apply
+
+### Dependencies
+
+{File and library dependencies from PRD research relevant to this task}
+
+**File Dependencies:**
+- Shared types: path/to/types.ts (created by Task X, imported by this task)
+- Utilities: path/to/utils.ts (existing, extend for this task)
+
+**Library Dependencies:**
+- npm-package-name (install if not present, version X.Y.Z recommended)
+
+{Note: If no research exists, this section will state "No research available. Proceed with standard investigation during implementation."}
+
 ## Task Definition
 
 **ID:** {task_id}
