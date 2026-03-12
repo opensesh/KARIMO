@@ -71,11 +71,15 @@ When you run `bash KARIMO/.karimo/install.sh /path/to/project`, files are copied
 ```
 Target Project/
 ├── .claude/
-│   ├── agents/                      # 13 agents from manifest
+│   ├── agents/                      # 17 agents from manifest
 │   │   ├── karimo-interviewer.md    # PRD interview conductor
 │   │   ├── karimo-investigator.md   # Codebase pattern scanner
+│   │   ├── karimo-researcher.md     # Research conductor (internal + external)
+│   │   ├── karimo-refiner.md        # Annotation processor
 │   │   ├── karimo-reviewer.md       # PRD validation and DAG generation
 │   │   ├── karimo-brief-writer.md   # Task brief generator
+│   │   ├── karimo-brief-reviewer.md # Pre-execution validation
+│   │   ├── karimo-brief-corrector.md # Brief correction agent
 │   │   ├── karimo-pm.md             # Task coordination (never writes code)
 │   │   ├── karimo-review-architect.md # Code-level integration
 │   │   ├── karimo-feedback-auditor.md # Feedback investigation agent
@@ -85,7 +89,7 @@ Target Project/
 │   │   ├── karimo-tester-opus.md    # Task agent: tests (Opus)
 │   │   ├── karimo-documenter.md     # Task agent: docs (Sonnet)
 │   │   └── karimo-documenter-opus.md # Task agent: docs (Opus)
-│   ├── commands/                    # 11 commands from manifest
+│   ├── commands/                    # 14 commands from manifest
 │   │   ├── plan.md                  # /karimo-plan (with interactive review)
 │   │   ├── overview.md              # /karimo-overview (cross-PRD oversight)
 │   │   ├── execute.md               # /karimo-execute (brief gen + execution)
@@ -96,18 +100,19 @@ Target Project/
 │   │   ├── feedback.md              # /karimo-feedback (unified with complexity detection)
 │   │   ├── doctor.md                # /karimo-doctor
 │   │   └── test.md                  # /karimo-test
-│   ├── skills/                      # 5 skills from manifest
-│   │   ├── karimo-git-worktree-ops.md      # Worktree management
-│   │   ├── karimo-github-project-ops.md    # GitHub Projects via gh CLI
-│   │   ├── karimo-code-standards.md     # Task agent skill
-│   │   ├── karimo-testing-standards.md  # Task agent skill
-│   │   └── karimo-doc-standards.md      # Task agent skill
+│   ├── skills/                      # 6 skills from manifest
+│   │   ├── karimo-bash-utilities.md       # Bash utilities
+│   │   ├── karimo-research-methods.md     # Research methodology
+│   │   ├── karimo-external-research.md    # External research patterns
+│   │   ├── karimo-code-standards.md       # Task agent skill
+│   │   ├── karimo-testing-standards.md    # Task agent skill
+│   │   └── karimo-doc-standards.md        # Task agent skill
 │   └── KARIMO_RULES.md              # Agent behavior rules
 │
 ├── .karimo/
 │   ├── MANIFEST.json                # Single source of truth
 │   ├── VERSION                      # Version tracking
-│   ├── templates/                   # 10 templates from manifest
+│   ├── templates/                   # 15 templates from manifest
 │   │   ├── PRD_TEMPLATE.md
 │   │   ├── INTERVIEW_PROTOCOL.md
 │   │   ├── TASK_SCHEMA.md
@@ -313,11 +318,11 @@ mv .karimo/hooks/pre-task.sh .karimo/hooks/pre-task.sh.disabled
 ## System Flow
 
 ```
-┌─────────────────────────────────────────┐    ┌──────────────────────┐    ┌─────────────────────────────────────────┐    ┌────────────┐    ┌─────────────┐    ┌───────────┐
-│            /karimo-plan                 │    │   /karimo-research   │    │           /karimo-run                   │    │   Review   │    │ Reconcile   │    │   Merge   │
-│  Interview → PRD → Review → Approve     │ →  │  (optional, v5.6+)   │ →  │  Brief Gen → Agent Execution → PRs     │ →  │ (Greptile) │ →  │ (Architect) │ →  │   (PR)    │
-│                                         │    │  Pattern Discovery   │    │                                         │    │            │    │             │    │           │
-└─────────────────────────────────────────┘    └──────────────────────┘    └─────────────────────────────────────────┘    └────────────┘    └─────────────┘    └───────────┘
+┌──────────────────────┐    ┌─────────────────────────────────────────┐    ┌─────────────────────────────────────────┐    ┌────────────┐    ┌─────────────┐    ┌───────────┐
+│   /karimo-research   │    │            /karimo-plan                 │    │           /karimo-run                   │    │   Review   │    │ Reconcile   │    │   Merge   │
+│  (required first)    │ →  │  Interview → PRD → Review → Approve     │ →  │  Brief Gen → Agent Execution → PRs     │ →  │ (Greptile) │ →  │ (Architect) │ →  │   (PR)    │
+│  Pattern Discovery   │    │                                         │    │                                         │    │            │    │             │    │           │
+└──────────────────────┘    └─────────────────────────────────────────┘    └─────────────────────────────────────────┘    └────────────┘    └─────────────┘    └───────────┘
 ```
 
 ### Two-Tier Merge Model
@@ -363,9 +368,9 @@ task-branch-1b ─┘         ▲                  ▲
 - `status.json` — Execution tracking (status: `ready` when approved)
 - `findings.md` — Cross-task discoveries (populated during execution)
 
-### Research Phase (`/karimo-research`) *(v5.6+, optional)*
+### Research Phase (`/karimo-research`)
 
-After PRD approval, `/karimo-plan` automatically prompts for research. Research can also be conducted standalone.
+Research is the required first step in v7.0. Run `/karimo-research "feature-name"` to create the PRD folder and run research before `/karimo-plan`.
 
 **Two Research Modes:**
 
@@ -577,8 +582,8 @@ This is the primary human oversight touchpoint — check it each morning or afte
 |-------|---------|-------|--------------|
 | **Interviewer** | Conducts PRD interview | Sonnet | No |
 | **Investigator** | Scans codebase for patterns | Sonnet | No |
-| **Researcher** | Conducts research (internal + external) (v5.6+) | Sonnet | No (creates research docs) |
-| **Refiner** | Processes annotations, refines research (v5.6+) | Sonnet | No (updates research docs) |
+| **Researcher** | Conducts research (internal + external) | Sonnet | No (creates research docs) |
+| **Refiner** | Processes annotations, refines research | Sonnet | No (updates research docs) |
 | **Reviewer** | Validates PRD, generates DAG | Opus | No |
 | **Brief Writer** | Generates task briefs | Sonnet | No |
 | **Brief Reviewer** | Pre-execution validation of briefs (v5.1) | Sonnet | No (findings doc only) |
