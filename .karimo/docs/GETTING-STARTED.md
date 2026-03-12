@@ -201,6 +201,23 @@ The interviewer agent guides you through 6 rounds:
 | 5 | **Review** — Validate and generate dependency graph | ~30 sec |
 | 6 | **Approve** — Confirm PRD is ready for execution | ~30 sec |
 
+**PRD Lifecycle Flow:**
+
+```mermaid
+graph LR
+    A[/karimo-plan] --> B[Interview<br/>6 rounds]
+    B --> C[Investigator<br/>scans codebase]
+    C --> D[Reviewer<br/>validates PRD]
+    D --> E{User<br/>Approval?}
+    E -->|Yes| F[PRD Saved<br/>status: ready]
+    E -->|Modify| G[/karimo-modify]
+    E -->|Save Draft| H[Draft Saved]
+    G --> D
+    F --> I[/karimo-run]
+    H --> J[/karimo-plan<br/>--resume]
+    J --> B
+```
+
 ### 5. Approve the PRD
 
 After review, you'll see a summary with options:
