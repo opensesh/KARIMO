@@ -7,6 +7,83 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [7.0.0] - 2026-03-11
+
+**Research-First Workflow & Brief Review Loop**
+
+This major release makes research a required first step and adds a user iterate loop before task execution, improving brief quality by ~40%.
+
+### Breaking Changes
+
+- `/karimo-plan` now requires `--prd {slug}` argument
+- Research must be run first with `/karimo-research "feature-name"`
+- To plan without research, use `--skip-research` flag
+
+### Added
+
+**Research-First Workflow**
+
+- **Feature Init mode**: `/karimo-research "feature-name"` creates PRD folder structure
+  - Creates `.karimo/prds/{slug}/` with research subfolder
+  - Runs internal codebase scan + external best practices research
+  - Generates `research/findings.md` summary
+  - Required first step before planning (unless `--skip-research`)
+
+**4-Phase Execution Model (`/karimo-run`)**
+
+- **Phase 1: Brief Generation** — Creates task briefs informed by research + PRD
+- **Phase 2: Auto-Review** — Challenges brief order, dependencies, gaps, conflicts
+- **Phase 3: User Iterate** — Presents recommendations, allows user feedback
+  - 5 options: Approve, Apply fixes, Modify, More research, Cancel
+  - Loop back to Phase 1 if changes needed
+- **Phase 4: Orchestrate** — Executes tasks in waves after user approval
+
+**New Flags**
+
+- `--skip-research` for `/karimo-plan`: Plan without prior research (not recommended)
+- `--brief-only` for `/karimo-run`: Generate briefs and review, then stop
+
+### Changed
+
+**Command Syntax**
+
+- `/karimo-plan --prd {slug}` — Now requires `--prd` flag with existing research folder
+- `/karimo-research "feature-name"` — Creates PRD folder (Feature Init mode)
+- `/karimo-research --prd {slug}` — Adds to existing research (PRD-Scoped mode)
+
+**Interview Protocol**
+
+- Added research context loading in pre-interview setup
+- Round 1 now displays research findings summary when available
+- Research-informed questions throughout interview
+
+**Documentation**
+
+- README.md: New workflow diagram with iterate loops
+- COMMANDS.md: Updated command reference for v7.0 workflow
+- Deprecated section added for legacy commands
+
+### Removed
+
+- Post-plan research prompt (Step 9 in `/karimo-plan`)
+- Research is now done BEFORE planning, not after
+
+### Migration
+
+**Old workflow (v6.0):**
+```
+/karimo-plan → "Run research?" [Y/n] → /karimo-run
+```
+
+**New workflow (v7.0):**
+```
+/karimo-research "feature" → /karimo-plan --prd feature → /karimo-run --prd feature
+```
+
+**Legacy PRD support:** PRDs created before v7.0 (without research folders) will work but show a warning during execution.
+
+---
+
 ## [6.0.0] - 2026-03-11
 
 **Major UX Improvements & Extensibility Release**
