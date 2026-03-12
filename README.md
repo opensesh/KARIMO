@@ -26,21 +26,23 @@ KARIMO is a **framework and Claude Code plugin** for PRD-driven autonomous devel
 ## How It Works
 
 ```
-┌──────────┐   ┌──────────┐    ┌───────┐   ┌─────────┐   ┌─────────────┐   ┌─────────┐
-│ RESEARCH │──▸│   PLAN   │───▸│  RUN  │──▸│  TASKS  │──▸│ ORCHESTRATE │──▸│  MERGE  │
-└──────────┘   └──────────┘    └───────┘   └─────────┘   └─────────────┘   └─────────┘
-      ▲              │                           ┊                              │
-      │              ▼                           ┊                              │
-      │        ┌─────────┐                ┌──────┴──────┐                 ┌─────▼─────┐
-      └────────┤ ITERATE │                │ AUTO-REVIEW │                 │  MONITOR  │
-               └─────────┘                └─────────────┘                 └───────────┘
+┌──────────┐   ┌──────────┐   ┌───────┐   ┌─────────┐   ┌─────────────┐   ┌─────────┐
+│ RESEARCH │──▸│   PLAN   │──▸│  RUN  │──▸│  TASKS  │──▸│ ORCHESTRATE │──▸│  MERGE  │
+└──────────┘   └──────────┘   └───────┘   └─────────┘   └─────────────┘   └─────────┘
+      ▲              │                         │ ▲              │               ▲
+      │              ▼                         ▼ │              ▼               │
+      │  ┌───────────────────────┐       ┌───────────┐   ┌───────────┐          │
+      └──┤       ITERATE         │       │AUTO-REVIEW│   │  INSPECT* │──────────┘
+         └───────────────────────┘       └───────────┘   └───────────┘
 ```
+
+*\*INSPECT can be manual review, Claude Code Review, or Greptile automated review*
 
 **Two gates before execution:**
 - **Research ↔ Plan** — Iterate until PRD is ready (at least one research pass required)
 - **Tasks ↔ Auto-Review** — Iterate until briefs are approved
 
-**Once you hit Orchestrate, you're on the path.** Tasks execute in waves, PRs get created, and you proceed to merge.
+**Once you hit Orchestrate, you're on the path.** Tasks execute in waves, PRs get created, and inspection validates before merge.
 
 | Step | What Happens |
 |------|--------------|
@@ -48,9 +50,9 @@ KARIMO is a **framework and Claude Code plugin** for PRD-driven autonomous devel
 | **Plan** | Structured interview captures requirements — uses research context |
 | **Run** | Generate task briefs from research + PRD |
 | **Tasks** | Auto-review challenges briefs, user iterates until approved |
-| **Orchestrate** | Execute tasks in waves — no turning back |
+| **Orchestrate** | Execute tasks in waves — PRs created |
+| **Inspect*** | Review PRs (manual, Code Review, or Greptile) |
 | **Merge** | Create final PR to main |
-| **Monitor** | Real-time visibility into progress |
 
 ---
 
