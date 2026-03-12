@@ -40,9 +40,91 @@ The script will:
 4. **Show what will be updated** (if update available)
 5. **Apply updates** after user confirmation
 
-### Step 3: Post-Update
+### Step 3: Check Config Version & Run Migrations
 
-If updates were applied, suggest:
+After update script completes successfully, check if config migration is needed:
+
+```bash
+# Get current config version
+if [ -f .karimo/config.yaml ]; then
+    config_version=$(grep -E "^config_version:" .karimo/config.yaml | sed 's/.*"\(.*\)".*/\1/' || echo "unknown")
+else
+    echo "Warning: No config.yaml found, skipping migrations"
+    config_version="unknown"
+fi
+
+# Get latest KARIMO version (should match updated VERSION file)
+karimo_version=$(cat .karimo/VERSION)
+
+echo "Config version: $config_version"
+echo "KARIMO version: $karimo_version"
+
+# Determine if migration needed
+if [ "$config_version" != "unknown" ] && [ "$config_version" != "$karimo_version" ]; then
+    echo
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    echo "Config Migration Required"
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    echo "Your config: v$config_version"
+    echo "Latest KARIMO: v$karimo_version"
+    echo
+
+    # Check for migration scripts
+    migration_count=0
+    for script in .karimo/migrations/v*.sh; do
+        if [ -f "$script" ] && [ -x "$script" ]; then
+            # Extract version numbers from script name (e.g., v1-to-v2.sh)
+            script_name=$(basename "$script")
+            if [[ "$script_name" =~ v([0-9.]+)-to-v([0-9.]+) ]]; then
+                from_ver="${BASH_REMATCH[1]}"
+                to_ver="${BASH_REMATCH[2]}"
+
+                # Check if this migration applies to current config
+                if [ "$config_version" = "$from_ver" ]; then
+                    echo "Running migration: $script_name"
+                    echo "  From: v$from_ver"
+                    echo "  To:   v$to_ver"
+                    echo
+
+                    # Run migration
+                    if bash "$script" .karimo/config.yaml; then
+                        echo "✓ Migration succeeded: v$from_ver → v$to_ver"
+                        echo
+                        config_version="$to_ver"  # Update for next migration
+                        migration_count=$((migration_count + 1))
+                    else
+                        echo "✗ Migration failed: $script_name"
+                        echo
+                        echo "Error: Config migration failed. Please review the error above."
+                        echo "Your config has been backed up to: .karimo/config.yaml.backup-*"
+                        echo
+                        exit 1
+                    fi
+                fi
+            fi
+        fi
+    done
+
+    if [ $migration_count -eq 0 ]; then
+        echo "No migrations found for v$config_version → v$karimo_version"
+        echo
+        echo "Manual migration may be required. See:"
+        echo "  .karimo/migrations/README.md"
+        echo
+    else
+        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        echo "✓ Applied $migration_count migration(s)"
+        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        echo
+    fi
+elif [ "$config_version" = "$karimo_version" ]; then
+    echo "Config is up to date (v$config_version)"
+fi
+```
+
+### Step 4: Post-Update Summary
+
+After migrations (if any), show completion summary:
 
 ```
 ╭──────────────────────────────────────────────────────────────╮
@@ -50,11 +132,13 @@ If updates were applied, suggest:
 ╰──────────────────────────────────────────────────────────────╯
 
 Updated to version: X.Y.Z
+Config migrated: vA.B → vX.Y (if applicable)
 
 Recommended next steps:
   1. Run /karimo-doctor to verify the updated installation
   2. Review changelog at https://github.com/opensesh/KARIMO/releases
-  3. Commit: git add -A && git commit -m "chore: update KARIMO to X.Y.Z"
+  3. Check migration backups: ls .karimo/config.yaml.backup-*
+  4. Commit: git add -A && git commit -m "chore: update KARIMO to X.Y.Z"
 ```
 
 ---
