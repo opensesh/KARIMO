@@ -7,6 +7,49 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [7.3.0] - 2026-03-12
+
+**OpenViking Context Architecture**
+
+This release implements OpenViking-inspired context architecture for efficient token usage and quick context scanning.
+
+### Added
+
+**L0/L1/L2 Context Layering**
+
+- **L0 Abstracts** (~100 tokens) — Quick scanning summaries for agents and skills
+  - 17 agent abstract files (`.claude/agents/*.abstract.md`)
+  - 7 skill abstract files (`.claude/skills/*.abstract.md`)
+- **L1 Overviews** (~2K tokens) — Category summaries with navigation tables
+  - `.claude/agents.overview.md` — All agents at a glance
+  - `.claude/skills.overview.md` — All skills with agent mapping
+- **Brief abstracts** — Generated alongside full briefs during `/karimo-run`
+  - `.karimo/prds/{slug}/briefs/*.abstract.md` (~50 tokens each)
+  - `briefs.overview.md` — Per-PRD brief summary
+
+**Categorized Learnings System**
+
+- New directory structure: `.karimo/learnings/{patterns,anti-patterns,project-notes,execution-rules}/`
+- Category index files for efficient retrieval
+- Learning entry template with severity levels (critical, important, info)
+- Migration from flat `learnings.md` to directory structure
+
+**Cross-PRD Findings Index**
+
+- New directory structure: `.karimo/findings/{by-prd,by-pattern}/`
+- Pattern promotion guide (`PROMOTION_GUIDE.md`)
+- PM agent now detects and indexes cross-PRD patterns during finalization
+
+### Changed
+
+- Updated all agent references to use `.karimo/learnings/` directory
+- Updated `/karimo-feedback` command to write to categorized directories
+- Brief-writer now generates L0 abstracts after each brief
+- Update script now handles migration from flat `learnings.md`
+- Documentation updated: README, ARCHITECTURE, COMPOUND-LEARNING
+
+---
+
 ## [7.2.0] - 2026-03-12
 
 **Enhanced Research System with Two-Phase Model**

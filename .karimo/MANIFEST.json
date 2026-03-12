@@ -1,5 +1,5 @@
 {
-  "version": "7.2.0",
+  "version": "7.3.0",
   "deprecated": {
     "commands": ["karimo-modify.md", "karimo-finish.md", "karimo-overview.md", "karimo-learn.md", "karimo-cd-config.md", "karimo-execute.md", "karimo-orchestrate.md"],
     "agents": [],
