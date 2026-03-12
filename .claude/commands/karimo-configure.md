@@ -5,7 +5,9 @@ Create or update KARIMO configuration in `.karimo/config.yaml`. Use this when yo
 ## Usage
 
 ```
-/karimo-configure              # Create new config or update existing
+/karimo-configure              # Basic Mode (default): 3 questions, ~5 min
+/karimo-configure --advanced   # Advanced Mode: Full control, 9+ questions, ~15 min
+/karimo-configure --auto       # Auto Mode: Zero prompts, accepts all defaults, <1 min
 /karimo-configure --reset      # Start fresh, ignore existing config
 /karimo-configure --preview    # Preview auto-detected config without saving
 /karimo-configure --validate   # Validate existing config against current project
@@ -15,6 +17,14 @@ Create or update KARIMO configuration in `.karimo/config.yaml`. Use this when yo
 /karimo-configure --cd           # Configure CD provider to skip KARIMO branches
 /karimo-configure --check        # Show current configuration status
 ```
+
+**Configuration Modes:**
+
+| Mode | Time | Questions | Best For |
+|------|------|-----------|----------|
+| **Basic** (default) | ~5 min | 3 | Quick setup, standard projects |
+| **Advanced** (`--advanced`) | ~15 min | 9+ | Custom setup, non-standard projects |
+| **Auto** (`--auto`) | <1 min | 0 | CI/CD, testing, scripted installs |
 
 **This command writes configuration to `.karimo/config.yaml` (single source of truth).**
 
@@ -695,7 +705,323 @@ options:
 
 ---
 
-### Step 1: Auto-Detection
+## Configuration Modes
+
+KARIMO offers three configuration modes to match your needs:
+
+| Mode | Questions | Time | Use Case | Flag |
+|------|-----------|------|----------|------|
+| **Basic** | 3 | ~5 min | Quick setup, trust auto-detection | (default) |
+| **Advanced** | 9+ | ~15 min | Full control, custom setup | `--advanced` |
+| **Auto** | 0 | <1 min | CI/CD, testing, scripted | `--auto` |
+
+### Mode Selection Logic
+
+**Determine which mode to use based on flags:**
+
+```bash
+if [ "$1" == "--auto" ]; then
+    MODE="auto"
+elif [ "$1" == "--advanced" ]; then
+    MODE="advanced"
+else
+    MODE="basic"  # Default
+fi
+```
+
+**Route to appropriate flow:**
+- **Basic Mode** → See "Basic Mode Flow" below
+- **Advanced Mode** → See "Advanced Mode Flow" (Step 1-6)
+- **Auto Mode** → See "Auto Mode Flow" below
+
+---
+
+## Basic Mode Flow (Default)
+
+**Time: ~5 minutes | Questions: 3**
+
+Basic Mode auto-detects everything and asks only essential questions.
+
+### Basic Step 1: Auto-Detect Project
+
+Spawn investigator agent to detect:
+- Runtime (Node.js, Python, Ruby, etc.)
+- Framework (Next.js, Django, Rails, etc.)
+- Package manager (npm, yarn, pnpm, pip, etc.)
+- Build/test/lint commands from project files
+- Common boundary patterns for framework
+
+**Display detected values:**
+
+```
+╭──────────────────────────────────────────────────────────────╮
+│  KARIMO Configuration (Basic Mode)                            │
+╰──────────────────────────────────────────────────────────────╯
+
+Auto-detected project settings:
+
+Runtime: Node.js 20
+Framework: Next.js 14
+Package manager: pnpm
+
+Commands:
+  Build: pnpm build
+  Test: pnpm test
+  Lint: pnpm lint
+  Typecheck: pnpm typecheck
+
+Suggested boundaries:
+  never_touch: node_modules/**, .next/**, *.lock, .env*
+  require_review: package.json, next.config.js, tsconfig.json
+
+Let's confirm a few key settings...
+```
+
+---
+
+### Basic Step 2: Confirm Detection
+
+**Question 1 of 3: Confirm detected settings**
+
+Use AskUserQuestion:
+
+```
+header: "Detection"
+question: "Confirm auto-detected runtime and framework?"
+options:
+  - label: "Yes, use detected settings (Recommended)"
+    description: "Runtime: Node.js 20, Framework: Next.js 14, Package manager: pnpm"
+  - label: "Edit runtime/framework"
+    description: "Manually specify runtime, framework, or package manager"
+```
+
+**If "Edit" selected:**
+- Prompt for runtime (dropdown: Node.js, Python, Ruby, Go, Rust, other)
+- Prompt for framework (dropdown based on runtime)
+- Prompt for package manager (dropdown based on runtime)
+- Prompt for commands (text input, pre-filled with detected values)
+
+**If "Use detected" selected:**
+- Skip to next question
+
+---
+
+### Basic Step 3: File Boundaries
+
+**Question 2 of 3: Which files should agents never touch?**
+
+Show common patterns based on detected framework:
+
+Use AskUserQuestion:
+
+```
+header: "Boundaries"
+question: "Which files should agents NEVER modify?"
+multiSelect: true
+options:
+  - label: "Dependencies (node_modules, vendor, etc.)"
+    description: "Prevents agents from editing package dependencies"
+  - label: "Build outputs (.next, dist, build, etc.)"
+    description: "Generated files that should not be manually edited"
+  - label: "Lock files (package-lock.json, yarn.lock, etc.)"
+    description: "Package manager lock files"
+  - label: "Environment files (.env, .env.*, secrets.*)"
+    description: "Secrets and environment configuration"
+  - label: "Database migrations (*/migrations/**, db/migrate/**)"
+    description: "Historical migration files (for Django, Rails, etc.)"
+```
+
+**Additional patterns:**
+
+Display detected framework-specific patterns and ask for confirmation:
+
+```
+Additional patterns suggested for Next.js:
+  never_touch:
+    - .next/**
+    - out/**
+
+  require_review:
+    - next.config.js
+    - middleware.ts
+
+Include these? [Y/n]
+```
+
+**See GLOB_PATTERNS.md for more framework-specific patterns**
+
+Link to: `.karimo/docs/GLOB_PATTERNS.md`
+
+---
+
+### Basic Step 4: Automated Review
+
+**Question 3 of 3: Enable automated code review?**
+
+Use AskUserQuestion:
+
+```
+header: "Review"
+question: "Enable automated code review for task PRs?"
+options:
+  - label: "No (Manual review only)"
+    description: "Review PRs manually via GitHub. No additional cost."
+  - label: "Yes - Greptile ($30/month flat)"
+    description: "Automated review with revision loops. Best for high volume (50+ PRs/month)"
+  - label: "Yes - Claude Code Review ($15-25/PR)"
+    description: "Automated review via Claude. Best for low-medium volume"
+```
+
+**If "No" selected:**
+- Skip review setup
+- Document in config.yaml: `review.enabled: false`
+
+**If "Greptile" selected:**
+- Run `/karimo-configure --greptile` flow (installs workflow)
+- Document in config.yaml: `review.provider: "greptile"`
+
+**If "Code Review" selected:**
+- Run `/karimo-configure --code-review` flow (setup instructions)
+- Document in config.yaml: `review.provider: "code-review"`
+
+---
+
+### Basic Mode: Save Configuration
+
+After 3 questions answered, save to `.karimo/config.yaml`:
+
+```yaml
+config_version: "2.0"
+
+project:
+  runtime: "node"
+  framework: "next"
+  package_manager: "pnpm"
+
+commands:
+  build: "pnpm build"
+  test: "pnpm test"
+  lint: "pnpm lint"
+  typecheck: "pnpm typecheck"
+
+boundaries:
+  never_touch:
+    - "node_modules/**"
+    - ".next/**"
+    - "*.lock"
+    - ".env*"
+    - "out/**"
+
+  require_review:
+    - "package.json"
+    - "next.config.js"
+    - "tsconfig.json"
+    - "middleware.ts"
+
+github:
+  owner_type: "organization"  # Auto-detected from gh repo view
+  owner: "opensesh"
+  repository: "my-project"
+
+execution:
+  default_model: "sonnet"
+  max_parallel_tasks: 3
+  pre_pr_checks:
+    - "build"
+    - "typecheck"
+    - "lint"
+
+review:
+  enabled: false
+  provider: null
+
+cost_controls:
+  enable_escalation: true
+  max_attempts: 3
+  retry_delay_seconds: 10
+```
+
+**Display confirmation:**
+
+```
+╭──────────────────────────────────────────────────────────────╮
+│  Configuration Complete                                       │
+╰──────────────────────────────────────────────────────────────╯
+
+✅ Saved to .karimo/config.yaml
+
+Project: Next.js 14 (Node.js 20)
+Package manager: pnpm
+Review: Manual (no automated review)
+
+Boundaries:
+  • Never touch: node_modules, build outputs, lock files, env files
+  • Require review: package.json, config files
+
+Next steps:
+  1. Create your first PRD: /karimo-plan
+  2. View configuration: cat .karimo/config.yaml
+  3. Modify settings: /karimo-configure --advanced
+
+Tip: Run /karimo-doctor to verify installation
+```
+
+**Exit after saving.** Basic Mode is complete.
+
+---
+
+## Auto Mode Flow (--auto flag)
+
+**Time: <1 minute | Questions: 0**
+
+Auto Mode accepts all defaults without user interaction. For CI/CD pipelines and automated testing.
+
+### Auto Mode Behavior
+
+1. **Spawn investigator agent** to auto-detect all settings
+2. **Use all detected defaults** (no prompts)
+3. **Set safe defaults for undetected values:**
+   - Default model: sonnet
+   - Max parallel tasks: 3
+   - Pre-PR checks: build, typecheck (if commands detected)
+   - Review: disabled
+   - Escalation: enabled
+   - Max attempts: 3
+4. **Save to config.yaml** immediately
+5. **Display summary** (no confirmation needed)
+
+**Display only:**
+
+```
+╭──────────────────────────────────────────────────────────────╮
+│  Auto Configuration Complete                                  │
+╰──────────────────────────────────────────────────────────────╯
+
+✅ Saved to .karimo/config.yaml (auto-detected settings)
+
+Runtime: Node.js 20
+Framework: Next.js 14
+Package manager: pnpm
+Review: Disabled
+
+All defaults applied. Run /karimo-configure to customize.
+```
+
+**Exit after saving.** No user interaction.
+
+---
+
+## Advanced Mode Flow (--advanced flag)
+
+**Time: ~15 minutes | Questions: 9+**
+
+Advanced Mode provides complete control over all settings. Recommended for non-standard projects or when auto-detection fails.
+
+**Proceed to detailed steps below (Step 1-6).**
+
+---
+
+### Step 1: Auto-Detection (Advanced Mode)
 
 Scan project for smart defaults:
 
