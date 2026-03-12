@@ -11,9 +11,10 @@ Reference for all KARIMO slash commands available in Claude Code.
 | Command | Purpose |
 |---------|---------|
 | `/karimo-plan` | Start PRD interview with interactive approval |
+| `/karimo-research [--prd {slug}]` | Conduct research (general or PRD-scoped) |
 | `/karimo-run --prd {slug}` | Execute tasks (feature branch workflow, **recommended**) |
 | `/karimo-merge --prd {slug}` | Create final PR to main after execution |
-| `/karimo-modify --prd {slug}` | Modify approved PRD before execution |
+| `/karimo-modify --prd {slug}` | **[DEPRECATED]** Modify approved PRD (use direct editing) |
 | `/karimo-status [--prd {slug}]` | Monitor progress (no arg = all PRDs, with arg = details) |
 | `/karimo-feedback` | Intelligent feedback capture with auto-detection (simple or complex) |
 
@@ -86,6 +87,169 @@ Creates `.karimo/prds/{slug}/`:
 > I want to add user profile pages where users can edit their
 > name, avatar, and notification preferences.
 ```
+
+---
+
+## /karimo-research
+
+**NEW in v5.6:** Conduct research to enhance PRD quality and reduce execution errors.
+
+### Usage
+
+```bash
+# General research (not tied to PRD)
+/karimo-research "topic to research"
+
+# PRD-scoped research (after PRD creation)
+/karimo-research --prd {slug}
+
+# Refine research based on annotations
+/karimo-research --refine --prd {slug}
+
+# Research with constraints
+/karimo-research --prd {slug} --internal-only    # Skip external research
+/karimo-research --prd {slug} --external-only    # Skip codebase research
+```
+
+### What It Does
+
+**General Research Mode:**
+1. Interactive questions about research focus
+2. Internal codebase research (if relevant)
+3. External web search and documentation
+4. Saves to `.karimo/research/{topic}-{NNN}.md`
+5. Updates research catalog in `.karimo/research/index.yaml`
+6. Available for import into future PRDs
+
+**PRD-Scoped Research Mode:**
+1. Loads PRD context
+2. Offers to import existing general research
+3. Interactive questions about PRD research focus
+4. Internal research (patterns, errors, dependencies)
+5. External research (best practices, libraries)
+6. Enhances PRD with `## Research Findings` section
+7. Saves evidence to `.karimo/prds/{slug}/research/`
+8. Commits enhanced PRD
+
+### Research Focus Areas
+
+When conducting PRD-scoped research, you can select:
+- ☑ Existing patterns in codebase
+- ☑ External best practices
+- ☑ Library recommendations
+- ☑ Error/gap identification
+- ☑ Dependencies and integration points
+- ☐ Performance considerations
+- ☐ Security considerations
+
+### Research Output
+
+**PRD Enhanced with Findings:**
+```markdown
+## Research Findings
+
+**Last Updated:** 2026-03-11T14:30:00Z
+**Research Status:** Approved
+
+### Implementation Context
+
+**Existing Patterns (Internal):**
+- Pattern name: Description (file:line)
+
+**Best Practices (External):**
+- Practice: Description with source
+
+**Recommended Libraries:**
+- Library (npm-package)
+  - Purpose, version, why recommended
+
+**Critical Issues:**
+- ⚠️ Issue: Impact and fix
+
+**Architectural Decisions:**
+- Decision: Context, choice, rationale
+
+### Task-Specific Notes
+
+**Task 1a: Title**
+- Patterns to follow
+- Issues to address
+- Implementation guidance
+- Dependencies
+```
+
+### Refinement Workflow
+
+Add inline annotations to research artifacts:
+
+```html
+<!-- ANNOTATION
+type: question
+text: "Should this pattern apply to API routes too?"
+-->
+```
+
+Then refine:
+```bash
+/karimo-research --refine --prd {slug}
+```
+
+Agent processes annotations and updates PRD.
+
+### Integration with Workflow
+
+**During /karimo-plan:**
+After PRD approval, you're prompted:
+```
+Import existing research? [list of .karimo/research/*.md]
+Run research on this PRD? [Y/n] (recommended)
+```
+
+**During /karimo-run:**
+If no research exists, you're prompted:
+```
+⚠️ No research found for this PRD.
+
+Options:
+  1. Run research now (recommended)
+  2. Continue without research
+
+Choice [1/2]:
+```
+
+Skip with `--skip-research` flag if needed.
+
+### Benefits
+
+- **Improved Brief Quality:** Reduces validation failures 40% → <20%
+- **Pattern Discovery:** Find existing implementations agents should follow
+- **Gap Identification:** Detect missing components before execution
+- **Library Recommendations:** Concrete, evaluated tool suggestions
+- **Knowledge Accumulation:** Build reusable pattern library
+
+### Examples
+
+```bash
+# Explore authentication patterns (general)
+/karimo-research "React authentication patterns"
+
+# Research for specific PRD (recommended workflow)
+/karimo-plan
+# ... PRD approved ...
+# ... Prompted for research, accept ...
+# Research runs automatically
+
+# Manual PRD research
+/karimo-research --prd user-profiles
+
+# Refine after adding annotations
+/karimo-research --refine --prd user-profiles
+```
+
+### Related Documentation
+
+- [RESEARCH.md](RESEARCH.md) — Complete research methodology guide
+- [ANNOTATION_GUIDE.md](../templates/ANNOTATION_GUIDE.md) — Annotation syntax reference
 
 ---
 
