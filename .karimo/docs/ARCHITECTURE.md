@@ -165,10 +165,11 @@ If the user already has a `## KARIMO` section in their `CLAUDE.md`, `install.sh`
 ## System Flow
 
 ```
-┌─────────────────────────────────────────┐    ┌─────────────────────────────────────────┐    ┌────────────┐    ┌─────────────┐    ┌───────────┐
-│            /karimo-plan                 │    │           /karimo-execute               │    │   Review   │    │ Reconcile   │    │   Merge   │
-│  Interview → PRD → Review → Approve     │ →  │  Brief Gen → Agent Execution → PRs     │ →  │ (Greptile) │ →  │ (Architect) │ →  │   (PR)    │
-└─────────────────────────────────────────┘    └─────────────────────────────────────────┘    └────────────┘    └─────────────┘    └───────────┘
+┌─────────────────────────────────────────┐    ┌──────────────────────┐    ┌─────────────────────────────────────────┐    ┌────────────┐    ┌─────────────┐    ┌───────────┐
+│            /karimo-plan                 │    │   /karimo-research   │    │           /karimo-run                   │    │   Review   │    │ Reconcile   │    │   Merge   │
+│  Interview → PRD → Review → Approve     │ →  │  (optional, v5.6+)   │ →  │  Brief Gen → Agent Execution → PRs     │ →  │ (Greptile) │ →  │ (Architect) │ →  │   (PR)    │
+│                                         │    │  Pattern Discovery   │    │                                         │    │            │    │             │    │           │
+└─────────────────────────────────────────┘    └──────────────────────┘    └─────────────────────────────────────────┘    └────────────┘    └─────────────┘    └───────────┘
 ```
 
 ### Two-Tier Merge Model
@@ -213,6 +214,93 @@ task-branch-1b ─┘         ▲                  ▲
 - `execution_plan.yaml` — Wave-based execution plan
 - `status.json` — Execution tracking (status: `ready` when approved)
 - `findings.md` — Cross-task discoveries (populated during execution)
+
+### Research Phase (`/karimo-research`) *(v5.6+, optional)*
+
+After PRD approval, `/karimo-plan` automatically prompts for research. Research can also be conducted standalone.
+
+**Two Research Modes:**
+
+1. **General Research** (not tied to PRD):
+   ```bash
+   /karimo-research "topic to research"
+   ```
+   - Interactive questions about research focus
+   - Internal codebase research (if relevant)
+   - External web search and documentation
+   - Saves to `.karimo/research/{topic}-{NNN}.md`
+   - Updates catalog: `.karimo/research/index.yaml`
+   - Available for import into future PRDs
+
+2. **PRD-Scoped Research** (enhances specific PRD):
+   ```bash
+   /karimo-research --prd {slug}
+   ```
+   - Loads PRD context
+   - Offers import from general research
+   - Interactive research focus questions
+   - Internal research (patterns, errors, dependencies, structure)
+   - External research (best practices, libraries, references)
+   - Enhances PRD with `## Research Findings` section
+   - Saves evidence to `.karimo/prds/{slug}/research/`
+
+**Research Folder Structure (PRD-Scoped):**
+```
+.karimo/prds/{slug}/research/
+├── imported/           # Imported from .karimo/research/
+├── internal/           # Codebase patterns, errors, dependencies
+├── external/           # Web research, libraries, best practices
+├── annotations/        # Refinement tracking (if refined)
+└── meta.json          # Research metadata
+```
+
+**PRD Enhancement:**
+After research, `PRD_{slug}.md` is enhanced with:
+```markdown
+## Research Findings
+
+### Implementation Context
+- Existing patterns (file:line references)
+- Best practices from external sources
+- Recommended libraries with rationale
+- Critical issues identified
+- Architectural decisions
+
+### Task-Specific Research Notes
+- Per-task implementation guidance
+- Patterns to follow
+- Known issues to address
+- Dependencies (file and library)
+```
+
+**Refinement Workflow:**
+Add inline annotations to research artifacts:
+```html
+<!-- ANNOTATION
+type: question|correction|addition|challenge|decision
+text: "feedback text"
+-->
+```
+
+Then refine:
+```bash
+/karimo-research --refine --prd {slug}
+```
+
+Refiner agent processes annotations, updates research, re-enhances PRD.
+
+**Integration with Execution:**
+- Brief-writer inherits research from PRD's `## Research Findings` section
+- Task briefs include `## Research Context` with task-specific guidance
+- Worker agents receive patterns, issues, libraries, dependencies
+- Reduces brief validation failures by 40%+ (target: 40% → <20%)
+
+**Benefits:**
+- Pattern discovery (find existing implementations)
+- Gap identification (detect missing components)
+- Library recommendations (evaluated, not guessed)
+- Knowledge accumulation (build reusable pattern library)
+- Reduced execution errors (research-informed briefs)
 
 ### Execution Phase (`/karimo-run`)
 
@@ -341,6 +429,8 @@ This is the primary human oversight touchpoint — check it each morning or afte
 |-------|---------|-------|--------------|
 | **Interviewer** | Conducts PRD interview | Sonnet | No |
 | **Investigator** | Scans codebase for patterns | Sonnet | No |
+| **Researcher** | Conducts research (internal + external) (v5.6+) | Sonnet | No (creates research docs) |
+| **Refiner** | Processes annotations, refines research (v5.6+) | Sonnet | No (updates research docs) |
 | **Reviewer** | Validates PRD, generates DAG | Opus | No |
 | **Brief Writer** | Generates task briefs | Sonnet | No |
 | **Brief Reviewer** | Pre-execution validation of briefs (v5.1) | Sonnet | No (findings doc only) |
