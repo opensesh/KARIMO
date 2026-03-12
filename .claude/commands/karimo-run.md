@@ -1,32 +1,99 @@
 # /karimo-run — Execute PRD (Recommended)
 
-Execute an approved PRD using feature branch workflow (v5.0). This is the recommended execution command.
-
-> **Alias for:** `/karimo-orchestrate`
-> **Note:** This command uses the same proven orchestration logic with a more intuitive name.
+Execute an approved PRD using feature branch workflow (v5.6). This is the recommended execution command that consolidates execution and orchestration with research integration.
 
 ## Usage
 
 ```bash
-/karimo-run [--prd {slug}] [--dry-run] [--skip-review] [--review-only]
+/karimo-run [--prd {slug}] [--dry-run] [--skip-review] [--review-only] [--brief-only] [--resume] [--skip-research] [--require-research] [--task {id}]
 ```
 
 ## Arguments
 
 - `--prd {slug}` (optional): The PRD slug to execute. If not provided, lists available PRDs.
 - `--dry-run` (optional): Preview the execution plan without making changes.
-- `--skip-review` (optional): Skip pre-execution review and execute immediately after brief generation.
+- `--skip-review` (optional): Skip pre-execution brief review and execute immediately after brief generation.
 - `--review-only` (optional): Generate briefs and run review, then stop without executing. Allows manual correction before proceeding.
+- `--brief-only` (optional): Generate briefs and stop before execution. Use --resume to continue later.
+- `--resume` (optional): Resume execution after pausing at brief generation.
+- `--skip-research` (optional): Skip research recommendation if no research exists. Not recommended.
+- `--require-research` (optional): Enforce research requirement, fail if no research found.
+- `--task {id}` (optional): Execute only a specific task by ID.
 
 ## What This Command Does
 
-1. **Creates feature branch** — `feature/{prd-slug}` from main
-2. **Generates task briefs** — Self-contained instructions for each task
-3. **Reviews briefs (optional)** — Validates briefs against codebase reality
-4. **Applies corrections (optional)** — Fixes issues found during review
-5. **Executes tasks in waves** — Parallel execution where possible
-6. **Creates PRs** — Task PRs target feature branch (not main)
-7. **Prepares for final merge** — Run `/karimo-merge` when complete
+1. **Checks for research** — Verifies PRD has research findings (recommended)
+2. **Creates feature branch** — `feature/{prd-slug}` from main
+3. **Generates task briefs** — Self-contained instructions for each task (inherits PRD research)
+4. **Reviews briefs (optional)** — Validates briefs against codebase reality
+5. **Applies corrections (optional)** — Fixes issues found during review
+6. **Executes tasks in waves** — Parallel execution where possible
+7. **Creates PRs** — Task PRs target feature branch (not main)
+8. **Prepares for final merge** — Run `/karimo-merge` when complete
+
+## Research Integration (v5.6)
+
+**Before brief generation**, KARIMO checks for PRD research to ensure high-quality briefs.
+
+### Research Check Logic
+
+When `/karimo-run --prd {slug}` is executed:
+
+1. **Check PRD for Research Findings section**
+   - Read `PRD_{slug}.md`
+   - Look for `## Research Findings` section
+
+2. **If research exists:**
+   - ✓ Proceed with brief generation
+   - Briefs will inherit research context from PRD
+   - Research-informed patterns, libraries, issues embedded in briefs
+
+3. **If no research found:**
+   - Display recommendation prompt:
+     ```
+     ⚠️  No research found for this PRD.
+
+     KARIMO works best with research-informed briefs.
+     Research discovers patterns, identifies issues, and provides
+     concrete implementation guidance.
+
+     Recommendation: /karimo-research --prd {slug}
+
+     Options:
+       1. Run research now (recommended)
+       2. Continue without research
+
+     Choice [1/2]:
+     ```
+
+4. **If user chooses "Run research now" (1):**
+   - Execute `/karimo-research --prd {slug}`
+   - Research completes and enhances PRD
+   - Continue to brief generation with research context
+
+5. **If user chooses "Continue without research" (2):**
+   - Warn: "⚠️  Continuing without research. This may result in lower-quality briefs and increased execution errors."
+   - Proceed to brief generation without research context
+
+### Bypass Research Requirement
+
+Use `--skip-research` to bypass the research prompt:
+
+```bash
+/karimo-run --prd user-profiles --skip-research
+```
+
+**Note:** Not recommended. Research significantly improves brief quality and reduces execution errors.
+
+### Enforce Research Requirement
+
+Use `--require-research` to fail if no research exists:
+
+```bash
+/karimo-run --prd user-profiles --require-research
+```
+
+Fails with error if `## Research Findings` section not found in PRD.
 
 ## Benefits Over Direct-to-Main
 
@@ -112,14 +179,20 @@ When all tasks complete, the feature branch is ready for final review:
 
 ## Technical Details
 
-This command delegates to `/karimo-orchestrate` which:
-- Uses feature branch aggregation (v5.0 model)
-- Spawns PM agent for autonomous execution
-- Handles git state reconciliation on resume
-- Manages wave-based parallelization
-- Creates PRs targeting feature branch
+This command (v5.6+) consolidates execution and orchestration logic:
+- **Research integration:** Checks for PRD research before brief generation
+- **Brief generation:** Spawns brief-writer agent with PRD research context
+- **Feature branch workflow:** Uses v5.0 feature branch aggregation model
+- **PM orchestration:** Spawns PM agent for autonomous wave-based execution
+- **Git state reconciliation:** Handles resume from any execution state
+- **Wave-based parallelization:** Executes independent tasks in parallel waves
+- **PR creation:** Task PRs target feature branch (consolidated with /karimo-merge)
 
-For full implementation details, see `.claude/commands/karimo-orchestrate.md`.
+**Legacy commands (deprecated in v5.7):**
+- `/karimo-execute` → Use `/karimo-run` instead
+- `/karimo-orchestrate` → Use `/karimo-run` instead
+
+**Note:** For v5.6, `/karimo-run` still delegates to `/karimo-orchestrate` internally but adds research checking. Full consolidation in v6.0.
 
 ## Related Commands
 
