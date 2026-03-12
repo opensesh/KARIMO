@@ -570,7 +570,7 @@ echo "Next steps:"
 echo "  1. Run '/karimo-doctor' to verify installation health"
 if [ "$CONFIG_AUTODETECTED" = true ]; then
     echo "  2. Run '/karimo-plan' to create your first PRD"
-    echo "  3. Run '/karimo-execute --prd {slug}' to start execution"
+    echo "  3. Run '/karimo-run --prd {slug}' to start execution"
 else
     echo "  2. Run '/karimo-configure' to complete configuration"
     echo "  3. Run '/karimo-plan' to create your first PRD"

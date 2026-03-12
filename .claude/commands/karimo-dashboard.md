@@ -59,7 +59,7 @@ Provides:
 
   [token-studio / 1c] STALE — Running for 6h 23m
     → Agent may have crashed
-    → Action: /karimo-execute --prd token-studio --task 1c
+    → Action: /karimo-run --prd token-studio --task 1c
 
   Total: 2 items requiring human intervention
 
@@ -246,11 +246,11 @@ gh pr view $pr_number --json mergeable --jq '.mergeable' | grep -q false
 
   [{prd-slug} / {task-id}] STALE — Running for {duration}
     → Agent may have crashed
-    → Action: /karimo-execute --prd {slug} --task {id}
+    → Action: /karimo-run --prd {slug} --task {id}
 
   [{prd-slug} / {task-id}] CRASHED — Branch exists without PR
     → Execution interrupted
-    → Action: /karimo-execute --prd {slug} --task {id}
+    → Action: /karimo-run --prd {slug} --task {id}
 
   [{prd-slug} / {task-id}] CONFLICTS — Merge conflicts need resolution
     → Files: {file1}, {file2}
@@ -798,7 +798,7 @@ generate_dashboard_data > "$cache_file"
 ### Cache Invalidation
 
 Cache is invalidated on:
-- Any `/karimo-execute` run
+- Any `/karimo-run` run
 - Any status.json update
 - Manual `--refresh` flag
 - Cache age > 2 minutes
@@ -852,7 +852,7 @@ if (showVelocitySection) {
 No active PRDs found.
 
 Create one with: /karimo-plan
-Execute one with: /karimo-execute --prd {slug}
+Execute one with: /karimo-run --prd {slug}
 ```
 
 ### No Alerts
@@ -881,7 +881,7 @@ Execute one with: /karimo-execute --prd {slug}
 ```bash
 /karimo-dashboard           # System health, what needs attention, progress
 /karimo-status --prd X      # Wave-level task details (deep dive)
-/karimo-execute --prd X     # Resume/start execution
+/karimo-run --prd X     # Resume/start execution
 ```
 
 **Post-execution analysis:**
@@ -979,7 +979,7 @@ done
 | Command | Purpose |
 |---------|---------|
 | `/karimo-plan` | Create PRD with interactive approval |
-| `/karimo-execute` | Execute PRD (brief gen + execution) |
+| `/karimo-run` | Execute PRD (brief gen + execution) |
 | `/karimo-status` | View execution status for specific PRD |
 | `/karimo-feedback` | Capture learnings from execution |
 

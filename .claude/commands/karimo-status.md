@@ -251,7 +251,7 @@ Display stale tasks prominently:
 ```
   ⏰ [2a] Implement profile edit form           running (STALE: 6h 23m)
      ⚠ Agent may have crashed
-     Action: Re-run /karimo-execute --prd user-profiles
+     Action: Re-run /karimo-run --prd user-profiles
 ```
 
 ### 7. Git State Reconciliation Display
@@ -300,14 +300,14 @@ Surface issues that need attention:
 
   ⏰ Stale Tasks:
     [2c] Running for 6h 23m — agent may have crashed
-         Re-run: /karimo-execute --prd user-profiles
+         Re-run: /karimo-run --prd user-profiles
 
     [2a] In-review for 3 days — PR may need attention
          Review: gh pr view 46
 
   💥 Crashed Tasks:
     [1c] Branch exists but no PR — execution interrupted
-         Re-run: /karimo-execute --prd user-profiles --task 1c
+         Re-run: /karimo-run --prd user-profiles --task 1c
 
 ✗ Blockers:
 
@@ -324,7 +324,7 @@ Or if there are blockers:
 
   [3b] failed — Build error after 5 loops
        Error: Type mismatch in ProfileForm.tsx
-       Retry: /karimo-execute --prd user-profiles --task 3b
+       Retry: /karimo-run --prd user-profiles --task 3b
 ```
 
 ### 10. Execution Summary
@@ -353,7 +353,7 @@ Suggest what to do, prioritizing recovery:
 Next Actions:
 
   1. ⏰ RECOVERY: Re-run execution to reconcile crashed tasks
-     /karimo-execute --prd user-profiles
+     /karimo-run --prd user-profiles
 
   2. Review PR #46 (wave 2 completion blocker)
      gh pr view 46
@@ -472,5 +472,5 @@ PR status unavailable. Run: gh auth login
 | Command | Purpose |
 |---------|---------|
 | `/karimo-overview` | Cross-PRD oversight: blocked tasks, revision loops |
-| `/karimo-execute` | Execute PRD with automatic state reconciliation |
+| `/karimo-run` | Execute PRD with automatic state reconciliation |
 | `/karimo-plan` | Create PRD with interactive approval |

@@ -385,4 +385,4 @@ After saving, confirm to the interviewer:
 > - Execution: {wave_count} waves, max {parallel_capacity} parallel
 > - Longest chain: {longest_chain}
 >
-> Run `/karimo-execute --prd {slug}` to start execution."
+> Run `/karimo-run --prd {slug}` to start execution."

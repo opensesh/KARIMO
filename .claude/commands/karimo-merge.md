@@ -11,7 +11,7 @@ Consolidate feature branch changes and create final PR to main. This completes t
 ## Prerequisites
 
 Before merge, the PRD must be:
-1. **Orchestrated** via `/karimo-orchestrate` (execution_mode: "feature-branch")
+1. **Orchestrated** via `/karimo-run` (execution_mode: "feature-branch")
 2. **All tasks complete** (status: "ready-for-merge")
 3. **Feature branch exists** with all task commits
 
@@ -30,7 +30,7 @@ feature_branch=$(jq -r '.feature_branch' .karimo/prds/{NNN}_{slug}/status.json)
 if [ "$status" != "ready-for-merge" ]; then
   echo "❌ PRD not ready for merge (status: $status)"
   echo "   Expected: ready-for-merge"
-  echo "   Hint: Run /karimo-orchestrate --prd {slug} first"
+  echo "   Hint: Run /karimo-run --prd {slug} first"
   exit 1
 fi
 
@@ -517,12 +517,12 @@ Or use GitHub's merge UI to resolve conflicts in PR.
 This PRD's feature branch has been deleted or never created.
 
 Check:
-  - Was /karimo-orchestrate run for this PRD?
+  - Was /karimo-run run for this PRD?
   - Was the feature branch accidentally deleted?
 
 Recovery:
   - If tasks are complete but branch missing, create PR manually
-  - If tasks incomplete, restart with /karimo-orchestrate --prd user-profiles
+  - If tasks incomplete, restart with /karimo-run --prd user-profiles
 ```
 
 ---

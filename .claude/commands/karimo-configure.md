@@ -1397,7 +1397,7 @@ Detected: Vercel (vercel.json found)
 
 Options:
   1. Configure now — Skip preview builds for KARIMO branches
-  2. Skip for now — I'll handle this later with /karimo-cd-config
+  2. Skip for now — I'll handle this later with /karimo-configure --cd
   3. Learn more — What does this mean?
 
 Your choice:
@@ -1412,7 +1412,7 @@ options:
   - label: "Configure now (Recommended)"
     description: "Add ignore rule for KARIMO branches. Prevents noise from partial code failures."
   - label: "Skip for now"
-    description: "Handle later with /karimo-cd-config. Preview builds may fail on task PRs."
+    description: "Handle later with /karimo-configure --cd. Preview builds may fail on task PRs."
   - label: "Learn more"
     description: "Open CI-CD.md documentation for details."
 ```

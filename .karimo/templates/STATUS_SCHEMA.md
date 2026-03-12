@@ -11,7 +11,7 @@
 Each PRD folder contains a `status.json` file that tracks execution state. This file is:
 - Created by the reviewer agent when the PRD is finalized
 - Updated continuously by the PM agent during execution
-- Read by `/karimo-orchestrate` or `/karimo-execute` for resume scenarios
+- Read by `/karimo-run` for resume scenarios
 - Read by `/karimo-status` to display progress
 
 **v5.0 Changes:**
@@ -331,7 +331,7 @@ pending ──► running ──► complete
 
 **Principle:** Git is truth. status.json is a cache.
 
-When `/karimo-execute` resumes or `/karimo-status` runs, derive actual state from git:
+When `/karimo-run` resumes or `/karimo-status` runs, derive actual state from git:
 
 ```bash
 for task_id in tasks; do

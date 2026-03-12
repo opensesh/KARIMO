@@ -79,7 +79,7 @@ fi
 ```
 
 If Git version is < 2.5, show warning with upgrade recommendation:
-- `⚠️ Git 2.4.0 — Worktrees require Git 2.5+. Upgrade before running /karimo-execute.`
+- `⚠️ Git 2.4.0 — Worktrees require Git 2.5+. Upgrade before running /karimo-run.`
 
 **Example output:**
 
@@ -822,8 +822,8 @@ Check 6: Execution Health
   ✅ No status-PR mismatches
 
   Recovery:
-    /karimo-execute --prd user-profiles
-    /karimo-execute --prd token-studio
+    /karimo-run --prd user-profiles
+    /karimo-run --prd token-studio
 ```
 
 **Example output (healthy):**
@@ -890,11 +890,11 @@ Summary
 | Missing project scope | `gh auth refresh -s project` |
 | Missing files | Re-run installer |
 | PRD creation | `/karimo-plan` |
-| Stale running tasks | Re-run `/karimo-execute --prd {slug}` |
+| Stale running tasks | Re-run `/karimo-run --prd {slug}` |
 | Orphaned worktrees | `git worktree remove <path>` |
-| Ghost branches | Re-run `/karimo-execute --prd {slug}` |
-| Status-PR mismatch | Re-run `/karimo-execute --prd {slug}` |
-| Pending cleanup | Re-run `/karimo-execute --prd {slug}` |
+| Ghost branches | Re-run `/karimo-run --prd {slug}` |
+| Status-PR mismatch | Re-run `/karimo-run --prd {slug}` |
+| Pending cleanup | Re-run `/karimo-run --prd {slug}` |
 
 Or if all checks pass:
 

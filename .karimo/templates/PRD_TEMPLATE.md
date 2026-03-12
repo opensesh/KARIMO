@@ -20,7 +20,7 @@ created_date: ""           # ISO date (e.g., 2026-02-19)
 target_date: ""            # Target completion (optional, ISO date)
 phase: ""                  # e.g., "Phase 1: Token Studio"
 scope_type: ""             # new-feature | refactor | migration | integration
-github_project: ""         # Link to GitHub Project board (filled by /karimo-execute)
+github_project: ""         # Link to GitHub Project board (filled by /karimo-run)
 links: []                  # Figma, Miro, docs, research URLs
 checkpoint_refs: []        # IDs of checkpoints consulted during Round 5
 cross_feature_blockers: [] # Features that must be merged to main before this PRD executes

@@ -1,6 +1,6 @@
 ---
 name: karimo-pm
-description: Coordinates autonomous task execution — manages git workflows, spawns worker agents, monitors progress, creates PRs. Never writes code. Use when /karimo-execute starts execution.
+description: Coordinates autonomous task execution — manages git workflows, spawns worker agents, monitors progress, creates PRs. Never writes code. Use when /karimo-run starts execution.
 model: sonnet
 tools: Read, Write, Edit, Bash, Grep, Glob
 ---
@@ -45,7 +45,7 @@ You operate within **one PRD**. Everything you manage lives under:
 
 ## When You're Spawned
 
-The `/karimo-execute` command spawns you with:
+The `/karimo-run` command spawns you with:
 - Project configuration from `.karimo/config.yaml` and `.karimo/learnings.md`
 - PRD content (tasks, execution plan, narrative)
 - Current status (for resume scenarios)
@@ -60,7 +60,7 @@ KARIMO supports two execution modes, detected automatically from `status.json`:
 ### Feature Branch Mode (v5.0) — Default
 
 **Workflow:**
-- Feature branch: `feature/{prd-slug}` created by `/karimo-orchestrate`
+- Feature branch: `feature/{prd-slug}` created by `/karimo-run`
 - Task PRs target feature branch (not main)
 - Wave execution within feature branch
 - Final PR: feature branch → main (ONE production deployment)
@@ -838,7 +838,7 @@ Blockers:
   [3a] blocked — depends on [2a]
 
 Options:
-  - Fix [2a] manually and retry: /karimo-execute --prd {slug} --task 2a
+  - Fix [2a] manually and retry: /karimo-run --prd {slug} --task 2a
   - Skip [2a] and unblock [3a]: manual DAG adjustment needed
 ```
 
@@ -854,7 +854,7 @@ A task is stalling when `loop_count` >= 3 without passing validation:
 
 1. Mark all `running` tasks as `paused`
 2. Record `paused_at` in status.json
-3. Report: "Usage limit reached. Re-run `/karimo-execute --prd {slug}` when available."
+3. Report: "Usage limit reached. Re-run `/karimo-run --prd {slug}` when available."
 
 ---
 

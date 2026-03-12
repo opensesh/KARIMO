@@ -37,7 +37,6 @@ Configuration:
   /karimo-configure --validate    Validate existing config
 
 Management:
-  /karimo-modify --prd {slug}     Edit approved PRD before execution
   /karimo-feedback                Capture learnings (auto-detection)
 
 Diagnostics:
@@ -47,16 +46,15 @@ Diagnostics:
 
 Maintenance:
   /karimo-update                  Update to latest KARIMO version
-  /karimo-cd-config               Configure preview deployments
+  /karimo-configure --cd          Configure preview deployments
 
 Help:
   /karimo-help                    This command
   /karimo-help {query}            Search documentation
 
-Legacy/Advanced:
-  /karimo-execute --prd {slug}    Direct-to-main execution (v4.0)
-  /karimo-orchestrate             Wave-based execution (internal)
-  /karimo-research                Research mode (experimental)
+Advanced:
+  /karimo-plugin                  Plugin management
+  /karimo-research --prd {slug}   Add research to existing PRD
 
 Need more details? Run: /karimo-help {command-name}
 Example: /karimo-help plan
@@ -241,7 +239,6 @@ Time: ~10 minutes for first PRD
 
 Related commands:
   /karimo-run       Execute approved PRD
-  /karimo-modify    Edit PRD after approval
   /karimo-status    Check PRD execution state
 
 Full reference: .claude/commands/karimo-plan.md
