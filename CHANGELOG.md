@@ -7,6 +7,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [7.2.0] - 2026-03-12
+
+**Enhanced Research System with Two-Phase Model**
+
+### Added
+- Two-phase research model (internal → external with commits after each)
+- Consolidated findings outputs (`internal/findings.md`, `external/findings.md`)
+- `karimo-firecrawl-web-tools.md` skill (12 tools, decision tree, escalation ladder)
+- New templates: `INTERNAL_FINDINGS_TEMPLATE.md`, `EXTERNAL_FINDINGS_TEMPLATE.md`
+- Research summary output (`research/summary.md`)
+
+### Changed
+- Elevated Firecrawl from "optional" to "recommended" for external research
+- Research generates 3 incremental commits per session (internal, external, summary)
+- Updated folder structure with consolidated findings hierarchy
+- `karimo-researcher` agent now executes in distinct phases with phase-specific tools
+- `karimo-external-research` skill now references Firecrawl skill for tool details
+- `karimo-research-methods` skill now focuses only on internal research (Phase 1)
+- Updated `karimo-research` command documentation for two-phase workflow
+- Updated `RESEARCH.md` with complete two-phase model documentation
+
+### Removed
+- Exa section from external research skill (not commonly configured)
+
+---
+
 ## [7.1.2] - 2026-03-12
 
 ### Fixed
