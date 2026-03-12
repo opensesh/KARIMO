@@ -541,7 +541,7 @@ Execute tasks from an approved PRD using feature branch workflow (v5.0). **This 
 | `--skip-review` | No | Skip pre-execution review and execute immediately |
 | `--review-only` | No | Generate briefs and review, then stop without executing |
 
-### Pre-Execution Review Workflow (New in v5.1)
+### Pre-Execution Review Workflow (New in v5.5.0)
 
 After generating task briefs, KARIMO offers an optional pre-execution review to validate briefs against codebase reality.
 

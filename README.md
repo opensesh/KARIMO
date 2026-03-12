@@ -8,7 +8,7 @@
 ```
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
-[![Version](https://img.shields.io/badge/version-v5.5.1-blue)]()
+[![Version](https://img.shields.io/badge/version-v5.6.0-blue)]()
 [![Claude Code](https://img.shields.io/badge/Claude%20Code-Framework-blueviolet.svg)]()
 [![Install](https://img.shields.io/badge/Install-One--Click-success?style=for-the-badge)](https://raw.githubusercontent.com/opensesh/KARIMO/main/.karimo/remote-install.sh)
 
@@ -46,7 +46,7 @@ KARIMO is a **framework and Claude Code plugin** for PRD-driven autonomous devel
 |------|--------------|-------------|
 | **Plan** | Structured PRD interview captures requirements | 5-round interview, codebase investigation, agent-optimized output |
 | **Research** | Discover patterns, libraries, and gaps *(v5.6+, optional but recommended)* | Internal codebase scan, external best practices, PRD enhancement |
-| **Run** | Generate briefs and execute tasks in waves | Research-informed briefs, parallel execution via worktrees, wave ordering |
+| **Run** | Generate briefs, validate, and execute tasks in waves | Pre-execution review validates briefs against codebase, research-informed briefs, parallel execution via worktrees, wave ordering |
 | **Review** | Automated code review (Greptile or Code Review) | Revision loops, model escalation, quality gates (optional) |
 | **Merge** | Create final PR to main after all tasks complete | Feature branch aggregation, consolidated deployment |
 | **Monitor** | Real-time visibility into progress | `/karimo-dashboard`, `/karimo-status`, PR labels |
@@ -58,10 +58,11 @@ KARIMO is a **framework and Claude Code plugin** for PRD-driven autonomous devel
 | Feature | What It Means |
 |---------|---------------|
 | **Native worktree isolation** | Parallel execution via Claude Code's [`isolation: worktree`](https://docs.anthropic.com/en/docs/claude-code/common-workflows) |
-| **Sub-agent architecture** | 13 specialized agents (7 coordination + 6 task) using [Claude Code sub-agents](https://docs.anthropic.com/en/docs/claude-code/sub-agents) |
+| **Sub-agent architecture** | 17 specialized agents (11 coordination + 6 task) using [Claude Code sub-agents](https://docs.anthropic.com/en/docs/claude-code/sub-agents) |
 | **Model routing** | Sonnet for complexity 1-2, Opus for 3+, with automatic escalation on failures |
 | **Structured interviews** | Multi-round PRD questions following user-controlled templates |
 | **Two-tier planning** | PRDs decomposed into self-contained task briefs |
+| **Pre-execution review** | Brief-reviewer validates assumptions against codebase before execution *(v5.5+)* |
 | **Wave-based execution** | Dependency graph determines parallel vs sequential tasks |
 | **Compound learning** | `/karimo-feedback` captures patterns with intelligent complexity detection |
 | **PR-centric workflow** | Full auditability via PRs targeting main with wave-ordered merges |
