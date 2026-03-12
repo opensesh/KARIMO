@@ -16,7 +16,7 @@
 
 ## What is KARIMO?
 
-KARIMO is a **framework and Claude Code plugin** for PRD-driven autonomous development — one of the most comprehensive Claude Code plugins available. Think of it as **plan mode on steroids**, leveraging Claude Code's latest features including [native worktree isolation](https://docs.anthropic.com/en/docs/claude-code/common-workflows), [sub-agent architecture](https://docs.anthropic.com/en/docs/claude-code/sub-agents), and model routing.
+KARIMO is a **framework and Claude Code plugin** for PRD-driven autonomous development — one of the most comprehensive Claude Code plugins available. Think of it as **plan mode on steroids**, leveraging Claude Code's latest features including [native worktree isolation](https://docs.anthropic.com/en/docs/claude-code/common-workflows), [sub-agents](https://docs.anthropic.com/en/docs/claude-code/sub-agents), [agent-teams]([https://docs.anthropic.com/en/docs/claude-code/sub-agents](https://code.claude.com/docs/en/agent-teams#when-to-use-agent-teams)) and model routing.
 
 
 > **Philosophy:** You are the architect, agents are the builders, automated review is the *optional* inspector.
