@@ -10,6 +10,7 @@
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Version](https://img.shields.io/badge/version-v5.5.1-blue)]()
 [![Claude Code](https://img.shields.io/badge/Claude%20Code-Framework-blueviolet.svg)]()
+[![Install](https://img.shields.io/badge/Install-One--Click-success?style=for-the-badge)](https://raw.githubusercontent.com/opensesh/KARIMO/main/.karimo/remote-install.sh)
 
 ---
 
@@ -103,10 +104,12 @@ Wave 3: [task-3a] ─────────── final task, PR to main
 
 ### Quick Start (Recommended)
 
-**Install KARIMO:**
+**One-line install (from your project directory):**
 ```bash
-curl -sL https://raw.githubusercontent.com/opensesh/KARIMO/main/.karimo/remote-install.sh | bash -s /path/to/project
+curl -sL https://raw.githubusercontent.com/opensesh/KARIMO/main/.karimo/remote-install.sh | bash
 ```
+
+_Auto-detects git repository root. Supports explicit paths: `bash -s /path/to/project`_
 
 **Update existing installation:**
 ```bash
