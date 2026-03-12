@@ -276,7 +276,7 @@ cat .karimo/prds/{slug}/tasks.yaml
 ├── prd.md              # Full PRD document
 ├── tasks.yaml          # Task definitions with dependencies
 ├── execution_plan.yaml # DAG for parallel execution
-├── status.json         # Execution state (created during /karimo-execute)
+├── status.json         # Execution state (created during /karimo-run)
 └── metrics.json        # Execution metrics (created at PRD completion)
 ```
 
@@ -576,11 +576,10 @@ in isolation, but works once all wave tasks merge.
 To skip preview builds for KARIMO branches:
 
 ```
-/karimo-cd-config
+/karimo-configure --cd
 ```
 
-Or configure during initial setup — `/karimo-configure` will prompt you
-if it detects a deployment provider.
+This will detect your deployment provider and configure it to skip KARIMO task branches.
 
 See [CI-CD.md](CI-CD.md) for details on KARIMO's CI/CD integration approach.
 
@@ -634,9 +633,9 @@ Should show KARIMO agents alongside any existing agents.
 
 ### "Task crashed" or stale execution
 
-v4.0 uses git state reconstruction. Run:
+KARIMO uses git state reconstruction. Run:
 ```bash
-/karimo-execute --prd {slug}
+/karimo-run --prd {slug}
 ```
 
 This will reconcile status.json with git reality and resume from the correct point.
@@ -743,7 +742,7 @@ KARIMO v4.0 uses Claude Code's native `isolation: worktree` feature. Claude Code
 This is expected. KARIMO task PRs contain partial code that won't build
 in isolation. The code works once all wave tasks merge to main.
 
-Run `/karimo-cd-config` to configure your deployment provider to skip
+Run `/karimo-configure --cd` to configure your deployment provider to skip
 KARIMO task branches, or accept the noise (failures don't block merges).
 
 ---
