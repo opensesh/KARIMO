@@ -1,13 +1,13 @@
 # KARIMO Research Methodology
 
-**Version:** 7.0.0
+**Version:** 7.2.0
 **Purpose:** Complete guide to research integration in KARIMO workflow
 
 ---
 
 ## Overview
 
-Research in KARIMO v7.0 is a **required first step** before planning. It discovers codebase patterns, identifies gaps, and provides implementation context that informs the PRD interview.
+Research in KARIMO is a **required first step** before planning. It discovers codebase patterns, identifies gaps, and provides implementation context that informs the PRD interview.
 
 **Key Benefits:**
 - **Improved Brief Quality:** Research-informed briefs reduce execution errors by 40%+
@@ -15,6 +15,98 @@ Research in KARIMO v7.0 is a **required first step** before planning. It discove
 - **Gap Identification:** Detect missing components before execution
 - **Library Recommendations:** Provide concrete, evaluated tool suggestions
 - **Research-Informed Interviews:** Interviewer uses findings to ask better questions
+
+---
+
+## Two-Phase Research Model (v7.2)
+
+Research is executed in **two distinct phases** with commits after each:
+
+### Phase 1: Internal Research
+
+**Focus:** Codebase analysis
+**Tools:** Grep, Glob, Read, Bash (read-only)
+**Output:** `research/internal/findings.md`
+**Skill:** `.claude/skills/karimo-research-methods.md`
+
+| Component | Purpose |
+|-----------|---------|
+| Pattern Discovery | Find existing implementations to follow |
+| Dependency Mapping | Identify shared types/utilities |
+| Error Identification | Find missing patterns, inconsistencies |
+| Structure Analysis | Understand project organization |
+
+**Commit:** "docs(karimo): internal research for {slug}"
+
+### Phase 2: External Research
+
+**Focus:** Web research, documentation, libraries
+**Tools:** Firecrawl (recommended), WebSearch, WebFetch
+**Output:** `research/external/findings.md`
+**Skill:** `.claude/skills/karimo-external-research.md`
+
+| Component | Purpose |
+|-----------|---------|
+| Best Practices | Search for current recommendations (2025-2026) |
+| Library Evaluation | Recommend tools with full evaluation |
+| Documentation | Extract relevant guides and references |
+| Source Attribution | Track all sources in sources.yaml |
+
+**Commit:** "docs(karimo): external research for {slug}"
+
+### Phase 3: Summary
+
+**Output:** `research/summary.md`
+**Content:** Combined executive summary from both phases
+**Commit:** "docs(karimo): complete research summary for {slug}"
+
+### Why Two Phases?
+
+1. **Internal findings inform external queries** — Knowing existing patterns helps focus external research
+2. **Incremental commits** — Progress saved after each phase (crash recovery)
+3. **Clear separation** — Different tools, different outputs, different commits
+4. **Parallel review** — User can review internal findings while external runs
+
+---
+
+## Choosing Research Tools
+
+### Firecrawl (Recommended for External)
+
+Firecrawl is the **recommended tool** for external research when available.
+
+**Full Reference:** `.claude/skills/karimo-firecrawl-web-tools.md`
+
+**Tool Decision Tree:**
+
+| Need | Tool |
+|------|------|
+| Read documentation page | `firecrawl_scrape` |
+| Extract library metadata | `firecrawl_scrape` with JSON |
+| Compare multiple packages | `firecrawl_extract` |
+| Find docs pages | `firecrawl_map` |
+| Web search | `firecrawl_search` |
+| JS-heavy sites | `firecrawl_browser_*` |
+
+**Escalation Ladder:**
+```
+scrape → scrape + waitFor → map + scrape → browser tools → agent
+```
+
+### Fallback Tools
+
+When Firecrawl is not available:
+- `WebSearch` — Basic web search
+- `WebFetch` — Single page fetch with AI processing
+
+### Internal Research Tools
+
+| Tool | Purpose |
+|------|---------|
+| `Grep` | Pattern discovery, finding implementations |
+| `Glob` | File discovery, type/utility location |
+| `Read` | Analyzing discovered files |
+| `Bash` | Directory structure (read-only) |
 
 ---
 
@@ -462,7 +554,7 @@ Refinement creates:
 └── ...
 ```
 
-### PRD-Scoped Research
+### PRD-Scoped Research (v7.2)
 
 ```
 .karimo/prds/{NNN}_{slug}/
@@ -471,25 +563,36 @@ Refinement creates:
 │   ├── imported/                      # From general research
 │   │   ├── auth-patterns-001.md
 │   │   └── index.yaml
-│   ├── internal/                      # Codebase research
-│   │   ├── patterns.md
-│   │   ├── errors.md
-│   │   ├── dependencies.md
-│   │   └── structure.md
-│   ├── external/                      # Web research
-│   │   ├── best-practices.md
-│   │   ├── libraries.md
-│   │   ├── references.md
-│   │   └── sources.yaml
+│   ├── internal/                      # Phase 1 output
+│   │   ├── patterns.md               # Evidence: pattern details
+│   │   ├── errors.md                 # Evidence: issue details
+│   │   ├── dependencies.md           # Evidence: dependency mapping
+│   │   ├── structure.md              # Evidence: project organization
+│   │   └── findings.md               # CONSOLIDATED: agents read this
+│   ├── external/                      # Phase 2 output
+│   │   ├── best-practices.md         # Evidence: practice details
+│   │   ├── libraries.md              # Evidence: library evaluations
+│   │   ├── references.md             # Evidence: documentation links
+│   │   ├── sources.yaml              # Source attribution
+│   │   └── findings.md               # CONSOLIDATED: agents read this
 │   ├── annotations/                   # Refinement tracking
 │   │   ├── round-1.md
 │   │   └── tracking.yaml
+│   ├── summary.md                     # Combined executive summary
 │   └── meta.json                      # Research metadata
 ├── briefs/                            # Inherit PRD research
 │   ├── 1a_{slug}.md
 │   └── ...
-└── findings.md
+└── findings.md                        # Legacy (deprecated)
 ```
+
+### Output Hierarchy
+
+Agents read consolidated findings in this order:
+1. **summary.md** — Combined executive summary (primary)
+2. **internal/findings.md** — Consolidated internal research
+3. **external/findings.md** — Consolidated external research
+4. **Evidence files** — Detailed audit trail (patterns.md, errors.md, etc.)
 
 ---
 
@@ -642,6 +745,18 @@ See `.karimo/templates/ANNOTATION_GUIDE.md` for full syntax.
 
 ## Version History
 
+**v7.2.0 (2026-03-12):**
+- Two-phase research model (internal → external with commits after each)
+- Consolidated findings outputs (internal/findings.md, external/findings.md)
+- Firecrawl elevated to recommended tool for external research
+- New templates: INTERNAL_FINDINGS_TEMPLATE.md, EXTERNAL_FINDINGS_TEMPLATE.md
+- karimo-firecrawl-web-tools.md skill added
+
+**v7.0.0 (2026-03-11):**
+- Research-first workflow (required before planning)
+- Feature init mode creates PRD folder structure
+- Research informs PRD interview
+
 **v5.6.0 (2026-03-11):**
 - Initial research phase integration
 - General and PRD-scoped research modes
@@ -651,4 +766,4 @@ See `.karimo/templates/ANNOTATION_GUIDE.md` for full syntax.
 
 ---
 
-*Part of [KARIMO v5.6+](https://github.com/opensesh/KARIMO)*
+*Part of [KARIMO v7.2+](https://github.com/opensesh/KARIMO)*
