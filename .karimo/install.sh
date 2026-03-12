@@ -3,6 +3,16 @@
 # KARIMO v3 Installation Script
 # Installs KARIMO into a target project
 # Uses MANIFEST.json as the single source of truth for file inventory
+#
+# Usage:
+#   bash install.sh                    # Auto-detect (git root or current dir)
+#   bash install.sh /path/to/project   # Explicit path
+#   bash install.sh --ci               # CI mode (non-interactive)
+#
+# Auto-detection priority:
+#   1. Git repository root (if in a git repo)
+#   2. Current directory (if not in a git repo)
+#   3. Explicit path (if provided as argument)
 
 set -e
 
@@ -86,9 +96,23 @@ for arg in "$@"; do
     esac
 done
 
-# Default target directory
-TARGET_DIR="${TARGET_DIR:-.}"
+# Auto-detect target directory if not provided
+if [ -z "$TARGET_DIR" ]; then
+    # Try to detect git root first
+    if GIT_ROOT=$(git rev-parse --show-toplevel 2>/dev/null); then
+        TARGET_DIR="$GIT_ROOT"
+        echo -e "${BLUE}Auto-detected git repository root: $TARGET_DIR${NC}"
+    else
+        # Fall back to current directory
+        TARGET_DIR="."
+        echo -e "${BLUE}Using current directory (not a git repo): $(pwd)${NC}"
+    fi
+else
+    # Explicit path provided by user
+    echo -e "${BLUE}Using specified path: $TARGET_DIR${NC}"
+fi
 
+echo
 echo -e "${BLUE}╭──────────────────────────────────────────────────────────────╮${NC}"
 echo -e "${BLUE}│  KARIMO v3 Installation                                      │${NC}"
 echo -e "${BLUE}╰──────────────────────────────────────────────────────────────╯${NC}"
@@ -106,7 +130,11 @@ TARGET_DIR=$(cd "$TARGET_DIR" && pwd)
 # Prevent self-installation (installing KARIMO into its own source)
 if [ "$TARGET_DIR" = "$KARIMO_ROOT" ]; then
     echo -e "${RED}Error: Cannot install KARIMO into its own source directory.${NC}"
-    echo "Please specify a different target project:"
+    echo "Please run from your target project directory:"
+    echo "  cd /path/to/your/project"
+    echo "  bash /path/to/KARIMO/.karimo/install.sh"
+    echo
+    echo "Or specify an explicit path:"
     echo "  bash $0 /path/to/your/project"
     exit 1
 fi
