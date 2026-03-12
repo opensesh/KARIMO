@@ -267,6 +267,33 @@ Two-stage optional validation before execution begins:
 5. Propagates findings between dependent tasks
 6. Creates PRs when tasks complete
 
+**Wave-Based Execution Flow:**
+
+```mermaid
+graph TD
+    A[Wave 1: 3 tasks] --> B[Task 1: PR created]
+    A --> C[Task 2: PR created]
+    A --> D[Task 3: PR created]
+    B --> E{Review<br/>Pass?}
+    C --> F{Review<br/>Pass?}
+    D --> G{Review<br/>Pass?}
+    E -->|Yes| H[PR merged]
+    E -->|No| I[Agent revises]
+    F -->|Yes| H
+    F -->|No| J[Agent revises]
+    G -->|Yes| H
+    G -->|No| K[Agent revises]
+    I --> E
+    J --> F
+    K --> G
+    H --> L{All Wave 1<br/>complete?}
+    L -->|Yes| M[Wave 2: 2 tasks start]
+    L -->|No| N[Wait for remaining tasks]
+    N --> L
+    M --> O[Task 4: PR created]
+    M --> P[Task 5: PR created]
+```
+
 **Output**:
 - `.karimo/prds/{slug}/briefs/{task_id}.md` for each task
 - `.karimo/prds/{slug}/review/PRD_REVIEW_pre-orchestration.md` (if review ran)
@@ -336,6 +363,48 @@ KARIMO uses a dual-model system for task agents. Each agent type has a Sonnet va
 | **Documenter (Opus)** | 3+ | Complex documentation | Opus | Yes (docs) |
 
 The PM Agent coordinates but never writes code. Task agents are spawned by PM to execute work in isolated worktrees.
+
+**Agent Coordination Flow:**
+
+```mermaid
+graph TB
+    subgraph "Coordination Layer"
+        PM[PM Agent<br/>Never writes code]
+    end
+
+    subgraph "Task Execution Layer"
+        IMP1[Implementer<br/>Sonnet]
+        IMP2[Implementer Opus]
+        TEST1[Tester<br/>Sonnet]
+        TEST2[Tester Opus]
+        DOC1[Documenter<br/>Sonnet]
+        DOC2[Documenter Opus]
+    end
+
+    subgraph "Output Layer"
+        PR1[PR #123<br/>implementation]
+        PR2[PR #124<br/>tests]
+        PR3[PR #125<br/>docs]
+    end
+
+    PM -->|complexity 1-2| IMP1
+    PM -->|complexity 3+| IMP2
+    PM -->|complexity 1-2| TEST1
+    PM -->|complexity 3+| TEST2
+    PM -->|complexity 1-2| DOC1
+    PM -->|complexity 3+| DOC2
+
+    IMP1 --> PR1
+    IMP2 --> PR1
+    TEST1 --> PR2
+    TEST2 --> PR2
+    DOC1 --> PR3
+    DOC2 --> PR3
+
+    PR1 --> MERGE[Merge to<br/>feature branch]
+    PR2 --> MERGE
+    PR3 --> MERGE
+```
 
 **Task Agent Selection:**
 - PM analyzes task type from title/description and complexity from task definition
