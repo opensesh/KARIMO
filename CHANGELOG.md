@@ -7,6 +7,130 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [5.6.0] - 2026-03-11
+
+### Added
+
+**Research Phase Integration**
+
+New flexible research phase enhances PRD quality and reduces execution errors:
+
+**New `/karimo-research` Command:**
+- Two research modes:
+  - **General research**: Exploratory research not tied to specific PRDs
+  - **PRD-scoped research**: Research scoped to specific PRD context
+- Interactive research focus questions
+- Internal codebase pattern discovery
+- External best practices research via web search
+- Annotation-based refinement workflow
+- Research artifacts saved to dedicated folders
+
+**New Agents:**
+- `karimo-researcher`: Conducts internal and external research
+  - Pattern discovery (authentication, forms, errors, state, etc.)
+  - Error identification (missing patterns, inconsistencies)
+  - Dependency mapping (shared types, utilities)
+  - Web search integration for best practices
+  - Library evaluation and recommendations
+  - PRD enhancement with findings
+- `karimo-refiner`: Processes human annotations in research
+  - Parses inline `<!-- ANNOTATION -->` comments
+  - Addresses questions, corrections, additions, challenges, decisions
+  - Re-enhances PRD with refined findings
+  - Tracks annotation rounds
+
+**New Templates:**
+- `GENERAL_RESEARCH_TEMPLATE.md`: Format for general research output
+- `PRD_RESEARCH_SECTION_TEMPLATE.md`: Format for PRD research section
+- `ANNOTATION_GUIDE.md`: Complete guide for annotation syntax
+
+**New Skills:**
+- `karimo-research-methods.md`: Internal research methodology
+- `karimo-external-research.md`: Web search and documentation strategies
+
+**Workflow Integration:**
+- `/karimo-plan` now prompts for research after PRD approval
+  - Import existing general research (optional)
+  - Offer PRD-scoped research (recommended)
+- `/karimo-run` checks for PRD research before execution
+  - Strongly recommends research if missing
+  - Can bypass with `--skip-research` flag
+  - Can enforce with `--require-research` flag
+- Task briefs inherit research context from PRD
+  - Patterns to follow
+  - Known issues to address
+  - Recommended approach
+  - File and library dependencies
+
+**Research Folder Structure:**
+- `.karimo/research/` — General research (not tied to PRDs)
+- `.karimo/prds/{slug}/research/` — PRD-scoped research
+  - `imported/` — Imported from general research
+  - `internal/` — Codebase patterns
+  - `external/` — Web/docs research
+  - `annotations/` — Refinement tracking
+
+### Changed
+
+**Command Enhancements:**
+- `/karimo-run` now consolidates execution and orchestration
+  - Added research requirement checking
+  - New flags: `--brief-only`, `--resume`, `--skip-research`, `--require-research`, `--task`
+  - Updated to reference `/karimo-run` instead of `/karimo-execute`
+- `/karimo-plan` updated to reference `/karimo-run` instead of `/karimo-execute`
+
+**Template Updates:**
+- `PRD_TEMPLATE.md` now includes optional "Research Findings" section
+  - Implementation context (patterns, best practices, libraries)
+  - Critical issues identified
+  - Architectural decisions
+  - Task-specific research notes
+- `TASK_BRIEF_TEMPLATE.md` now includes "Research Context" section
+  - Patterns to follow with file:line references
+  - Known issues to address
+  - Recommended approach with libraries
+  - File and library dependencies
+
+### Migration Path
+
+**v5.6 (Current - Soft Launch):**
+- Research is optional and opt-in
+- `/karimo-research` available for use
+- `/karimo-run` recommends research but doesn't enforce
+- Existing workflows unaffected
+
+**v5.7 (Next - Consolidation):**
+- Research recommendations enabled by default
+- Deprecation warnings on `/karimo-execute` and `/karimo-orchestrate`
+- Brief-reviewer and brief-corrector merged into single validator
+
+**v6.0 (Future - Research Default):**
+- Remove deprecated `/karimo-execute` and `/karimo-orchestrate`
+- Research strongly recommended with explicit bypass required
+- Updated README with new workflow diagram
+
+### Benefits
+
+**Improved Brief Quality:**
+- Research discovers existing patterns agents should follow
+- Identifies missing components before execution
+- Provides concrete library recommendations
+- Documents architectural decisions
+
+**Reduced Execution Errors:**
+- Brief validation failures reduced (target: 40% → <20%)
+- Task revision loops reduced (target: 2.3 → <1.5 avg)
+- Human interventions reduced (target: 3.2 → <2.0 per PRD)
+- Execution time per task reduced (target: 15min → 12min)
+
+**Knowledge Accumulation:**
+- General research can be reused across PRDs
+- Research artifacts serve as project documentation
+- Annotation workflow enables iterative refinement
+- Cross-PRD pattern library builds over time
+
+---
+
 ## [5.5.2] - 2026-03-11
 
 ### Fixed
