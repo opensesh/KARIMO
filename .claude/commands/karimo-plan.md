@@ -4,7 +4,9 @@ Start a structured interview to create a Product Requirements Document (PRD) tha
 
 ## Arguments
 
-- `$PRD_NAME` (optional): Name for the PRD. If not provided, will be determined during the interview.
+- `--prd {slug}` (required): Use existing research folder from `/karimo-research`
+- `--skip-research`: Allow planning without prior research (not recommended)
+- `--resume {slug}`: Resume a draft PRD
 
 ---
 
@@ -26,6 +28,41 @@ Present content, prompts, and options directly. Users see actions happen — the
 
 ## Behavior
 
+### v7.0 Workflow Change
+
+**Research is now required before planning.**
+
+The workflow is:
+1. `/karimo-research "feature-name"` — Creates folder, runs research
+2. `/karimo-plan --prd feature-name` — Uses research, creates PRD
+
+To skip research (not recommended):
+```bash
+/karimo-plan --prd feature-name --skip-research
+```
+
+### Argument Validation
+
+**If no `--prd` flag provided:**
+
+```
+❌ Error: --prd argument required
+
+v7.0 requires research before planning. The new workflow is:
+
+  1. Start research:    /karimo-research "feature-name"
+  2. Create PRD:        /karimo-plan --prd feature-name
+
+This ensures agents have codebase context for better brief generation.
+
+To skip research (not recommended):
+  /karimo-plan --prd {slug} --skip-research
+
+Note: Research significantly improves execution success rate.
+```
+
+---
+
 ### First PRD Detection
 
 If `.karimo/prds/` is empty or contains no PRD folders, show:
@@ -35,11 +72,11 @@ If `.karimo/prds/` is empty or contains no PRD folders, show:
 │  Welcome to KARIMO                                           │
 ╰──────────────────────────────────────────────────────────────╯
 
-This is your first PRD. The interview process has 6 rounds:
+This is your first PRD. The interview process has 5 rounds:
 
-  1. Vision    — What are we building and why?
-  2. Scope     — Where are the boundaries?
-  3. Investigate — Agent scans your codebase
+  1. Research  — Load research context (from /karimo-research)
+  2. Vision    — What are we building and why?
+  3. Scope     — Where are the boundaries?
   4. Tasks     — Break down into executable units
   5. Review    — Validate and generate dependency graph
   6. Approve   — Confirm PRD is ready for execution
@@ -61,7 +98,7 @@ Before starting the interview, verify configuration is in place.
 
 **If `.karimo/config.yaml` exists:**
 - Read configuration from config.yaml
-- Proceed directly to Step 1 (interview)
+- Proceed directly to Step 1 (research loading)
 
 **If config.yaml missing:**
 
@@ -117,12 +154,12 @@ Ready? [Y/n]
 
 4. On accept (Y or Enter):
    - Write configuration to `.karimo/config.yaml`
-   - Continue directly to Step 1 (interview)
+   - Continue directly to Step 1 (research loading)
 
 5. On edit:
    - Allow user to modify values inline
    - Apply modifications to `.karimo/config.yaml`
-   - Continue directly to Step 1 (interview)
+   - Continue directly to Step 1 (research loading)
 
 6. On reject (n):
    - Exit with message: "Run `/karimo-configure` for manual configuration, then return to `/karimo-plan`"
@@ -154,12 +191,63 @@ When `.karimo/config.yaml` exists:
 
 ---
 
-### Step 1: Load Project Context
+### Step 1: Load Project Context + Research
 
-Read `.karimo/config.yaml` to extract:
-- `project` section for runtime, framework
-- `commands` section for build, lint, test, typecheck
-- `boundaries` section for never_touch, require_review patterns
+1. **Load Project Configuration**
+
+   Read `.karimo/config.yaml` to extract:
+   - `project` section for runtime, framework
+   - `commands` section for build, lint, test, typecheck
+   - `boundaries` section for never_touch, require_review patterns
+
+2. **Load Research Context**
+
+   Check for research folder `.karimo/prds/{slug}/research/`:
+
+   **If research exists:**
+   - Load `research/findings.md` into interview context
+   - Display research summary:
+     ```
+     ╭──────────────────────────────────────────────────────╮
+     │  Research Context Loaded: {slug}                     │
+     ╰──────────────────────────────────────────────────────╯
+
+     Key findings:
+       • {pattern_1_summary}
+       • {pattern_2_summary}
+       • {recommended_approach}
+
+     This research will inform the interview questions.
+     ```
+
+   **If research missing AND no `--skip-research`:**
+   ```
+   ❌ Error: No research found for '{slug}'
+
+   Research is required before planning (v7.0).
+
+   How to fix:
+     Run: /karimo-research "{slug}"
+
+   To plan without research (not recommended):
+     /karimo-plan --prd {slug} --skip-research
+
+   Note: Research improves brief quality by ~40% and reduces
+         execution errors significantly.
+   ```
+
+   **If research missing AND `--skip-research`:**
+   ```
+   ⚠️  Proceeding without research context
+
+   Warning: Planning without research may result in:
+     • Less informed task decomposition
+     • Higher brief validation failures
+     • More execution errors
+
+   You can add research later with:
+     /karimo-research --prd {slug}
+   ```
 
 **Note:** Other files (learnings.md, previous PRDs, templates) are loaded on-demand during later steps to keep startup fast.
 
@@ -173,7 +261,8 @@ Use the karimo-interviewer agent to conduct the interview:
 
 Pass the following context to the interviewer:
 - Project configuration from `.karimo/config.yaml`
-- The PRD name argument (if provided)
+- Research findings from `research/findings.md` (if available)
+- The PRD slug
 
 ### Step 3: Interview Flow
 
@@ -219,12 +308,13 @@ If accepted:
 After Round 4:
 1. Load `.karimo/templates/PRD_TEMPLATE.md` for output format
 2. Generate the PRD following the template structure
-3. Spawn the reviewer agent:
+3. **Include Research Findings:** If research exists, embed `## Research Findings` section from `research/findings.md`
+4. Spawn the reviewer agent:
    ```
    @karimo-reviewer.md
    ```
-4. Address any issues flagged by the reviewer
-5. Save artifacts to `.karimo/prds/{NNN}_{slug}/`
+5. Address any issues flagged by the reviewer
+6. Save artifacts to `.karimo/prds/{NNN}_{slug}/`
 
 ### Step 7: Interactive Review & Approval
 
@@ -258,13 +348,16 @@ Total: {count} tasks, {complexity} complexity points
 Options:
   1. Approve — Ready for execution
   2. Modify — Add, remove, or change tasks (re-runs reviewer)
-  3. Save as draft — Come back later
+  3. More research — Loop back to add context
+  4. Save as draft — Come back later
 
 Your choice:
 ```
 
 **Option 1 — Approve:**
+- Finalize PRD folder numbering (Step 8a)
 - Update `status.json` with `status: "ready"`
+- Commit PRD artifacts (Step 8b)
 - Print completion message with execute command
 
 **Option 2 — Modify:**
@@ -272,7 +365,11 @@ Your choice:
 - Re-spawn the reviewer agent with modifications
 - Loop back to present updated summary
 
-**Option 3 — Save as draft:**
+**Option 3 — More research:**
+- Print: "Run `/karimo-research --prd {slug}` to add research context"
+- Note: "Resume with `/karimo-plan --prd {slug}` after research completes"
+
+**Option 4 — Save as draft:**
 - Update `status.json` with `status: "draft"`
 - Print resume information:
   ```
@@ -284,14 +381,20 @@ Your choice:
 
 ---
 
-### Step 8: PRD Folder Structure
+### Step 8: PRD Folder Finalization
 
-The reviewer agent creates the PRD folder with automatic numbering:
+**Step 8a: Add Sequential Numbering**
+
+When PRD is approved, add sequential numbering to the folder:
+
+1. Check existing PRD folders for highest NNN prefix
+2. Calculate next number (e.g., if 001, 002 exist, use 003)
+3. Rename `.karimo/prds/{slug}/` to `.karimo/prds/{NNN}_{slug}/`
 
 **Directory:** `.karimo/prds/{NNN}_{slug}/`
 
 - `{NNN}` — Sequential 3-digit number (001, 002, 003...), auto-generated from existing PRDs
-- `{slug}` — URL-safe feature slug from interview
+- `{slug}` — URL-safe feature slug from research command
 
 The `created_date` field in `PRD_{slug}.md` is automatically set to the creation date.
 
@@ -302,6 +405,10 @@ The `created_date` field in `PRD_{slug}.md` is automatically set to the creation
 ├── execution_plan.yaml # Wave-based execution plan (generated by reviewer)
 ├── status.json         # Execution state (empty until /karimo-execute)
 ├── findings.md         # Cross-task discoveries (maintained by PM agent)
+├── research/           # Research artifacts (from /karimo-research)
+│   ├── internal/
+│   ├── external/
+│   └── findings.md
 ├── briefs/             # Generated briefs per task (created by brief-writer agent)
 │   ├── 1a_feature-slug.md
 │   ├── 1b_feature-slug.md
@@ -309,9 +416,9 @@ The `created_date` field in `PRD_{slug}.md` is automatically set to the creation
 └── assets/             # Images referenced during interview
 ```
 
-### Step 8a: Commit PRD Artifacts
+**Step 8b: Commit PRD Artifacts**
 
-**After the reviewer saves artifacts to `.karimo/prds/{NNN}_{slug}/`, commit immediately.**
+**After the reviewer saves artifacts and folder is renamed, commit immediately.**
 
 This is a critical atomic commit step — PRD artifacts should be committed before brief generation or task execution begins.
 
@@ -320,111 +427,19 @@ git add .karimo/prds/{NNN}_{slug}/
 git commit -m "docs(karimo): add PRD for {feature_name}
 
 Generated via /karimo-plan interview.
+Research context: {included|not included}
 
 Files:
 - PRD_{slug}.md
 - tasks.yaml
 - execution_plan.yaml
 - status.json
+- research/ (if present)
 
 Co-Authored-By: Claude <noreply@anthropic.com>"
 ```
 
 **Rationale:** Atomic commits keep PRD generation separate from brief generation and task execution. If the session is interrupted after PRD approval but before execution, the PRD artifacts are safely committed.
-
----
-
-### Step 9: Research Prompt (After Approval)
-
-**After PRD is committed and approved**, automatically prompt for research integration:
-
-#### Step 9a: Import Existing General Research
-
-Check if `.karimo/research/` contains any general research files:
-
-```bash
-ls .karimo/research/*.md 2>/dev/null
-```
-
-**If general research files exist:**
-
-Present import prompt:
-
-```
-╭──────────────────────────────────────────────────────────╮
-│  General Research Available                              │
-╰──────────────────────────────────────────────────────────╯
-
-Found {count} general research document(s):
-
-  1. {topic-001.md} — {summary from index.yaml}
-  2. {topic-002.md} — {summary from index.yaml}
-  ...
-
-Import any into this PRD? [y/n or select numbers]:
-```
-
-**If user selects research to import:**
-- Copy selected files to `.karimo/prds/{NNN}_{slug}/research/imported/`
-- Update `.karimo/prds/{NNN}_{slug}/research/imported/index.yaml` with import tracking
-- Note: "Imported {count} research document(s)"
-
-**If no general research exists or user declines:**
-- Continue to Step 9b
-
-#### Step 9b: Offer PRD-Scoped Research
-
-Present research recommendation:
-
-```
-╭──────────────────────────────────────────────────────────╮
-│  Run Research on This PRD? (Recommended)                 │
-╰──────────────────────────────────────────────────────────╯
-
-Research will:
-  • Discover patterns in your codebase
-  • Find best practices from documentation
-  • Identify potential issues
-  • Recommend libraries and approaches
-  • Enhance PRD with concrete implementation context
-
-This helps agents generate better task briefs and reduces
-execution errors.
-
-Run research? [Y/n]:
-```
-
-**If user accepts (Y or Enter):**
-
-1. Execute `/karimo-research --prd {slug}` command
-2. Research agent conducts PRD-scoped research:
-   - Interactive questions about research focus
-   - Internal codebase research
-   - External web/documentation research
-   - PRD enhancement with findings
-3. After research completes:
-   ```
-   ✓ PRD enhanced with research findings
-
-   Research details saved to:
-     .karimo/prds/{NNN}_{slug}/research/
-
-   PRD updated with Research Findings section.
-   Briefs will inherit this context during /karimo-run.
-   ```
-
-**If user declines (n):**
-
-```
-⚠️  Skipped research. You can run later with:
-     /karimo-research --prd {slug}
-
-Note: Research is highly recommended before execution.
-      It provides agents with implementation context and
-      reduces brief validation failures.
-```
-
-Continue to final output (Step 10).
 
 ---
 
@@ -452,6 +467,25 @@ Time: ~5 minutes for basic mode
 
 ---
 
+### Research Not Found
+
+```
+❌ Error: No research found for '{slug}'
+
+v7.0 requires research before planning.
+
+How to fix:
+  1. Run research first: /karimo-research "{slug}"
+  2. Then plan: /karimo-plan --prd {slug}
+
+To plan without research (not recommended):
+  /karimo-plan --prd {slug} --skip-research
+
+Note: Research improves brief quality by ~40%
+```
+
+---
+
 ### PRD Already Exists
 
 ```
@@ -461,9 +495,8 @@ A PRD with this slug has already been created.
 
 Options:
   1. Resume existing PRD: /karimo-plan --resume user-auth
-  2. Modify existing PRD: /karimo-modify --prd user-auth
-  3. View existing PRD: cat .karimo/prds/*/user-auth/prd.md
-  4. Use different slug: /karimo-plan (will generate new slug)
+  2. View existing PRD: cat .karimo/prds/*/user-auth/PRD_user-auth.md
+  3. Use different slug: /karimo-research "different-feature-name"
 
 Note: Slugs must be unique within a project
 ```
@@ -562,8 +595,8 @@ Common issues:
 
 How to fix:
   • View reviewer feedback: (shown in terminal output)
-  • Modify PRD: /karimo-modify --prd {slug}
-  • Or re-run interview: /karimo-plan --resume {slug}
+  • Choose "Modify" option to adjust
+  • Or resume: /karimo-plan --resume {slug}
 
 After fixing, reviewer will re-validate automatically.
 ```
@@ -609,7 +642,7 @@ Possible causes:
 How to fix:
   • Check tasks.yaml: cat .karimo/prds/{slug}/tasks.yaml
   • Re-run interview: /karimo-plan --resume {slug}
-  • Or manually add tasks: /karimo-modify --prd {slug}
+  • Or modify PRD: edit tasks.yaml directly
 
 A PRD must have at least 1 task to be executable.
 ```
@@ -629,11 +662,11 @@ Existing PRD:
   Created: 2026-03-01
 
 Options:
-  1. Use different slug: (interview will auto-generate)
+  1. Use different feature name: /karimo-research "user-authentication"
   2. Resume existing: /karimo-plan --resume user-auth
   3. Delete existing: rm -rf .karimo/prds/*_user-auth (caution!)
 
-Recommendation: Use auto-generated slug or choose unique name
+Recommendation: Use unique feature name or resume existing PRD
 ```
 
 ---
@@ -652,15 +685,16 @@ PRD saved to: .karimo/prds/{NNN}_{slug}/PRD_{slug}.md
 Tasks: {count} tasks defined
 Complexity: {total_complexity} points
 Ready tasks: {ready_count} (no dependencies)
+Research: {included|not included}
 
 The PRD is ready for execution. Run:
 
   /karimo-run --prd {slug}
 
-Tip: Need research? Run /karimo-research --prd {slug}
+Tip: Need more research? Run /karimo-research --prd {slug}
 ```
 
-### On Save as Draft (Option 3)
+### On Save as Draft (Option 4)
 
 ```
 PRD saved as draft: {slug}
@@ -668,3 +702,44 @@ PRD saved as draft: {slug}
 Resume planning later with:
   /karimo-plan --resume {slug}
 ```
+
+---
+
+## New Workflow (v7.0)
+
+```
+═══════════════════════════════════════════════════════
+RESEARCH → PLAN (iterate loop)
+═══════════════════════════════════════════════════════
+
+USER: /karimo-research "dark-mode-toggle"
+  → Creates: .karimo/prds/dark-mode-toggle/
+  → Runs: internal + external research
+  → Saves: research/findings.md
+
+USER: /karimo-plan --prd dark-mode-toggle
+  → Loads: research/findings.md into context
+  → Runs: 4-round interview (research-informed)
+  → Renames: folder to 001_dark-mode-toggle
+  → Creates: PRD.md, tasks.yaml
+
+[ITERATE if needed]
+USER: /karimo-research --prd dark-mode-toggle
+  → Adds: additional research
+  → Returns to planning
+
+USER: /karimo-plan --prd dark-mode-toggle
+  → Resumes planning with new research
+```
+
+---
+
+## Related Commands
+
+- `/karimo-research` — Required before planning, creates PRD folder
+- `/karimo-run` — Executes tasks after approval
+- `/karimo-status` — Shows PRD status
+
+---
+
+*Generated by [KARIMO v7.0](https://github.com/opensesh/KARIMO)*
