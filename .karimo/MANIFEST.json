@@ -1,5 +1,5 @@
 {
-  "version": "7.1.2",
+  "version": "7.2.0",
   "deprecated": {
     "commands": ["karimo-modify.md", "karimo-finish.md", "karimo-overview.md", "karimo-learn.md", "karimo-cd-config.md", "karimo-execute.md", "karimo-orchestrate.md"],
     "agents": [],
@@ -45,6 +45,7 @@
     "karimo-code-standards.md",
     "karimo-doc-standards.md",
     "karimo-external-research.md",
+    "karimo-firecrawl-web-tools.md",
     "karimo-research-methods.md",
     "karimo-testing-standards.md"
   ],
@@ -52,9 +53,11 @@
     "ANNOTATION_GUIDE.md",
     "DEPENDENCIES_TEMPLATE.md",
     "EXECUTION_PLAN_SCHEMA.md",
+    "EXTERNAL_FINDINGS_TEMPLATE.md",
     "FEEDBACK_DOCUMENT_TEMPLATE.md",
     "FEEDBACK_INTERVIEW_PROTOCOL.md",
     "GENERAL_RESEARCH_TEMPLATE.md",
+    "INTERNAL_FINDINGS_TEMPLATE.md",
     "INTERVIEW_PROTOCOL.md",
     "METRICS_SCHEMA.md",
     "PRD_RESEARCH_SECTION_TEMPLATE.md",
