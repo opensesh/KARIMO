@@ -194,6 +194,225 @@ This command (v5.6+) consolidates execution and orchestration logic:
 
 **Note:** For v5.6, `/karimo-run` still delegates to `/karimo-orchestrate` internally but adds research checking. Full consolidation in v6.0.
 
+## Error Messages
+
+### PRD Not Found
+
+```
+❌ Error: PRD 'user-auth' not found
+
+Possible causes:
+  1. PRD hasn't been created yet
+  2. Wrong slug (check .karimo/prds/ for correct name)
+  3. PRD was deleted or moved
+
+How to fix:
+  • List all PRDs: /karimo-status
+  • Create new PRD: /karimo-plan
+  • Check PRD folder: ls .karimo/prds/
+
+Need help? Run /karimo-help or check TROUBLESHOOTING.md
+```
+
+---
+
+### PRD Not Approved
+
+```
+❌ Error: PRD 'user-auth' is not approved for execution
+
+Current status: draft
+
+Possible causes:
+  1. PRD interview not completed
+  2. PRD saved but not approved
+  3. PRD was modified after approval
+
+How to fix:
+  • Complete approval: /karimo-plan --resume user-auth
+  • Check status: cat .karimo/prds/user-auth/status.json
+  • View PRD: cat .karimo/prds/user-auth/prd.md
+
+A PRD must have status: ready before execution.
+```
+
+---
+
+### Feature Branch Already Exists
+
+```
+❌ Error: Feature branch 'feature/user-auth' already exists
+
+This PRD has already been started.
+
+Possible causes:
+  1. Execution was started previously
+  2. Manual feature branch creation
+  3. Previous execution failed mid-way
+
+How to fix:
+  • Check execution status: /karimo-status --prd user-auth
+  • Resume execution: /karimo-run --prd user-auth --resume
+  • Start fresh (deletes branch): git branch -D feature/user-auth && /karimo-run --prd user-auth
+
+⚠️  Warning: Deleting the branch will lose all existing task PRs
+```
+
+---
+
+### Research Required But Missing
+
+```
+❌ Error: Research required but not found for PRD 'user-auth'
+
+The --require-research flag was used, but this PRD has no research findings.
+
+How to fix:
+  1. Run research: /karimo-research --prd user-auth
+  2. Remove --require-research flag to proceed without research (not recommended)
+
+Why research matters:
+  • Discovers existing patterns and conventions
+  • Identifies potential implementation issues
+  • Provides library and dependency recommendations
+  • Significantly improves brief quality and reduces errors
+
+Recommendation: Run /karimo-research before execution
+```
+
+---
+
+### Brief Generation Failed
+
+```
+❌ Error: Brief generation failed for task 'T001'
+
+Brief-writer agent encountered an error.
+
+Possible causes:
+  1. Insufficient PRD context for task
+  2. Task references non-existent files
+  3. Task dependencies unclear or circular
+  4. Agent timeout or resource limits
+
+How to fix:
+  • Check task definition: cat .karimo/prds/user-auth/tasks.yaml | grep -A 10 "T001"
+  • View PRD: cat .karimo/prds/user-auth/prd.md
+  • Improve task description: /karimo-modify --prd user-auth
+  • Check agent logs for specific error
+
+If error persists:
+  • Simplify task scope
+  • Split into smaller tasks
+  • Add more context to PRD
+```
+
+---
+
+### Pre-Execution Review Failed
+
+```
+❌ Error: Pre-execution review found critical issues
+
+Review findings require correction before execution can proceed.
+
+Critical issues found: 3
+  1. Task T001 references non-existent file: src/auth/login.ts
+  2. Task T002 assumes Prisma, but project uses TypeORM
+  3. Task T004 success criteria contradicts existing auth pattern
+
+How to fix:
+  • View findings: cat .karimo/prds/user-auth/findings.md
+  • Apply corrections automatically: (re-run /karimo-run, choose "apply corrections")
+  • Or fix manually: /karimo-modify --prd user-auth
+
+After fixing, run again: /karimo-run --prd user-auth
+
+To skip review (not recommended):
+  /karimo-run --prd user-auth --skip-review
+```
+
+---
+
+### No Tasks In PRD
+
+```
+❌ Error: No tasks found in PRD 'user-auth'
+
+The tasks.yaml file is empty or missing.
+
+Possible causes:
+  1. PRD was approved before task decomposition
+  2. tasks.yaml was deleted or corrupted
+  3. Task generation failed during interview
+
+How to fix:
+  • View tasks file: cat .karimo/prds/user-auth/tasks.yaml
+  • Re-run interview: /karimo-plan --resume user-auth
+  • Or modify PRD: /karimo-modify --prd user-auth
+
+A PRD must have at least 1 task to execute.
+```
+
+---
+
+### Git Errors
+
+**Uncommitted changes:**
+```
+❌ Error: Uncommitted changes in working directory
+
+Git requires a clean working directory before creating feature branches.
+
+Files with changes:
+  M src/components/Button.tsx
+  M package.json
+  ?? src/new-file.ts
+
+How to fix:
+  • Commit changes: git add -A && git commit -m "your message"
+  • Or stash changes: git stash
+  • Or discard changes: git checkout -- . (caution!)
+
+Then retry: /karimo-run --prd user-auth
+```
+
+**Not on main branch:**
+```
+❌ Error: Not on main branch
+
+Feature branches must be created from main branch.
+
+Current branch: feature/other-feature
+
+How to fix:
+  • Switch to main: git checkout main
+  • Pull latest: git pull
+  • Then retry: /karimo-run --prd user-auth
+
+If you want to branch from non-main:
+  1. Merge to main first
+  2. Or manually create feature branch from current branch (not recommended)
+```
+
+**GitHub CLI not authenticated:**
+```
+❌ Error: GitHub CLI not authenticated
+
+KARIMO requires gh CLI for PR management.
+
+How to fix:
+  1. Install gh: brew install gh (macOS) or see https://cli.github.com
+  2. Authenticate: gh auth login
+  3. Verify: gh auth status
+
+Then retry: /karimo-run --prd user-auth
+
+Need help? Run /karimo-doctor
+```
+
+---
+
 ## Related Commands
 
 | Command | Purpose |
