@@ -13,6 +13,21 @@
 
 set -e
 
+# ==============================================================================
+# SELF-REPLACEMENT GUARD
+# ==============================================================================
+# This script replaces itself during updates. Bash reads scripts by byte offset,
+# not by loading the entire file. If the file changes mid-execution, bash reads
+# from misaligned positions causing syntax errors. Fix: re-exec from a temp copy.
+
+if [ -z "$KARIMO_UPDATE_REEXEC" ]; then
+    tmp_script=$(mktemp)
+    cp "$0" "$tmp_script"
+    chmod +x "$tmp_script"
+    export KARIMO_UPDATE_REEXEC=1
+    exec bash "$tmp_script" "$@"
+fi
+
 # Colors
 RED='\033[0;31m'
 GREEN='\033[0;32m'
