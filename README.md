@@ -26,48 +26,28 @@ KARIMO is a **framework and Claude Code plugin** for PRD-driven autonomous devel
 ## How It Works
 
 ```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                          KARIMO Workflow (v7.0)                             │
-├─────────────────────────────────────────────────────────────────────────────┤
-│                                                                              │
-│   ┌──────────────┐         ┌──────────────┐                                 │
-│   │   RESEARCH   │ ──────▸ │     PLAN     │                                 │
-│   └──────────────┘         └──────────────┘                                 │
-│          │                        │                                          │
-│          └────────◂ iterate ▸─────┘                                         │
-│                                   │                                          │
-│                                   ↓                                          │
-│   ┌───────────────────────────────────────────────────────────────┐         │
-│   │                             RUN                                │         │
-│   │  ┌─────────────┐   ┌─────────────┐   ┌─────────────────────┐ │         │
-│   │  │ Phase 1:    │   │ Phase 2:    │   │ Phase 3:            │ │         │
-│   │  │ Brief Gen   │ ▸ │ Auto-Review │ ▸ │ User Iterate        │ │         │
-│   │  └─────────────┘   └─────────────┘   └─────────────────────┘ │         │
-│   │                                             │                  │         │
-│   │                                    ◂───── iterate ─────▸      │         │
-│   │                                             │                  │         │
-│   │                                    ┌────────▼────────┐        │         │
-│   │                                    │    Phase 4:     │        │         │
-│   │                                    │   Orchestrate   │        │         │
-│   │                                    └─────────────────┘        │         │
-│   └───────────────────────────────────────────────────────────────┘         │
-│                                   │                                          │
-│                                   ↓                                          │
-│              ┌──────────┐    ┌──────────┐    ┌──────────┐                   │
-│              │   MERGE  │ ▸  │  MONITOR │ ▸  │ FEEDBACK │                   │
-│              └──────────┘    └──────────┘    └──────────┘                   │
-│                                                                              │
-└─────────────────────────────────────────────────────────────────────────────┘
+┌──────────┐   ┌──────────┐   ┌──────────┐   ┌──────────┐   ┌─────────────┐   ┌──────────┐
+│ RESEARCH │──▸│   PLAN   │──▸│   RUN    │──▸│  TASKS   │──▸│ ORCHESTRATE │──▸│  MERGE   │
+└──────────┘   └──────────┘   └──────────┘   └──────────┘   └─────────────┘   └──────────┘
+      │                                            │               │               │
+      ▼                                            ▼               │               ▼
+┌──────────┐                                ┌─────────────┐        │         ┌──────────┐
+│  ITERATE │                                │ AUTO-REVIEW │        │         │  MONITOR │
+└──────────┘                                └─────────────┘        │         └──────────┘
+      ▲                                            ▲               │
+      └────────────────────────────────────────────┴───────────────┘
+                                iterate
 ```
 
 | Step | What Happens | Key Details |
 |------|--------------|-------------|
 | **Research** | Discover patterns, libraries, and gaps **(v7.0, required first step)** | Creates PRD folder, internal codebase scan, external best practices |
 | **Plan** | Structured PRD interview captures requirements | 4-round interview, research-informed, uses `--prd` flag |
-| **Run** | Generate briefs, auto-review, iterate, orchestrate | 4-phase execution with user approval loop before task execution |
-| **Merge** | Create final PR to main after all tasks complete | Feature branch aggregation, consolidated deployment |
+| **Run** | Generate task briefs from research + PRD | Brief composition with research context |
+| **Tasks** | Auto-review challenges briefs, user iterates | Order, dependencies, gaps, conflicts checked |
+| **Orchestrate** | Execute tasks in waves after approval | Implementer, tester, documenter agents |
+| **Merge** | Create final PR to main | Feature branch aggregation |
 | **Monitor** | Real-time visibility into progress | `/karimo-status`, PR labels |
-| **Feedback** | Capture learnings post-merge | Compound learning system |
 
 ---
 

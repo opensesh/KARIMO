@@ -161,7 +161,16 @@ If your project already has `.claude/` with custom agents, commands, or `CLAUDE.
 
 ---
 
-## Your First PRD (~10 min)
+## Your First PRD (~15 min)
+
+### v7.0 Workflow: Research First
+
+KARIMO v7.0 uses a research-first workflow. Research is required before planning (unless you use `--skip-research`).
+
+```
+/karimo-research "my-feature"    # Creates folder, runs research (~5 min)
+/karimo-plan --prd my-feature    # Uses research, creates PRD (~10 min)
+```
 
 ### 1. Start Claude Code
 
@@ -170,13 +179,43 @@ cd your-project
 claude
 ```
 
-### 2. Run the Plan Command
+### 2. Run Research (Required First Step)
 
 ```
-/karimo-plan
+/karimo-research "user-profiles"
 ```
 
-**First-time setup:** If this is your first time, `/karimo-plan` detects missing configuration and guides you through inline setup:
+This creates the PRD folder and runs research:
+
+1. **Creates folder structure** — `.karimo/prds/user-profiles/research/`
+2. **Asks focus questions** — What patterns to look for, external research topics
+3. **Scans codebase** — Finds patterns, dependencies, conventions
+4. **External research** — Best practices, libraries, documentation
+5. **Generates findings** — `research/findings.md` summary
+
+Research output:
+```
+.karimo/prds/user-profiles/
+├── research/
+│   ├── internal/
+│   │   ├── patterns.md
+│   │   ├── errors.md
+│   │   └── dependencies.md
+│   ├── external/
+│   │   ├── best-practices.md
+│   │   └── libraries.md
+│   └── findings.md          # Summary for interview
+```
+
+### 3. Run the Plan Command
+
+```
+/karimo-plan --prd user-profiles
+```
+
+The `--prd` flag is **required** and must point to an existing research folder.
+
+**First-time setup:** If this is your first PRD, `/karimo-plan` detects missing configuration and guides you through inline setup:
 
 1. Shows a brief explanation of why configuration matters
 2. Spawns an investigator agent to scan your codebase
@@ -184,38 +223,34 @@ claude
 4. You can accept, edit, or reject the detected config
 5. After config is set, the interview continues automatically
 
-This replaces the need to run `/karimo-configure` separately — everything happens inline.
-
-**Returning users:** If configuration already exists, the interview starts immediately.
+**Returning users:** If configuration already exists, the interview starts immediately with research context loaded.
 
 ### 4. Follow the Interview (~8 min)
 
-The interviewer agent guides you through 6 rounds:
+The interviewer agent guides you through 4 rounds (research-informed):
 
 | Round | Focus | Time |
 |-------|-------|------|
-| 1 | **Vision** — What are you building and why? | ~2 min |
-| 2 | **Scope** — Where are the boundaries? | ~2 min |
-| 3 | **Investigation** — Agent scans your codebase | ~1 min |
-| 4 | **Tasks** — Break down into executable units | ~2 min |
-| 5 | **Review** — Validate and generate dependency graph | ~30 sec |
-| 6 | **Approve** — Confirm PRD is ready for execution | ~30 sec |
+| 1 | **Framing** — What are you building? (with research context) | ~5 min |
+| 2 | **Requirements** — Priorities and acceptance criteria | ~10 min |
+| 3 | **Dependencies** — Task ordering and blockers | ~5 min |
+| 4 | **Retrospective** — Apply learnings from previous PRDs | ~3 min |
 
 **PRD Lifecycle Flow:**
 
 ```mermaid
 graph LR
-    A[/karimo-plan] --> B[Interview<br/>6 rounds]
-    B --> C[Investigator<br/>scans codebase]
-    C --> D[Reviewer<br/>validates PRD]
-    D --> E{User<br/>Approval?}
-    E -->|Yes| F[PRD Saved<br/>status: ready]
-    E -->|Modify| G[/karimo-modify]
-    E -->|Save Draft| H[Draft Saved]
-    G --> D
-    F --> I[/karimo-run]
+    A[/karimo-research] --> B[Research<br/>internal+external]
+    B --> C[/karimo-plan<br/>--prd slug]
+    C --> D[Interview<br/>4 rounds]
+    D --> E[Reviewer<br/>validates PRD]
+    E --> F{User<br/>Approval?}
+    F -->|Yes| G[PRD Saved<br/>status: ready]
+    F -->|More Research| A
+    F -->|Save Draft| H[Draft Saved]
+    G --> I[/karimo-run]
     H --> J[/karimo-plan<br/>--resume]
-    J --> B
+    J --> D
 ```
 
 ### 5. Approve the PRD
@@ -263,47 +298,33 @@ tasks:
 
 ---
 
-## Research Phase (~30 min, optional but recommended) *(v5.6+)*
+## Research Details *(v7.0)*
 
-After PRD approval, `/karimo-plan` automatically prompts for research. Research is **highly recommended** as it improves brief quality and reduces execution errors by 40%+.
+Research is now the **required first step** in KARIMO v7.0. It runs before planning (not after).
 
-### 1. Research Prompt After PRD Approval
+### Why Research First?
 
-After you approve the PRD, you'll see:
+- **40% fewer brief validation errors** — Agents understand your codebase before creating task briefs
+- **Research-informed interviews** — Interviewer uses findings to ask better questions
+- **Better library recommendations** — External research identifies proven approaches
+- **Fewer revision loops** — Tasks are grounded in codebase reality
 
-```
-╭──────────────────────────────────────────────────────────╮
-│  General Research Available                              │
-╰──────────────────────────────────────────────────────────╯
+### Skip Research (Not Recommended)
 
-Found 0 general research documents.
-
-Import any into this PRD? [y/n or select numbers]: n
-
-╭──────────────────────────────────────────────────────────╮
-│  Run Research on This PRD? (Recommended)                 │
-╰──────────────────────────────────────────────────────────╯
-
-Research will:
-  • Discover patterns in your codebase
-  • Find best practices from documentation
-  • Identify potential issues
-  • Recommend libraries and approaches
-  • Enhance PRD with concrete implementation context
-
-This helps agents generate better task briefs.
-
-Run research? [Y/n]:
-```
-
-**Recommendation:** Accept (press Enter or type `Y`)
-
-### 2. Research Focus Questions
-
-The researcher agent will ask what to focus on:
+For urgent hotfixes where research adds no value:
 
 ```
-What would you like to research for this PRD?
+/karimo-plan --prd my-feature --skip-research
+```
+
+This shows a warning but proceeds without research context.
+
+### Research Focus Questions
+
+When you run `/karimo-research "feature-name"`, the researcher agent asks what to focus on:
+
+```
+What would you like to research for this feature?
 
 □ Existing patterns in codebase
 □ External best practices
@@ -318,106 +339,78 @@ Additional research notes: [free text]
 
 Select relevant areas (use arrow keys and space to toggle).
 
-### 3. Research Execution
+### Research Execution
 
 The agent will:
-1. **Internal Research** (~15-20 min):
+1. **Internal Research** (~10-15 min):
    - Scan codebase for patterns (grep/glob)
    - Identify missing components
    - Map dependencies (shared types, utilities)
    - Analyze directory structure and conventions
 
-2. **External Research** (~15-20 min):
+2. **External Research** (~10-15 min):
    - Web search for best practices
    - Find library recommendations
    - Scrape documentation
    - Evaluate npm packages
 
-3. **PRD Enhancement** (~5 min):
-   - Generate `## Research Findings` section
-   - Add task-specific implementation notes
-   - Commit enhanced PRD
+3. **Generate Findings** (~2 min):
+   - Create `research/findings.md` summary
+   - Save detailed artifacts to `research/internal/` and `research/external/`
+   - Commit research to PRD folder
 
-### 4. Verify Research Output
+### Verify Research Output
 
-After research completes, check the enhanced PRD:
+After research completes, check the findings:
 
 ```bash
-cat .karimo/prds/{slug}/prd.md
+cat .karimo/prds/{slug}/research/findings.md
 ```
 
-You'll see a new `## Research Findings` section:
+You'll see a summary like:
 
 ```markdown
-## Research Findings
+# Research Findings: user-profiles
 
-**Last Updated:** 2026-03-11T14:30:00Z
-**Research Status:** Approved
+**Generated:** 2026-03-11T14:30:00Z
 
-### Implementation Context
+## Key Patterns Found
 
-**Existing Patterns (Internal):**
 - **requireAuth() wrapper:** Route protection (src/lib/auth/middleware.ts:42)
-  - Usage: All protected routes use this wrapper
-  - Relevance: Tasks T001, T002
+  - All protected routes use this pattern
+- **User model pattern:** Existing models in src/models/ use Prisma + Zod
 
-**Best Practices (External):**
+## Recommended Approaches
+
 - **Form validation with Zod:** Type-safe schema validation
   - Source: [Zod Documentation](https://zod.dev)
-  - Relevance: T002
+  - Already in use in codebase
 
-**Recommended Libraries:**
-- **zod** (`zod`)
-  - Purpose: Schema validation
-  - Why: Already in use, consistent with existing code
-  - Version: 3.22.4
-  - Relevance: T002
+## Identified Gaps
 
-**Critical Issues:**
 - ⚠️ **No Error Boundaries:** None found in codebase
   - Impact: Errors crash entire app
-  - Fix: Create shared ErrorBoundary component
-  - Priority: High
+  - Recommendation: Create shared ErrorBoundary component
 
-### Task-Specific Notes
+## Libraries
 
-**Task T001: Create user profile model**
-- Use Zod for schema validation (existing pattern)
-- Create shared types in src/types/user.ts
-- Follow existing model pattern from src/models/
-
-Research details: `.karimo/prds/{slug}/research/`
+- **zod** (already installed, v3.22.4)
+- Consider: **react-hook-form** for form state management
 ```
 
-### 5. Research Folder Structure
+### Iterating on Research
 
-Check research artifacts:
+After planning, you may want more research. Use the `--prd` flag to add to existing research:
 
-```bash
-ls -la .karimo/prds/{slug}/research/
+```
+/karimo-research --prd user-profiles
 ```
 
-Output:
-```
-research/
-├── internal/
-│   ├── patterns.md         # Codebase patterns found
-│   ├── errors.md           # Issues identified
-│   ├── dependencies.md     # File/module dependencies
-│   └── structure.md        # Directory conventions
-├── external/
-│   ├── best-practices.md   # Web research findings
-│   ├── libraries.md        # Library recommendations
-│   ├── references.md       # Links to documentation
-│   └── sources.yaml        # Source attribution
-└── meta.json               # Research metadata
-```
+This adds to the existing research folder without starting over.
 
-### 6. Optional: Refine Research
+### Optional: Refine Research with Annotations
 
-If you want to refine research based on feedback, add annotations:
-
-Edit research file (e.g., `research/internal/patterns.md`):
+Add annotations to research files for clarification:
 
 ```markdown
 ### Pattern: Authentication Flow
@@ -432,87 +425,71 @@ text: "Should this pattern apply to API routes too?"
 
 Then refine:
 
-```bash
-/karimo-research --refine --prd {slug}
+```
+/karimo-research --refine --prd user-profiles
 ```
 
-The refiner agent will address your annotations and update research.
-
-### Benefits of Research
-
-**Without Research:**
-- Agents guess patterns and libraries
-- 40% brief validation failure rate
-- 2.3 average task revision loops
-- More human interventions needed
-
-**With Research:**
-- Agents follow discovered patterns
-- <20% brief validation failure rate (target)
-- <1.5 average task revision loops (target)
-- Fewer human interventions needed
-
-**Time Investment vs Savings:**
-- Research: ~30 minutes
-- Execution time saved: 3-5 hours (fewer errors)
-- **ROI: ~4x time savings**
+The refiner agent addresses annotations and updates research.
 
 ---
 
-## Executing Tasks
+## Executing Tasks *(v7.0 4-Phase Model)*
 
-### Your First Execution
+### Run with Brief Review Loop
 
-KARIMO v5.0 offers two execution workflows:
-
-#### Feature Branch Mode (Recommended)
-
-For most PRDs, use feature branch aggregation:
-
-```bash
-/karimo-orchestrate --prd {slug}
+```
+/karimo-run --prd user-profiles
 ```
 
-This will:
-1. Create `feature/{prd-slug}` from main
-2. Update status.json with execution mode
-3. Spawn PM agent for wave-based execution
-4. Create task PRs targeting feature branch
-5. Pause at `ready-for-merge` status
+KARIMO v7.0 uses a 4-phase execution model with a user approval loop before tasks execute:
 
-When all tasks complete, consolidate:
+### Phase 1: Brief Generation
 
-```bash
-/karimo-merge --prd {slug}
+- Reads research findings + PRD
+- Generates self-contained task briefs (`.karimo/prds/{slug}/briefs/`)
+- Each brief includes research context
+
+### Phase 2: Auto-Review
+
+The brief-reviewer agent challenges the briefs:
+- Is task order correct?
+- Are dependencies properly specified?
+- Are file boundaries respected?
+- Are there gaps in coverage?
+
+Generates recommendations for user review.
+
+### Phase 3: User Iterate
+
+You review the briefs and recommendations:
+
+```
+╭──────────────────────────────────────────────────────────╮
+│  Brief Review Complete                                   │
+╰──────────────────────────────────────────────────────────╯
+
+Generated 5 task briefs.
+
+Recommendations:
+  ⚠️  Task T002 should run before T001 (dependency)
+  ✓  All file boundaries respected
+  ?  Consider adding test for edge case X
+
+Options:
+  1. Approve — Execute tasks as-is
+  2. Apply fixes — Apply recommended changes
+  3. Modify — Adjust briefs/order manually
+  4. More research — Run /karimo-research --prd
+  5. Cancel — Exit without executing
+
+Your choice:
 ```
 
-This creates final PR: `feature/{prd-slug}` → main
+You can iterate until satisfied, then approve to proceed.
 
-#### Direct-to-Main Mode (v4.0)
+### Phase 4: Orchestrate
 
-For simple PRDs (1-3 tasks) or hotfixes:
-
-```bash
-/karimo-execute --prd {slug}
-```
-
-This creates task PRs directly to main (multiple production deployments).
-
-**Recommendation:** Start with feature branch mode unless you have a specific reason to use direct-to-main.
-
-### What Happens During Execution
-
-**Phase 1: Brief Generation** (~2 min)
-- Generates self-contained briefs for each task
-- User reviews briefs and can adjust or exclude tasks
-
-**Phase 2: Wave-Ordered Execution** (varies by PRD size)
-- PM Agent executes tasks wave by wave
-- Wave 2 waits for all wave 1 PRs to merge to base branch
-- Claude Code manages worktrees automatically via `isolation: worktree`
-- Branch naming: `{prd-slug}-{task-id}`
-
-Example wave structure:
+After approval, tasks execute in waves:
 
 ```
 Wave 1: [1a, 1b] — Execute in parallel
@@ -521,6 +498,10 @@ Wave 2: [2a, 2b] — Execute in parallel
         ↓ (wait for merge)
 Wave 3: [3a] — Final task
 ```
+
+- PM Agent coordinates wave-based execution
+- Claude Code manages worktrees via `isolation: worktree`
+- Branch naming: `{prd-slug}-{task-id}`
 
 ### 3. Monitor Progress
 

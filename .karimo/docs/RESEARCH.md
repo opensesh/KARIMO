@@ -1,61 +1,64 @@
 # KARIMO Research Methodology
 
-**Version:** 5.6.0
+**Version:** 7.0.0
 **Purpose:** Complete guide to research integration in KARIMO workflow
 
 ---
 
 ## Overview
 
-Research in KARIMO enhances PRD quality by discovering codebase patterns, identifying gaps, and providing implementation context **before** task execution begins.
+Research in KARIMO v7.0 is a **required first step** before planning. It discovers codebase patterns, identifies gaps, and provides implementation context that informs the PRD interview.
 
 **Key Benefits:**
 - **Improved Brief Quality:** Research-informed briefs reduce execution errors by 40%+
 - **Pattern Discovery:** Find existing implementations agents should follow
 - **Gap Identification:** Detect missing components before execution
 - **Library Recommendations:** Provide concrete, evaluated tool suggestions
-- **Knowledge Accumulation:** Build reusable pattern library across PRDs
+- **Research-Informed Interviews:** Interviewer uses findings to ask better questions
 
 ---
 
-## Two Research Types
+## Research Modes (v7.0)
 
-### 1. General Research
+### 1. Feature Init Mode (Required First Step)
 
-**Purpose:** Explore topics not tied to specific PRDs
+**Purpose:** Create PRD folder and gather context for a new feature
 
 **When to use:**
-- Exploring new technologies or patterns
-- Building project pattern library
-- Researching before PRD creation
-- Cross-PRD knowledge accumulation
+- Starting any new feature (required before `/karimo-plan`)
+- Beginning the KARIMO workflow
 
 **Command:**
 ```bash
-/karimo-research "topic to research"
+/karimo-research "feature-name"
 ```
 
-**Output Location:**
-- `.karimo/research/{topic}-{NNN}.md`
-- Indexed in `.karimo/research/index.yaml`
-- Available for import into future PRDs
+**What it does:**
+1. Creates `.karimo/prds/{slug}/` folder structure
+2. Creates `research/` subfolder with internal/external directories
+3. Runs research (internal codebase scan + external best practices)
+4. Generates `research/findings.md` summary
 
-**Example Topics:**
-- "React authentication patterns"
-- "File upload best practices"
-- "State management approaches"
-- "Error boundary patterns"
+**Output Location:**
+- `.karimo/prds/{slug}/research/findings.md`
+- `.karimo/prds/{slug}/research/internal/` (codebase patterns)
+- `.karimo/prds/{slug}/research/external/` (best practices)
+
+**Next Step:**
+```bash
+/karimo-plan --prd {slug}
+```
 
 ---
 
-### 2. PRD-Scoped Research
+### 2. PRD-Scoped Mode (Iterate Loop)
 
-**Purpose:** Research scoped to specific PRD context
+**Purpose:** Add more research to existing PRD folder
 
 **When to use:**
-- After PRD approval (recommended in workflow)
-- Before brief generation and execution
-- To enhance existing PRD with implementation context
+- After planning, when you need more context
+- During the research ↔ plan iterate loop
+- To enhance existing research with additional findings
 
 **Command:**
 ```bash
@@ -63,92 +66,95 @@ Research in KARIMO enhances PRD quality by discovering codebase patterns, identi
 ```
 
 **Output Location:**
-- `.karimo/prds/{NNN}_{slug}/research/` (evidence artifacts)
-- `PRD_{slug}.md` (enhanced with findings)
-- Task briefs inherit from PRD research
-
-**Process:**
-1. Interactive questions about research focus
-2. Optional import from general research
-3. Internal codebase pattern discovery
-4. External best practices research
-5. PRD enhancement with findings
-6. Commit research
+- Adds to existing `.karimo/prds/{slug}/research/` folder
+- Updates `research/findings.md` summary
 
 ---
 
-## Research Workflow
+### 3. Refinement Mode
 
-### Phase 1: PRD Creation
+**Purpose:** Process annotations and refine research
+
+**When to use:**
+- After adding annotations to research files
+- To clarify or expand specific findings
+
+**Command:**
+```bash
+/karimo-research --refine --prd {slug}
+```
+
+---
+
+## Research Workflow (v7.0)
+
+### Step 1: Research First
 
 ```bash
-/karimo-plan
+/karimo-research "my-feature"
 ```
 
-1. Interview creates PRD
-2. PRD approved
-3. **Automatic research prompt:**
-   ```
-   Import existing research? [list of .karimo/research/*.md]
-   Run research on this PRD? [Y/n] (recommended)
-   ```
-4. If accepted: `/karimo-research --prd {slug}` runs automatically
-5. PRD enhanced with research findings
+1. Creates PRD folder: `.karimo/prds/my-feature/`
+2. Creates research subfolder structure
+3. Asks research focus questions
+4. Runs internal + external research
+5. Generates `research/findings.md`
 
-### Phase 2: Research Execution
-
-**Interactive Questions:**
-```
-What would you like to research for this PRD?
-
-□ Existing patterns in codebase
-□ External best practices
-□ Library recommendations
-□ Error/gap identification
-□ Dependencies and integration points
-□ Performance considerations
-□ Security considerations
-
-Additional research notes: [free text]
-```
-
-**Internal Research (15-20 min):**
-- Pattern discovery via grep/glob
-- Error identification (missing patterns)
-- Dependency mapping (shared types/utils)
-- Structure analysis (conventions, organization)
-
-**External Research (15-20 min):**
-- Web search for best practices
-- Documentation scraping
-- Library evaluation
-- Source attribution
-
-**Output Generation (10-15 min):**
-- Organize findings by category
-- Generate research artifacts
-- Enhance PRD with findings
-- Commit changes
-
-### Phase 3: Execution
+### Step 2: Plan with Research Context
 
 ```bash
-/karimo-run --prd {slug}
+/karimo-plan --prd my-feature
 ```
 
-1. **Research check:**
-   - If research exists: Proceed to brief generation
-   - If missing: Recommend research (can bypass with `--skip-research`)
+1. Loads research findings into context
+2. Interviewer uses findings to inform questions
+3. Research summary shown at start of Round 1
+4. PRD created with research-informed requirements
 
-2. **Brief generation:**
-   - Brief-writer inherits PRD research section
-   - Task-specific notes embedded in briefs
-   - Worker agents receive patterns, issues, libraries
+### Step 3: Iterate (Optional)
 
-3. **Execution:**
+If more research needed after planning:
+
+```bash
+/karimo-research --prd my-feature
+```
+
+Returns to planning to incorporate new findings.
+
+### Step 4: Run with Research
+
+```bash
+/karimo-run --prd my-feature
+```
+
+1. **Brief generation:**
+   - Brief-writer reads research findings
+   - Task-specific patterns embedded in briefs
+   - Agents receive library recommendations, issues
+
+2. **Auto-review:**
+   - Validates briefs against research findings
+   - Checks pattern compliance
+   - Identifies gaps
+
+3. **User iterate:**
+   - Review recommendations
+   - Approve or modify briefs
+
+4. **Orchestrate:**
    - Agents follow research-informed patterns
    - Fewer errors, faster execution
    - Better code quality
+
+### Skip Research (Not Recommended)
+
+For urgent hotfixes:
+
+```bash
+/karimo-plan --prd my-feature --skip-research
+```
+
+This bypasses the research requirement but shows a warning.
 
 ---
 
