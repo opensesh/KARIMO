@@ -116,7 +116,8 @@ KARIMO is an autonomous development **methodology** delivered via Claude Code co
 
 | Command | Purpose |
 |---------|---------|
-| `/karimo-plan` | Start PRD interview with interactive approval |
+| `/karimo-research "feature-name"` | **REQUIRED first step** — Create PRD folder + run research |
+| `/karimo-plan --prd {slug}` | PRD interview using research context |
 | `/karimo-run --prd {slug}` | Execute tasks from a PRD (feature branch workflow, **recommended**) |
 | `/karimo-run --review-only` | Generate briefs and review, then stop (no execution) |
 | `/karimo-run --skip-review` | Skip pre-execution review and execute immediately |
@@ -128,6 +129,9 @@ KARIMO is an autonomous development **methodology** delivered via Claude Code co
 | `/karimo-feedback` | Intelligent feedback with auto-detection (simple or complex) |
 | `/karimo-doctor` | Check installation health and diagnose issues |
 | `/karimo-test` | Verify installation works end-to-end |
+| `/karimo-help` | Help & documentation search |
+| `/karimo-plugin` | Plugin management |
+| `/karimo-dashboard` | CLI monitoring dashboard |
 
 ---
 
@@ -137,7 +141,8 @@ KARIMO uses three optional adoption phases:
 
 ### Phase 1: Execute PRD
 Your first planning process with KARIMO:
-- Run `/karimo-plan` to create PRD through agent interviews
+- Run `/karimo-research "feature-name"` to create PRD folder and run research
+- Run `/karimo-plan --prd {slug}` to create PRD through agent interviews
 - Agent teams coordinate task execution
 - Wave-based execution (wave 2 waits for wave 1 to merge)
 - PRs target main directly with labels for tracking
@@ -221,17 +226,17 @@ When you run `install.sh`, these files are added:
 
 | Location | Contents |
 |----------|----------|
-| `.claude/agents/` | **15** agent definitions (7 coordination + 8 task agents) |
-| `.claude/commands/` | **11** slash commands (plan, run, merge, modify, status, configure, update, feedback, doctor, test, dashboard) |
-| `.claude/skills/` | 4 skills (1 coordination + 3 task agent skills) |
+| `.claude/agents/` | **17** agent definitions (11 coordination + 6 task agents) |
+| `.claude/commands/` | **14** slash commands |
+| `.claude/skills/` | **6** skills (1 bash + 2 research + 3 task agent skills) |
 | `.claude/KARIMO_RULES.md` | Agent behavior rules |
-| `.karimo/templates/` | **12** templates (PRD, interview, task, status, dependencies, DAG, learn-interview, findings, task-brief, metrics, feedback, review) |
+| `.karimo/templates/` | **15** templates |
 
 **Optional:** Run `/karimo-configure --review` to choose and configure your automated code review provider (Greptile or Claude Code Review).
 
 ### Agent Types
 
-**Coordination agents:** interviewer, investigator, reviewer, brief-reviewer, brief-corrector, brief-writer, pm, review-architect, feedback-auditor
+**Coordination agents:** interviewer, investigator, researcher, refiner, reviewer, brief-reviewer, brief-corrector, brief-writer, pm, review-architect, feedback-auditor
 
 **Task agents:** implementer, tester, documenter (each with Sonnet and Opus variants)
 
@@ -240,6 +245,8 @@ When you run `install.sh`, these files are added:
 All skills use the `karimo-*` prefix for reliable update management and clear distinction from user-added files.
 
 **Coordination skills:** karimo-bash-utilities
+
+**Research skills:** karimo-research-methods, karimo-external-research
 
 **Task agent skills:** karimo-code-standards, karimo-testing-standards, karimo-doc-standards
 
