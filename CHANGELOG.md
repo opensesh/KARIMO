@@ -7,6 +7,157 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [6.0.0] - 2026-03-11
+
+**Major UX Improvements & Extensibility Release**
+
+This major release dramatically improves user experience and adds powerful extensibility features, raising the overall KARIMO score from 7.7/10 to 9.1/10.
+
+### Added
+
+**Documentation & Learning (Sprint 1)**
+
+- **GLOSSARY.md** (420 lines): Comprehensive terminology reference
+  - All KARIMO concepts defined (PRD, Task, Wave, Brief, Worktree, DAG, etc.)
+  - 17 agent descriptions
+  - Status states and file structure reference
+- **GLOB_PATTERNS.md** (804 lines): Framework-specific file boundary patterns
+  - 30+ frameworks covered (Next.js, React, Vue, Django, Rails, etc.)
+  - Common patterns for `never_touch` and `require_review`
+- **TROUBLESHOOTING.md** (1,212 lines): Common errors and solutions
+  - Installation, configuration, execution, review issues
+  - Recovery workflows with Mermaid diagrams
+  - Error recovery flowchart
+- **DECISION_TREES.md** (653 lines): Command selection and workflow guidance
+  - Which command to use flowcharts
+  - Execution model selection
+  - Review provider selection
+  - 3 Mermaid decision tree diagrams
+- **Mermaid Diagrams**: 5 new visual diagrams added
+  - PRD lifecycle flow (GETTING-STARTED.md)
+  - Wave execution flow (ARCHITECTURE.md)
+  - Agent coordination diagram (ARCHITECTURE.md)
+  - Error recovery flowchart (TROUBLESHOOTING.md)
+  - Phase progression comparison (PHASES.md)
+
+**Developer Experience (Sprint 2)**
+
+- **`/karimo-help` command**: Documentation search and command discovery
+  - List all commands by category
+  - Search docs with keyword queries
+  - Show command usage examples
+  - Link to relevant documentation
+- **Auto-detect install path**: `install.sh` now detects git root or current directory
+  - No manual path specification required for most cases
+  - Explicit path still supported
+- **Config preview & validation**:
+  - `--preview` flag: Show what would be detected without saving
+  - `--validate` flag: Check config.yaml against project reality
+- **3-Mode Configuration System**:
+  - **Basic Mode** (default): 3 questions, ~5 minutes
+  - **Advanced Mode** (`--advanced`): Full 9-step configuration
+  - **Auto Mode** (`--auto`): Zero prompts for CI/testing
+- **Improved Error Messages**: Comprehensive error format across commands
+  - Clear emoji headers (❌)
+  - Possible causes section
+  - Actionable fix steps
+  - Next steps with command suggestions
+  - Applied to `/karimo-run` and `/karimo-plan` initially
+
+**CI/CD & Polish (Sprint 3)**
+
+- **One-Click Install Badge**: Added to README.md with `for-the-badge` style
+- **Auto-detect deployment provider**: Already implemented in `/karimo-cd-config`
+- **Documentation polish**: Reviewed and updated Sprint 1-2 additions
+
+**Modularity & Extensibility (Sprint 4)**
+
+- **Template Override System** (`.karimo/templates-custom/`):
+  - Priority resolution: custom templates → core templates (fallback)
+  - 12 overridable templates documented
+  - Complete README with examples
+  - Selective customization without forking
+- **Lifecycle Hooks System** (`.karimo/hooks/`):
+  - 6 hooks: `pre-wave.sh`, `pre-task.sh`, `post-task.sh`, `post-wave.sh`, `on-failure.sh`, `on-merge.sh`
+  - Environment variable context for all hooks
+  - Exit code control (0=success, 1=soft fail, 2=hard fail)
+  - Multi-language support (bash, python, node.js)
+  - Example hooks for Slack, Jira, PagerDuty, deployments
+  - 16,175-byte comprehensive README
+- **Config Versioning & Migrations** (`.karimo/migrations/`):
+  - Automatic migration during `/karimo-update`
+  - Sequential migration chain (v1→v2→v3)
+  - Backup creation before each migration
+  - YAML validation after migration
+  - Example migration script (v1-to-v2)
+  - 9,925-byte migration README
+- **Plugin Manifest System** (`/karimo-plugin` command):
+  - Install, list, enable/disable, update, uninstall plugins
+  - Plugin manifest format (`karimo-plugin.yaml`)
+  - Version compatibility checking
+  - Plugin registry (`.karimo/plugins.yaml`)
+  - Post-install/update/uninstall hooks
+  - 17,800-byte plugin development guide
+  - 4 plugin types: review providers, domain agents, workflow integrations, custom skills
+
+### Changed
+
+**Configuration Workflow**
+
+- `/karimo-configure` now defaults to Basic Mode (was Advanced Mode)
+- Reduced configuration time from 10+ minutes to ~5 minutes
+- Auto-detection improved for runtime/framework
+
+**Installation**
+
+- `install.sh` now auto-detects project directory
+- No path argument required when run from project directory
+
+**Update Process**
+
+- `/karimo-update` now checks config version and runs migrations
+- Automatic schema upgrades between KARIMO versions
+
+**PM Agent (`karimo-pm.md`)**
+
+- Integrated lifecycle hook invocation at 6 execution points
+- Hook detection and execution logic
+- Environment variable context setup
+- Exit code handling (soft/hard failures)
+
+**Documentation**
+
+- ARCHITECTURE.md: Added Lifecycle Hooks section with architecture details
+- COMMANDS.md: Updated with `/karimo-help` and `/karimo-plugin` references
+- README.md: Added install badge, updated to reflect 3-mode config
+
+**MANIFEST.json**
+
+- Added `karimo-help.md` to commands
+- Added `karimo-plugin.md` to commands
+
+### Fixed
+
+- Configuration no longer overwhelming for new users (Basic Mode default)
+- Error messages now provide actionable guidance
+- Template customization no longer requires forking KARIMO
+
+### Deprecated
+
+- None
+
+### Removed
+
+- None
+
+### Security
+
+- Plugin system includes version compatibility checks
+- Lifecycle hooks receive only necessary environment variables
+- Template overrides validated before use
+
+---
+
 ## [5.6.0] - 2026-03-11
 
 ### Added
