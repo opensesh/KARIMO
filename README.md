@@ -8,7 +8,7 @@
 ```
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
-[![Version](https://img.shields.io/badge/version-v6.0.0-blue)]()
+[![Version](https://img.shields.io/badge/version-v7.0.0-blue)]()
 [![Claude Code](https://img.shields.io/badge/Claude%20Code-Framework-blueviolet.svg)]()
 [![Install](https://img.shields.io/badge/Install-One--Click-success?style=for-the-badge)](https://raw.githubusercontent.com/opensesh/KARIMO/main/.karimo/remote-install.sh)
 
@@ -26,30 +26,48 @@ KARIMO is a **framework and Claude Code plugin** for PRD-driven autonomous devel
 ## How It Works
 
 ```
-┌──────────┐     ┌────────────┐     ┌──────────┐     ┌───────────┐     ┌───────────┐
-│   Plan   │ ──▸ │  Research  │ ──▸ │   Run    │ ──▸ │  Review   │ ──▸ │   Merge   │
-└──────────┘     └────────────┘     └──────────┘     └───────────┘     └───────────┘
-                       │                   │               │                  │
-                       │ (optional)        │               │                  │
-                       │                   │            ┌──────────┐          │
-                       └─────────────────▸ │ ◂────────▸ │ Monitor  │ ◂────────┘
-                                           │            └──────────┘
-                                           │
-                                    ┌──────▼──────┐
-                                    │   Agents    │
-                                    │  Execute    │
-                                    │  in Waves   │
-                                    └─────────────┘
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                          KARIMO Workflow (v7.0)                             │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│   ┌──────────────┐         ┌──────────────┐                                 │
+│   │   RESEARCH   │ ──────▸ │     PLAN     │                                 │
+│   └──────────────┘         └──────────────┘                                 │
+│          │                        │                                          │
+│          └────────◂ iterate ▸─────┘                                         │
+│                                   │                                          │
+│                                   ↓                                          │
+│   ┌───────────────────────────────────────────────────────────────┐         │
+│   │                             RUN                                │         │
+│   │  ┌─────────────┐   ┌─────────────┐   ┌─────────────────────┐ │         │
+│   │  │ Phase 1:    │   │ Phase 2:    │   │ Phase 3:            │ │         │
+│   │  │ Brief Gen   │ ▸ │ Auto-Review │ ▸ │ User Iterate        │ │         │
+│   │  └─────────────┘   └─────────────┘   └─────────────────────┘ │         │
+│   │                                             │                  │         │
+│   │                                    ◂───── iterate ─────▸      │         │
+│   │                                             │                  │         │
+│   │                                    ┌────────▼────────┐        │         │
+│   │                                    │    Phase 4:     │        │         │
+│   │                                    │   Orchestrate   │        │         │
+│   │                                    └─────────────────┘        │         │
+│   └───────────────────────────────────────────────────────────────┘         │
+│                                   │                                          │
+│                                   ↓                                          │
+│              ┌──────────┐    ┌──────────┐    ┌──────────┐                   │
+│              │   MERGE  │ ▸  │  MONITOR │ ▸  │ FEEDBACK │                   │
+│              └──────────┘    └──────────┘    └──────────┘                   │
+│                                                                              │
+└─────────────────────────────────────────────────────────────────────────────┘
 ```
 
 | Step | What Happens | Key Details |
 |------|--------------|-------------|
-| **Plan** | Structured PRD interview captures requirements | 5-round interview, codebase investigation, agent-optimized output |
-| **Research** | Discover patterns, libraries, and gaps *(v5.6+, optional but recommended)* | Internal codebase scan, external best practices, PRD enhancement |
-| **Run** | Generate briefs, validate, and execute tasks in waves | Pre-execution review validates briefs against codebase, research-informed briefs, parallel execution via worktrees, wave ordering |
-| **Review** | Automated code review (Greptile or Code Review) | Revision loops, model escalation, quality gates (optional) |
+| **Research** | Discover patterns, libraries, and gaps **(v7.0, required first step)** | Creates PRD folder, internal codebase scan, external best practices |
+| **Plan** | Structured PRD interview captures requirements | 4-round interview, research-informed, uses `--prd` flag |
+| **Run** | Generate briefs, auto-review, iterate, orchestrate | 4-phase execution with user approval loop before task execution |
 | **Merge** | Create final PR to main after all tasks complete | Feature branch aggregation, consolidated deployment |
-| **Monitor** | Real-time visibility into progress | `/karimo-dashboard`, `/karimo-status`, PR labels |
+| **Monitor** | Real-time visibility into progress | `/karimo-status`, PR labels |
+| **Feedback** | Capture learnings post-merge | Compound learning system |
 
 ---
 
@@ -172,10 +190,11 @@ cd your-project && claude
 ### Create Your First PRD
 
 ```
-/karimo-plan
+/karimo-research "my-feature"    # Start with research (~5 min)
+/karimo-plan --prd my-feature    # Then plan with context (~10 min)
 ```
 
-The interview takes ~10 minutes. See [Getting Started](.karimo/docs/GETTING-STARTED.md) for the full walkthrough.
+See [Getting Started](.karimo/docs/GETTING-STARTED.md) for the full walkthrough.
 
 ### Optional: Set Up Automated Review
 
@@ -191,16 +210,15 @@ Choose Greptile or Claude Code Review. See [Adoption Phases](.karimo/docs/PHASES
 
 | Command | What it does |
 |---------|--------------|
-| `/karimo-plan` | Interactive PRD creation (~10 min) |
-| `/karimo-research [--prd {slug}]` | Conduct research (general or PRD-scoped, **recommended** before `/karimo-run`) |
-| `/karimo-run --prd {slug}` | Execute tasks (feature branch workflow, **recommended**) |
+| `/karimo-research "feature-name"` | **REQUIRED first step** — Creates PRD folder + runs research |
+| `/karimo-plan --prd {slug}` | Interactive PRD creation using research (~10 min) |
+| `/karimo-run --prd {slug}` | 4-phase execution (briefs → review → iterate → orchestrate) |
 | `/karimo-merge --prd {slug}` | Create final PR to main after execution |
 | `/karimo-status [--prd {slug}]` | Monitor progress (no arg = all PRDs, with arg = details) |
 | `/karimo-feedback` | Intelligent feedback (simple or complex path) |
 | `/karimo-configure` | Create or update project configuration |
 | `/karimo-doctor` | Diagnose installation issues |
 | `/karimo-update` | Update KARIMO to latest version |
-| `/karimo-test` | Verify installation works end-to-end |
 
 See [COMMANDS.md](.karimo/docs/COMMANDS.md) for full command reference.
 
@@ -208,36 +226,38 @@ See [COMMANDS.md](.karimo/docs/COMMANDS.md) for full command reference.
 
 ## Choosing Your Workflow
 
-KARIMO v5.0 supports two execution models:
+KARIMO v7.0 uses a research-first workflow:
 
-### Feature Branch Mode (Recommended)
+### Recommended Workflow (v7.0)
 
 ```bash
-/karimo-plan              # Generate PRD
-# User approves
-/karimo-run               # Creates feature branch, executes tasks
-# Autonomous execution
-/karimo-merge             # Final PR to main
+/karimo-research "my-feature"    # Creates folder, runs research
+                                 # ↕ iterate (can research the plan)
+/karimo-plan --prd my-feature    # Uses research, creates PRD
+
+/karimo-run --prd my-feature     # Generates briefs, auto-reviews
+                                 # ↕ iterate (user feedback on briefs)
+                                 # Then orchestrates execution
+
+/karimo-merge --prd my-feature   # Final PR to main
 ```
 
 **Benefits:**
+- Research-informed brief generation (40% fewer errors)
+- User approval loop before execution starts
 - Single production deployment per PRD
-- No Vercel/Netlify email flood (~2 events vs ~38)
 - Consolidated review before main merge
-- Clean git history (1 feature commit vs 15+)
 
-**Use for:** Most PRDs (5+ tasks), complex features
+**Use for:** All new features. Research is required by default.
 
-### Direct-to-Main Mode (v4.0)
+### Skip Research (Not Recommended)
 
 ```bash
-/karimo-plan              # Generate PRD
-# User approves
-/karimo-execute           # PRs target main directly
-# Autonomous execution
+/karimo-plan --prd my-feature --skip-research    # Skip research requirement
+/karimo-run --prd my-feature                     # Execute without research
 ```
 
-**Use for:** Simple PRDs (1-3 tasks), hotfixes, urgent changes
+**Use for:** Hotfixes, urgent changes where research adds no value
 
 ---
 
