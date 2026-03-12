@@ -2,19 +2,23 @@
 
 Reference for all KARIMO slash commands available in Claude Code.
 
+**v7.0 Change:** Research is now required before planning. The new workflow is:
+1. `/karimo-research "feature-name"` — Creates folder, runs research
+2. `/karimo-plan --prd feature-name` — Uses research, creates PRD
+3. `/karimo-run --prd feature-name` — 4-phase execution with user iterate loop
+
 ---
 
 ## Command Summary
 
-### Core Workflow (Recommended)
+### Core Workflow (v7.0)
 
 | Command | Purpose |
 |---------|---------|
-| `/karimo-plan` | Start PRD interview with interactive approval |
-| `/karimo-research [--prd {slug}]` | Conduct research (general or PRD-scoped) |
-| `/karimo-run --prd {slug}` | Execute tasks (feature branch workflow, **recommended**) |
+| `/karimo-research "feature-name"` | **REQUIRED first step** — Creates PRD folder + runs research |
+| `/karimo-plan --prd {slug}` | PRD interview using research context |
+| `/karimo-run --prd {slug}` | 4-phase execution (briefs → review → iterate → orchestrate) |
 | `/karimo-merge --prd {slug}` | Create final PR to main after execution |
-| `/karimo-modify --prd {slug}` | **[DEPRECATED]** Modify approved PRD (use direct editing) |
 | `/karimo-status [--prd {slug}]` | Monitor progress (no arg = all PRDs, with arg = details) |
 | `/karimo-feedback` | Intelligent feedback capture with auto-detection (simple or complex) |
 
@@ -33,56 +37,77 @@ Reference for all KARIMO slash commands available in Claude Code.
 |---------|---------|
 | `/karimo-dashboard` | Comprehensive CLI dashboard for KARIMO monitoring |
 
+### Deprecated
+
+| Command | Replacement |
+|---------|-------------|
+| `/karimo-modify --prd {slug}` | Direct editing of PRD/tasks.yaml |
+| `/karimo-execute` | `/karimo-run` |
+| `/karimo-orchestrate` | `/karimo-run` |
+
 ---
 
 ## /karimo-plan
 
-Start a structured PRD interview to define a new feature, with interactive approval.
+Create a PRD through structured interview, using research context.
+
+**v7.0 Change:** Requires `--prd {slug}` argument. Research must be run first.
 
 ### Usage
 
-```
-/karimo-plan
+```bash
+# Standard usage (research required)
+/karimo-plan --prd {slug}
+
+# Skip research (not recommended)
+/karimo-plan --prd {slug} --skip-research
+
+# Resume a draft
+/karimo-plan --resume {slug}
 ```
 
 ### What It Does
 
-1. **Intake** — Receives your initial description
+1. **Load Research** — Reads findings from `/karimo-research`
 2. **Investigation** — Scans codebase for patterns
-3. **Conversation** — 5-round structured interview
+3. **Conversation** — 4-round research-informed interview
 4. **Review** — Validates and generates task DAG
-5. **Interactive Approval** — Approve, modify, or save as draft
+5. **Interactive Approval** — Approve, modify, more research, or save as draft
 
 ### Interview Rounds
 
 | Round | Focus | Questions |
 |-------|-------|-----------|
-| 1 | Vision | What are you building? Why now? |
-| 2 | Scope | What's in/out of scope? |
-| 3 | Investigation | Agent scans codebase |
-| 4 | Tasks | Break into executable units |
-| 5 | Review | Validate and finalize |
-| 6 | Approve | Confirm PRD is ready for execution |
+| 1 | Framing | What are you building? (informed by research) |
+| 2 | Requirements | What's in/out of scope? |
+| 3 | Dependencies | Task ordering, file overlaps |
+| 4 | Retrospective | Learnings from previous PRDs |
 
 ### Approval Options
 
 After the review round, you'll see a summary with options:
 - **Approve** — Marks PRD as `ready` for execution
 - **Modify** — Make changes and re-run the reviewer
+- **More research** — Loop back to `/karimo-research --prd {slug}`
 - **Save as draft** — Come back later with `/karimo-plan --resume {slug}`
 
 ### Output
 
-Creates `.karimo/prds/{slug}/`:
-- `prd.md` — Full PRD document
+Creates `.karimo/prds/{NNN}_{slug}/`:
+- `PRD_{slug}.md` — Full PRD document
 - `tasks.yaml` — Task definitions
 - `execution_plan.yaml` — Wave-based execution plan
 - `status.json` — Execution tracking
+- `research/` — Research artifacts (from `/karimo-research`)
 
 ### Example
 
-```
-/karimo-plan
+```bash
+# First run research
+/karimo-research "user-profile-pages"
+
+# Then plan with research context
+/karimo-plan --prd user-profile-pages
 
 > I want to add user profile pages where users can edit their
 > name, avatar, and notification preferences.
@@ -92,44 +117,46 @@ Creates `.karimo/prds/{slug}/`:
 
 ## /karimo-research
 
-**NEW in v5.6:** Conduct research to enhance PRD quality and reduce execution errors.
+**v7.0 Change:** This is now the **REQUIRED first step** before planning.
 
 ### Usage
 
 ```bash
-# General research (not tied to PRD)
-/karimo-research "topic to research"
+# Start new feature (REQUIRED first step)
+# Creates PRD folder and runs research
+/karimo-research "feature-name"
 
-# PRD-scoped research (after PRD creation)
+# Add research to existing PRD (iterate loop)
 /karimo-research --prd {slug}
 
 # Refine research based on annotations
 /karimo-research --refine --prd {slug}
 
 # Research with constraints
-/karimo-research --prd {slug} --internal-only    # Skip external research
-/karimo-research --prd {slug} --external-only    # Skip codebase research
+/karimo-research "feature-name" --internal-only    # Skip external research
+/karimo-research "feature-name" --external-only    # Skip codebase research
 ```
 
 ### What It Does
 
-**General Research Mode:**
-1. Interactive questions about research focus
-2. Internal codebase research (if relevant)
-3. External web search and documentation
-4. Saves to `.karimo/research/{topic}-{NNN}.md`
-5. Updates research catalog in `.karimo/research/index.yaml`
-6. Available for import into future PRDs
+**Feature Init Mode** (bare feature-name):
+1. Sanitizes feature name to slug
+2. Creates PRD folder: `.karimo/prds/{slug}/`
+3. Creates research subfolder structure
+4. Interactive questions about research focus
+5. Internal codebase research (patterns, structure)
+6. External web search and documentation
+7. Saves findings to `research/findings.md`
+8. Commits research: "docs(karimo): init research for {slug}"
+9. Outputs: "Continue with `/karimo-plan --prd {slug}`"
 
-**PRD-Scoped Research Mode:**
-1. Loads PRD context
-2. Offers to import existing general research
-3. Interactive questions about PRD research focus
-4. Internal research (patterns, errors, dependencies)
-5. External research (best practices, libraries)
-6. Enhances PRD with `## Research Findings` section
-7. Saves evidence to `.karimo/prds/{slug}/research/`
-8. Commits enhanced PRD
+**PRD-Scoped Mode** (--prd flag):
+1. Loads existing research context
+2. Offers to import general research
+3. Interactive questions about additional research focus
+4. Appends to existing research artifacts
+5. Enhances PRD with `## Research Findings` section (if PRD exists)
+6. Commits: "docs(karimo): add research findings to PRD {slug}"
 
 ### Research Focus Areas
 
@@ -509,28 +536,34 @@ Modify an approved PRD before execution — add, remove, or change tasks with au
 
 ## /karimo-run
 
-Execute tasks from an approved PRD using feature branch workflow (v5.0). **This is the recommended execution command.**
-
-> **Note:** This command delegates to `/karimo-orchestrate` with a more intuitive name.
+Execute tasks from an approved PRD using the 4-phase execution model (v7.0).
 
 ### Usage
 
-```
+```bash
 /karimo-run --prd {slug}
 /karimo-run --prd {slug} --dry-run
 /karimo-run --prd {slug} --skip-review
 /karimo-run --prd {slug} --review-only
+/karimo-run --prd {slug} --brief-only
 ```
 
-### What It Does
+### What It Does (4 Phases)
 
-1. **Creates feature branch** — `feature/{prd-slug}` from main
-2. **Generates task briefs** — Self-contained instructions for each task
-3. **Reviews briefs (optional)** — Validates briefs against codebase reality
-4. **Applies corrections (optional)** — Fixes issues found during review
-5. **Executes tasks in waves** — Parallel execution where possible
-6. **Creates PRs** — Task PRs target feature branch (not main)
-7. **Prepares for final merge** — Run `/karimo-merge` when complete
+```
+Phase 1: Brief Generation
+  → Read research + PRD → Generate task briefs
+
+Phase 2: Auto-Review
+  → Validate briefs → Challenge order/deps → Find gaps
+
+Phase 3: User Iterate
+  → Present recommendations → User feedback → Adjust briefs
+  ↺ (loop until approved)
+
+Phase 4: Orchestrate
+  → Execute tasks in waves → Create PRs → Validate
+```
 
 ### Arguments
 
@@ -538,8 +571,10 @@ Execute tasks from an approved PRD using feature branch workflow (v5.0). **This 
 |------|----------|-------------|
 | `--prd {slug}` | Yes | PRD slug to execute |
 | `--dry-run` | No | Preview execution plan without making changes |
-| `--skip-review` | No | Skip pre-execution review and execute immediately |
-| `--review-only` | No | Generate briefs and review, then stop without executing |
+| `--skip-review` | No | Skip Phase 2-3, execute immediately after briefs |
+| `--review-only` | No | Stop after Phase 3 (no execution) |
+| `--brief-only` | No | Stop after Phase 1 (no review or execution) |
+| `--resume` | No | Resume after pausing |
 
 ### Pre-Execution Review Workflow (New in v5.5.0)
 
