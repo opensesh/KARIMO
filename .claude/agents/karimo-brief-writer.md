@@ -434,9 +434,42 @@ Create the `briefs/` directory if it doesn't exist.
 
 ## After Writing
 
+### Generate Brief Abstract (L0)
+
+After writing the full brief, generate a compact abstract file:
+
+**Save to:** `.karimo/prds/{slug}/briefs/{task_id}_{slug}.abstract.md`
+
+**Abstract Template (~50 tokens):**
+
+```markdown
+# Brief: {task_id} — {title}
+
+**Wave:** {N} | **Complexity:** {N}/10 | **Model:** {sonnet|opus}
+
+## Objective
+{1-2 sentence summary from Objective section}
+
+## Files
+| File | Action |
+|------|--------|
+| `{path}` | create |
+| `{path}` | modify |
+
+## Dependencies
+- Up: {upstream task_ids or "None"}
+- Down: {downstream task_ids or "None"}
+
+---
+*Full: `{task_id}_{slug}.md`*
+```
+
+### Report Success
+
 Report success to the caller:
 ```
 Brief created: .karimo/prds/{slug}/briefs/{task_id}_{slug}.md
+Abstract:      .karimo/prds/{slug}/briefs/{task_id}_{slug}.abstract.md
   - Objective: {first sentence of objective}
   - Files: {count} files to modify
   - Criteria: {count} success criteria
@@ -475,3 +508,54 @@ Note: No investigator findings available.
 Brief will use task-defined files_affected only.
 Consider running investigator for richer context.
 ```
+
+---
+
+## Briefs Overview Generation (Final Step)
+
+When **all briefs are complete** for a PRD, generate a `briefs.overview.md` file that provides an L1 summary of all task briefs.
+
+**Save to:** `.karimo/prds/{slug}/briefs/briefs.overview.md`
+
+**Overview Template:**
+
+```markdown
+# Briefs Overview: {prd_slug}
+
+Generated after all task briefs are complete. Provides quick navigation and context.
+
+## Task Summary
+
+| Task | Title | Wave | Complexity | Model | Status |
+|------|-------|------|------------|-------|--------|
+| [1a]({task_id}_{slug}.md) | {title} | 1 | 4 | sonnet | ready |
+| [1b]({task_id}_{slug}.md) | {title} | 1 | 3 | sonnet | ready |
+| [2a]({task_id}_{slug}.md) | {title} | 2 | 6 | opus | ready |
+
+## Wave Breakdown
+
+### Wave 1 (No dependencies)
+- **1a** — {brief description}
+- **1b** — {brief description}
+
+### Wave 2 (Depends on Wave 1)
+- **2a** — {brief description}
+
+## File Overlap Analysis
+
+| File | Tasks | Potential Conflict |
+|------|-------|-------------------|
+| `src/types/user.ts` | 1a, 2a | Low (1a creates, 2a extends) |
+
+## Quick Links
+
+- [PRD](../PRD_{slug}.md)
+- [Execution Plan](../execution_plan.yaml)
+- [Tasks](../tasks.yaml)
+
+---
+*For task abstracts, see `{task_id}_{slug}.abstract.md` files.*
+*For full briefs, see `{task_id}_{slug}.md` files.*
+```
+
+**Note:** The PM Agent or `/karimo-run` typically triggers this generation after all task briefs are written.

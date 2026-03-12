@@ -86,3 +86,8 @@
 1. Commit your changes with conventional commit format
 2. Ensure all validation commands pass
 3. Your work will be reviewed and a PR will be created by the PM agent
+
+---
+
+*Abstract: `{task_id}_{slug}.abstract.md` (L0 summary ~50 tokens)*
+*Full brief: this file*
