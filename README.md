@@ -266,8 +266,8 @@ KARIMO includes 17 specialized agents in two categories:
 **Coordination agents** orchestrate work without writing code:
 - `karimo-interviewer` — Conducts PRD interviews
 - `karimo-investigator` — Scans codebase for patterns
-- `karimo-researcher` — Conducts research (internal + external) *(v5.6+)*
-- `karimo-refiner` — Processes annotations and refines research *(v5.6+)*
+- `karimo-researcher` — Conducts research (internal + external)
+- `karimo-refiner` — Processes annotations and refines research
 - `karimo-reviewer` — Validates PRDs and generates task DAGs
 - `karimo-brief-reviewer` — Validates task briefs before execution
 - `karimo-brief-corrector` — Applies fixes to briefs after review
