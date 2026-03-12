@@ -1,6 +1,6 @@
 # KARIMO Architecture
 
-**Version:** 7.0.0
+**Version:** 7.3.0
 **Status:** Active
 
 ---
@@ -1150,7 +1150,8 @@ See [COMPOUND-LEARNING.md](COMPOUND-LEARNING.md) for full documentation.
 
 | Document | Purpose |
 |----------|---------|
+| [CONTEXT-ARCHITECTURE.md](CONTEXT-ARCHITECTURE.md) | L0/L1/L2 layering system in depth |
 | [PHASES.md](PHASES.md) | Adoption phases explained |
 | [COMMANDS.md](COMMANDS.md) | Slash command reference |
 | [SAFEGUARDS.md](SAFEGUARDS.md) | Worktrees, validation, Greptile |
-| [COMPOUND-LEARNING.md](COMPOUND-LEARNING.md) | Two-scope learning system |
+| [COMPOUND-LEARNING.md](COMPOUND-LEARNING.md) | Categorized learning system |

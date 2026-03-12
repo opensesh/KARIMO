@@ -314,9 +314,10 @@ For projects wanting vector-enhanced search, see the OpenViking repository for e
 | [Getting Started](.karimo/docs/GETTING-STARTED.md) | Installation walkthrough |
 | [Commands](.karimo/docs/COMMANDS.md) | Slash command reference |
 | [Architecture](.karimo/docs/ARCHITECTURE.md) | System design |
+| [Context Architecture](.karimo/docs/CONTEXT-ARCHITECTURE.md) | L0/L1/L2 layering system |
 | [Phases](.karimo/docs/PHASES.md) | Adoption phases explained |
 | [Safeguards](.karimo/docs/SAFEGUARDS.md) | Code integrity & security |
-| [Compound Learning](.karimo/docs/COMPOUND-LEARNING.md) | Two-scope learning system |
+| [Compound Learning](.karimo/docs/COMPOUND-LEARNING.md) | Categorized learning system |
 | [Changelog](CHANGELOG.md) | Version history |
 
 ---

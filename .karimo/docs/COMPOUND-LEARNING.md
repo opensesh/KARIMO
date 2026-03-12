@@ -489,6 +489,7 @@ Even if you don't know the root cause, specific examples help me investigate.
 
 | Document | Purpose |
 |----------|---------|
+| [CONTEXT-ARCHITECTURE.md](CONTEXT-ARCHITECTURE.md) | L0/L1/L2 layering and learnings structure |
 | [COMMANDS.md](COMMANDS.md) | `/karimo-feedback` command reference |
 | [ARCHITECTURE.md](ARCHITECTURE.md) | System design and folder structure |
 | [GETTING-STARTED.md](GETTING-STARTED.md) | Installation and first feedback capture |

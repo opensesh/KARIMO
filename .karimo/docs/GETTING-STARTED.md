@@ -67,7 +67,7 @@ This installs:
 - Skills to `.claude/skills/`
 - Agent rules to `.claude/KARIMO_RULES.md`
 - Templates to `.karimo/templates/`
-- Learnings template to `.karimo/learnings.md`
+- Learnings template to `.karimo/learnings/`
 - Marker-delimited KARIMO section appended to `CLAUDE.md` (~20 lines)
 
 ### 3. Verify Installation
@@ -115,7 +115,7 @@ bash KARIMO/.karimo/update.sh --local KARIMO /path/to/your/project
 
 These files are never modified by updates:
 - `.karimo/config.yaml` — Your project configuration
-- `.karimo/learnings.md` — Your accumulated learnings
+- `.karimo/learnings/` — Your accumulated learnings
 - `.karimo/prds/*` — Your PRD files
 - `CLAUDE.md` — Your content is preserved; KARIMO section (marker-delimited) may be updated
 
@@ -543,13 +543,13 @@ If you notice agent patterns worth capturing:
 > "Always use the existing Button component"
 ```
 
-This appends rules to `.karimo/learnings.md` for future agents.
+This appends rules to `.karimo/learnings/` for future agents.
 
 ---
 
 ## Configuration
 
-Configuration is stored in `.karimo/config.yaml` (single source of truth). Learnings are stored separately in `.karimo/learnings.md`.
+Configuration is stored in `.karimo/config.yaml` (single source of truth). Learnings are stored separately in `.karimo/learnings/`.
 
 ### Configure After Install
 
@@ -594,7 +594,7 @@ After configuration, verify everything is valid:
 This checks for:
 - KARIMO section exists in CLAUDE.md
 - `.karimo/config.yaml` exists with valid structure
-- `.karimo/learnings.md` exists
+- `.karimo/learnings/` exists
 - Configuration drift (values vs actual project state)
 
 ---
@@ -686,7 +686,7 @@ Benefits of marker-based format:
 - Programmatic detection for updates and uninstall
 - GitHub Configuration table auto-populated by `/karimo-configure`
 
-All detailed configuration is stored in `.karimo/config.yaml` and learnings in `.karimo/learnings.md`.
+All detailed configuration is stored in `.karimo/config.yaml` and learnings in `.karimo/learnings/`.
 
 ### What if I have agents with the same names?
 
