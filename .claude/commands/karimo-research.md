@@ -4,57 +4,145 @@
 
 ## Purpose
 
-Conduct research to enhance PRD context or explore general topics. Research discovers codebase patterns, identifies gaps, recommends libraries, and provides implementation guidance.
+Conduct research to discover codebase patterns, identify gaps, recommend libraries, and provide implementation guidance. **This is the REQUIRED first step before planning.**
 
-**Two research modes:**
-1. **General Research** — Exploratory research not tied to specific PRD
-2. **PRD-Scoped Research** — Research scoped to specific PRD context
+**Three research modes:**
+1. **Feature Init** — `/karimo-research "feature-name"` creates PRD folder and runs initial research
+2. **PRD-Scoped** — `/karimo-research --prd {slug}` adds research to existing PRD (iterate loop)
+3. **Refinement** — `/karimo-research --refine --prd {slug}` processes annotations
 
 ## Command Syntax
 
 ```bash
-# General research (exploratory)
-/karimo-research "topic to research"
+# Start new feature (REQUIRED first step)
+# Creates PRD folder and runs research
+/karimo-research "feature-name"
 
-# PRD-scoped research (after PRD creation)
+# Add research to existing PRD (iterate loop after planning)
 /karimo-research --prd {slug}
 
 # Refine research based on annotations
 /karimo-research --refine --prd {slug}
 
 # Research with constraints
+/karimo-research "feature-name" --internal-only
+/karimo-research "feature-name" --external-only
 /karimo-research --prd {slug} --internal-only
 /karimo-research --prd {slug} --external-only
 ```
 
-## Workflow
+## Feature Init Mode (Default)
 
-### General Research Mode
+When invoked with a bare feature name (no `--prd` flag), this is the **first step** in the KARIMO workflow.
 
-When invoked without `--prd` flag:
+### Workflow
 
-1. **Topic Discovery**
-   - Ask: "What topic would you like to research?"
-   - Ask: "What specific aspects interest you?" (checkboxes)
-   - Store user input for context
+1. **Sanitize Feature Name**
+   - Convert `"My Feature Name"` to `my-feature-name` (slug)
+   - Validate slug format (lowercase, hyphens, no special chars)
 
-2. **Research Execution**
-   - Internal research (codebase patterns, if relevant)
-   - External research (web search, documentation)
-   - Save findings to `.karimo/research/{topic}-{NNN}.md`
-   - Update `.karimo/research/index.yaml` catalog
+2. **Create PRD Folder Structure**
+   - Create `.karimo/prds/{slug}/` (no NNN prefix yet — plan adds it)
+   - Create research subfolder structure:
+     ```
+     .karimo/prds/{slug}/
+     ├── research/
+     │   ├── internal/
+     │   │   ├── patterns.md
+     │   │   ├── errors.md
+     │   │   ├── dependencies.md
+     │   │   └── structure.md
+     │   ├── external/
+     │   │   ├── best-practices.md
+     │   │   ├── libraries.md
+     │   │   ├── references.md
+     │   │   └── sources.yaml
+     │   ├── meta.json          # Research metadata
+     │   └── findings.md        # Summary of findings
+     └── status.json            # Initial status
+     ```
 
-3. **Completion**
-   - Display summary of findings
-   - Note: "Available for import into future PRDs"
+3. **Research Focus Questions**
+   Present to user:
+   ```
+   ╭──────────────────────────────────────────────────────╮
+   │  Research: {feature-name}                            │
+   ╰──────────────────────────────────────────────────────╯
 
-### PRD-Scoped Research Mode
+   What aspects should I research?
 
-When invoked with `--prd {slug}`:
+   ☑ Existing patterns in codebase (recommended)
+   ☑ External best practices (recommended)
+   ☐ Library recommendations
+   ☐ Error/gap identification
+   ☐ Dependencies and integration points
+   ☐ Performance considerations
+   ☐ Security considerations
+
+   Additional research notes: [free text]
+   ```
+
+4. **Research Execution**
+   - Spawn `karimo-researcher` agent:
+     ```
+     @karimo-researcher.md --mode feature-init
+     ```
+   - Internal research (codebase patterns, structure, dependencies)
+   - External research (web search, documentation, best practices)
+
+5. **Generate Findings Summary**
+   - Compile research into `research/findings.md`
+   - Format follows PRD_RESEARCH_SECTION_TEMPLATE.md structure
+
+6. **Commit Research**
+   ```bash
+   git add .karimo/prds/{slug}/
+   git commit -m "docs(karimo): init research for {slug}
+
+   Created research folder structure with:
+   - Internal patterns/structure/dependencies
+   - External best practices/libraries
+   - Research findings summary
+
+   Co-Authored-By: Claude <noreply@anthropic.com>"
+   ```
+
+7. **Completion Output**
+   ```
+   ╭──────────────────────────────────────────────────────╮
+   │  Research Complete: {slug}                           │
+   ╰──────────────────────────────────────────────────────╯
+
+   ✓ Created folder: .karimo/prds/{slug}/
+   ✓ Internal research: 4 files
+   ✓ External research: 4 files
+   ✓ Findings summary: research/findings.md
+
+   Key discoveries:
+     • {pattern_1_summary}
+     • {pattern_2_summary}
+     • {recommended_library}
+
+   Continue with planning:
+
+     /karimo-plan --prd {slug}
+
+   Tip: After planning, loop back with /karimo-research --prd {slug}
+        if you need more context.
+   ```
+
+---
+
+## PRD-Scoped Mode (Iterate Loop)
+
+When invoked with `--prd {slug}`, adds research to an existing PRD folder.
+
+### Workflow
 
 1. **Context Loading**
-   - Read PRD from `.karimo/prds/{NNN}_{slug}/PRD_{slug}.md`
-   - Display PRD summary (feature name, tasks)
+   - Check for existing research in `.karimo/prds/{NNN}_{slug}/research/` OR `.karimo/prds/{slug}/research/`
+   - If PRD exists: Read PRD from `.karimo/prds/{NNN}_{slug}/PRD_{slug}.md`
+   - Display summary (feature name, tasks if present, existing research)
 
 2. **Import Prompt**
    - Check for general research in `.karimo/research/`
@@ -63,7 +151,7 @@ When invoked with `--prd {slug}`:
 
 3. **Research Focus Questions**
    ```
-   What would you like to research for this PRD?
+   What additional research would you like for this PRD?
 
    □ Existing patterns in codebase
    □ External best practices
@@ -77,21 +165,38 @@ When invoked with `--prd {slug}`:
    ```
 
 4. **Research Execution**
+   - Spawn `karimo-researcher` agent:
+     ```
+     @karimo-researcher.md --mode prd-scoped
+     ```
    - Internal research (patterns, errors, dependencies, structure)
    - External research (best practices, libraries, references)
-   - Save evidence to `.karimo/prds/{slug}/research/internal/` and `external/`
+   - Append to existing research artifacts
 
 5. **PRD Enhancement**
    - Parse research findings
    - Generate `## Research Findings` section
-   - Embed in `PRD_{slug}.md` after existing content
+   - Embed in `PRD_{slug}.md` (if PRD exists)
    - Commit: `docs(karimo): add research findings to PRD {slug}`
 
 6. **Completion**
-   - Display summary of findings
-   - Note: "PRD enhanced. Briefs will inherit this context during /karimo-run"
+   ```
+   ╭──────────────────────────────────────────────────────╮
+   │  Research Updated: {slug}                            │
+   ╰──────────────────────────────────────────────────────╯
 
-### Refinement Mode
+   ✓ Research artifacts updated
+   ✓ PRD enhanced with ## Research Findings section
+
+   Next steps:
+     • Continue planning: /karimo-plan --prd {slug}
+     • Execute tasks: /karimo-run --prd {slug}
+     • Refine research: /karimo-research --refine --prd {slug}
+   ```
+
+---
+
+## Refinement Mode
 
 When invoked with `--refine --prd {slug}`:
 
@@ -110,18 +215,22 @@ When invoked with `--refine --prd {slug}`:
    - Update PRD
    - Commit: `docs(karimo): refine research findings (round N)`
 
+---
+
 ## Agent Invocation
 
-### General Research
+### Feature Init
 
 ```yaml
 agent: karimo-researcher
 model: sonnet
-mode: general
+mode: feature-init
 parameters:
-  topic: {user_input}
-  aspects: {selected_checkboxes}
-  output_path: .karimo/research/{topic}-{NNN}.md
+  slug: {sanitized_slug}
+  display_name: {original_feature_name}
+  output_folder: .karimo/prds/{slug}/research/
+  focus_areas: {selected_checkboxes}
+  additional_notes: {user_input}
 ```
 
 ### PRD-Scoped Research
@@ -129,7 +238,7 @@ parameters:
 ```yaml
 agent: karimo-researcher
 model: sonnet
-mode: prd_scoped
+mode: prd-scoped
 parameters:
   prd_slug: {slug}
   prd_path: .karimo/prds/{NNN}_{slug}/PRD_{slug}.md
@@ -150,45 +259,64 @@ parameters:
   annotations: {parsed_annotations}
 ```
 
+---
+
 ## Flags
 
 | Flag | Description |
 |------|-------------|
-| `--prd {slug}` | Research scoped to specific PRD |
+| `--prd {slug}` | Research scoped to specific PRD (iterate loop) |
 | `--refine` | Process annotations and refine research |
 | `--internal-only` | Skip external research (codebase only) |
 | `--external-only` | Skip internal research (web/docs only) |
+
+---
 
 ## Integration with Other Commands
 
 ### `/karimo-plan`
 
-After PRD creation, automatically prompts:
-```
-Import existing research? [list of .karimo/research/*.md]
-Run research on this PRD? [Y/n] (recommended)
-```
+**v7.0 Change:** `/karimo-plan` now REQUIRES `--prd {slug}`:
+- Must run `/karimo-research "feature"` first
+- Then `/karimo-plan --prd feature` uses the research
 
-If user accepts, executes `/karimo-research --prd {slug}` automatically.
+After PRD creation, can loop back:
+```
+/karimo-research --prd {slug}   # Add more research
+/karimo-plan --prd {slug}       # Resume planning
+```
 
 ### `/karimo-run`
 
 Before execution, checks for PRD research:
 - If `## Research Findings` exists in PRD → Load into brief generation
-- If missing → Strongly recommend research (can skip with `--skip-research`)
+- If missing → Warning but proceeds (legacy PRDs without research)
+
+---
 
 ## Output Structure
 
-### General Research Output
+### Feature Init Output
 
 ```
-.karimo/research/
-├── {topic}-001.md          # Research document
-├── {topic}-002.md
-└── index.yaml              # Research catalog
+.karimo/prds/{slug}/
+├── research/
+│   ├── internal/
+│   │   ├── patterns.md
+│   │   ├── errors.md
+│   │   ├── dependencies.md
+│   │   └── structure.md
+│   ├── external/
+│   │   ├── best-practices.md
+│   │   ├── libraries.md
+│   │   ├── references.md
+│   │   └── sources.yaml
+│   ├── meta.json
+│   └── findings.md
+└── status.json
 ```
 
-### PRD-Scoped Research Output
+### PRD-Scoped Research Output (After Planning)
 
 ```
 .karimo/prds/{NNN}_{slug}/
@@ -214,43 +342,104 @@ Before execution, checks for PRD research:
 │   └── meta.json                      # Research metadata
 ```
 
+---
+
 ## Error Handling
 
-**Missing PRD:**
+**Folder Already Exists:**
 ```
-Error: PRD '{slug}' not found
-Run /karimo-plan to create a PRD first
+❌ Error: Research folder for '{slug}' already exists
+
+A PRD folder with this slug has already been created.
+
+Options:
+  1. Add research to existing: /karimo-research --prd {slug}
+  2. Check existing research: cat .karimo/prds/{slug}/research/findings.md
+  3. Start fresh: rm -rf .karimo/prds/{slug} && /karimo-research "{slug}"
+
+Recommendation: Use --prd flag to add to existing research
 ```
 
-**Invalid refine mode:**
+**Missing PRD for --prd Flag:**
 ```
-Error: --refine requires --prd flag
+❌ Error: PRD '{slug}' not found
+
+No PRD folder found for this slug.
+
+How to fix:
+  1. Start with research: /karimo-research "{slug}"
+  2. Check available PRDs: ls .karimo/prds/
+
+Note: v7.0 requires /karimo-research before /karimo-plan
+```
+
+**Invalid Refine Mode:**
+```
+❌ Error: --refine requires --prd flag
 Usage: /karimo-research --refine --prd {slug}
 ```
 
-**No annotations found:**
+**No Annotations Found:**
 ```
 No annotations found in research artifacts
 Add annotations using: <!-- ANNOTATION type: ... text: "..." -->
 See .karimo/templates/ANNOTATION_GUIDE.md for syntax
 ```
 
+---
+
 ## Success Criteria
 
-- ✓ General research saved to `.karimo/research/`
+- ✓ Feature init creates PRD folder with research structure
+- ✓ Research findings saved to `research/findings.md`
 - ✓ PRD-scoped research enhances PRD with `## Research Findings`
 - ✓ Evidence artifacts saved to research folder
 - ✓ Annotations processed and tracked
 - ✓ Commits created with descriptive messages
 
+---
+
+## New Workflow (v7.0)
+
+```
+═══════════════════════════════════════════════════════
+STAGE 1: RESEARCH → PLAN (iterate loop)
+═══════════════════════════════════════════════════════
+
+USER: /karimo-research "dark-mode-toggle"
+  → Creates: .karimo/prds/dark-mode-toggle/
+  → Creates: .karimo/prds/dark-mode-toggle/research/
+  → Runs: internal codebase scan + external research
+  → Saves: research/findings.md
+  → Outputs: "Research complete. Run /karimo-plan --prd dark-mode-toggle"
+
+USER: /karimo-plan --prd dark-mode-toggle
+  → Loads: research/findings.md into context
+  → Runs: 5-round interview (research-informed)
+  → Renames: folder to {NNN}_dark-mode-toggle
+  → Creates: PRD.md, tasks.yaml
+  → Offers: "Need more research? Run /karimo-research --prd dark-mode-toggle"
+
+[ITERATE if needed — research the plan]
+USER: /karimo-research --prd dark-mode-toggle
+  → Adds: additional research to existing findings
+  → Returns to planning or proceeds to execution
+```
+
+---
+
 ## Related Commands
 
-- `/karimo-plan` — Creates PRD, offers research
+- `/karimo-plan` — Uses research, creates PRD (requires `--prd {slug}`)
 - `/karimo-run` — Checks for research before execution
 - `/karimo-status` — Shows research status per PRD
 
 ## Related Documentation
 
 - `.karimo/docs/RESEARCH.md` — Research methodology guide
-- `.karimo/docs/ANNOTATIONS.md` — Annotation syntax reference
-- `.karimo/templates/ANNOTATION_GUIDE.md` — Quick annotation guide
+- `.karimo/templates/ANNOTATION_GUIDE.md` — Annotation syntax reference
+- `.karimo/templates/PRD_RESEARCH_SECTION_TEMPLATE.md` — Research section format
+
+---
+
+*Generated by [KARIMO v7.0](https://github.com/opensesh/KARIMO)*
