@@ -48,18 +48,20 @@ When invoked with a bare feature name (no `--prd` flag), this is the **first ste
      .karimo/prds/{slug}/
      ├── research/
      │   ├── internal/
-     │   │   ├── patterns.md
-     │   │   ├── errors.md
-     │   │   ├── dependencies.md
-     │   │   └── structure.md
+     │   │   ├── patterns.md        # Evidence
+     │   │   ├── errors.md          # Evidence
+     │   │   ├── dependencies.md    # Evidence
+     │   │   ├── structure.md       # Evidence
+     │   │   └── findings.md        # Consolidated output
      │   ├── external/
-     │   │   ├── best-practices.md
-     │   │   ├── libraries.md
-     │   │   ├── references.md
-     │   │   └── sources.yaml
-     │   ├── meta.json          # Research metadata
-     │   └── findings.md        # Summary of findings
-     └── status.json            # Initial status
+     │   │   ├── best-practices.md  # Evidence
+     │   │   ├── libraries.md       # Evidence
+     │   │   ├── references.md      # Evidence
+     │   │   ├── sources.yaml       # Attribution
+     │   │   └── findings.md        # Consolidated output
+     │   ├── summary.md             # Combined executive summary
+     │   └── meta.json              # Research metadata
+     └── status.json                # Initial status
      ```
 
 3. **Research Focus Questions**
@@ -82,27 +84,49 @@ When invoked with a bare feature name (no `--prd` flag), this is the **first ste
    Additional research notes: [free text]
    ```
 
-4. **Research Execution**
+4. **Research Execution (Two-Phase)**
    - Spawn `karimo-researcher` agent:
      ```
      @karimo-researcher.md --mode feature-init
      ```
-   - Internal research (codebase patterns, structure, dependencies)
-   - External research (web search, documentation, best practices)
 
-5. **Generate Findings Summary**
-   - Compile research into `research/findings.md`
-   - Format follows PRD_RESEARCH_SECTION_TEMPLATE.md structure
+   **Phase 1: Internal Research**
+   - Pattern discovery (grep, glob, read)
+   - Dependency mapping
+   - Error identification
+   - Structure analysis
+   - Output: `research/internal/findings.md`
+   - **Commit after Phase 1**
 
-6. **Commit Research**
+   **Phase 2: External Research**
+   - Best practices (Firecrawl/WebSearch)
+   - Library evaluation
+   - Documentation references
+   - Output: `research/external/findings.md`
+   - **Commit after Phase 2**
+
+5. **Generate Summary**
+   - Compile combined summary into `research/summary.md`
+   - **Commit after summary**
+
+6. **Commit Workflow (3 commits per session)**
    ```bash
-   git add .karimo/prds/{slug}/
-   git commit -m "docs(karimo): init research for {slug}
+   # Commit 1: Internal research
+   git commit -m "docs(karimo): internal research for {slug}
 
-   Created research folder structure with:
-   - Internal patterns/structure/dependencies
-   - External best practices/libraries
-   - Research findings summary
+   Discovered {N} patterns, mapped {N} dependencies, identified {N} issues.
+
+   Co-Authored-By: Claude <noreply@anthropic.com>"
+
+   # Commit 2: External research
+   git commit -m "docs(karimo): external research for {slug}
+
+   Researched {N} best practices, evaluated {N} libraries, found {N} references.
+
+   Co-Authored-By: Claude <noreply@anthropic.com>"
+
+   # Commit 3: Summary
+   git commit -m "docs(karimo): complete research summary for {slug}
 
    Co-Authored-By: Claude <noreply@anthropic.com>"
    ```
@@ -302,43 +326,54 @@ Before execution, checks for PRD research:
 .karimo/prds/{slug}/
 ├── research/
 │   ├── internal/
-│   │   ├── patterns.md
-│   │   ├── errors.md
-│   │   ├── dependencies.md
-│   │   └── structure.md
+│   │   ├── patterns.md           # Evidence: pattern details
+│   │   ├── errors.md             # Evidence: issue details
+│   │   ├── dependencies.md       # Evidence: dependency mapping
+│   │   ├── structure.md          # Evidence: project organization
+│   │   └── findings.md           # CONSOLIDATED: agents read this
 │   ├── external/
-│   │   ├── best-practices.md
-│   │   ├── libraries.md
-│   │   ├── references.md
-│   │   └── sources.yaml
-│   ├── meta.json
-│   └── findings.md
+│   │   ├── best-practices.md     # Evidence: practice details
+│   │   ├── libraries.md          # Evidence: library evaluations
+│   │   ├── references.md         # Evidence: documentation links
+│   │   ├── sources.yaml          # Source attribution
+│   │   └── findings.md           # CONSOLIDATED: agents read this
+│   ├── summary.md                # Combined executive summary
+│   └── meta.json
 └── status.json
 ```
+
+**Output Hierarchy:**
+1. `summary.md` — Combined executive summary (primary)
+2. `internal/findings.md` — Consolidated internal research
+3. `external/findings.md` — Consolidated external research
+4. Evidence files — Detailed audit trail
 
 ### PRD-Scoped Research Output (After Planning)
 
 ```
 .karimo/prds/{NNN}_{slug}/
-├── PRD_{slug}.md                      # ✨ Enhanced with research
+├── PRD_{slug}.md                      # Enhanced with research
 ├── research/
 │   ├── imported/                      # Imported from general research
 │   │   ├── {topic}-001.md
 │   │   └── index.yaml
 │   ├── internal/                      # Codebase research
-│   │   ├── patterns.md
-│   │   ├── errors.md
-│   │   ├── dependencies.md
-│   │   └── structure.md
+│   │   ├── patterns.md               # Evidence
+│   │   ├── errors.md                 # Evidence
+│   │   ├── dependencies.md           # Evidence
+│   │   ├── structure.md              # Evidence
+│   │   └── findings.md               # CONSOLIDATED
 │   ├── external/                      # Web/docs research
-│   │   ├── best-practices.md
-│   │   ├── libraries.md
-│   │   ├── references.md
-│   │   └── sources.yaml
+│   │   ├── best-practices.md         # Evidence
+│   │   ├── libraries.md              # Evidence
+│   │   ├── references.md             # Evidence
+│   │   ├── sources.yaml              # Attribution
+│   │   └── findings.md               # CONSOLIDATED
 │   ├── annotations/                   # Refinement tracking
 │   │   ├── round-1.md
 │   │   ├── round-2.md
 │   │   └── tracking.yaml
+│   ├── summary.md                     # Combined executive summary
 │   └── meta.json                      # Research metadata
 ```
 
