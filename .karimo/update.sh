@@ -144,7 +144,7 @@ cleanup_stale_files() {
 
         # If not in manifest, remove it
         if ! echo "$expected_files" | grep -qx "$filename"; then
-            echo "    Removing stale: $filename"
+            echo "    Removing stale: $filename" >&2
             rm "$file"
             removed=$((removed + 1))
         fi
@@ -159,7 +159,7 @@ cleanup_deprecated() {
     local manifest_file="$2"
     local removed=0
 
-    echo "  Cleaning up deprecated files..."
+    echo "  Cleaning up deprecated files..." >&2
 
     # Parse deprecated section from manifest for each category
     for category in commands agents skills; do
@@ -170,7 +170,7 @@ cleanup_deprecated() {
         for file in $deprecated; do
             local path="$target_dir/.claude/$category/$file"
             if [ -f "$path" ]; then
-                echo "    Removing deprecated: $file"
+                echo "    Removing deprecated: $file" >&2
                 rm "$path"
                 removed=$((removed + 1))
             fi
@@ -185,7 +185,7 @@ cleanup_deprecated() {
     for file in $deprecated_templates; do
         local path="$target_dir/.karimo/templates/$file"
         if [ -f "$path" ]; then
-            echo "    Removing deprecated template: $file"
+            echo "    Removing deprecated template: $file" >&2
             rm "$path"
             removed=$((removed + 1))
         fi
@@ -194,7 +194,7 @@ cleanup_deprecated() {
     # Remove empty worktrees directory if it exists
     if [ -d "$target_dir/.claude/worktrees" ]; then
         if [ -z "$(ls -A "$target_dir/.claude/worktrees")" ]; then
-            echo "    Removing empty worktrees directory..."
+            echo "    Removing empty worktrees directory..." >&2
             rmdir "$target_dir/.claude/worktrees"
         fi
     fi
@@ -202,13 +202,13 @@ cleanup_deprecated() {
     # Ensure .worktrees/ is in .gitignore
     if [ -f "$target_dir/.gitignore" ]; then
         if ! grep -q "^\.worktrees/$" "$target_dir/.gitignore"; then
-            echo "    Adding .worktrees/ to .gitignore..."
+            echo "    Adding .worktrees/ to .gitignore..." >&2
             echo ".worktrees/" >> "$target_dir/.gitignore"
         fi
     fi
 
     if [ $removed -gt 0 ]; then
-        echo "    Removed $removed deprecated file(s)"
+        echo "    Removed $removed deprecated file(s)" >&2
     fi
 }
 

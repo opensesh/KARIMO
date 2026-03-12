@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [7.1.2] - 2026-03-12
+
+### Fixed
+- Stale file cleanup echo output no longer captured in arithmetic expressions
+- All user-facing echos in cleanup functions now redirect to stderr (`>&2`)
+
+---
+
 ## [7.1.1] - 2026-03-12
 
 ### Fixed
