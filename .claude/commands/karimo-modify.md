@@ -1,5 +1,23 @@
 # /karimo-modify — PRD Modification Command
 
+> **⚠️ DEPRECATED:** This command is being phased out in favor of direct conversational editing.
+>
+> **Recommended Approach:**
+> 1. Directly edit PRD files: `.karimo/prds/{NNN}_{slug}/PRD_{slug}.md`, `tasks.yaml`
+> 2. Use conversational editing with Claude to modify PRD content
+> 3. Run `/karimo-research --prd {slug}` to update research after modifications
+> 4. Re-run `/karimo-plan` reviewer if significant changes made
+>
+> **Why this approach:**
+> - More flexible (edit anything, not just tasks)
+> - Research-informed (research can guide modifications)
+> - Standard git workflow (clear diff, atomic commits)
+> - No complex modification protocol
+>
+> This command remains available for backward compatibility but will be removed in v6.0.
+
+---
+
 Modify an approved PRD before execution. Add, remove, or change tasks, then regenerate the execution plan.
 
 ## Arguments

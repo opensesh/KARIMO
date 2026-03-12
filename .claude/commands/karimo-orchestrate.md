@@ -1,5 +1,23 @@
 # /karimo-orchestrate — Feature Branch Orchestration Command
 
+> **⚠️ CONSOLIDATING:** This command is being consolidated into `/karimo-run` in v5.7+.
+>
+> **Recommended:** Use `/karimo-run` for the same functionality with research integration.
+>
+> **Benefits of `/karimo-run`:**
+> - Research-informed briefs (improved quality)
+> - Unified command interface
+> - Additional flags: `--brief-only`, `--resume`, `--skip-research`, `--require-research`
+>
+> **To use recommended workflow:**
+> 1. Run `/karimo-research --prd {slug}` to enhance PRD (recommended)
+> 2. Run `/karimo-run --prd {slug}` to execute tasks
+> 3. Run `/karimo-merge --prd {slug}` to create final PR
+>
+> This command remains available for backward compatibility but will be removed in v6.0.
+
+---
+
 Start autonomous execution of an approved PRD using feature branch aggregation (v5.0). Creates a feature branch, executes tasks, and prepares for final merge to main.
 
 ## Arguments
