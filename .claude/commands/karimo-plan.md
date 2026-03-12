@@ -428,6 +428,216 @@ Continue to final output (Step 10).
 
 ---
 
+## Error Messages
+
+### Configuration Not Found
+
+```
+❌ Error: No KARIMO configuration found
+
+Configuration is required before creating a PRD.
+
+How to fix:
+  1. Run configuration: /karimo-configure
+  2. Or run inline setup (will prompt during interview)
+
+Configuration detects:
+  • Runtime (Node.js, Python, etc.)
+  • Framework (Next.js, Django, etc.)
+  • Build/test commands
+  • File boundaries
+
+Time: ~5 minutes for basic mode
+```
+
+---
+
+### PRD Already Exists
+
+```
+❌ Error: PRD with slug 'user-auth' already exists
+
+A PRD with this slug has already been created.
+
+Options:
+  1. Resume existing PRD: /karimo-plan --resume user-auth
+  2. Modify existing PRD: /karimo-modify --prd user-auth
+  3. View existing PRD: cat .karimo/prds/*/user-auth/prd.md
+  4. Use different slug: /karimo-plan (will generate new slug)
+
+Note: Slugs must be unique within a project
+```
+
+---
+
+### Interview Agent Failed
+
+```
+❌ Error: Interview agent failed during Round {N}
+
+The interviewer agent encountered an error.
+
+Possible causes:
+  1. Agent timeout or resource limits
+  2. Invalid input format
+  3. Connectivity issues
+  4. Model API errors
+
+How to fix:
+  • Check your input was valid (no special characters in names)
+  • Retry: /karimo-plan --resume {slug}
+  • If persists: /karimo-doctor
+
+Draft saved to: .karimo/prds/{slug}/
+```
+
+---
+
+### Investigator Detection Failed
+
+```
+❌ Error: Project detection failed
+
+The investigator agent could not detect project settings.
+
+Possible causes:
+  1. Non-standard project structure
+  2. Missing package.json or equivalent
+  3. Unsupported framework/runtime
+  4. Permission issues
+
+How to fix:
+  • Use manual configuration: /karimo-configure --advanced
+  • Verify project structure: ls -la
+  • Check permissions: ls -la .
+  • See supported frameworks: /karimo-help frameworks
+
+For help: Check TROUBLESHOOTING.md
+```
+
+---
+
+### Task Decomposition Failed
+
+```
+❌ Error: Could not decompose PRD into tasks
+
+The interviewer agent could not break down the requirements into tasks.
+
+Possible causes:
+  1. Requirements too vague or high-level
+  2. Scope too large for single PRD
+  3. Missing technical details
+  4. Conflicting requirements
+
+How to fix:
+  1. Provide more specific requirements:
+     - What files will change?
+     - What functionality exactly?
+     - What are the acceptance criteria?
+
+  2. Or split into multiple PRDs:
+     - Break large features into smaller parts
+     - One PRD per major component
+
+  3. Resume and clarify: /karimo-plan --resume {slug}
+
+Tip: Aim for 5-15 tasks per PRD for best results
+```
+
+---
+
+### Reviewer Validation Failed
+
+```
+❌ Error: PRD validation found critical issues
+
+The reviewer agent identified problems that must be fixed.
+
+Common issues:
+  1. Circular task dependencies (T001 → T002 → T001)
+  2. Missing dependency (T002 needs T001 but not specified)
+  3. Task complexity mismatch (task too simple/complex)
+  4. Insufficient acceptance criteria
+
+How to fix:
+  • View reviewer feedback: (shown in terminal output)
+  • Modify PRD: /karimo-modify --prd {slug}
+  • Or re-run interview: /karimo-plan --resume {slug}
+
+After fixing, reviewer will re-validate automatically.
+```
+
+---
+
+### DAG Generation Failed
+
+```
+❌ Error: Could not generate dependency graph (DAG)
+
+Task dependencies could not be visualized.
+
+Possible causes:
+  1. Circular dependencies detected
+  2. Invalid dependency references (task IDs don't exist)
+  3. Dependency graph too complex
+  4. Missing tasks.yaml file
+
+How to fix:
+  • Check tasks.yaml: cat .karimo/prds/{slug}/tasks.yaml
+  • Verify task IDs are sequential and valid
+  • Remove circular dependencies
+  • Simplify dependency structure
+
+The PRD can still execute, but wave ordering may be suboptimal.
+```
+
+---
+
+### No Tasks Generated
+
+```
+❌ Error: PRD has no tasks after interview
+
+The interview completed but no tasks were generated.
+
+Possible causes:
+  1. Requirements were informational only (no code changes)
+  2. Task generation step skipped or failed
+  3. Tasks manually deleted from tasks.yaml
+
+How to fix:
+  • Check tasks.yaml: cat .karimo/prds/{slug}/tasks.yaml
+  • Re-run interview: /karimo-plan --resume {slug}
+  • Or manually add tasks: /karimo-modify --prd {slug}
+
+A PRD must have at least 1 task to be executable.
+```
+
+---
+
+### Slug Collision
+
+```
+❌ Error: PRD slug 'user-auth' conflicts with existing PRD
+
+A PRD with this slug already exists in .karimo/prds/
+
+Existing PRD:
+  Path: .karimo/prds/001_user-auth/
+  Status: ready
+  Created: 2026-03-01
+
+Options:
+  1. Use different slug: (interview will auto-generate)
+  2. Resume existing: /karimo-plan --resume user-auth
+  3. Delete existing: rm -rf .karimo/prds/*_user-auth (caution!)
+
+Recommendation: Use auto-generated slug or choose unique name
+```
+
+---
+
 ## Output
 
 ### On Approval (Option 1)
