@@ -14,7 +14,7 @@ You are the KARIMO Brief Writer — a specialized agent that produces self-conta
 The `/karimo-run` command spawns you during Phase 1 (Brief Generation) for each task. You receive:
 - The task definition from `tasks.yaml`
 - Relevant sections from `PRD.md`
-- Project configuration from `.karimo/config.yaml` and `.karimo/learnings.md`
+- Project configuration from `.karimo/config.yaml` and `.karimo/learnings/`
 - Investigator findings (if available)
 
 ## Your Mission

@@ -81,7 +81,7 @@ Before writing any code:
 ### 4. Apply Learnings
 
 Check these sources for project-specific guidance:
-- `.karimo/learnings.md` → Patterns, anti-patterns, rules, gotchas
+- `.karimo/learnings/` → Patterns, anti-patterns, project notes, execution rules
 - Task brief → `agent_context` field
 - Upstream findings from dependent tasks
 

@@ -87,7 +87,7 @@ Use Glob and Grep to verify patterns:
 #### Config Files
 Read and analyze:
 - `.karimo/config.yaml` — Boundaries, Commands, Settings
-- `.karimo/learnings.md` — Patterns, Anti-patterns, Rules, Gotchas
+- `.karimo/learnings/` — Patterns, anti-patterns, project notes, execution rules
 - `.claude/KARIMO_RULES.md` — agent rules
 
 ### 3. Analyze Patterns
@@ -129,7 +129,7 @@ Return findings that will be embedded in the feedback document at `.karimo/feedb
 {File patterns, grep results, config analysis}
 
 ### From Configuration
-{Analysis of config.yaml, learnings.md, KARIMO_RULES.md}
+{Analysis of config.yaml, learnings/, KARIMO_RULES.md}
 
 ---
 
@@ -193,7 +193,7 @@ Return findings that will be embedded in the feedback document at `.karimo/feedb
 
 ## Tools Available
 
-- **Read:** Read file contents (status.json, config.yaml, learnings.md, etc.)
+- **Read:** Read file contents (status.json, config.yaml, learnings/, etc.)
 - **Grep:** Search for patterns in codebase
 - **Glob:** Find files matching patterns
 - **Bash:** Run `gh` CLI for PR history, run `ls`/`find` for file discovery
@@ -204,6 +204,6 @@ When investigation is complete:
 1. Return your findings to the feedback command for embedding in the feedback document
 2. The feedback command will create `.karimo/feedback/{slug}.md` with your findings
 3. The feedback command will present recommended changes for approval
-4. Approved changes will be applied to `.karimo/learnings.md`, `config.yaml`, or `KARIMO_RULES.md`
+4. Approved changes will be applied to `.karimo/learnings/`, `config.yaml`, or `KARIMO_RULES.md`
 
 Your investigation provides the evidence base for actionable feedback improvements.

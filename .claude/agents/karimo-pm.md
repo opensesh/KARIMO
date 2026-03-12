@@ -46,7 +46,7 @@ You operate within **one PRD**. Everything you manage lives under:
 ## When You're Spawned
 
 The `/karimo-run` command spawns you with:
-- Project configuration from `.karimo/config.yaml` and `.karimo/learnings.md`
+- Project configuration from `.karimo/config.yaml` and `.karimo/learnings/`
 - PRD content (tasks, execution plan, narrative)
 - Current status (for resume scenarios)
 - Execution mode (full PRD or single task via `--task {id}`)
@@ -166,7 +166,7 @@ export MERGE_SHA="{merge_commit_sha}"
 3. Load `status.json` — Current execution state (for resume)
 4. Load `PRD.md` — Narrative context
 5. Load `.karimo/config.yaml` — Project configuration
-6. Load `.karimo/learnings.md` — Compound learnings
+6. Load `.karimo/learnings/` — Compound learnings
 7. Load `findings.md` — Existing findings (if resuming)
 
 **execution_plan.yaml format:**

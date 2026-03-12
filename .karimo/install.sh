@@ -470,7 +470,7 @@ This project uses [KARIMO](https://github.com/opensesh/KARIMO) for PRD-driven au
 - **Commands:** Type `/karimo-` to see all commands
 - **Agent rules:** `.claude/KARIMO_RULES.md`
 - **Configuration:** `.karimo/config.yaml`
-- **Learnings:** `.karimo/learnings.md`
+- **Learnings:** `.karimo/learnings/`
 
 ### GitHub Configuration
 
@@ -496,23 +496,44 @@ EOF
     fi
 fi
 
-# Create learnings file if it doesn't exist
-LEARNINGS_FILE="$TARGET_DIR/.karimo/learnings.md"
-if [ ! -f "$LEARNINGS_FILE" ]; then
-    cat > "$LEARNINGS_FILE" << 'LEARNEOF'
-# KARIMO Learnings
+# Create learnings directory structure if it doesn't exist
+LEARNINGS_DIR="$TARGET_DIR/.karimo/learnings"
+if [ ! -d "$LEARNINGS_DIR" ]; then
+    echo "Creating learnings directory structure..."
+    mkdir -p "$LEARNINGS_DIR/patterns"
+    mkdir -p "$LEARNINGS_DIR/anti-patterns"
+    mkdir -p "$LEARNINGS_DIR/project-notes"
+    mkdir -p "$LEARNINGS_DIR/execution-rules"
 
-_Rules learned from execution feedback via `/karimo-feedback` and `/karimo-learn`._
+    # Copy learnings index and template from source
+    if [ -f "$KARIMO_ROOT/.karimo/learnings/index.md" ]; then
+        cp "$KARIMO_ROOT/.karimo/learnings/index.md" "$LEARNINGS_DIR/"
+        cp "$KARIMO_ROOT/.karimo/learnings/TEMPLATE.md" "$LEARNINGS_DIR/"
+        cp "$KARIMO_ROOT/.karimo/learnings/patterns/index.md" "$LEARNINGS_DIR/patterns/"
+        cp "$KARIMO_ROOT/.karimo/learnings/anti-patterns/index.md" "$LEARNINGS_DIR/anti-patterns/"
+        cp "$KARIMO_ROOT/.karimo/learnings/project-notes/index.md" "$LEARNINGS_DIR/project-notes/"
+        cp "$KARIMO_ROOT/.karimo/learnings/execution-rules/index.md" "$LEARNINGS_DIR/execution-rules/"
+        echo "  Created .karimo/learnings/ directory structure"
+    else
+        echo -e "  ${YELLOW}Warning: Learnings templates not found in source${NC}"
+    fi
+fi
 
-## Patterns to Follow
+# Create legacy learnings.md symlink for backward compatibility
+LEARNINGS_LEGACY="$TARGET_DIR/.karimo/learnings.md"
+if [ ! -f "$LEARNINGS_LEGACY" ] && [ ! -L "$LEARNINGS_LEGACY" ]; then
+    cat > "$LEARNINGS_LEGACY" << 'LEARNEOF'
+# KARIMO Learnings (Legacy)
 
-_No patterns captured yet._
+**This file is deprecated.** Learnings are now stored in `.karimo/learnings/` directory.
 
-## Anti-Patterns to Avoid
+See `.karimo/learnings/index.md` for the new structure.
 
-_No anti-patterns captured yet._
+---
+
+_Kept for backward compatibility. Agents now read from `.karimo/learnings/`._
 LEARNEOF
-    echo "  Created .karimo/learnings.md"
+    echo "  Created legacy .karimo/learnings.md (deprecated notice)"
 fi
 
 # Update .gitignore

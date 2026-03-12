@@ -53,7 +53,7 @@ The protocol defines:
 - Complexity detection (simple vs complex feedback)
 - Adaptive questioning (3-7 questions, not rigid rounds)
 - 4 question categories: Problem Scoping, Evidence, Root Cause, Desired State
-- Simple path: 0-3 questions → direct rule → append to learnings.md
+- Simple path: 0-3 questions → direct rule → write to learnings/
 - Complex path: 3-7 questions → investigation directives → feedback document
 - Edge case handling (multiple issues, complexity changes, vague feedback)
 

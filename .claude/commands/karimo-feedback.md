@@ -33,7 +33,7 @@ Complexity Detection
     │   ├─ Ask 0-3 clarifying questions (if needed)
     │   ├─ Generate rule immediately
     │   ├─ Confirm with user
-    │   └─ Append to .karimo/learnings.md
+    │   └─ Write to .karimo/learnings/{category}/
     │
     └─► COMPLEX PATH (30% of cases, 10-20 min)
         │
@@ -124,33 +124,57 @@ Reference existing components for class patterns.
 
 ### 3. Confirm with User
 
-> "Adding to `.karimo/learnings.md`:
+> "Creating `.karimo/learnings/anti-patterns/2026-03-12-no-inline-styles.md`:
 >
-> ```
-> **Anti-pattern:** Never use inline styles. Always use Tailwind utility classes.
+> ```markdown
+> # No Inline Styles
+>
+> **Category:** anti-pattern
+> **Severity:** important
+> **Added:** 2026-03-12
+> **Source:** /karimo-feedback
+>
+> ## Description
+> Never use inline styles. Always use Tailwind utility classes.
+>
+> ## Context
+> Inline styles bypass the design system and make components harder to theme.
 > Reference existing components for class patterns.
 >
-> **Context:** Inline styles bypass the design system and make components harder to theme.
-> **Added:** 2024-03-11
+> ## Example
+> ```tsx
+> // Bad
+> <div style={{ marginTop: '8px' }}>...</div>
+>
+> // Good
+> <div className="mt-2">...</div>
+> ```
 > ```
 >
 > Correct? [Y/n/edit]"
 
-### 4. Append to .karimo/learnings.md
+### 4. Write to .karimo/learnings/{category}/
 
-Add under appropriate section:
-- Patterns to Follow
-- Anti-Patterns to Avoid
-- Rules
-- Gotchas
+Create learning file in appropriate category directory:
+- `patterns/` — Approaches that work well
+- `anti-patterns/` — Approaches to avoid
+- `project-notes/` — Project-specific context
+- `execution-rules/` — Mandatory guidelines
+
+**File naming:** `{YYYY-MM-DD}-{short-slug}.md`
+
+**Example:**
+```
+.karimo/learnings/anti-patterns/2026-03-12-no-inline-styles.md
+```
 
 ### 5. Commit
 
 ```bash
-git add .karimo/learnings.md
+git add .karimo/learnings/
 git commit -m "chore(feedback): add rule - no inline styles
 
-Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
+Co-Authored-By: Claude <noreply@anthropic.com>"
 ```
 
 ### 6. Confirm
@@ -292,7 +316,7 @@ Show user the proposed changes:
 >    - Add DATABASE_URL env var
 >    - Confidence: High
 >
-> 2. **Add rule** to `.karimo/learnings.md`
+> 2. **Add rule** to `.karimo/learnings/execution-rules/`
 >    - "Always verify test environment parity between local and CI"
 >    - Confidence: High
 >
@@ -311,7 +335,7 @@ For each approved change:
 ### 9. Commit
 
 ```bash
-git add .karimo/feedback/deploy-test-failures.md .karimo/learnings.md .karimo/config.yaml .github/workflows/test.yml
+git add .karimo/feedback/deploy-test-failures.md .karimo/learnings/ .karimo/config.yaml .github/workflows/test.yml
 git commit -m "chore(feedback): fix deploy test failures
 
 Investigation findings:
@@ -330,7 +354,7 @@ Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
 > "Feedback captured and changes applied.
 >
 > Created: `.karimo/feedback/deploy-test-failures.md`
-> Updated: `.karimo/learnings.md`, `.karimo/config.yaml`, `.github/workflows/test.yml`
+> Updated: `.karimo/learnings/`, `.karimo/config.yaml`, `.github/workflows/test.yml`
 >
 > Future PRDs will include this fix."
 
@@ -385,7 +409,7 @@ Preserved from previous version with no changes.
    ```
 
 4. **Capture selected learnings:**
-   - Append to `.karimo/learnings.md` under appropriate sections
+   - Write to `.karimo/learnings/{category}/` directories
    - Update metrics.json to mark as captured
    - Commit: `chore(feedback): batch capture from {prd-slug} metrics`
 
@@ -465,17 +489,17 @@ Shows recent learnings and allows removal:
 ### Created/Modified Files
 
 **Simple Path:**
-- `.karimo/learnings.md` (appended)
+- `.karimo/learnings/{category}/{date}-{slug}.md` (created)
 
 **Complex Path:**
 - `.karimo/feedback/{slug}.md` (created)
-- `.karimo/learnings.md` (appended)
+- `.karimo/learnings/{category}/{date}-{slug}.md` (created)
 - `.karimo/config.yaml` (if boundaries updated)
 - `.claude/KARIMO_RULES.md` (if rules updated)
 - Other files (as recommended by investigation)
 
 **Batch Mode:**
-- `.karimo/learnings.md` (appended)
+- `.karimo/learnings/{category}/{date}-{slug}.md` (created)
 - `.karimo/prds/{prd-slug}/metrics.json` (updated with captured flag)
 
 ---
@@ -492,7 +516,7 @@ Shows recent learnings and allows removal:
 ## Success Criteria
 
 **Simple path complete when:**
-- ✅ Rule appended to `.karimo/learnings.md`
+- ✅ Learning file created in `.karimo/learnings/{category}/`
 - ✅ Changes committed
 - ✅ User confirms capture
 
@@ -505,7 +529,7 @@ Shows recent learnings and allows removal:
 - ✅ User confirms resolution
 
 **Batch mode complete when:**
-- ✅ All selected learnings appended to `.karimo/learnings.md`
+- ✅ All selected learnings written to `.karimo/learnings/{category}/`
 - ✅ Metrics updated with captured flags
 - ✅ Changes committed
 

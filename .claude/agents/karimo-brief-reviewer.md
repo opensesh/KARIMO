@@ -39,7 +39,7 @@ You will be provided:
 - **PRD path:** `.karimo/prds/{NNN}_{slug}/PRD_{slug}.md`
 - **Briefs directory:** `.karimo/prds/{NNN}_{slug}/briefs/`
 - **Config path:** `.karimo/config.yaml`
-- **Learnings path:** `.karimo/learnings.md` (optional)
+- **Learnings path:** `.karimo/learnings/` (optional)
 
 Read all of these to understand the execution plan.
 
