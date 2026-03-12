@@ -36,14 +36,8 @@ Reference for all KARIMO slash commands available in Claude Code.
 | Command | Purpose |
 |---------|---------|
 | `/karimo-dashboard` | Comprehensive CLI dashboard for KARIMO monitoring |
-
-### Deprecated
-
-| Command | Replacement |
-|---------|-------------|
-| `/karimo-modify --prd {slug}` | Direct editing of PRD/tasks.yaml |
-| `/karimo-execute` | `/karimo-run` |
-| `/karimo-orchestrate` | `/karimo-run` |
+| `/karimo-plugin` | Plugin management |
+| `/karimo-help` | Help and documentation search |
 
 ---
 
@@ -335,7 +329,7 @@ The dashboard has 5 comprehensive sections:
 
   [token-studio / 1c] STALE — Running for 6h 23m
     → Agent may have crashed
-    → Action: /karimo-execute --prd token-studio --task 1c
+    → Action: /karimo-run --prd token-studio
 
   Total: 2 items requiring human intervention
 ```
@@ -412,7 +406,7 @@ Check this each morning or after execution runs complete.
 ```bash
 /karimo-dashboard           # System health, what needs attention, progress
 /karimo-status --prd X      # Wave-level task details (deep dive)
-/karimo-execute --prd X     # Resume/start execution
+/karimo-run --prd X         # Resume/start execution
 ```
 
 **Post-execution:**
@@ -421,116 +415,6 @@ Check this each morning or after execution runs complete.
 /karimo-dashboard --prd X    # PRD-specific metrics and insights
 /karimo-feedback             # Capture learnings
 ```
-
----
-
-## /karimo-execute
-
-Execute tasks from a finalized PRD. Two-phase flow: brief generation, then wave-ordered execution.
-
-### Usage
-
-```
-/karimo-execute --prd {slug}
-```
-
-### Options
-
-| Option | Required | Description |
-|--------|----------|-------------|
-| `--prd {slug}` | No | PRD slug to execute (lists available if omitted) |
-| `--task {id}` | No | Execute specific task only |
-| `--dry-run` | No | Preview execution plan without making changes |
-
-### What It Does
-
-**Phase 1: Brief Generation**
-1. **Generates** task briefs for each task
-2. **Presents** briefs for user review
-3. **Options**: Execute all, Adjust briefs, Exclude tasks, Cancel
-
-**Phase 2: Execution (v4.0 Model)**
-1. **Reconciles** status.json with git state (git is truth)
-2. **Executes** tasks wave by wave (wave 2 waits for wave 1 to merge)
-3. **Spawns** agents with `isolation: worktree` (Claude Code manages worktrees)
-4. **Creates** PRs targeting main directly
-5. **Applies** PR labels: `karimo`, `karimo-{prd-slug}`, `wave-{n}`, `complexity-{n}`
-6. **Finalizes** on completion (metrics, cleanup)
-
-### Execution Flow
-
-```
-Generate Briefs → User Review → Wave-Ordered Execution → PRs to Main → Finalize
-```
-
-### Resume Protocol
-
-If `/karimo-execute` runs on an active PRD, it:
-1. Derives truth from git state (not status.json)
-2. Reconciles any discrepancies
-3. Resumes from the correct wave
-
-### Example
-
-```
-/karimo-execute --prd user-profiles
-```
-
-### Dry Run
-
-Preview what would happen without executing:
-
-```
-/karimo-execute --prd user-profiles --dry-run
-```
-
----
-
-## /karimo-modify
-
-Modify an approved PRD before execution — add, remove, or change tasks with automatic execution plan regeneration.
-
-### Usage
-
-```
-/karimo-modify --prd {slug}
-```
-
-### What It Does
-
-1. **Validates PRD status** — Only works on `ready` status (approved but not executing)
-2. **Displays current structure** — Shows existing tasks organized by wave
-3. **Accepts modifications** — Natural language input for changes:
-   - Add new tasks with dependencies
-   - Remove tasks (warns about orphaned dependencies)
-   - Change dependencies
-   - Split or merge tasks
-   - Update task details (title, description, complexity)
-4. **Regenerates execution plan** — Recomputes waves, validates no cycles
-5. **Shows diff** — Added/removed/modified tasks, wave changes
-6. **Confirms changes** — Save, continue editing, or discard
-
-### Validation
-
-- No dependency cycles
-- All referenced task IDs must exist
-- Required fields present
-
-### Brief Handling
-
-| Change Type | Brief Action |
-|-------------|--------------|
-| Added task | Generated at execution time |
-| Removed task | Brief deleted |
-| Modified task | Brief marked stale, regenerated at execution |
-
-### When to Use
-
-| Scenario | Command |
-|----------|---------|
-| PRD in draft, needs changes | `/karimo-plan --resume {slug}` |
-| PRD approved, needs structural changes | `/karimo-modify --prd {slug}` |
-| PRD executing, needs task adjustments | Adjust briefs in execute, or pause and modify |
 
 ---
 
@@ -698,80 +582,6 @@ When all tasks complete and status is `ready-for-merge`:
 
 ---
 
-## /karimo-orchestrate
-
-Create feature branch and execute all tasks with PRs targeting the feature branch (v5.0 feature branch mode).
-
-> **Note:** `/karimo-run` is the recommended alias for this command. See `/karimo-run` documentation for full details including the new pre-execution review workflow (v5.1).
-
-### Usage
-
-```
-/karimo-orchestrate --prd {slug}
-/karimo-orchestrate --prd {slug} --dry-run
-/karimo-orchestrate --prd {slug} --skip-review
-/karimo-orchestrate --prd {slug} --review-only
-```
-
-### What It Does
-
-1. **Creates feature branch** — `feature/{prd-slug}` from main
-2. **Generates task briefs** — Self-contained instructions for each task (committed atomically)
-3. **Reviews briefs (optional, v5.1)** — Validates briefs against codebase reality
-4. **Applies corrections (optional, v5.1)** — Fixes issues found during review (committed atomically)
-5. **Updates status.json** — Sets `execution_mode: "feature-branch"` and `feature_branch: "feature/{prd-slug}"`
-6. **Spawns PM agent** — Executes tasks in wave order with PRs targeting feature branch
-7. **Pauses at completion** — Sets status to `ready-for-merge` when all tasks done
-
-### When to Use
-
-**Use feature branch mode for:**
-- Most PRDs (5+ tasks)
-- Complex features requiring consolidated review
-- When you want single production deployment (prevents 15+ preview deployments)
-- When you want to review all changes together before merging to main
-
-**Use direct-to-main mode (`/karimo-execute`) for:**
-- Simple PRDs (1-3 tasks)
-- Hotfixes or urgent changes
-- Existing v4.0 workflows
-
-### Arguments
-
-| Flag | Required | Description |
-|------|----------|-------------|
-| `--prd {slug}` | Yes | PRD slug to orchestrate |
-| `--dry-run` | No | Preview feature branch plan without execution |
-| `--skip-review` | No | Skip pre-execution review and execute immediately (v5.1) |
-| `--review-only` | No | Generate briefs and review, then stop without executing (v5.1) |
-
-### Output
-
-```
-╭──────────────────────────────────────────────────────────────╮
-│  Feature Branch Orchestration: user-auth                     │
-╰──────────────────────────────────────────────────────────────╯
-
-✓ Created feature branch: feature/user-auth
-✓ Updated status.json with execution mode
-✓ Spawned PM agent for wave-based execution
-
-Task PRs will target: feature/user-auth
-Final PR will be created with: /karimo-merge --prd user-auth
-
-Execution started in background...
-```
-
-### Next Step
-
-When all tasks complete and status is `ready-for-merge`:
-
-```
-/karimo-merge --prd {slug}
-```
-
----
-
 ## /karimo-merge
 
 Consolidate feature branch changes and create final PR to main (completes v5.0 workflow).
@@ -805,7 +615,7 @@ Before creating PR:
 ### When to Use
 
 Only use after:
-- `/karimo-orchestrate` completed successfully
+- `/karimo-run` completed successfully
 - PRD status is `ready-for-merge`
 - You've reviewed the feature branch changes
 
@@ -1021,93 +831,6 @@ When config already exists, shows current vs new values:
     Current: pnpm build
     New: [pnpm build] (press Enter to keep)
 ```
-
----
-
-## /karimo-cd-config
-
-**⚠️ DEPRECATED:** This command is now part of `/karimo-configure`. Use `/karimo-configure --cd` instead.
-
-**Migration:**
-- `/karimo-cd-config` → `/karimo-configure --cd` (configure CD provider)
-- `/karimo-cd-config --check` → `/karimo-configure --check` (view configuration)
-
-**This command is deprecated and will be removed in v8.0.**
-
----
-
-Configure your continuous deployment provider to skip preview builds for KARIMO task branches.
-
-### Usage
-
-```
-/karimo-cd-config              # Auto-detect and configure
-/karimo-cd-config --provider vercel   # Skip detection, configure Vercel
-/karimo-cd-config --check      # Show current configuration status
-```
-
-### Why This Matters
-
-KARIMO task branches contain partial code that won't build in isolation:
-- Task 1a adds types
-- Task 1b adds the consumer that uses those types
-- Building Task 1b alone fails (types don't exist yet)
-
-**This is expected.** The code works once all wave tasks merge to main.
-
-### What It Does
-
-1. **Detects CD provider** — Checks for vercel.json, netlify.toml, render.yaml, etc.
-2. **Presents options** — Configure ignore rule, accept noise, or learn more
-3. **Applies configuration** — Adds ignore command to skip KARIMO branches
-4. **Verifies** — Shows confirmation with test instructions
-
-### Supported Providers
-
-| Provider | Config File | Approach |
-|----------|-------------|----------|
-| Vercel | `vercel.json` | `ignoreCommand` field |
-| Netlify | `netlify.toml` | `[build] ignore` field |
-| Render | `render.yaml` | Dashboard config (comment added) |
-| Railway | `railway.toml` | Dashboard config (comment added) |
-| Fly.io | `fly.toml` | No action needed (no PR auto-deploy) |
-
-### The Pattern
-
-KARIMO task branches follow: `{prd-slug}-{task-id}` (e.g., `user-profiles-1a`)
-
-**Regex:** `-[0-9]+[a-z]?$` (branches ending with dash-digit-optional-letter)
-
-This matches all KARIMO branches while avoiding false positives on typical branch names.
-
-### Output Example
-
-```
-╭──────────────────────────────────────────────────────────────╮
-│  CD Provider Configuration                                   │
-╰──────────────────────────────────────────────────────────────╯
-
-Detected: Vercel (vercel.json found)
-
-✓ Updated vercel.json with KARIMO ignore rule
-
-KARIMO task branches (e.g., user-profiles-1a) will skip preview deployments.
-Non-KARIMO branches (feature/*, fix/*, etc.) will deploy normally.
-```
-
-### When to Use
-
-| Scenario | Command |
-|----------|---------|
-| Initial KARIMO setup | Run during `/karimo-configure` (Step 7) or after with `--cd` |
-| Previews failing on task PRs | `/karimo-configure --cd` |
-| Changing CD provider | `/karimo-configure --cd` |
-| Check current status | `/karimo-configure --check` |
-
-### Related Documentation
-
-- [CI-CD.md](CI-CD.md) — Full CI/CD integration documentation
-- [SAFEGUARDS.md](SAFEGUARDS.md) — Code integrity and security
 
 ---
 
@@ -1466,17 +1189,19 @@ Commands are defined in `.claude/commands/`:
 
 | File | Command |
 |------|---------|
-| `karimo-plan.md` | `/karimo-plan` |
-| `karimo-dashboard.md` | `/karimo-dashboard` |
-| `karimo-execute.md` | `/karimo-execute` |
-| `karimo-modify.md` | `/karimo-modify` |
-| `karimo-status.md` | `/karimo-status` |
 | `karimo-configure.md` | `/karimo-configure` |
-| `karimo-cd-config.md` | `/karimo-cd-config` |
-| `karimo-update.md` | `/karimo-update` |
-| `karimo-feedback.md` | `/karimo-feedback` |
+| `karimo-dashboard.md` | `/karimo-dashboard` |
 | `karimo-doctor.md` | `/karimo-doctor` |
+| `karimo-feedback.md` | `/karimo-feedback` |
+| `karimo-help.md` | `/karimo-help` |
+| `karimo-merge.md` | `/karimo-merge` |
+| `karimo-plan.md` | `/karimo-plan` |
+| `karimo-plugin.md` | `/karimo-plugin` |
+| `karimo-research.md` | `/karimo-research` |
+| `karimo-run.md` | `/karimo-run` |
+| `karimo-status.md` | `/karimo-status` |
 | `karimo-test.md` | `/karimo-test` |
+| `karimo-update.md` | `/karimo-update` |
 
 ---
 
