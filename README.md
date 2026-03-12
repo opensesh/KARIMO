@@ -25,22 +25,29 @@ KARIMO is a **framework and Claude Code plugin** for PRD-driven autonomous devel
 ## How It Works
 
 ```
-┌──────────┐     ┌──────────┐     ┌───────────┐     ┌───────────────┐     ┌───────────┐
-│   Plan   │ ──▸ │  Tasks   │ ──▸ │  Execute  │ ──▸ │  Orchestrate  │ ──▸ │   Merge   │
-└──────────┘     └──────────┘     └───────────┘     └───────────────┘     └───────────┘
-                                        │                                       │
-                                        │            ┌───────────┐              │
-                                        └──────────▸ │  Monitor  │ ◂────────────┘
-                                                     └───────────┘
+┌──────────┐     ┌────────────┐     ┌──────────┐     ┌───────────┐     ┌───────────┐
+│   Plan   │ ──▸ │  Research  │ ──▸ │   Run    │ ──▸ │  Review   │ ──▸ │   Merge   │
+└──────────┘     └────────────┘     └──────────┘     └───────────┘     └───────────┘
+                       │                   │               │                  │
+                       │ (optional)        │               │                  │
+                       │                   │            ┌──────────┐          │
+                       └─────────────────▸ │ ◂────────▸ │ Monitor  │ ◂────────┘
+                                           │            └──────────┘
+                                           │
+                                    ┌──────▼──────┐
+                                    │   Agents    │
+                                    │  Execute    │
+                                    │  in Waves   │
+                                    └─────────────┘
 ```
 
 | Step | What Happens | Key Details |
 |------|--------------|-------------|
 | **Plan** | Structured PRD interview captures requirements | 5-round interview, codebase investigation, agent-optimized output |
-| **Tasks** | PRD decomposed into isolated task briefs | Self-contained briefs, dependency graph, parallel-ready |
-| **Execute** | Agents work in parallel isolation | Git worktrees, feature branches, findings propagation |
+| **Research** | Discover patterns, libraries, and gaps *(v5.6+, optional but recommended)* | Internal codebase scan, external best practices, PRD enhancement |
+| **Run** | Generate briefs and execute tasks in waves | Research-informed briefs, parallel execution via worktrees, wave ordering |
 | **Review** | Automated code review (Greptile or Code Review) | Revision loops, model escalation, quality gates (optional) |
-| **Merge** | Clear audit trail at both levels | Task PRs target main directly, wave-ordered merges |
+| **Merge** | Create final PR to main after all tasks complete | Feature branch aggregation, consolidated deployment |
 | **Monitor** | Real-time visibility into progress | `/karimo-dashboard`, `/karimo-status`, PR labels |
 
 ---
@@ -181,10 +188,10 @@ Choose Greptile or Claude Code Review. See [Adoption Phases](.karimo/docs/PHASES
 | Command | What it does |
 |---------|--------------|
 | `/karimo-plan` | Interactive PRD creation (~10 min) |
+| `/karimo-research [--prd {slug}]` | Conduct research (general or PRD-scoped, **recommended** before `/karimo-run`) |
 | `/karimo-run --prd {slug}` | Execute tasks (feature branch workflow, **recommended**) |
 | `/karimo-merge --prd {slug}` | Create final PR to main after execution |
 | `/karimo-status [--prd {slug}]` | Monitor progress (no arg = all PRDs, with arg = details) |
-| `/karimo-modify --prd {slug}` | Edit an approved PRD |
 | `/karimo-feedback` | Intelligent feedback (simple or complex path) |
 | `/karimo-configure` | Create or update project configuration |
 | `/karimo-doctor` | Diagnose installation issues |
@@ -246,12 +253,16 @@ Full details: [PHASES.md](.karimo/docs/PHASES.md)
 
 ## Agents
 
-KARIMO includes 13 specialized agents in two categories:
+KARIMO includes 17 specialized agents in two categories:
 
 **Coordination agents** orchestrate work without writing code:
 - `karimo-interviewer` — Conducts PRD interviews
 - `karimo-investigator` — Scans codebase for patterns
+- `karimo-researcher` — Conducts research (internal + external) *(v5.6+)*
+- `karimo-refiner` — Processes annotations and refines research *(v5.6+)*
 - `karimo-reviewer` — Validates PRDs and generates task DAGs
+- `karimo-brief-reviewer` — Validates task briefs before execution
+- `karimo-brief-corrector` — Applies fixes to briefs after review
 - `karimo-brief-writer` — Creates self-contained task briefs
 - `karimo-pm` — Coordinates execution, spawns task agents
 - `karimo-review-architect` — Resolves merge conflicts
