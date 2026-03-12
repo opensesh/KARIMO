@@ -4,7 +4,8 @@ Start a structured interview to create a Product Requirements Document (PRD) tha
 
 ## Arguments
 
-- `--prd {slug}` (required): Use existing research folder from `/karimo-research`
+- `(no arguments)`: Interactive mode — guided flow to start new or resume existing PRD
+- `--prd {slug}`: Use existing research folder from `/karimo-research`
 - `--skip-research`: Allow planning without prior research (not recommended)
 - `--resume {slug}`: Resume a draft PRD
 
@@ -41,25 +42,152 @@ To skip research (not recommended):
 /karimo-plan --prd feature-name --skip-research
 ```
 
-### Argument Validation
+### Interactive Mode (No Arguments)
 
-**If no `--prd` flag provided:**
+**If no `--prd` flag provided**, enter interactive mode:
+
+**Step 1: Main Menu**
 
 ```
-❌ Error: --prd argument required
+╭──────────────────────────────────────────────────────╮
+│  KARIMO Planning                                     │
+╰──────────────────────────────────────────────────────╯
 
-v7.0 requires research before planning. The new workflow is:
+What would you like to do?
 
-  1. Start research:    /karimo-research "feature-name"
-  2. Create PRD:        /karimo-plan --prd feature-name
+  1. Start a new feature
+  2. Resume an existing PRD
 
-This ensures agents have codebase context for better brief generation.
-
-To skip research (not recommended):
-  /karimo-plan --prd {slug} --skip-research
-
-Note: Research significantly improves execution success rate.
+Your choice:
 ```
+
+**Step 2a: New Feature Flow (Option 1)**
+
+1. Prompt for feature name:
+   ```
+   What's the feature you want to build?
+
+   Feature name:
+   ```
+
+2. Sanitize input to slug (lowercase, hyphens)
+
+3. Research context prompt (conversational flow):
+
+   **Step 3a: Check KARIMO research folder**
+   ```
+   ╭──────────────────────────────────────────────────────╮
+   │  Research Context                                    │
+   ╰──────────────────────────────────────────────────────╯
+
+   {if .karimo/research/ has files}
+   Found existing research that might be relevant:
+     • react-patterns-001.md — React component patterns
+     • auth-libraries-002.md — Authentication library comparison
+
+   Use any of these? [Y/n/select]
+   {else}
+   (No existing research in .karimo/research/)
+   {endif}
+   ```
+
+   **Step 3b: Ask about user's own research (ALWAYS)**
+   ```
+   Do you have any other research to incorporate?
+
+   This could be:
+     • Markdown files or documentation
+     • Architecture notes or design docs
+     • Links to relevant files in your project
+
+   [Enter file path(s), or press Enter to skip]
+   ```
+
+   - If user provides path(s):
+     - Validate file exists
+     - Copy to `.karimo/prds/{slug}/research/imported/`
+     - Parse and summarize for context
+   - If user skips: Continue to step 4
+
+4. Research explanation + kickoff:
+   ```
+   ╭──────────────────────────────────────────────────────╮
+   │  Research Phase                                      │
+   ╰──────────────────────────────────────────────────────╯
+
+   KARIMO is designed for complex features that benefit from
+   understanding your codebase before planning. Research helps
+   agents find existing patterns, identify gaps, and recommend
+   libraries.
+
+   {if user imported files}
+   You've provided research context. Would you like KARIMO to
+   also scan your codebase and search for best practices?
+   {else}
+   You can either:
+     1. Let KARIMO run research (scans codebase + web search)
+     2. Skip for now and add your own later
+   {endif}
+
+   Run research for "{slug}"? [Y/n]
+   ```
+
+5. **If Y**: Spawn researcher agent inline, then continue to planning
+   **If n**:
+   - If user imported files → Proceed to planning with imported research
+   - If no research at all → Exit with guidance:
+     ```
+     Research helps KARIMO generate better task breakdowns.
+
+     When ready, run:
+       /karimo-research "{slug}"
+
+     Or add your own research and resume:
+       /karimo-plan --prd {slug}
+     ```
+
+**Step 2b: Existing PRD Flow (Option 2)**
+
+1. Filter and list PRD folders:
+   ```bash
+   # Only show PRDs that can still be planned/iterated:
+   # - draft (interview not complete)
+   # - ready (approved but not executing)
+   # EXCLUDE: executing, completed, merged
+   for dir in .karimo/prds/*/; do
+     slug=$(basename "$dir" | sed 's/^[0-9]*_//')
+     status=$(jq -r '.status // "unknown"' "$dir/status.json" 2>/dev/null)
+     # Skip if actively executing or completed
+     [[ "$status" =~ ^(executing|completed|merged)$ ]] && continue
+     has_research=$([ -f "$dir/research/findings.md" ] && echo "✓" || echo "✗")
+     has_tasks=$([ -f "$dir/tasks.yaml" ] && echo "✓" || echo "✗")
+   done
+   ```
+
+2. Display filtered list:
+   ```
+   ╭──────────────────────────────────────────────────────╮
+   │  Resume Planning                                     │
+   ╰──────────────────────────────────────────────────────╯
+
+   {if no eligible PRDs}
+     No PRDs available for planning.
+
+     (Active executions: /karimo-status)
+   {else}
+     Select a PRD:
+
+       1. {slug}     {status}     research: {✓|✗}  tasks: {n|—}
+       2. {slug}     {status}     research: {✓|✗}  tasks: {n|—}
+
+     Enter number or slug:
+   {endif}
+   ```
+
+3. After selection, show research import prompt (Step 2a.3-4):
+   - Always offer to import research (KARIMO folder + user files)
+   - Then offer to run KARIMO research
+   - If PRD already has tasks → Planning becomes iteration/refinement focused
 
 ---
 
