@@ -718,7 +718,16 @@ When all tasks in a wave have merged PRs:
 
 4. **Generate metrics.json** (same format, update version to "5.0")
 
-5. **Post completion summary:**
+5. **Cross-PRD Pattern Detection:**
+   - Read `findings.md` from this PRD
+   - Scan `.karimo/findings/by-pattern/` for existing patterns
+   - For each finding:
+     - If matches existing pattern → add PRD reference to pattern file
+     - If new generic pattern → create entry in `by-pattern/`
+     - If PRD-specific → add to `by-prd/{prd-slug}.md`
+   - Update `.karimo/findings/index.md` if patterns promoted
+
+6. **Post completion summary:**
    ```
    All Tasks Complete: {prd_slug}
 
@@ -800,7 +809,16 @@ When all tasks in a wave have merged PRs:
    }
    ```
 
-5. **Post completion summary:**
+5. **Cross-PRD Pattern Detection:**
+   - Read `findings.md` from this PRD
+   - Scan `.karimo/findings/by-pattern/` for existing patterns
+   - For each finding:
+     - If matches existing pattern → add PRD reference to pattern file
+     - If new generic pattern → create entry in `by-pattern/`
+     - If PRD-specific → add to `by-prd/{prd-slug}.md`
+   - Update `.karimo/findings/index.md` if patterns promoted
+
+6. **Post completion summary:**
    ```
    Execution Complete: {prd_slug}
 

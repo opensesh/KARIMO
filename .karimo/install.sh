@@ -220,6 +220,8 @@ mkdir -p "$TARGET_DIR/.claude/commands"
 mkdir -p "$TARGET_DIR/.claude/skills"
 mkdir -p "$TARGET_DIR/.karimo/templates"
 mkdir -p "$TARGET_DIR/.karimo/prds"
+mkdir -p "$TARGET_DIR/.karimo/findings/by-prd"
+mkdir -p "$TARGET_DIR/.karimo/findings/by-pattern"
 mkdir -p "$TARGET_DIR/.github/ISSUE_TEMPLATE"
 
 # ==============================================================================
@@ -534,6 +536,21 @@ See `.karimo/learnings/index.md` for the new structure.
 _Kept for backward compatibility. Agents now read from `.karimo/learnings/`._
 LEARNEOF
     echo "  Created legacy .karimo/learnings.md (deprecated notice)"
+fi
+
+# Create findings directory structure if it doesn't exist
+FINDINGS_DIR="$TARGET_DIR/.karimo/findings"
+if [ ! -f "$FINDINGS_DIR/index.md" ]; then
+    echo "Creating findings directory structure..."
+    if [ -f "$KARIMO_ROOT/.karimo/findings/index.md" ]; then
+        cp "$KARIMO_ROOT/.karimo/findings/index.md" "$FINDINGS_DIR/"
+        cp "$KARIMO_ROOT/.karimo/findings/PROMOTION_GUIDE.md" "$FINDINGS_DIR/"
+        cp "$KARIMO_ROOT/.karimo/findings/by-prd/index.md" "$FINDINGS_DIR/by-prd/"
+        cp "$KARIMO_ROOT/.karimo/findings/by-pattern/index.md" "$FINDINGS_DIR/by-pattern/"
+        echo "  Created .karimo/findings/ directory structure"
+    else
+        echo -e "  ${YELLOW}Warning: Findings templates not found in source${NC}"
+    fi
 fi
 
 # Update .gitignore
