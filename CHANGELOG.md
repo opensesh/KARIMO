@@ -7,6 +7,61 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [7.5.0] - 2026-03-13
+
+**Branch Cleanup & Coverage Context Release**
+
+This release addresses two key issues: stale branch accumulation and missing coverage context in final PRs.
+
+### Added
+
+**Coverage Context System**
+
+- New `karimo-coverage-reviewer` agent for automated coverage analysis
+  - Parses coverage reports (istanbul, lcov, cobertura, Python)
+  - Cross-references gaps with task brief "Intentionally Uncovered Lines"
+  - Adds explanatory PR comments distinguishing expected vs unexpected gaps
+- Coverage Expectations section in task briefs for test tasks
+  - Target coverage percentages per implementation file
+  - Documented intentionally uncovered lines with rationale
+  - Verification commands from project config
+- Step 5b in `/karimo-merge` detects coverage reports and spawns reviewer
+
+**Branch Lifecycle Management**
+
+- Incremental cleanup after each wave merges (PM agent)
+- Synchronous post-merge cleanup in `/karimo-merge` (no webhook dependency)
+- Branch lifecycle documentation in KARIMO_RULES.md
+
+### Changed
+
+**Branch Naming Convention**
+
+- Task branches now use `worktree/` prefix: `worktree/{prd-slug}-{task-id}`
+- Provides visual grouping in GitHub branch picker
+- Enables easier cleanup via pattern matching (`worktree/*`)
+- Updated in: karimo-pm.md, karimo-merge.md, karimo-brief-writer.md, KARIMO_RULES.md, ARCHITECTURE.md
+
+**PM Agent Cleanup Flow**
+
+- Removed "DO NOT delete" instruction that prevented cleanup
+- Task branches and worktrees deleted immediately after their PRs merge
+- Only feature branch remains for `/karimo-merge`
+
+**Merge Command Improvements**
+
+- Replaced webhook-dependent cleanup with synchronous polling
+- Added safety net cleanup for any remaining worktree branches
+- Added coverage format detection before PR creation
+
+### Fixed
+
+- Task branches no longer accumulate after PRDs complete
+- Worktree branches (`worktree-agent-*`) cleaned up properly
+- Coverage gaps now have context in final PR comments
+
+---
+
 ## [7.4.0] - 2026-03-13
 
 **Command Consolidation Release**
