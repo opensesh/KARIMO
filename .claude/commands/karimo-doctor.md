@@ -5,12 +5,94 @@ Check the health of a KARIMO installation, identify issues, and provide actionab
 ## Usage
 
 ```
-/karimo-doctor
+/karimo-doctor              # Full diagnostic with recommendations
+/karimo-doctor --test       # Quick pass/fail verification (replaces /karimo-test)
 ```
 
 **This command is read-only and never modifies files.**
 
-## Behavior
+---
+
+## `--test` Mode (Quick Verification)
+
+When the `--test` flag is passed, run a lightweight pass/fail verification instead of the full diagnostic.
+
+**Purpose:** Verify KARIMO installation works end-to-end without creating real PRDs or spawning agents. This is a lightweight alternative to running a full PRD cycle for verification.
+
+### Test Suite
+
+Run these 5 tests:
+
+| Test | Description |
+|------|-------------|
+| **1. File Presence** | Verify all required files exist per MANIFEST.json |
+| **2. Template Parsing** | Ensure templates have valid markdown structure |
+| **3. GitHub CLI Auth** | Verify `gh auth status` succeeds |
+| **4. State File Integrity** | Validate state.json is valid JSON (if exists) |
+| **5. CLAUDE.md Integration** | Verify KARIMO section and config files exist |
+
+### Output Format
+
+```
+╭──────────────────────────────────────────────────────────────╮
+│  KARIMO Smoke Test                                           │
+╰──────────────────────────────────────────────────────────────╯
+
+Test 1: File Presence
+─────────────────────
+
+  ✅ Manifest    Present (.karimo/MANIFEST.json)
+  ✅ Agents      17/17 present (from manifest)
+  ✅ Commands    10/10 present (from manifest)
+  ✅ Skills      7/7 present (from manifest)
+  ✅ Templates   17/17 present (from manifest)
+
+Test 2: Template Parsing
+────────────────────────
+
+  ✅ All templates have valid markdown structure
+
+Test 3: GitHub CLI Auth
+───────────────────────
+
+  ✅ Authenticated as @username
+
+Test 4: State File Integrity
+────────────────────────────
+
+  ✅ state.json           Valid JSON structure
+  ✅ prds/ directory      Exists with .gitkeep
+
+Test 5: CLAUDE.md Integration
+─────────────────────────────
+
+  ✅ KARIMO section        Present in CLAUDE.md (with markers)
+  ✅ learnings.md          Present in .karimo/
+  ✅ KARIMO_RULES.md       Present in .claude/
+
+Summary
+───────
+
+  ✅ 5/5 tests passed
+
+  KARIMO installation verified.
+```
+
+### Exit Codes
+
+- **0** — All tests passed
+- **1** — One or more tests failed
+
+### Key Behaviors
+
+1. **Read-only** — Never modify any files
+2. **Fast** — No agent spawning or network calls (except gh auth check)
+3. **Safe** — No worktree creation, PR simulation, or state changes
+4. **Lightweight** — Quick validation suitable for CI/pre-commit
+
+---
+
+## Behavior (Full Diagnostic)
 
 Run seven diagnostic checks and display results with clear status indicators.
 
@@ -1043,5 +1125,16 @@ ls .karimo/prds/*/status.json
 |---------|---------|
 | `/karimo-configure` | Create or update project configuration |
 | `/karimo-plan` | Create PRD (configuration should be ready first) |
-| `/karimo-status` | View execution progress |
+| `/karimo-dashboard` | View execution progress and system health |
 | `/karimo-feedback` | Capture learnings |
+
+---
+
+## Migration from /karimo-test
+
+`/karimo-test` has been merged into `/karimo-doctor --test`.
+
+**Old:** `/karimo-test`
+**New:** `/karimo-doctor --test`
+
+The `--test` flag provides the same quick pass/fail verification as the former `/karimo-test` command.
