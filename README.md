@@ -24,9 +24,13 @@ KARIMO is a **framework and Claude Code plugin** for PRD-driven autonomous devel
 ## How It Works
 
 ```
-RESEARCH ◀──▸ PLAN ──▸ RUN ──▸ TASKS ◀──▸ AUTO-REVIEW ──▸ ORCHESTRATE ◀──▸ INSPECT ──▸ MERGE
-   └─────Loop 1─────┘            └──────Loop 2───────┘       └──────Loop 3──────┘
-        Human                        Claude                    Configurable
+┌──────────┐   ┌──────┐   ┌─────┐   ┌───────┐   ┌─────────────┐   ┌─────────────┐   ┌─────────┐   ┌───────┐
+│ RESEARCH │──▸│ PLAN │──▸│ RUN │──▸│ TASKS │──▸│ AUTO-REVIEW │──▸│ ORCHESTRATE │──▸│ INSPECT │──▸│ MERGE │
+└──────────┘   └──────┘   └─────┘   └───────┘   └─────────────┘   └─────────────┘   └─────────┘   └───────┘
+      │            │                    │              │                 │              │
+      └────────────┘                    └──────────────┘                 └──────────────┘
+          Loop 1                             Loop 2                           Loop 3
+          Human                              Claude                        Configurable
 ```
 
 | Step | What Happens |
@@ -48,27 +52,15 @@ KARIMO has **three strategic loops** with increasing automation:
 |------|--------|--------|--------------|
 | **1** | Research ↔ Plan | **You** | Iterate until PRD captures requirements |
 | **2** | Tasks ↔ Auto-Review | **Claude** | Built-in validation before execution starts |
-| **3** | Orchestrate ↔ Inspect | **Configurable** | Manual review, Claude Code Review, or Greptile |
+| **3** | Orchestrate ↔ Inspect | **Configurable** | Manual, Claude Code Review, or Greptile |
 
-### Loop 1: Human-Driven Planning
-```
-/karimo-research "feature" ◀──▸ /karimo-plan --prd feature ──▸ approved PRD
-```
-You control the iteration. Research informs planning. Run research again if gaps emerge.
+**Loop 1 — Human-Driven:** `/karimo-research` ↔ `/karimo-plan` — You iterate until PRD is ready
 
-### Loop 2: Claude Auto-Review
-```
-/karimo-run ──▸ [brief generation] ──▸ TASKS ◀──▸ AUTO-REVIEW ──▸ approved briefs
-```
-Claude validates briefs against codebase before execution. You approve, reject, or request changes.
+**Loop 2 — Claude Built-In:** `/karimo-run` generates briefs → auto-review validates → you approve
 
-### Loop 3: Review Automation
-```
-ORCHESTRATE ──▸ [wave execution] ──▸ PR created ◀──▸ INSPECT ──▸ merged
-```
-Choose your inspection level: manual review, Claude Code Review ($15-25/PR), or Greptile ($30/mo).
+**Loop 3 — Review Automation:** Each wave creates PRs → inspect (your choice of tooling) → merge
 
-**After all waves complete → `/karimo-merge` creates final PR to main.**
+After all waves complete → `/karimo-merge` creates final PR to main.
 
 ---
 
