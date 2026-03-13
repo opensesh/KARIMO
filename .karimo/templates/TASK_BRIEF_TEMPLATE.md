@@ -81,6 +81,27 @@
 - Do NOT modify files matching `never_touch` patterns
 - Flag `require_review` files in your commit message
 
+## Coverage Expectations
+
+{Only include for test tasks — detected by title containing "test/tests/testing", task type being "testing", or files_affected containing test files}
+
+**Target Files for Coverage:**
+
+| File | Target | Rationale |
+|------|--------|-----------|
+| `{impl_file}` | 80%+ | {why this target} |
+
+**Intentionally Uncovered Lines:**
+
+- **{file}:{line-range}** — {reason}
+
+**Verification:**
+```bash
+{commands.test} --coverage
+```
+
+{If not a test task, omit this entire section}
+
 ## When Complete
 
 1. Commit your changes with conventional commit format
