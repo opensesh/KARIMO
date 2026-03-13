@@ -1796,4 +1796,4 @@ Only write changes if at least one value modified.
 |---------|---------|
 | `/karimo-plan` | Create PRD (includes auto-detection) |
 | `/karimo-doctor` | Verify installation health |
-| `/karimo-status` | View execution state |
+| `/karimo-dashboard` | View execution state |

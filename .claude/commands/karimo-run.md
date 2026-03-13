@@ -319,7 +319,7 @@ Possible causes:
   3. PRD was deleted or moved
 
 How to fix:
-  • List all PRDs: /karimo-status
+  • List all PRDs: /karimo-dashboard
   • Start new feature: /karimo-research "user-auth"
   • Check PRD folder: ls .karimo/prds/
 
@@ -363,7 +363,7 @@ Possible causes:
   3. Previous execution failed mid-way
 
 How to fix:
-  • Check execution status: /karimo-status --prd user-auth
+  • Check execution status: /karimo-dashboard --prd user-auth
   • Resume execution: /karimo-run --prd user-auth --resume
   • Start fresh (deletes branch): git branch -D feature/user-auth && /karimo-run --prd user-auth
 
@@ -508,7 +508,7 @@ Need help? Run /karimo-doctor
 | `/karimo-research` | Run research before planning (required) |
 | `/karimo-plan` | Create PRD (before running) |
 | `/karimo-merge` | Create final PR to main (after running) |
-| `/karimo-status` | Monitor execution progress |
+| `/karimo-dashboard` | Monitor execution progress |
 
 ---
 

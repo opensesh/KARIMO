@@ -26,8 +26,8 @@ When called without arguments, display all commands organized by category:
 Core Workflow:
   /karimo-plan                    Create new PRD through interview
   /karimo-run --prd {slug}        Execute PRD tasks (feature branch)
-  /karimo-status                  Check execution progress (all PRDs)
-  /karimo-status --prd {slug}     Detailed status for specific PRD
+  /karimo-dashboard               Check execution progress (all PRDs)
+  /karimo-dashboard --prd {slug}  Detailed status for specific PRD
   /karimo-merge --prd {slug}      Create final PR to main
 
 Configuration:
@@ -41,8 +41,7 @@ Management:
 
 Diagnostics:
   /karimo-doctor                  Health check (7 diagnostic categories)
-  /karimo-test                    Installation smoke test
-  /karimo-dashboard               Comprehensive metrics view
+  /karimo-doctor --test           Quick installation smoke test
 
 Maintenance:
   /karimo-update                  Update to latest KARIMO version
@@ -53,7 +52,6 @@ Help:
   /karimo-help {query}            Search documentation
 
 Advanced:
-  /karimo-plugin                  Plugin management
   /karimo-research --prd {slug}   Add research to existing PRD
 
 Need more details? Run: /karimo-help {command-name}
@@ -239,7 +237,7 @@ Time: ~10 minutes for first PRD
 
 Related commands:
   /karimo-run       Execute approved PRD
-  /karimo-status    Check PRD execution state
+  /karimo-dashboard Check PRD execution state
 
 Full reference: .claude/commands/karimo-plan.md
 Documentation: .karimo/docs/GETTING-STARTED.md
@@ -269,9 +267,9 @@ User: /karimo-help worktree
 ### Example 3: Search for command
 
 ```
-User: /karimo-help status
+User: /karimo-help dashboard
 → Recognizes command name
-→ Reads .claude/commands/karimo-status.md
+→ Reads .claude/commands/karimo-dashboard.md
 → Shows usage, examples, and related commands
 ```
 
@@ -333,9 +331,8 @@ Available files:
 | Command | Purpose |
 |---------|---------|
 | `/karimo-doctor` | Diagnose installation and config issues |
-| `/karimo-test` | Verify KARIMO installation works |
-| `/karimo-status` | Check PRD execution status |
-| `/karimo-dashboard` | View comprehensive metrics |
+| `/karimo-doctor --test` | Verify KARIMO installation works |
+| `/karimo-dashboard` | Check PRD execution and view metrics |
 
 ---
 

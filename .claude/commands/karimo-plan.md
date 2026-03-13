@@ -173,7 +173,7 @@ Your choice:
    {if no eligible PRDs}
      No PRDs available for planning.
 
-     (Active executions: /karimo-status)
+     (Active executions: /karimo-dashboard)
    {else}
      Select a PRD:
 
@@ -866,7 +866,7 @@ USER: /karimo-plan --prd dark-mode-toggle
 
 - `/karimo-research` — Required before planning, creates PRD folder
 - `/karimo-run` — Executes tasks after approval
-- `/karimo-status` — Shows PRD status
+- `/karimo-dashboard` — Shows PRD status
 
 ---
 

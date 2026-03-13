@@ -464,7 +464,7 @@ USER: /karimo-research --prd dark-mode-toggle
 
 - `/karimo-plan` — Uses research, creates PRD (requires `--prd {slug}`)
 - `/karimo-run` — Checks for research before execution
-- `/karimo-status` — Shows research status per PRD
+- `/karimo-dashboard` — Shows research status per PRD
 
 ## Related Documentation
 

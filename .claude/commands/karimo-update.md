@@ -199,4 +199,4 @@ This runs non-interactively and auto-confirms the update.
 |---------|---------|
 | `/karimo-doctor` | Verify installation health after update |
 | `/karimo-configure` | Reconfigure after major updates |
-| `/karimo-status` | Check current execution state |
+| `/karimo-dashboard` | Check current execution state |
