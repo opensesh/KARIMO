@@ -19,7 +19,7 @@ Reference for all KARIMO slash commands available in Claude Code.
 | `/karimo-plan --prd {slug}` | PRD interview using research context |
 | `/karimo-run --prd {slug}` | 4-phase execution (briefs → review → iterate → orchestrate) |
 | `/karimo-merge --prd {slug}` | Create final PR to main after execution |
-| `/karimo-status [--prd {slug}]` | Monitor progress (no arg = all PRDs, with arg = details) |
+| `/karimo-dashboard [--prd {slug}]` | Monitor progress (no arg = all PRDs, with arg = details) |
 | `/karimo-feedback` | Intelligent feedback capture with auto-detection (simple or complex) |
 
 ### Setup & Maintenance
@@ -27,16 +27,13 @@ Reference for all KARIMO slash commands available in Claude Code.
 | Command | Purpose |
 |---------|---------|
 | `/karimo-configure` | Create or update project configuration |
-| `/karimo-doctor` | Check installation health |
-| `/karimo-test` | Installation smoke test |
+| `/karimo-doctor [--test]` | Check installation health (--test for quick verification) |
 | `/karimo-update` | Check for and apply KARIMO updates |
 
 ### Advanced
 
 | Command | Purpose |
 |---------|---------|
-| `/karimo-dashboard` | Comprehensive CLI dashboard for KARIMO monitoring |
-| `/karimo-plugin` | Plugin management |
 | `/karimo-help` | Help and documentation search |
 
 ---
@@ -388,7 +385,7 @@ The dashboard has 5 comprehensive sections:
 
 - **Health Scoring** — 0-100 score based on task success, loop efficiency, stalled/blocked counts
 - **Caching** — 2-minute cache for performance (< 1s with valid cache)
-- **Git Reconciliation** — Derives truth from git state, same as `/karimo-status`
+- **Git Reconciliation** — Derives truth from git state (via `--reconcile` flag)
 - **JSON Export** — `--json` flag for scripting and automation
 - **Minimal Mode** — `--alerts` flag shows only critical alerts
 
@@ -405,7 +402,7 @@ Check this each morning or after execution runs complete.
 **During execution:**
 ```bash
 /karimo-dashboard           # System health, what needs attention, progress
-/karimo-status --prd X      # Wave-level task details (deep dive)
+/karimo-dashboard --prd X   # Wave-level task details (deep dive)
 /karimo-run --prd X         # Resume/start execution
 ```
 
@@ -649,66 +646,6 @@ Review: https://github.com/owner/repo/pull/127
 | Git history | Clean (1 feature commit) | Verbose (15+ task commits) |
 | Review consolidation | Single comprehensive review | Scattered across task PRs |
 | Rollback | Single revert | Multiple reverts needed |
-
----
-
-## /karimo-status
-
-View execution progress across all PRDs with git state reconstruction.
-
-### Usage
-
-```
-/karimo-status
-```
-
-### Options
-
-| Option | Description |
-|--------|-------------|
-| `--prd {slug}` | Show specific PRD only |
-| `--active` | Show only active PRDs |
-| `--reconcile` | Force git state reconstruction |
-| `--json` | Output as JSON |
-
-### Output Example
-
-```
-╭──────────────────────────────────────────────────────────────╮
-│  KARIMO Status                                               │
-╰──────────────────────────────────────────────────────────────╯
-
-PRDs:
-
-  001_user-profiles          active     ████████░░ 80%
-    Wave 2 of 3 in progress
-    Tasks: 4/5 done, 1 in-review
-    PRs: #42 #43 #44 #45 merged, #46 open
-
-  002_notifications          ready      ░░░░░░░░░░ 0%
-    Tasks: 0/3 queued
-    Ready for execution
-```
-
-### Git State Reconstruction
-
-v4.0 principle: **Git is truth. status.json is a cache.**
-
-The status command derives actual state from git and GitHub, not just status.json. If they conflict, git wins and status.json is updated.
-
-### Task States
-
-| State | Description |
-|-------|-------------|
-| `queued` | Waiting for wave dependencies |
-| `running` | Agent executing |
-| `in-review` | PR created, awaiting merge |
-| `needs-revision` | Review requested changes |
-| `needs-human-review` | Failed 3 Greptile attempts |
-| `done` | PR merged |
-| `failed` | Execution failed |
-| `blocked` | Waiting on failed dependency |
-| `crashed` | Branch exists but no PR |
 
 ---
 
@@ -1128,61 +1065,6 @@ Summary
 
 ---
 
-## /karimo-test
-
-Installation smoke test — verify KARIMO installation works without creating PRDs or spawning agents.
-
-### Usage
-
-```
-/karimo-test
-```
-
-### What It Does
-
-Runs 5 read-only validation tests:
-
-| Test | Validates |
-|------|-----------|
-| 1. File Presence | All files from MANIFEST.json exist |
-| 2. Template Parsing | Templates have valid markdown structure |
-| 3. GitHub CLI | `gh auth status` succeeds |
-| 4. State Files | `.karimo/state.json` is valid JSON (if exists) |
-| 5. Integration | KARIMO section in CLAUDE.md, learnings.md exists, KARIMO_RULES.md exists |
-
-### Output
-
-```
-╭──────────────────────────────────────────────────────────────╮
-│  KARIMO Installation Test                                    │
-╰──────────────────────────────────────────────────────────────╯
-
-Test 1: File Presence
-  ✅ Agents: 13/13
-  ✅ Commands: 10/10
-  ✅ Skills: 5/5
-  ✅ Templates: 9/9
-
-...
-
-Summary
-───────
-
-  ✅ 5/5 tests passed
-
-  KARIMO installation verified.
-```
-
-### When to Use
-
-| Scenario | Command |
-|----------|---------|
-| After fresh install | `/karimo-test` |
-| Diagnose broken install | `/karimo-doctor` |
-| Verify before first PRD | `/karimo-test` then `/karimo-plan` |
-
----
-
 ## Command Locations
 
 Commands are defined in `.claude/commands/`:
@@ -1191,17 +1073,28 @@ Commands are defined in `.claude/commands/`:
 |------|---------|
 | `karimo-configure.md` | `/karimo-configure` |
 | `karimo-dashboard.md` | `/karimo-dashboard` |
-| `karimo-doctor.md` | `/karimo-doctor` |
+| `karimo-doctor.md` | `/karimo-doctor [--test]` |
 | `karimo-feedback.md` | `/karimo-feedback` |
 | `karimo-help.md` | `/karimo-help` |
 | `karimo-merge.md` | `/karimo-merge` |
 | `karimo-plan.md` | `/karimo-plan` |
-| `karimo-plugin.md` | `/karimo-plugin` |
 | `karimo-research.md` | `/karimo-research` |
 | `karimo-run.md` | `/karimo-run` |
-| `karimo-status.md` | `/karimo-status` |
-| `karimo-test.md` | `/karimo-test` |
 | `karimo-update.md` | `/karimo-update` |
+
+---
+
+## Deprecated Commands
+
+The following commands have been consolidated:
+
+| Old Command | New Command |
+|-------------|-------------|
+| `/karimo-status` | `/karimo-dashboard` |
+| `/karimo-status --prd X` | `/karimo-dashboard --prd X` |
+| `/karimo-status --reconcile` | `/karimo-dashboard --reconcile` |
+| `/karimo-test` | `/karimo-doctor --test` |
+| `/karimo-plugin` | Deferred (no plugin ecosystem yet) |
 
 ---
 
