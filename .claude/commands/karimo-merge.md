@@ -412,26 +412,49 @@ When PR is merged, KARIMO will automatically:
   - Clean up task branches
 ```
 
-### 11. Post-Merge Actions
+### 11. Post-Merge Cleanup (Synchronous)
 
-**After final PR is merged (manual or auto):**
-
-Run post-merge cleanup (this happens automatically via GitHub webhook or manual trigger):
+**This runs immediately after final PR merges — no webhook dependency.**
 
 ```bash
-# Update status.json
-jq --arg timestamp "$(date -u +"%Y-%m-%dT%H:%M:%SZ")" \
-  '.status = "complete" | .merged_to_main_at = $timestamp | .finalized_at = $timestamp' \
-  .karimo/prds/{NNN}_{slug}/status.json > temp.json
-mv temp.json .karimo/prds/{NNN}_{slug}/status.json
+# For --auto-merge: runs after gh pr merge succeeds
+# For manual merge: poll for merge completion
+if [ "$auto_merge" != "true" ]; then
+  echo "Waiting for PR #${pr_number} to merge..."
+  while true; do
+    state=$(gh pr view "$pr_number" --json state --jq '.state')
+    [ "$state" = "MERGED" ] && break
+    [ "$state" = "CLOSED" ] && { echo "PR closed without merge"; exit 1; }
+    sleep 10
+  done
+fi
 
-# Delete task branches (feature branch already deleted by PR merge)
+# Update status.json to complete
+timestamp=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+# ... update status.json ...
+
+# Delete any remaining worktree branches (safety net)
+# New naming: worktree/{prd-slug}-{task-id}
 for task_id in $(jq -r '.tasks | keys[]' .karimo/prds/{NNN}_{slug}/status.json); do
   branch="worktree/${prd_slug}-${task_id}"
   git push origin --delete "$branch" 2>/dev/null || true
-  echo "  Deleted: $branch"
 done
 
+# Also clean up any legacy worktree-agent-* branches (Claude Code internal)
+git ls-remote --heads origin 2>/dev/null | grep -E "worktree[-/]" | \
+  awk -F'/' '{print $NF}' | while read branch; do
+    git push origin --delete "$branch" 2>/dev/null || true
+  done
+
+# Clean up remaining worktrees
+if [ -d ".worktrees/${prd_slug}" ]; then
+  for wt in .worktrees/${prd_slug}/*; do
+    git worktree remove "$wt" 2>/dev/null || true
+  done
+  rmdir ".worktrees/${prd_slug}" 2>/dev/null || true
+fi
+
+git worktree prune
 echo "✓ Post-merge cleanup complete"
 ```
 
@@ -455,11 +478,11 @@ Model Usage:
 
 Branch Cleanup:
   ✓ feature/user-profiles (deleted)
-  ✓ user-profiles-1a (deleted)
-  ✓ user-profiles-1b (deleted)
-  ✓ user-profiles-2a (deleted)
-  ✓ user-profiles-2b (deleted)
-  ✓ user-profiles-3a (deleted)
+  ✓ worktree/user-profiles-1a (deleted)
+  ✓ worktree/user-profiles-1b (deleted)
+  ✓ worktree/user-profiles-2a (deleted)
+  ✓ worktree/user-profiles-2b (deleted)
+  ✓ worktree/user-profiles-3a (deleted)
 
 Consider running /karimo-feedback to capture learnings.
 ```
