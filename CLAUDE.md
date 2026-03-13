@@ -2,27 +2,43 @@
 
 ## Release Protocol (MANDATORY)
 
-When changes impact target repositories (installed KARIMO projects), you MUST:
+When changes impact target repositories (installed KARIMO projects), you MUST complete ALL steps below. **The release is NOT complete until the GitHub Release exists.**
 
-### 1. Version Bump
-- Update `.karimo/VERSION` with new semver
-- Update `version` field in `.karimo/MANIFEST.json` to match
+### Release Checklist (ALL REQUIRED)
 
-### 2. Changelog Entry
-- Add entry to `CHANGELOG.md` under new version header
-- Format: `## [X.Y.Z] - YYYY-MM-DD`
-- Include: Added, Changed, Fixed, Removed subsections as needed
+```
+[ ] 1. VERSION BUMP
+    - Update `.karimo/VERSION` with new semver
+    - Update `version` field in `.karimo/MANIFEST.json` to match
 
-### 3. GitHub Release
-- Create release via `gh release create vX.Y.Z --title "vX.Y.Z" --notes "..."`
-- Include summary of changes in release notes
+[ ] 2. CHANGELOG ENTRY
+    - Add entry to `CHANGELOG.md` under new version header
+    - Format: `## [X.Y.Z] - YYYY-MM-DD`
+    - Include: Added, Changed, Fixed, Removed subsections as needed
 
-### 4. Documentation Scan
-After making changes, scan these files for necessary updates:
-- `README.md` — Installation, features, command reference
-- `.karimo/docs/COMMANDS.md` — If slash commands changed
-- `.karimo/docs/ARCHITECTURE.md` — If system structure changed
-- `.karimo/docs/GETTING-STARTED.md` — If setup flow changed
+[ ] 3. COMMIT & PUSH
+    - Commit all version-related changes
+    - Push to origin/main
+
+[ ] 4. GITHUB RELEASE (CRITICAL - DO NOT SKIP)
+    - gh release create vX.Y.Z --title "vX.Y.Z" --notes "..."
+    - Include summary of changes in release notes
+    - WITHOUT THIS, /karimo-update WILL NOT DETECT THE NEW VERSION
+
+[ ] 5. DOCUMENTATION SCAN
+    - README.md — Installation, features, command reference
+    - .karimo/docs/COMMANDS.md — If slash commands changed
+    - .karimo/docs/ARCHITECTURE.md — If system structure changed
+    - .karimo/docs/GETTING-STARTED.md — If setup flow changed
+```
+
+### STOP CHECK
+
+Before marking a version bump task as complete, verify:
+1. `gh release view vX.Y.Z` returns the release (not "release not found")
+2. The release URL is provided to the user
+
+**If you forget the GitHub release, /karimo-update will not work.** This breaks the update flow for all users.
 
 ## What Impacts Target Repositories
 
