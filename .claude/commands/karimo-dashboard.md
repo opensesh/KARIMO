@@ -12,6 +12,7 @@
 /karimo-dashboard --prd {slug} # PRD-specific dashboard (combines status + metrics)
 /karimo-dashboard --alerts     # Show only Critical Alerts section (minimal mode)
 /karimo-dashboard --activity   # Extended activity feed (last 50 events instead of 10)
+/karimo-dashboard --reconcile  # Force git state reconstruction
 /karimo-dashboard --json       # JSON output for scripting/automation
 /karimo-dashboard --refresh    # Force refresh (bypass cache)
 ```
@@ -741,6 +742,32 @@ JSON output for scripting/automation:
 }
 ```
 
+### `--reconcile`
+
+Force git state reconstruction:
+
+```bash
+/karimo-dashboard --reconcile
+```
+
+Derives actual state from git and GitHub, not just status.json. If status.json conflicts with git reality, git wins and status.json is updated.
+
+**Reconciliation Report:**
+
+```
+Reconciliation Report for: user-profiles
+
+  [1a] status.json: running → git: merged (PR #42) → UPDATED to done
+  [1b] status.json: queued → git: no branch → OK
+  [2a] status.json: running → git: branch exists, no PR → CRASHED
+       Action: Will delete stale branch on next execute
+
+  Discrepancies found: 2
+  status.json updated: ✓
+```
+
+This flag is useful for recovering from crashes or when status.json gets out of sync with git reality.
+
 ### `--refresh`
 
 Force refresh (bypass cache):
@@ -880,8 +907,8 @@ Execute one with: /karimo-run --prd {slug}
 **Active monitoring (during execution):**
 ```bash
 /karimo-dashboard           # System health, what needs attention, progress
-/karimo-status --prd X      # Wave-level task details (deep dive)
-/karimo-run --prd X     # Resume/start execution
+/karimo-dashboard --prd X   # Wave-level task details (deep dive)
+/karimo-run --prd X         # Resume/start execution
 ```
 
 **Post-execution analysis:**
@@ -896,7 +923,7 @@ Execute one with: /karimo-run --prd {slug}
 | Command | Focus | When to Use |
 |---------|-------|-------------|
 | `/karimo-dashboard` | Cross-PRD overview, health, velocity, alerts | Active monitoring, post-execution analysis |
-| `/karimo-status` | Single PRD deep dive, wave details | Debugging specific PRD, wave-level task tracking |
+| `/karimo-dashboard --prd X` | Single PRD deep dive, wave details | Debugging specific PRD, wave-level task tracking |
 
 ---
 
@@ -908,7 +935,7 @@ Execute one with: /karimo-run --prd {slug}
    - Load `metrics.json` for completed PRDs
 
 2. **Reconcile with Git State**
-   - For each active PRD, derive truth from git (same logic as `/karimo-status`)
+   - For each active PRD, derive truth from git (using `--reconcile` logic)
    - Query GitHub API for PR states, labels, merge status
    - Update `status.json` if discrepancies found
 
@@ -925,7 +952,7 @@ Execute one with: /karimo-run --prd {slug}
 
 5. **Render Dashboard**
    - Format each section with Unicode box drawing and progress bars
-   - Use existing rendering patterns from `karimo-status.md`
+   - Use Unicode box drawing and progress bars for rendering
    - Output to stdout
 
 ---
@@ -934,7 +961,7 @@ Execute one with: /karimo-run --prd {slug}
 
 **Principle:** Git is truth. status.json is a cache.
 
-The dashboard uses the same reconciliation logic as `/karimo-status`:
+The dashboard uses git-based state reconciliation (triggered via `--reconcile` flag):
 
 ```bash
 for task_id in tasks; do
@@ -980,8 +1007,32 @@ done
 |---------|---------|
 | `/karimo-plan` | Create PRD with interactive approval |
 | `/karimo-run` | Execute PRD (brief gen + execution) |
-| `/karimo-status` | View execution status for specific PRD |
+| `/karimo-doctor` | Check installation health |
 | `/karimo-feedback` | Capture learnings from execution |
+
+---
+
+## Migration from `/karimo-status`
+
+### Deprecated Command
+
+`/karimo-status` is deprecated and replaced by `/karimo-dashboard`.
+
+All flags from `/karimo-status` are preserved:
+
+| Old Command | New Command |
+|-------------|-------------|
+| `/karimo-status` | `/karimo-dashboard` |
+| `/karimo-status --prd X` | `/karimo-dashboard --prd X` |
+| `/karimo-status --active` | `/karimo-dashboard --active` |
+| `/karimo-status --reconcile` | `/karimo-dashboard --reconcile` |
+| `/karimo-status --json` | `/karimo-dashboard --json` |
+
+### Transition Path
+
+1. **Existing scripts** — Replace `/karimo-status` with `/karimo-dashboard`
+2. **Functionality preserved** — All status features are available in dashboard
+3. **Enhanced capabilities** — Dashboard adds velocity, resource usage, and activity sections
 
 ---
 
