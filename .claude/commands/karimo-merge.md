@@ -221,6 +221,47 @@ WARNING: Proceeding without validation may introduce issues to main.
 Only use this flag if you've manually verified the feature branch.
 ```
 
+### 5b. Coverage Analysis (Conditional)
+
+**Detect if coverage reports exist and spawn coverage reviewer:**
+
+```bash
+# Detect coverage format (codebase-agnostic)
+coverage_file=""
+format=""
+
+if [ -f "coverage/coverage-summary.json" ]; then
+  coverage_file="coverage/coverage-summary.json"
+  format="istanbul"
+elif [ -f "coverage/lcov.info" ]; then
+  coverage_file="coverage/lcov.info"
+  format="lcov"
+elif [ -f "coverage.xml" ]; then
+  coverage_file="coverage.xml"
+  format="cobertura"
+elif [ -f ".coverage" ]; then
+  coverage_file=".coverage"
+  format="python"
+fi
+
+# If coverage exists, spawn coverage review agent
+if [ -n "$coverage_file" ]; then
+  echo "Coverage report detected: $coverage_file (format: $format)"
+  echo "Spawning coverage reviewer..."
+
+  # Spawn karimo-coverage-reviewer agent to analyze coverage and add PR comments
+  # Agent will:
+  # 1. Parse coverage report
+  # 2. Cross-reference with task briefs for intentionally uncovered lines
+  # 3. Add explanatory comment to PR
+fi
+```
+
+**If no coverage report found:**
+```
+Note: No coverage report detected. Skipping coverage analysis.
+```
+
 ### 6. Integration Analysis
 
 **Detect potential integration issues:**
