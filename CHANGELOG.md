@@ -7,6 +7,39 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [7.4.0] - 2026-03-13
+
+**Command Consolidation Release**
+
+This release simplifies KARIMO's command surface from 13 to 10 commands for a cleaner UX.
+
+### Changed
+
+- `/karimo-status` merged into `/karimo-dashboard`
+  - Use `/karimo-dashboard` for all status monitoring
+  - Use `/karimo-dashboard --prd {slug}` for PRD-specific details
+  - Use `/karimo-dashboard --reconcile` for git state reconstruction
+- `/karimo-test` merged into `/karimo-doctor --test`
+  - Same 5-test verification suite
+  - Same pass/fail output with exit codes
+
+### Removed
+
+- `/karimo-plugin` — Deferred until plugin ecosystem is ready
+- `/karimo-test` — Use `/karimo-doctor --test` instead
+- `/karimo-status` — Use `/karimo-dashboard` instead
+
+### Documentation
+
+- Updated all command references across:
+  - COMMANDS.md, CLAUDE.md, README.md
+  - ARCHITECTURE.md, GETTING-STARTED.md, TROUBLESHOOTING.md
+  - All command files with cross-references
+- Added migration notes to `/karimo-dashboard` and `/karimo-doctor`
+- Added Deprecated Commands section to COMMANDS.md
+
+---
+
 ## [7.3.2] - 2026-03-12
 
 ### Changed
