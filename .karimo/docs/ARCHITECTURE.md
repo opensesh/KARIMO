@@ -817,7 +817,9 @@ KARIMO uses Git worktrees for task isolation. Each task gets complete disk isola
 ### Branch Naming
 
 - **Feature branch**: `feature/{prd-slug}` (base for all tasks)
-- **Task branch**: `feature/{prd-slug}/{task-id}` (per-task work)
+- **Task branch**: `worktree/{prd-slug}-{task-id}` (per-task work)
+
+Task branches use the `worktree/` prefix for visual distinction in GitHub's branch picker. This makes cleanup easier and clearly identifies KARIMO-managed branches.
 
 ### Worktree Lifecycle (v2.1)
 

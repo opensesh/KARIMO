@@ -145,7 +145,7 @@ Tasks that depend on this one: {list or "None — no downstream dependencies"}
 
 **Issue:** #{issue_number}
 **Feature Issue (Parent):** #{feature_issue_number}
-**Branch:** `{prd-slug}-{task-id}`
+**Branch:** `worktree/{prd-slug}-{task-id}`
 **Target:** Determined by PM Agent based on execution mode (feature branch or main)
 
 ---
@@ -216,7 +216,7 @@ When the PM Agent creates the GitHub Issue, use this enhanced template:
 
 ### Execution Context
 
-- **Branch:** `{prd-slug}-{task-id}`
+- **Branch:** `worktree/{prd-slug}-{task-id}`
 - **Target:** Determined by PM Agent based on execution mode (feature branch or main)
 - **Worktree:** `.worktrees/{prd-slug}/{task-id}`
 - **Brief:** `.karimo/prds/{prd-slug}/briefs/{task-id}_{prd-slug}.md`

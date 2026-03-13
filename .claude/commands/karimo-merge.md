@@ -427,7 +427,7 @@ mv temp.json .karimo/prds/{NNN}_{slug}/status.json
 
 # Delete task branches (feature branch already deleted by PR merge)
 for task_id in $(jq -r '.tasks | keys[]' .karimo/prds/{NNN}_{slug}/status.json); do
-  branch="${prd_slug}-${task_id}"
+  branch="worktree/${prd_slug}-${task_id}"
   git push origin --delete "$branch" 2>/dev/null || true
   echo "  Deleted: $branch"
 done

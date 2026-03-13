@@ -64,7 +64,7 @@ KARIMO supports two execution modes, detected automatically from `status.json`:
 - Task PRs target feature branch (not main)
 - Wave execution within feature branch
 - Final PR: feature branch → main (ONE production deployment)
-- Branch naming: `{prd-slug}-{task-id}`
+- Branch naming: `worktree/{prd-slug}-{task-id}`
 
 **Detection:** `execution_mode: "feature-branch"` in status.json
 
@@ -74,7 +74,7 @@ KARIMO supports two execution modes, detected automatically from `status.json`:
 - No feature branch
 - Task PRs target main directly
 - Wave execution sequenced by main merge status
-- Branch naming: `{prd-slug}-{task-id}`
+- Branch naming: `worktree/{prd-slug}-{task-id}`
 
 **Detection:** `execution_mode: "direct-to-main"` OR field missing (default)
 
@@ -125,7 +125,7 @@ export TASK_NAME="{task_name}"
 export TASK_TYPE="{task_type}"  # implementation, testing, documentation
 export COMPLEXITY="{complexity}"
 export WAVE="{wave_number}"
-export BRANCH_NAME="{prd-slug}-{task-id}"
+export BRANCH_NAME="worktree/{prd-slug}-{task-id}"
 export PR_NUMBER="{pr_number}"  # if PR created
 export PR_URL="{pr_url}"        # if PR created
 export PROJECT_ROOT="$(pwd)"
@@ -235,7 +235,7 @@ Wait for human confirmation before proceeding.
 ```bash
 # For each task, derive actual state from git + GitHub
 for task_id in $(get_task_ids); do
-  branch="{prd-slug}-${task_id}"
+  branch="worktree/{prd-slug}-${task_id}"
 
   # Check if branch exists on remote
   if git ls-remote --heads origin "$branch" | grep -q "$branch"; then
@@ -311,7 +311,7 @@ WHILE waves remain:
     4. Select worker type (implementer/tester/documenter)
     5. Spawn worker agent via Task tool
     6. Worker operates in worktree (Claude Code handles via isolation: worktree)
-    7. Worker completes → commits pushed to {prd-slug}-{task-id} branch
+    7. Worker completes → commits pushed to worktree/{prd-slug}-{task-id} branch
     8. Create PR to target branch (base_branch)
     9. Run Greptile review (if configured)
     10. On merge → update status.json, proceed to next wave
@@ -340,7 +340,7 @@ Workers use Claude Code's native `isolation: worktree`. The PM specifies the bra
    export TASK_TYPE="{task_type}"
    export COMPLEXITY="{complexity}"
    export WAVE="{wave}"
-   export BRANCH_NAME="{prd-slug}-{task-id}"
+   export BRANCH_NAME="worktree/{prd-slug}-{task-id}"
    export PROJECT_ROOT="$(pwd)"
    export KARIMO_VERSION="$(cat .karimo/VERSION)"
 
@@ -356,7 +356,7 @@ Workers use Claude Code's native `isolation: worktree`. The PM specifies the bra
 
 > Use the karimo-{agent-type} agent to execute the task at
 > `.karimo/prds/{prd-slug}/briefs/{task-id}_{prd-slug}.md`.
-> Branch: {prd-slug}-{task-id}
+> Branch: worktree/{prd-slug}-{task-id}
 > Task: [{task-id}] {task-title}
 > Complexity: {complexity}/10
 
@@ -372,7 +372,7 @@ When worker completes:
 1. **Verify branch has commits:**
    ```bash
    git fetch origin
-   if ! git rev-parse --verify origin/{prd-slug}-{task-id} &>/dev/null; then
+   if ! git rev-parse --verify origin/worktree/{prd-slug}-{task-id} &>/dev/null; then
      # Worker crashed before pushing
      mark_task_crashed(task_id)
      continue
@@ -386,7 +386,7 @@ When worker completes:
      repo: "{repo}",
      title: "feat({prd-slug}): [{task-id}] {task-title}",
      body: "{pr_body}",
-     head: "{prd-slug}-{task-id}",
+     head: "worktree/{prd-slug}-{task-id}",
      base: base_branch  // Dynamic: feature branch or main (from Step 1)
    })
    ```
@@ -419,7 +419,7 @@ When worker completes:
    export TASK_TYPE="{task_type}"
    export COMPLEXITY="{complexity}"
    export WAVE="{wave}"
-   export BRANCH_NAME="{prd-slug}-{task-id}"
+   export BRANCH_NAME="worktree/{prd-slug}-{task-id}"
    export PR_NUMBER="{pr_number}"
    export PR_URL="{pr_url}"
    export PROJECT_ROOT="$(pwd)"
@@ -490,7 +490,7 @@ When PR receives `needs-revision` label (score < 3):
    export TASK_TYPE="{task_type}"
    export COMPLEXITY="{complexity}"
    export WAVE="{wave}"
-   export BRANCH_NAME="{prd-slug}-{task-id}"
+   export BRANCH_NAME="worktree/{prd-slug}-{task-id}"
    export PR_NUMBER="{pr_number}"
    export PR_URL="{pr_url}"
    export FAILURE_REASON="{greptile_feedback_summary}"
@@ -591,7 +591,7 @@ Code Review posts findings as inline PR comments with severity markers. PM Agent
    export TASK_TYPE="{task_type}"
    export COMPLEXITY="{complexity}"
    export WAVE="{wave}"
-   export BRANCH_NAME="{prd-slug}-{task-id}"
+   export BRANCH_NAME="worktree/{prd-slug}-{task-id}"
    export PR_NUMBER="{pr_number}"
    export PR_URL="{pr_url}"
    export FAILURE_REASON="{code_review_findings_summary}"
@@ -619,7 +619,7 @@ When all tasks in a wave have merged PRs:
 1. **Verify PRs merged to correct target:**
    ```bash
    for task_id in wave_tasks; do
-     branch="{prd-slug}-${task_id}"
+     branch="worktree/{prd-slug}-${task_id}"
      merged_to=$(gh pr view "$branch" --json baseRefName --jq '.baseRefName')
 
      if [ "$merged_to" != "$base_branch" ]; then
@@ -632,7 +632,7 @@ When all tasks in a wave have merged PRs:
 2. **Run on-merge hook for each merged PR:**
    ```bash
    for task_id in wave_tasks; do
-     branch="{prd-slug}-${task_id}"
+     branch="worktree/{prd-slug}-${task_id}"
      merge_sha=$(gh pr view "$branch" --json mergeCommit --jq '.mergeCommit.oid')
      pr_number=$(gh pr view "$branch" --json number --jq '.number')
      pr_url=$(gh pr view "$branch" --json url --jq '.url')

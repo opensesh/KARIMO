@@ -37,7 +37,7 @@ PRs target a feature branch, which merges to main after all tasks complete:
 - **Task PRs:** Target feature branch
 - **Wave execution:** Within feature branch (wave 2 waits for wave 1 to merge to feature branch)
 - **Final PR:** `feature/{prd-slug}` → main (one production deployment)
-- **Branch naming:** `{prd-slug}-{task-id}`
+- **Branch naming:** `worktree/{prd-slug}-{task-id}`
 - **Cleanup:** Feature branch deleted after merge to main
 
 **Benefits:**
@@ -56,7 +56,7 @@ PRs target main directly:
 - **Task PRs:** Target main
 - **Wave execution:** Sequenced by main merge status
 - **Production deployments:** One per task (15+ per PRD)
-- **Branch naming:** `{prd-slug}-{task-id}`
+- **Branch naming:** `worktree/{prd-slug}-{task-id}`
 
 **Use when:**
 - Simple PRDs (1-3 tasks)
@@ -123,7 +123,7 @@ PRs target main directly:
 
 ### 2. Branch Discipline
 
-- **Push to your assigned branch:** `{prd-slug}-{task-id}`
+- **Push to your assigned branch:** `worktree/{prd-slug}-{task-id}`
 - **Claude Code handles worktrees:** Task agents use `isolation: worktree`
 - **Commit frequently:** Make atomic commits
 - **PR target branch:**
