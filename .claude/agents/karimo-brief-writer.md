@@ -110,6 +110,27 @@ Complete ALL criteria before marking task done:
 
 {What tests to add, existing tests to preserve}
 
+### Coverage Expectations
+
+{Only include this section for test tasks — detected by task title containing "test/tests/testing" or task type being "testing" or files_affected containing test files}
+
+**Target Files for Coverage:**
+
+| File | Target | Rationale |
+|------|--------|-----------|
+| `{impl_file_from_prior_wave}` | 80%+ | Core implementation |
+
+**Intentionally Uncovered Lines:**
+
+- **{file}:{line-range}** — {reason: "API error handling covered by E2E", "debug-only path", etc.}
+
+**Verification:**
+```bash
+{commands.test} --coverage
+```
+
+{If this is not a test task, omit this entire section}
+
 ---
 
 ## Boundaries
@@ -384,6 +405,63 @@ Then brief for Task 1a should include:
 **Library Dependencies:**
 - zod (already installed, v3.x)
 ```
+
+### 6. Populate Coverage Expectations for Test Tasks
+
+**Detection:** Include Coverage Expectations section when ANY of:
+- Task title contains "test", "tests", or "testing" (case-insensitive)
+- Task type field is "testing"
+- `files_affected` includes files matching `*.test.*`, `*.spec.*`, or `__tests__/*`
+
+**Population logic:**
+
+1. **Identify target implementation files:**
+   - Look at upstream dependencies (tasks this one depends on)
+   - Find implementation files modified by those tasks
+   - These become the "Target Files for Coverage"
+
+2. **Set coverage targets:**
+   - Core implementation files: 80%+ target
+   - Utility/helper files: 70%+ target
+   - Integration glue code: 60%+ target
+
+3. **Identify intentionally uncovered lines:**
+   - Error handling that's covered by E2E tests
+   - Debug-only code paths
+   - Fallback paths for edge cases tested elsewhere
+   - Platform-specific code not relevant to current tests
+
+4. **Add verification command:**
+   - Use `{commands.test} --coverage` from config.yaml
+   - Include coverage threshold flags if available
+
+**Example output for test task:**
+
+```markdown
+### Coverage Expectations
+
+**Target Files for Coverage:**
+
+| File | Target | Rationale |
+|------|--------|-----------|
+| `src/components/UserProfile.tsx` | 80%+ | Core implementation from Task 1a |
+| `src/hooks/useUserData.ts` | 80%+ | Data hook from Task 1b |
+
+**Intentionally Uncovered Lines:**
+
+- **src/components/UserProfile.tsx:45-52** — Network timeout handling (covered by E2E)
+- **src/hooks/useUserData.ts:23** — Debug logging (dev-only)
+
+**Verification:**
+```bash
+pnpm test --coverage --coverageThreshold='{"global":{"lines":80}}'
+```
+```
+
+**Graceful handling:**
+- If not a test task: Omit the Coverage Expectations section entirely
+- If no upstream implementation tasks: State "No specific coverage targets — this is a standalone test task"
+- If unable to determine coverage expectations: Include section with note "Coverage targets to be determined during implementation"
 
 ## Determining Model Assignment
 
