@@ -119,25 +119,29 @@ See `.claude/skills/karimo-firecrawl-web-tools.md` for full reference.
 
 ## Operating Modes
 
-### Mode 1: General Research
+### Mode 1: General Research (Feature Init)
 
 **Trigger:** Invoked without `--prd` flag
 
 **Process:**
 
-1. **Topic Discovery**
-   - Read user input for research topic
-   - Ask clarifying questions about scope and focus
+1. **Feature Analysis**
+   - Read feature description provided by user
+   - Derive slug from description (e.g., "embedding engine" → "embedding-engine")
+   - Determine focus areas based on feature type:
+     - **Always include:** patterns, best practices, libraries
+     - **Add if relevant:** security (auth/data features), performance (data-heavy features)
+
+   **DO NOT use AskUserQuestion.** Determine focus from the feature description.
 
 2. **Research Execution**
-   - Internal research (if codebase-relevant)
+   - Internal research (codebase patterns, dependencies)
    - External research (web search, documentation)
    - Organize findings by category
 
 3. **Output**
-   - Save to `.karimo/research/{topic}-{NNN}.md`
-   - Update `.karimo/research/index.yaml` catalog
-   - Format using `GENERAL_RESEARCH_TEMPLATE.md`
+   - Save to `.karimo/prds/{slug}/research/`
+   - Format using research templates
 
 ### Mode 2: PRD-Scoped Research
 
@@ -151,17 +155,20 @@ See `.claude/skills/karimo-firecrawl-web-tools.md` for full reference.
    - Understand PRD scope and boundaries
 
 2. **Import Handling**
-   - If general research selected for import:
-     - Copy to `.karimo/prds/{slug}/research/imported/`
+   - If general research exists in `.karimo/research/`:
+     - Check if relevant to this PRD
+     - Copy relevant items to `.karimo/prds/{slug}/research/imported/`
      - Note imported research in meta.json
 
-3. **Research Focus**
-   - Internal research (if selected):
+3. **Research Focus (Automatic)**
+   Determine focus areas based on PRD content. **DO NOT ask via AskUserQuestion.**
+
+   - Internal research:
      - Patterns: Discover existing implementation patterns
      - Errors: Identify missing patterns, inconsistencies
      - Dependencies: Map file/module dependencies
      - Structure: Analyze directory/naming conventions
-   - External research (if selected):
+   - External research:
      - Best practices: Web search for current best practices
      - Libraries: Recommend libraries and tools
      - References: Find documentation and examples
@@ -464,8 +471,8 @@ Embedded in `PRD_{slug}.md`:
 **Your Process:**
 1. Read PRD: `.karimo/prds/003_user-profiles/PRD_user-profiles.md`
 2. Extract tasks: "Add profile editing", "Add avatar upload", etc.
-3. Ask: "Import existing research?" (show list from .karimo/research/)
-4. Ask: "Research focus?" (checkboxes for patterns, libraries, etc.)
+3. Check for existing research in `.karimo/research/` — import if relevant
+4. Determine focus areas from PRD content (no user questions needed)
 5. Internal research:
    - Find auth patterns: `grep -r "auth" src/`
    - Find form patterns: `grep -r "form\|Form" src/`

@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [7.3.2] - 2026-03-12
+
+### Changed
+
+**Conversational Research Flow**
+
+- `/karimo-research` command now uses conversational interaction instead of checkbox-style `AskUserQuestion` inputs
+- Users can describe features naturally (e.g., "I want to build an embedding engine for memory search")
+- Agent derives slug and focus areas from the feature description automatically
+- `AskUserQuestion` only used when genuinely useful (e.g., selecting from existing PRDs)
+
+### Removed
+
+- Checkbox-style "Research Focus Questions" UI from `/karimo-research` command
+- `focus_areas` parameter from researcher agent (now auto-determined)
+
+---
+
 ## [7.3.1] - 2026-03-12
 
 ### Fixed

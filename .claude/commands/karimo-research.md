@@ -64,25 +64,28 @@ When invoked with a bare feature name (no `--prd` flag), this is the **first ste
      └── status.json                # Initial status
      ```
 
-3. **Research Focus Questions**
-   Present to user:
-   ```
-   ╭──────────────────────────────────────────────────────╮
-   │  Research: {feature-name}                            │
-   ╰──────────────────────────────────────────────────────╯
+3. **Feature Name Resolution**
+   - If invoked with argument (`/karimo-research "embedding engine"`):
+     - Use argument directly as feature description
+     - Derive slug: "embedding-engine"
+     - Proceed immediately to research execution
+   - If invoked bare (`/karimo-research`):
+     - Respond conversationally: "What feature would you like me to research?"
+     - User types naturally (no structured input)
+     - Derive slug from their natural language description
 
-   What aspects should I research?
+   **DO NOT use AskUserQuestion for this step.** Let the user type naturally.
+   The agent determines appropriate research focus based on the feature description.
 
-   ☑ Existing patterns in codebase (recommended)
-   ☑ External best practices (recommended)
-   ☐ Library recommendations
-   ☐ Error/gap identification
-   ☐ Dependencies and integration points
-   ☐ Performance considerations
-   ☐ Security considerations
+   Default focus areas (always included):
+   - Existing patterns in codebase
+   - External best practices
+   - Library recommendations (when relevant)
 
-   Additional research notes: [free text]
-   ```
+   Additional areas (included when relevant to feature):
+   - Security considerations (for auth, data, API features)
+   - Performance considerations (for data-heavy, real-time features)
+   - Error handling patterns (for user-facing features)
 
 4. **Research Execution (Two-Phase)**
    - Spawn `karimo-researcher` agent:
@@ -173,20 +176,16 @@ When invoked with `--prd {slug}`, adds research to an existing PRD folder.
    - If found: "Import existing research?" with list
    - Copy selected research to `.karimo/prds/{slug}/research/imported/`
 
-3. **Research Focus Questions**
-   ```
-   What additional research would you like for this PRD?
+3. **Research Scope Determination**
+   - If `--prd` without value: Present list of existing PRDs to select
+     (This IS a valid use of structured selection via AskUserQuestion)
+   - If `--prd {slug}`: Load PRD directly, no questions needed
+   - Research all relevant aspects by default based on PRD content
 
-   □ Existing patterns in codebase
-   □ External best practices
-   □ Library recommendations
-   □ Error/gap identification
-   □ Dependencies and integration points
-   □ Performance considerations
-   □ Security considerations
+   **DO NOT use AskUserQuestion to ask what to research.** The agent analyzes
+   the PRD content and determines appropriate research focus automatically.
 
-   Additional research notes: [free text]
-   ```
+   If additional context is truly needed, ask conversationally in plain text.
 
 4. **Research Execution**
    - Spawn `karimo-researcher` agent:
@@ -251,10 +250,9 @@ model: sonnet
 mode: feature-init
 parameters:
   slug: {sanitized_slug}
-  display_name: {original_feature_name}
+  feature_description: {user_description}  # Full natural language description
   output_folder: .karimo/prds/{slug}/research/
-  focus_areas: {selected_checkboxes}
-  additional_notes: {user_input}
+  # focus_areas determined by agent based on feature_description
 ```
 
 ### PRD-Scoped Research
@@ -268,8 +266,7 @@ parameters:
   prd_path: .karimo/prds/{NNN}_{slug}/PRD_{slug}.md
   research_folder: .karimo/prds/{NNN}_{slug}/research/
   imported_research: {selected_general_research}
-  focus_areas: {selected_checkboxes}
-  additional_notes: {user_input}
+  # focus_areas determined by agent based on PRD content
 ```
 
 ### Refinement
