@@ -21,6 +21,10 @@ set -e
 # from misaligned positions causing syntax errors. Fix: re-exec from a temp copy.
 
 if [ -z "$KARIMO_UPDATE_REEXEC" ]; then
+    # Preserve original paths BEFORE re-exec (temp file loses BASH_SOURCE context)
+    export KARIMO_ORIGINAL_SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    export KARIMO_ORIGINAL_PROJECT_ROOT="$(dirname "$KARIMO_ORIGINAL_SCRIPT_DIR")"
+
     tmp_script=$(mktemp)
     cp "$0" "$tmp_script"
     chmod +x "$tmp_script"
@@ -288,8 +292,9 @@ if [ "$LOCAL_MODE" = true ]; then
 
 else
     # Remote mode: fetch from GitHub
-    SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-    PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
+    # Use preserved paths from pre-reexec, fallback to calculation if not set
+    SCRIPT_DIR="${KARIMO_ORIGINAL_SCRIPT_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)}"
+    PROJECT_ROOT="${KARIMO_ORIGINAL_PROJECT_ROOT:-$(dirname "$SCRIPT_DIR")}"
 
     # Check KARIMO is installed
     if [ ! -f "$SCRIPT_DIR/VERSION" ]; then

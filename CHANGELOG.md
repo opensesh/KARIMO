@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [7.3.1] - 2026-03-12
+
+### Fixed
+- Update script self-replacement guard now preserves original script path before re-exec
+- Learnings migration now runs correctly (was failing due to wrong PROJECT_ROOT after temp file re-exec)
+
+---
+
 ## [7.3.0] - 2026-03-12
 
 **OpenViking Context Architecture**
