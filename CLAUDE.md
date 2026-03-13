@@ -134,19 +134,14 @@ KARIMO is an autonomous development **methodology** delivered via Claude Code co
 |---------|---------|
 | `/karimo-research "feature-name"` | **REQUIRED first step** — Create PRD folder + run research |
 | `/karimo-plan --prd {slug}` | PRD interview using research context |
-| `/karimo-run --prd {slug}` | Execute tasks from a PRD (feature branch workflow, **recommended**) |
-| `/karimo-run --review-only` | Generate briefs and review, then stop (no execution) |
-| `/karimo-run --skip-review` | Skip pre-execution review and execute immediately |
+| `/karimo-run --prd {slug}` | Execute tasks from a PRD |
 | `/karimo-merge --prd {slug}` | Create final PR to main after execution completes |
-| `/karimo-status [--prd {slug}]` | View execution state (no arg = all PRDs, with arg = details) |
-| `/karimo-configure` | Create or update project configuration (~5 min) |
-| `/karimo-update` | Check for and apply KARIMO updates from GitHub |
-| `/karimo-feedback` | Intelligent feedback with auto-detection (simple or complex) |
-| `/karimo-doctor` | Check installation health and diagnose issues |
-| `/karimo-test` | Verify installation works end-to-end |
+| `/karimo-dashboard [--prd {slug}]` | Monitor progress and system health |
+| `/karimo-feedback` | Intelligent feedback with auto-detection |
+| `/karimo-configure` | Create or update project configuration |
+| `/karimo-update` | Check for and apply KARIMO updates |
+| `/karimo-doctor [--test]` | Check installation health |
 | `/karimo-help` | Help & documentation search |
-| `/karimo-plugin` | Plugin management |
-| `/karimo-dashboard` | CLI monitoring dashboard |
 
 ---
 
@@ -242,7 +237,7 @@ When you run `install.sh`, these files are added:
 | Location | Contents |
 |----------|----------|
 | `.claude/agents/` | **17** agent definitions (11 coordination + 6 task agents) |
-| `.claude/commands/` | **13** slash commands |
+| `.claude/commands/` | **10** slash commands |
 | `.claude/skills/` | **6** skills (1 bash + 2 research + 3 task agent skills) |
 | `.claude/KARIMO_RULES.md` | Agent behavior rules |
 | `.karimo/templates/` | **15** templates |
