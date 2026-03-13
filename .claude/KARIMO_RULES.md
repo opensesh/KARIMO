@@ -131,7 +131,19 @@ PRs target main directly:
   - Direct-to-main mode: Target `main`
   - PM Agent determines target based on `status.json` execution mode
 
-### 3. Pre-PR Validation
+### 3. Branch Lifecycle (Cleanup)
+
+Task branches are cleaned **immediately after their PR merges**:
+
+| Event | Action |
+|-------|--------|
+| Task PR merges to feature branch | PM deletes task branch + worktree |
+| Final PR merges to main | Feature branch deleted by GitHub |
+| `/karimo-merge` completes | Remaining branches cleaned (safety net) |
+
+Branch naming uses `worktree/` prefix (e.g., `worktree/user-profiles-1a`) for visual distinction in GitHub UI and easier cleanup via pattern matching.
+
+### 4. Pre-PR Validation
 
 Before the PM creates a PR, verify:
 - [ ] Build passes (from CLAUDE.md Commands table)
@@ -140,7 +152,7 @@ Before the PM creates a PR, verify:
 - [ ] No `Never Touch` files modified (from CLAUDE.md Boundaries)
 - [ ] Branch based on latest target branch (feature branch or main)
 
-### 4. PR Standards
+### 5. PR Standards
 
 PRs are created by the PM agent with:
 - **Title:** `feat({prd-slug}): [{task-id}] {task-title}`
