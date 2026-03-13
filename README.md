@@ -8,7 +8,7 @@
 ```
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
-[![Version](https://img.shields.io/badge/version-v7.0.0-blue)]()
+[![Version](https://img.shields.io/badge/version-v7.3.0-blue)]()
 [![Claude Code](https://img.shields.io/badge/Claude%20Code-Framework_&_Plugin-blueviolet.svg)]()
 
 ---
@@ -290,20 +290,22 @@ Behavior rules: [`KARIMO_RULES.md`](.claude/KARIMO_RULES.md)
 
 KARIMO uses the [OpenViking Protocol](https://github.com/ArcadeAI/OpenViking) for efficient context management:
 
-| Layer | Size | Purpose |
-|-------|------|---------|
-| **L0 Abstracts** | ~100 tokens | Quick agent/skill/brief scanning |
-| **L1 Overviews** | ~2K tokens | Category summaries with navigation |
-| **L2 Full Definitions** | Variable | Complete agent/skill/brief content |
+| Layer | Size | Query Order | Purpose |
+|-------|------|-------------|---------|
+| **L0 Abstracts** | ~100 tokens | 2nd | Single-item verification |
+| **L1 Overviews** | ~2K tokens | 1st | Discover all items in category |
+| **L2 Full Definitions** | Variable | 3rd | Complete content for execution |
+
+> **Note:** "L" = Level of Detail (L0 = minimal, L2 = full), not query order.
 
 **Key files:**
-- `.claude/agents.overview.md` — All agents at a glance
-- `.claude/skills.overview.md` — All skills at a glance
-- `.claude/agents/*.abstract.md` — Per-agent L0 summaries
+- `.claude/agents.overview.md` — Query first: all agents at a glance (L1)
+- `.claude/agents/*.abstract.md` — Query second: verify specific agent (L0)
+- `.claude/skills.overview.md` — All skills with agent mapping (L1)
 - `.karimo/learnings/` — Categorized project learnings
 - `.karimo/findings/` — Cross-PRD pattern index
 
-For projects wanting vector-enhanced search, see the OpenViking repository for embedding setup guidance.
+For projects wanting vector-enhanced search, see the [OpenViking repository](https://github.com/ArcadeAI/OpenViking) for embedding setup guidance.
 
 ---
 

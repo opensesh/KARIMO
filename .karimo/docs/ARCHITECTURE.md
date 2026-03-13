@@ -32,11 +32,11 @@ KARIMO uses `.karimo/MANIFEST.json` as the single source of truth for installed 
 
 ```json
 {
-  "version": "3.5.3",
-  "agents": ["karimo-brief-writer.md", "karimo-documenter.md", ...],
-  "commands": ["karimo-configure.md", "karimo-doctor.md", ...],
-  "skills": ["karimo-git-worktree-ops.md", ...],
-  "templates": ["PRD_TEMPLATE.md", ...],
+  "version": "7.3.0",
+  "agents": ["karimo-brief-writer.md", "karimo-pm.md", ...],
+  "commands": ["karimo-configure.md", "karimo-run.md", ...],
+  "skills": ["karimo-code-standards.md", ...],
+  "templates": ["PRD_TEMPLATE.md", "TASK_BRIEF_TEMPLATE.md", ...],
   "other": {
     "rules": "KARIMO_RULES.md",
     "issue_template": "karimo-task.yml"
@@ -68,11 +68,13 @@ KARIMO uses layered context management inspired by the [OpenViking Protocol](htt
 
 ### Three-Layer System
 
-| Layer | Size | Purpose | Files |
-|-------|------|---------|-------|
-| **L0 Abstracts** | ~100 tokens | Quick scanning, agent/skill selection | `*.abstract.md` |
-| **L1 Overviews** | ~2K tokens | Category summaries with navigation tables | `*.overview.md` |
-| **L2 Full Definitions** | Variable | Complete agent/skill/brief content | `*.md` (full files) |
+| Layer | Size | Query Order | Purpose | Files |
+|-------|------|-------------|---------|-------|
+| **L0 Abstracts** | ~100 tokens | 2nd | Single-item verification | `*.abstract.md` |
+| **L1 Overviews** | ~2K tokens | 1st | Discover all items | `*.overview.md` |
+| **L2 Full Definitions** | Variable | 3rd | Complete content for execution | `*.md` (full files) |
+
+> **Note:** "L" = Level of Detail (L0 = minimal, L2 = full), not query order. Query L1 first to discover, L0 to verify, L2 to execute.
 
 ### Agent & Skill Abstracts
 
@@ -657,9 +659,9 @@ When automated review is enabled via `/karimo-configure --review`:
 - Posts inline comments with severity markers (🔴 🟡 🟣)
 - 🔴 findings trigger agent revision loop
 
-### Human Oversight (`/karimo-overview`)
+### Human Oversight (`/karimo-status`)
 
-After execution completes (or during long runs), use `/karimo-overview` to surface:
+After execution completes (or during long runs), use `/karimo-status` to surface:
 - Tasks blocked by Greptile review failures (needs human intervention)
 - Tasks in active revision loops
 - Tasks with merge conflicts (needs human rebase)

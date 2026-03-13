@@ -1,6 +1,6 @@
 # KARIMO Plugin Development Guide
 
-**Version:** 6.0
+**Version:** 7.3.0
 **Status:** Beta
 
 ---

@@ -613,8 +613,8 @@ else
     echo "  2. Run '/karimo-configure' to complete configuration"
     echo "  3. Run '/karimo-plan' to create your first PRD"
 fi
-echo "  4. Run '/karimo-feedback' for quick single-rule capture"
-echo "  5. Run '/karimo-learn' for periodic deep learning cycles"
+echo "  4. Run '/karimo-feedback' to capture learnings"
+echo "  5. Run '/karimo-status' to monitor progress"
 echo
 echo "For more information, see: https://github.com/opensesh/KARIMO"
 echo

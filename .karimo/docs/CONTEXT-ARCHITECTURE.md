@@ -9,32 +9,49 @@
 
 KARIMO implements a layered context architecture inspired by the [OpenViking Protocol](https://github.com/ArcadeAI/OpenViking). This system optimizes token usage and enables efficient context scanning for AI agents.
 
-**Core principle:** Load minimal context first (L0), expand to category summaries (L1) when needed, and only load full definitions (L2) when executing.
+**Core principle:** Query category summaries first (L1), verify with compact abstracts (L0) when needed, and load full definitions (L2) only for execution.
 
 ---
 
 ## Three-Layer System
 
-| Layer | Size | Purpose | When to Use |
+| Layer | Size | Purpose | Query Order |
 |-------|------|---------|-------------|
-| **L0 Abstracts** | ~100 tokens | Quick scanning, agent/skill selection | Initial context loading |
-| **L1 Overviews** | ~2K tokens | Category summaries with navigation | Selecting from a category |
-| **L2 Full Definitions** | Variable | Complete agent/skill/brief content | Actual execution |
+| **L0 Abstracts** | ~100 tokens | Single-item compact summary | 2nd (verify specific item) |
+| **L1 Overviews** | ~2K tokens | All-items category summary | 1st (discover options) |
+| **L2 Full Definitions** | Variable | Complete content | 3rd (execute) |
 
-### Layer Benefits
+### Naming Convention
+
+The "L" stands for **Level of Detail**, not query order:
+- **L0** = Level 0 detail (minimal — single item abstract)
+- **L1** = Level 1 detail (moderate — all items summary)
+- **L2** = Level 2 detail (full — complete definition)
+
+> **Note:** This differs from cache hierarchies where L1 is accessed first. Here, L0 means "least detail" not "first accessed."
+
+### Practical Query Flow
 
 ```
 Traditional Approach:
 Load all 17 agents = ~50K tokens upfront
 
 OpenViking Approach:
-1. Scan agents.overview.md = ~2K tokens (L1)
-2. Find relevant agent
-3. Load karimo-pm.abstract.md = ~100 tokens (L0 verification)
-4. Load karimo-pm.md = ~3K tokens (L2 for execution)
+1. Query agents.overview.md (L1) = ~2K tokens    ← "What agents exist?"
+2. Load karimo-pm.abstract.md (L0) = ~100 tokens ← "Is this the right one?"
+3. Load karimo-pm.md (L2) = ~3K tokens           ← "Execute with full context"
 
 Total: ~5K tokens vs 50K = 90% reduction
 ```
+
+### When to Use Each Layer
+
+| Scenario | Start With | Then Load |
+|----------|------------|-----------|
+| "Which agent handles X?" | L1 overview | L0 of candidates |
+| "Run task orchestration" | L2 directly (PM agent known) | — |
+| "Quick context check" | L0 abstract only | L2 if needed |
+| "Full codebase scan" | L1 overview | All relevant L2s |
 
 ---
 

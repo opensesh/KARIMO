@@ -278,7 +278,7 @@ When `total_tasks >= 10`, the reviewer displays a warning:
 Consider:
 - Splitting into 2 PRDs if natural boundaries exist
 - Ensuring complex tasks (5+) aren't blocking multiple others
-- Running /karimo-overview after completion to review learnings
+- Running /karimo-status after completion to review learnings
 ```
 
 This warning appears in the review output and is included in the PRD approval summary.
