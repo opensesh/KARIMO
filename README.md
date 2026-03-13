@@ -81,7 +81,7 @@ Wave 3: [task-3a] ─────────── final task
 | **Worktree isolation** | Claude Code's native `isolation: worktree` |
 | **Model routing** | Sonnet for simple tasks, Opus for complex, auto-escalation on failures |
 | **17 agents** | 11 coordination + 6 task agents ([details](.karimo/docs/ARCHITECTURE.md#agents)) |
-| **Crash recovery** | Git state reconstruction via `/karimo-status --reconcile` |
+| **Crash recovery** | Git state reconstruction via `/karimo-dashboard --reconcile` |
 
 ---
 
@@ -126,7 +126,7 @@ Full walkthrough: [Getting Started](.karimo/docs/GETTING-STARTED.md)
 | `/karimo-plan --prd {slug}` | Interactive PRD creation (~10 min) |
 | `/karimo-run --prd {slug}` | Brief generation → review → execution |
 | `/karimo-merge --prd {slug}` | Final PR to main |
-| `/karimo-status` | Monitor progress |
+| `/karimo-dashboard` | Monitor progress |
 | `/karimo-feedback` | Capture learnings |
 | `/karimo-doctor` | Diagnose issues |
 
