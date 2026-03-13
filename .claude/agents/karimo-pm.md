@@ -682,7 +682,35 @@ When all tasks in a wave have merged PRs:
    # Continue even if hook fails (typically for cleanup/notifications)
    ```
 
-6. **Proceed to next wave**
+6. **Clean up merged task branches and worktrees:**
+
+   For each task that merged in this wave, immediately clean up:
+
+   ```bash
+   for task_id in wave_tasks; do
+     branch="worktree/${prd_slug}-${task_id}"
+     worktree_path=".worktrees/${prd_slug}/${task_id}"
+
+     # Delete remote branch (PR merged, branch no longer needed)
+     git push origin --delete "$branch" 2>/dev/null && \
+       echo "  Deleted remote: $branch" || true
+
+     # Delete local branch
+     git branch -D "$branch" 2>/dev/null || true
+
+     # Remove worktree if exists
+     if [ -d "$worktree_path" ]; then
+       git worktree remove "$worktree_path" 2>/dev/null || true
+     fi
+   done
+
+   # Prune stale worktree references
+   git worktree prune
+   ```
+
+   Task branches use `worktree/` prefix (e.g., `worktree/user-profiles-1a`) for visual distinction in GitHub UI. Only the feature branch remains after cleanup.
+
+7. **Proceed to next wave**
 
 ---
 
@@ -714,7 +742,7 @@ When all tasks in a wave have merged PRs:
    }
    ```
 
-3. **DO NOT delete feature branch or task branches** (preserved for /karimo-merge)
+3. **Task branches already cleaned** during wave transitions. Only feature branch remains for `/karimo-merge`.
 
 4. **Generate metrics.json** (same format, update version to "5.0")
 
