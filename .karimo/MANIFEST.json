@@ -1,7 +1,7 @@
 {
   "version": "7.3.2",
   "deprecated": {
-    "commands": ["karimo-modify.md", "karimo-finish.md", "karimo-overview.md", "karimo-learn.md", "karimo-cd-config.md", "karimo-execute.md", "karimo-orchestrate.md"],
+    "commands": ["karimo-modify.md", "karimo-finish.md", "karimo-overview.md", "karimo-learn.md", "karimo-cd-config.md", "karimo-execute.md", "karimo-orchestrate.md", "karimo-plugin.md", "karimo-test.md", "karimo-status.md"],
     "agents": [],
     "skills": ["karimo-git-worktree-ops.md", "karimo-github-project-ops.md"],
     "templates": []
@@ -33,11 +33,8 @@
     "karimo-help.md",
     "karimo-merge.md",
     "karimo-plan.md",
-    "karimo-plugin.md",
     "karimo-research.md",
     "karimo-run.md",
-    "karimo-status.md",
-    "karimo-test.md",
     "karimo-update.md"
   ],
   "skills": [
