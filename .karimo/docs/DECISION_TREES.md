@@ -73,7 +73,7 @@ Use cases:
 
 **Quick overview (all PRDs):**
 ```
-→ /karimo-status
+→ /karimo-dashboard
 ```
 
 Shows:
@@ -84,7 +84,7 @@ Shows:
 
 **Detailed view (specific PRD):**
 ```
-→ /karimo-status --prd {slug}
+→ /karimo-dashboard --prd {slug}
 ```
 
 Shows:
@@ -141,7 +141,7 @@ Runs 7 diagnostic categories:
 
 **Installation verification:**
 ```
-→ /karimo-test
+→ /karimo-doctor --test
 ```
 
 End-to-end smoke test:
@@ -545,7 +545,7 @@ graph TD
 
     D --> G{Issues Found?}
     G -->|Yes| H[Apply Suggested Fixes]
-    G -->|No| I[Run /karimo-status]
+    G -->|No| I[Run /karimo-dashboard]
 
     H --> J[Re-run Command]
 
@@ -579,7 +579,7 @@ graph TD
 
 2. **Check execution status:**
    ```bash
-   /karimo-status --prd {slug}
+   /karimo-dashboard --prd {slug}
    ```
 
 3. **Review PRs for issues:**
@@ -603,7 +603,7 @@ graph TD
    ```bash
    # Gather context
    /karimo-doctor > doctor-output.txt
-   /karimo-status --prd {slug} > status-output.txt
+   /karimo-dashboard --prd {slug} > status-output.txt
 
    # Create GitHub issue with outputs
    ```
@@ -618,14 +618,14 @@ graph TD
 ```bash
 /karimo-plan                      # Create PRD
 /karimo-run --prd my-feature      # Execute tasks
-/karimo-status --prd my-feature   # Check progress
+/karimo-dashboard --prd my-feature   # Check progress
 /karimo-merge --prd my-feature    # Final PR to main
 ```
 
 **Diagnose issues:**
 ```bash
 /karimo-doctor                    # Health check
-/karimo-status                    # Overview
+/karimo-dashboard                    # Overview
 /karimo-dashboard                 # Detailed metrics
 ```
 

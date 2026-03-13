@@ -281,7 +281,7 @@ Phase 3 uses KARIMO's CLI dashboard for monitoring — no separate web dashboard
   - **Recent Activity** — Timeline of events across all PRDs
   - Replaces `/karimo-overview` with enhanced capabilities
 
-- **`/karimo-status`** — PRD-specific deep dive
+- **`/karimo-dashboard`** — PRD-specific deep dive
   - Task progress, wave status, PR links
   - Loop counts and model usage
   - Blocked tasks and error details
@@ -335,7 +335,7 @@ gh pr list --label blocked-needs-human
 | Crash Recovery | Yes | Yes | Yes |
 | Automated Review | — | Yes (choice) | Yes |
 | Revision Loops | — | Yes | Yes |
-| /karimo-status | Yes | Yes | Yes |
+| /karimo-dashboard | Yes | Yes | Yes |
 | /karimo-dashboard | Yes | Yes | Yes |
 | GitHub Queries | Yes | Yes | Yes |
 
@@ -365,7 +365,7 @@ Run `/karimo-configure --review` to choose interactively, or:
 
 Phase 3 uses existing tooling — no upgrade required:
 - `/karimo-dashboard` for comprehensive monitoring and analytics
-- `/karimo-status` for per-PRD deep dives
+- `/karimo-dashboard` for per-PRD deep dives
 - `gh pr list --label karimo` for GitHub queries
 
 ---

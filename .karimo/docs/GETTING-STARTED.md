@@ -508,7 +508,7 @@ Wave 3: [3a] — Final task
 The PM Agent coordinates execution in real-time. Check status:
 
 ```
-/karimo-status
+/karimo-dashboard
 ```
 
 Shows progress across all PRDs:

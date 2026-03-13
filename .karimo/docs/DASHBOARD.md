@@ -18,7 +18,7 @@ The `/karimo-dashboard` command replaces the planned web dashboard with a fast, 
 |---------|-------------|
 | **Zero setup** | Built into KARIMO, no server deployment required |
 | **Fast** | < 2s render with caching, < 1s with valid cache |
-| **Integrated** | Same terminal as `/karimo-status`, `/karimo-run` |
+| **Integrated** | Same terminal as `/karimo-dashboard`, `/karimo-run` |
 | **Scriptable** | JSON output for automation (`--json` flag) |
 | **Offline capable** | Works without network (except GitHub API calls) |
 
@@ -250,7 +250,7 @@ Cache is invalidated on:
 
 ```bash
 /karimo-dashboard           # System health, alerts, progress
-/karimo-status --prd X      # Wave-level task details (deep dive)
+/karimo-dashboard --prd X      # Wave-level task details (deep dive)
 /karimo-run --prd X     # Resume/start execution
 ```
 
@@ -269,7 +269,7 @@ Cache is invalidated on:
 | Tool | Focus | When to Use |
 |------|-------|-------------|
 | `/karimo-dashboard` | Cross-PRD overview, health, velocity, alerts | Active monitoring, post-execution analysis |
-| `/karimo-status` | Single PRD deep dive, wave details | Debugging specific PRD, wave-level task tracking |
+| `/karimo-dashboard` | Single PRD deep dive, wave details | Debugging specific PRD, wave-level task tracking |
 | `gh pr list` | GitHub PR queries | Integration with external tools, CI/CD |
 
 ---
@@ -288,7 +288,7 @@ The dashboard aggregates data from:
 
 **Principle:** Git is truth. status.json is a cache.
 
-The dashboard uses the same reconciliation logic as `/karimo-status`:
+The dashboard uses the same reconciliation logic as `/karimo-dashboard`:
 - Branch exists + PR merged → Task done
 - Branch exists + no PR → Task crashed
 - No branch + status.json says done → Trust status.json (branch cleaned)

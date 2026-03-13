@@ -183,8 +183,8 @@ Tasks and PRDs progress through defined lifecycle states:
 ### Core Workflow
 - **`/karimo-plan`** — Create new PRD through structured interview
 - **`/karimo-run --prd {slug}`** — Execute PRD tasks (feature branch workflow)
-- **`/karimo-status`** — Check execution progress (all PRDs)
-- **`/karimo-status --prd {slug}`** — Detailed status for specific PRD
+- **`/karimo-dashboard`** — Check execution progress (all PRDs)
+- **`/karimo-dashboard --prd {slug}`** — Detailed status for specific PRD
 - **`/karimo-merge --prd {slug}`** — Create final PR from feature branch to main
 
 ### Configuration
@@ -198,7 +198,7 @@ Tasks and PRDs progress through defined lifecycle states:
 
 ### Diagnostics
 - **`/karimo-doctor`** — Health check with 7 diagnostic categories
-- **`/karimo-test`** — Installation smoke test (end-to-end verification)
+- **`/karimo-doctor --test`** — Installation smoke test (end-to-end verification)
 - **`/karimo-dashboard`** — Comprehensive metrics and analytics view
 
 ### Maintenance
@@ -393,14 +393,14 @@ Agents can edit these files but PRs will be flagged for mandatory human review.
 ```bash
 /karimo-plan                      # Interview → PRD
 /karimo-run --prd my-feature      # Execute tasks
-/karimo-status --prd my-feature   # Check progress
+/karimo-dashboard --prd my-feature   # Check progress
 /karimo-merge --prd my-feature    # Final PR to main
 ```
 
 **Diagnose issues:**
 ```bash
 /karimo-doctor                    # Health check
-/karimo-status                    # All PRDs overview
+/karimo-dashboard                    # All PRDs overview
 /karimo-dashboard                 # Detailed metrics
 ```
 

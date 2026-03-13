@@ -1,7 +1,11 @@
 # KARIMO Plugin Development Guide
 
-**Version:** 7.3.0
-**Status:** Beta
+**Version:** 7.4.0
+**Status:** Deferred
+
+---
+
+> **Note:** Plugin development is currently deferred. The `/karimo-plugin` command is not available in this version. This documentation is preserved for future reference when the plugin ecosystem is implemented.
 
 ---
 

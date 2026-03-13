@@ -341,7 +341,7 @@ Comprehensive solutions for common KARIMO issues across installation, configurat
 ### Task stalled for 24+ hours
 
 **Symptoms:**
-- Task shows `stalled` status in `/karimo-status`
+- Task shows `stalled` status in `/karimo-dashboard`
 - No PR activity or agent updates
 - Wave execution blocked waiting for task
 
@@ -355,7 +355,7 @@ Comprehensive solutions for common KARIMO issues across installation, configurat
 
 1. **Check task status details:**
    ```bash
-   /karimo-status --prd {slug}
+   /karimo-dashboard --prd {slug}
    # Shows which task is stalled and why
    ```
 
@@ -390,7 +390,7 @@ Comprehensive solutions for common KARIMO issues across installation, configurat
 **Symptoms:**
 - All Wave 1 PRs merged
 - Wave 2 tasks still showing `queued`
-- No errors in `/karimo-status`
+- No errors in `/karimo-dashboard`
 
 **Causes:**
 - PM agent hasn't detected Wave 1 completion
@@ -1001,7 +1001,7 @@ Runs 7 diagnostic categories:
 
 ---
 
-### `/karimo-test` — Installation Smoke Test
+### `/karimo-doctor --test` — Installation Smoke Test
 
 End-to-end verification:
 
@@ -1012,17 +1012,17 @@ End-to-end verification:
 
 **Usage:**
 ```bash
-/karimo-test
+/karimo-doctor --test
 # Exits with success/failure code
 ```
 
 ---
 
-### `/karimo-status` — Execution Monitoring
+### `/karimo-dashboard` — Execution Monitoring
 
 **Quick overview (all PRDs):**
 ```bash
-/karimo-status
+/karimo-dashboard
 # Shows:
 # - PRD name and status
 # - Total tasks / completed / failed
@@ -1032,7 +1032,7 @@ End-to-end verification:
 
 **Detailed view (specific PRD):**
 ```bash
-/karimo-status --prd {slug}
+/karimo-dashboard --prd {slug}
 # Shows:
 # - Per-task status and complexity
 # - PR links
@@ -1078,7 +1078,7 @@ Possible causes:
 **Fix:**
 ```bash
 # List all PRDs
-/karimo-status
+/karimo-dashboard
 
 # Create new PRD
 /karimo-plan
@@ -1140,7 +1140,7 @@ Missing completions:
 **Fix:**
 ```bash
 # Check Wave 1 status
-/karimo-status --prd {slug}
+/karimo-dashboard --prd {slug}
 
 # Complete or fix blocking tasks
 # Then Wave 2 will auto-start
@@ -1159,12 +1159,12 @@ Missing completions:
 2. **Run diagnostics:**
    ```bash
    /karimo-doctor    # Health check
-   /karimo-test      # Smoke test
+   /karimo-doctor --test      # Smoke test
    ```
 
 3. **Review PRD status:**
    ```bash
-   /karimo-status --prd {slug}
+   /karimo-dashboard --prd {slug}
    /karimo-dashboard
    ```
 
@@ -1176,7 +1176,7 @@ Missing completions:
    ```bash
    # Include output from:
    /karimo-doctor
-   /karimo-status --prd {slug}
+   /karimo-dashboard --prd {slug}
    cat .karimo/config.yaml
    git status
    ```
@@ -1190,7 +1190,7 @@ graph TD
     A[Error Encountered] --> B{Run /karimo-doctor}
     B --> C{Issues Found?}
     C -->|Yes| D[Apply Suggested Fixes]
-    C -->|No| E{Check /karimo-status}
+    C -->|No| E{Check /karimo-dashboard}
     D --> F[Re-run Command]
     E --> G{Tasks Stalled?}
     G -->|Yes| H[Review PR Comments]

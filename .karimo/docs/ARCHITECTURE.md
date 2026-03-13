@@ -190,19 +190,16 @@ Target Project/
 │   │   ├── karimo-tester-opus.md    # Task agent: tests (Opus)
 │   │   ├── karimo-documenter.md     # Task agent: docs (Sonnet)
 │   │   └── karimo-documenter-opus.md # Task agent: docs (Opus)
-│   ├── commands/                    # 13 commands from manifest
+│   ├── commands/                    # 10 commands from manifest
 │   │   ├── karimo-configure.md      # /karimo-configure
-│   │   ├── karimo-dashboard.md      # /karimo-dashboard
-│   │   ├── karimo-doctor.md         # /karimo-doctor
+│   │   ├── karimo-dashboard.md      # /karimo-dashboard (includes status)
+│   │   ├── karimo-doctor.md         # /karimo-doctor (includes --test)
 │   │   ├── karimo-feedback.md       # /karimo-feedback (unified with complexity detection)
 │   │   ├── karimo-help.md           # /karimo-help
 │   │   ├── karimo-merge.md          # /karimo-merge (final PR to main)
 │   │   ├── karimo-plan.md           # /karimo-plan (with interactive review)
-│   │   ├── karimo-plugin.md         # /karimo-plugin
 │   │   ├── karimo-research.md       # /karimo-research (required first step)
 │   │   ├── karimo-run.md            # /karimo-run (brief gen + execution)
-│   │   ├── karimo-status.md         # /karimo-status
-│   │   ├── karimo-test.md           # /karimo-test
 │   │   └── karimo-update.md         # /karimo-update
 │   ├── skills/                      # 6 skills from manifest
 │   │   ├── karimo-bash-utilities.md       # Bash utilities
@@ -659,9 +656,9 @@ When automated review is enabled via `/karimo-configure --review`:
 - Posts inline comments with severity markers (🔴 🟡 🟣)
 - 🔴 findings trigger agent revision loop
 
-### Human Oversight (`/karimo-status`)
+### Human Oversight (`/karimo-dashboard`)
 
-After execution completes (or during long runs), use `/karimo-status` to surface:
+After execution completes (or during long runs), use `/karimo-dashboard` to surface:
 - Tasks blocked by Greptile review failures (needs human intervention)
 - Tasks in active revision loops
 - Tasks with merge conflicts (needs human rebase)
