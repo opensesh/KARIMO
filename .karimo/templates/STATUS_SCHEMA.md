@@ -246,7 +246,7 @@ Each PRD folder contains a `status.json` file that tracks execution state. This 
 |-------|------|-------------|
 | `status` | string | Task execution status (see values below) |
 | `wave` | number | Wave number this task belongs to |
-| `branch` | string | Branch name: `{prd-slug}-{task-id}` |
+| `branch` | string | Branch name: `worktree/{prd-slug}-{task-id}` |
 | `pr_number` | number | Pull request number (when created) |
 | `pr_target` | string | PR base branch (feature branch or main, v5.0+) |
 | `pr_labels` | string[] | Labels applied to the PR |
@@ -464,7 +464,7 @@ When reading v3.x status.json:
 
 1. Check `version` field (defaults to "3.0" if missing)
 2. Ignore deprecated fields: `github_project_*`, `issue_number`, `worktree*`, `reconciliation_status`
-3. Use `branch` format `{prd-slug}-{task-id}` (v4.0+) vs `feature/{prd-slug}/{task-id}` (v3.x)
+3. Use `branch` format `worktree/{prd-slug}-{task-id}` (v5.0+) vs `{prd-slug}-{task-id}` (v4.x) vs `feature/{prd-slug}/{task-id}` (v3.x)
 
 ---
 

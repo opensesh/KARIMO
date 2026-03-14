@@ -501,7 +501,7 @@ Wave 3: [3a] — Final task
 
 - PM Agent coordinates wave-based execution
 - Claude Code manages worktrees via `isolation: worktree`
-- Branch naming: `{prd-slug}-{task-id}`
+- Branch naming: `worktree/{prd-slug}-{task-id}`
 
 ### 3. Monitor Progress
 

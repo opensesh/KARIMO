@@ -80,7 +80,7 @@ Wave 3: [task-3a] ─────────── final task
 |---------|--------------|
 | **Worktree isolation** | Claude Code's native `isolation: worktree` |
 | **Model routing** | Sonnet for simple tasks, Opus for complex, auto-escalation on failures |
-| **17 agents** | 11 coordination + 6 task agents ([details](.karimo/docs/ARCHITECTURE.md#agents)) |
+| **18 agents** | 12 coordination + 6 task agents ([details](.karimo/docs/ARCHITECTURE.md#agents)) |
 | **Crash recovery** | Git state reconstruction via `/karimo-dashboard --reconcile` |
 
 ---

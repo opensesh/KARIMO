@@ -172,7 +172,7 @@ When you run `bash KARIMO/.karimo/install.sh /path/to/project`, files are copied
 ```
 Target Project/
 ├── .claude/
-│   ├── agents/                      # 17 agents from manifest
+│   ├── agents/                      # 18 agents from manifest
 │   │   ├── karimo-interviewer.md    # PRD interview conductor
 │   │   ├── karimo-investigator.md   # Codebase pattern scanner
 │   │   ├── karimo-researcher.md     # Research conductor (internal + external)
@@ -184,6 +184,7 @@ Target Project/
 │   │   ├── karimo-pm.md             # Task coordination (never writes code)
 │   │   ├── karimo-review-architect.md # Code-level integration
 │   │   ├── karimo-feedback-auditor.md # Feedback investigation agent
+│   │   ├── karimo-coverage-reviewer.md # Coverage analysis for PRs
 │   │   ├── karimo-implementer.md    # Task agent: coding (Sonnet)
 │   │   ├── karimo-implementer-opus.md # Task agent: coding (Opus)
 │   │   ├── karimo-tester.md         # Task agent: tests (Sonnet)
@@ -301,7 +302,7 @@ export TASK_NAME="{task_name}"
 export TASK_TYPE="{task_type}"  # implementation, testing, documentation
 export COMPLEXITY="{complexity}"
 export WAVE="{wave}"
-export BRANCH_NAME="{prd-slug}-{task-id}"
+export BRANCH_NAME="worktree/{prd-slug}-{task-id}"
 export PROJECT_ROOT="$(pwd)"
 export KARIMO_VERSION="$(cat .karimo/VERSION)"
 

@@ -192,7 +192,7 @@ KARIMO uses a PR-centric workflow with wave-based execution:
 - Tasks execute in wave order (wave 2 waits for wave 1 to merge)
 - Claude Code manages worktrees via `isolation: worktree`
 - PR labels replace GitHub Projects for tracking
-- Branch naming: `{prd-slug}-{task-id}`
+- Branch naming: `worktree/{prd-slug}-{task-id}`
 
 **Requirements:**
 - GitHub MCP server configured in Claude Code
@@ -236,7 +236,7 @@ When you run `install.sh`, these files are added:
 
 | Location | Contents |
 |----------|----------|
-| `.claude/agents/` | **17** agent definitions (11 coordination + 6 task agents) |
+| `.claude/agents/` | **18** agent definitions (12 coordination + 6 task agents) |
 | `.claude/commands/` | **10** slash commands |
 | `.claude/skills/` | **6** skills (1 bash + 2 research + 3 task agent skills) |
 | `.claude/KARIMO_RULES.md` | Agent behavior rules |

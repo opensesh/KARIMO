@@ -41,19 +41,19 @@ Or manually configure:
 **Vercel** — Add to `vercel.json`:
 ```json
 {
-  "ignoreCommand": "[[ \"$VERCEL_GIT_COMMIT_REF\" =~ (^feature/|-[0-9]+[a-z]?$) ]] && exit 0 || exit 1"
+  "ignoreCommand": "[[ \"$VERCEL_GIT_COMMIT_REF\" =~ (^feature/|^worktree/) ]] && exit 0 || exit 1"
 }
 ```
 
 **Netlify** — Add to `netlify.toml`:
 ```toml
 [build]
-  ignore = "[[ \"$HEAD\" =~ (^feature/|-[0-9]+[a-z]?$) ]] && exit 0 || exit 1"
+  ignore = "[[ \"$HEAD\" =~ (^feature/|^worktree/) ]] && exit 0 || exit 1"
 ```
 
-**Render** — In dashboard, set Auto-Deploy to exclude branches matching: `(^feature/|-[0-9]+[a-z]?$)`
+**Render** — In dashboard, set Auto-Deploy to exclude branches matching: `(^feature/|^worktree/)`
 
-**The Pattern:** KARIMO creates feature branches (`feature/{prd-slug}`) and task branches (`{prd-slug}-{task-id}`). The regex `(^feature/|-[0-9]+[a-z]?$)` matches both patterns.
+**The Pattern:** KARIMO creates feature branches (`feature/{prd-slug}`) and task branches (`worktree/{prd-slug}-{task-id}`). The regex `(^feature/|^worktree/)` matches both patterns.
 
 #### Option 2: Accept the Noise
 
@@ -73,19 +73,19 @@ Most platforms allow disabling PR previews while keeping main branch deployments
 
 KARIMO task branches follow this pattern:
 ```
-{prd-slug}-{task-id}
+worktree/{prd-slug}-{task-id}
 ```
 
 Examples:
-- `user-profiles-1a`
-- `token-studio-2b`
-- `auth-refactor-3a`
-- `payment-flow-10a` (multi-digit task IDs supported)
+- `worktree/user-profiles-1a`
+- `worktree/token-studio-2b`
+- `worktree/auth-refactor-3a`
+- `worktree/payment-flow-10a` (multi-digit task IDs supported)
 
-### Ignore Pattern Breakdown (v5.0)
+### Ignore Pattern Breakdown (v5.0+)
 
 ```regex
-(^feature/|-[0-9]+[a-z]?$)
+(^feature/|^worktree/)
 ```
 
 This pattern skips two types of KARIMO branches:
@@ -96,9 +96,9 @@ This pattern skips two types of KARIMO branches:
    - Used in v5.0 feature branch mode
    - Aggregate multiple task PRs before main merge
 
-2. **Task branches** (`-[0-9]+[a-z]?$`):
-   - `user-auth-1a` ✓ Skip
-   - `user-auth-2b` ✓ Skip
+2. **Task branches** (`^worktree/`):
+   - `worktree/user-auth-1a` ✓ Skip
+   - `worktree/user-auth-2b` ✓ Skip
    - Used in both v5.0 and v4.0 modes
    - Individual task implementation branches
 

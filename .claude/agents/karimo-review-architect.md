@@ -78,7 +78,7 @@ For non-overlapping changes, use standard merge strategies:
 
 ```bash
 git fetch origin
-git checkout {prd-slug}-{task-id}
+git checkout worktree/{prd-slug}-{task-id}
 git rebase feature/{prd-slug}
 ```
 

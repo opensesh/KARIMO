@@ -55,6 +55,7 @@ Handle code integration, review, and feedback.
 |-------|-------|---------|---------|
 | [karimo-review-architect](agents/karimo-review-architect.abstract.md) | sonnet | PM Agent | Integration validation (deprecated v5.0) |
 | [karimo-feedback-auditor](agents/karimo-feedback-auditor.abstract.md) | sonnet | /karimo-feedback | Investigates feedback issues |
+| [karimo-coverage-reviewer](agents/karimo-coverage-reviewer.abstract.md) | sonnet | /karimo-merge | Analyzes coverage gaps, adds PR comments |
 
 ---
 
@@ -62,7 +63,7 @@ Handle code integration, review, and feedback.
 
 | Model | Count | Usage |
 |-------|-------|-------|
-| **sonnet** | 13 | Standard complexity tasks, coordination |
+| **sonnet** | 14 | Standard complexity tasks, coordination |
 | **opus** | 4 | High complexity (5+), deep reasoning |
 
 ---
@@ -72,7 +73,7 @@ Handle code integration, review, and feedback.
 | Tools | Agents |
 |-------|--------|
 | Read, Write, Edit, Bash, Glob, Grep | PM, Implementer(s), Tester(s), Documenter(s), Review-Architect |
-| Read, Grep, Glob | Interviewer, Investigator, Reviewer |
+| Read, Grep, Glob | Interviewer, Investigator, Reviewer, Coverage-Reviewer |
 | Read, Grep, Glob, Bash | Brief-Reviewer, Feedback-Auditor |
 | Read, Write, Grep, Glob | Brief-Writer |
 | Read, Edit, Write, Grep, Glob | Brief-Corrector |

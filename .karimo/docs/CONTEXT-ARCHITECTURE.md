@@ -34,7 +34,7 @@ The "L" stands for **Level of Detail**, not query order:
 
 ```
 Traditional Approach:
-Load all 17 agents = ~50K tokens upfront
+Load all 18 agents = ~50K tokens upfront
 
 OpenViking Approach:
 1. Query agents.overview.md (L1) = ~2K tokens    ← "What agents exist?"
@@ -66,7 +66,7 @@ Total: ~5K tokens vs 50K = 90% reduction
 │   ├── karimo-pm.abstract.md     # L0: Quick summary (~100 tokens)
 │   ├── karimo-implementer.md
 │   ├── karimo-implementer.abstract.md
-│   └── ... (17 agents, each with .abstract.md)
+│   └── ... (18 agents, each with .abstract.md)
 │
 ├── skills/
 │   ├── karimo-code-standards.md
