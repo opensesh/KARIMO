@@ -79,6 +79,10 @@ Wave 3: [task-3a] ─────────── final task
 | Feature | How It Works |
 |---------|--------------|
 | **Worktree isolation** | Claude Code's native `isolation: worktree` |
+| **Worktree manifest** | PRD-to-branch binding prevents cross-contamination ([v7.6.0](.karimo/docs/SAFEGUARDS.md#parallel-execution-safety)) |
+| **Branch assertion** | 4-layer validation prevents commits to wrong branches |
+| **Loop detection** | Semantic fingerprinting catches stuck tasks |
+| **Orphan cleanup** | Auto-detects and removes abandoned worktrees |
 | **Model routing** | Sonnet for simple tasks, Opus for complex, auto-escalation on failures |
 | **18 agents** | 12 coordination + 6 task agents ([details](.karimo/docs/ARCHITECTURE.md#agents)) |
 | **Crash recovery** | Git state reconstruction via `/karimo-dashboard --reconcile` |
