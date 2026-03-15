@@ -7,6 +7,96 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [7.6.0] - 2026-03-15
+
+**Parallel Execution Safety Release**
+
+This release fixes branch contamination issues discovered during parallel PRD execution (audit: docs/audits/3 - Mar 26/karimo-parallel-execution-audit.md). Implements comprehensive defense-in-depth approach with 4 validation layers to make branch contamination structurally impossible.
+
+### Added
+
+**Worktree Manifest System**
+
+- New `.karimo/worktrees.json` registry for PRD-to-branch binding
+  - Tracks active tasks with worktree ID, branch, spawn time, wave, model
+  - PM Agent writes manifest entry before spawning workers
+  - PM Agent removes manifest entry after cleanup
+  - Validated against git state on resume (Step 2a in PM Agent)
+
+**4-Layer Branch Assertion**
+
+- Layer 1: Task brief template with visual execution context header
+  - PRD, branch, task ID, wave displayed prominently
+  - Mandatory pre-commit validation script
+  - Fails commit if branch mismatch detected
+- Layer 2: KARIMO Rules Section 2.1 - mandatory branch verification
+  - Non-negotiable verification before every commit
+  - Clear failure protocol (STOP, display mismatch, surface to user)
+- Layer 3: PM Agent spawn wrapper with identity enforcement
+  - Visual context header in spawn prompt
+  - Critical reminder before every commit
+- Layer 4: Task agents (6) with branch validation section
+  - All implementer/tester/documenter agents verify branch identity
+  - Reads expected branch from task brief execution context
+
+**Semantic Loop Detection**
+
+- Fingerprinting system to detect stuck states beyond identical actions
+  - Fingerprint components: action type, files touched, branch SHA, validation errors
+  - Compares current fingerprint with last 5 executions
+  - Detects when different actions produce same outcome
+- Circuit breaker behavior:
+  - After 3 loops (action or semantic): trigger stall detection
+  - If Sonnet: escalate to Opus, reset loop count
+  - If Opus: mark needs-human-review, notify user
+  - Hard limit: max 5 total loops before human required
+- Tracked in status.json with fingerprints array
+
+**Orphan Worktree Detection**
+
+- Enhanced `/karimo-doctor` Check 7 (Execution Health)
+  - 6b.1: Orphaned branch detection (branches vs manifest comparison)
+  - 6b.2: Uncommitted changes detection in active worktrees
+  - 6b.3: Manifest validation (stale entries with missing branches)
+  - Offers automated cleanup with user confirmation
+- Enhanced `/karimo-dashboard` Critical Alerts
+  - New ORPHANED alert type for branches not in manifest
+  - Cleanup guidance (run /karimo-doctor --fix)
+
+### Changed
+
+**Git-Native Progress Tracking**
+
+- Git history is now the source of truth (status.json is derived cache)
+- PM Agent Step 2b: Enhanced state derivation from git + GitHub
+  - Checks local and remote branches
+  - Derives status from GitHub PR state and labels
+  - Handles needs-human-review label
+  - PM Agent is sole writer of status.json (task agents read-only)
+- Dashboard: Git-first progress calculation
+  - Derives completion from git log history
+  - Validates status.json against git state
+  - Detects drift between cache and reality
+
+**KARIMO Rules: Enhanced Loop Awareness**
+
+- Combined Loop Count Tracking and Stall Detection into single section
+- Documents both action-level and semantic loop detection
+- Defines fingerprint structure and circuit breaker behavior
+- Renumbered sections (Model-Based Execution is now section 2)
+
+### Fixed
+
+- Branch contamination during parallel PRD execution (RC-1 through RC-5)
+  - 7 IAM commits no longer land on wrong branches
+  - Commits no longer appear on multiple branches
+  - Agents maintain branch identity under parallel load
+- Semantic loops (varied actions, stuck state) now detected and circuit-broken
+- Orphaned worktree branches auto-detected and cleanable
+- status.json corruption by confused agents (PM is now sole writer)
+
+---
+
 ## [7.5.0] - 2026-03-13
 
 **Branch Cleanup & Coverage Context Release**
