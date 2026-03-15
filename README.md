@@ -79,10 +79,9 @@ Wave 3: [task-3a] ─────────── final task
 | Feature | How It Works |
 |---------|--------------|
 | **Worktree isolation** | Claude Code's native `isolation: worktree` |
-| **Worktree manifest** | PRD-to-branch binding prevents cross-contamination ([v7.6.0](.karimo/docs/SAFEGUARDS.md#parallel-execution-safety)) |
-| **Branch assertion** | 4-layer validation prevents commits to wrong branches |
-| **Loop detection** | Semantic fingerprinting catches stuck tasks |
-| **Orphan cleanup** | Auto-detects and removes abandoned worktrees |
+| **Branch assertion** | 4-layer validation prevents commits to wrong branches ([v7.6.0](.karimo/docs/SAFEGUARDS.md#parallel-execution-safety)) |
+| **Loop detection** | Semantic fingerprinting catches stuck tasks ([v7.7.0](#changelog)) |
+| **Orphan cleanup** | Git-native detection and removal of abandoned worktrees ([v7.7.0](#changelog)) |
 | **Incremental PRD commits** | PRD sections committed after each interview round for traceability ([v7.7.0](#changelog)) |
 | **Enhanced merge reports** | PR descriptions show markdown vs code breakdown for transparency ([v7.7.0](#changelog)) |
 | **Model routing** | Sonnet for simple tasks, Opus for complex, auto-escalation on failures |
