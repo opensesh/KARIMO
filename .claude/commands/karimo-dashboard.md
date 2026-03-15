@@ -278,7 +278,21 @@ done
 gh pr view $pr_number --json mergeable --jq '.mergeable' | grep -q false
 
 # Check for orphaned worktrees (git-native detection)
-# Placeholder for git-native orphan detection implementation
+orphan_count=0
+for branch in $(git branch --list 'worktree/*' --format='%(refname:short)'); do
+  prd_slug=$(echo "$branch" | sed 's|worktree/\([^-]*\)-.*|\1|')
+
+  # Count as orphan if PRD deleted OR no open PR
+  if [ ! -d ".karimo/prds/$prd_slug" ] || \
+     ! gh pr list --head "$branch" --state open --json number -q '.[0].number' >/dev/null 2>&1; then
+    orphan_count=$((orphan_count + 1))
+  fi
+done
+
+if [ $orphan_count -gt 0 ]; then
+  echo "ORPHANED: $orphan_count worktree branches detected"
+  echo "Run: /karimo-doctor --fix to clean up"
+fi
 ```
 
 ### Output Format
