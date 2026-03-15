@@ -502,6 +502,12 @@ Wave 3: [3a] — Final task
 - PM Agent coordinates wave-based execution
 - Claude Code manages worktrees via `isolation: worktree`
 - Branch naming: `worktree/{prd-slug}-{task-id}`
+- **Safety guardrails (v7.6.0):**
+  - Worktree manifest validates PRD-to-branch binding
+  - 4-layer branch assertion prevents wrong-branch commits
+  - Semantic loop detection catches stuck tasks
+  - Orphan cleanup removes abandoned worktrees
+  - See [Safeguards](.karimo/docs/SAFEGUARDS.md#parallel-execution-safety) for details
 
 ### 3. Monitor Progress
 
