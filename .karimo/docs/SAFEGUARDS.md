@@ -15,6 +15,8 @@ KARIMO enforces code quality and security through multiple layers: file boundari
 | **Branch assertion** | 4-layer pre-commit branch identity validation | 1+ (v7.6.0) |
 | **Semantic loop detection** | Fingerprinting detects stuck tasks | 1+ (v7.6.0) |
 | **Orphan detection** | Auto-cleanup of abandoned worktrees | 1+ (v7.6.0) |
+| **Incremental PRD commits** | Crash recovery via git during planning | 1+ (v7.7.0) |
+| **Enhanced merge reports** | Transparency in PR scope (docs vs code) | 1+ (v7.7.0) |
 | **Pre-PR validation** | Build/typecheck before PR creation | 1+ |
 | **Mandatory rebase** | Keeps task branches current | 1+ |
 | **File overlap detection** | Prevents parallel conflicts | 1+ |
