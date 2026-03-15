@@ -2,7 +2,7 @@
 name: karimo-interviewer
 description: Conducts structured interviews for PRDs (/karimo-plan) or feedback (/karimo-feedback). Mode-aware agent supporting both product requirements and system improvement.
 model: sonnet
-tools: Read, Grep, Glob
+tools: Read, Grep, Glob, Bash, Write
 ---
 
 # KARIMO Interviewer Agent

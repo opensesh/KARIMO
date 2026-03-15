@@ -172,6 +172,24 @@ After Round 1:
 - State the scope classification
 - Confirm: "Does that capture it, or did I miss something?"
 
+### Save and Commit
+
+After user confirms framing:
+
+1. **Write Executive Summary section** to `PRD_{slug}.md`
+2. **Commit initial PRD structure:**
+
+```bash
+git add .karimo/prds/{NNN}_{slug}/PRD_{slug}.md
+git commit -m "docs(karimo): add PRD framing for {slug}
+
+Executive summary and scope definition completed.
+
+Co-Authored-By: Claude <noreply@anthropic.com>"
+```
+
+3. **Transition to Round 2**
+
 ---
 
 ## Round 2: Requirements (~10 minutes)
@@ -210,6 +228,24 @@ After Round 2:
 - Read back the prioritized requirement list
 - Flag any requirements that feel too large for a single agent task
 - Confirm: "This is what agents will be working from. Anything to add or change?"
+
+### Save and Commit
+
+After capturing all requirements:
+
+1. **Write Goals, Requirements, and UX sections** to PRD
+2. **Commit requirements sections:**
+
+```bash
+git add .karimo/prds/{NNN}_{slug}/PRD_{slug}.md
+git commit -m "docs(karimo): add PRD requirements for {slug}
+
+Goals, requirements, and UX notes completed.
+
+Co-Authored-By: Claude <noreply@anthropic.com>"
+```
+
+3. **Transition to Round 3**
 
 ---
 
@@ -265,6 +301,24 @@ After Round 3:
 - Present the dependency graph in text form
 - Flag file overlaps
 - Confirm: "Does this ordering make sense?"
+
+### Save and Commit
+
+After capturing dependencies and rollout:
+
+1. **Write Dependencies, Rollout, and Milestones sections**
+2. **Commit dependency sections:**
+
+```bash
+git add .karimo/prds/{NNN}_{slug}/PRD_{slug}.md
+git commit -m "docs(karimo): add PRD dependencies for {slug}
+
+Dependencies, rollout plan, and milestones completed.
+
+Co-Authored-By: Claude <noreply@anthropic.com>"
+```
+
+3. **Transition to Round 4**
 
 ---
 
@@ -357,6 +411,28 @@ On approval, save to PRD folder:
 ├── findings.md (empty template)
 ├── dependencies.md (from template)
 └── assets/
+```
+
+### 8. Commit Complete PRD
+
+After saving all artifacts:
+
+```bash
+git add .karimo/prds/{NNN}_{slug}/PRD_{slug}.md .karimo/prds/{NNN}_{slug}/tasks.yaml .karimo/prds/{NNN}_{slug}/execution_plan.yaml .karimo/prds/{NNN}_{slug}/status.json .karimo/prds/{NNN}_{slug}/findings.md .karimo/prds/{NNN}_{slug}/dependencies.md
+git commit -m "docs(karimo): complete PRD for {slug}
+
+Retrospective learnings, task decomposition, and execution plan generated.
+
+Co-Authored-By: Claude <noreply@anthropic.com>"
+```
+
+Then spawn `karimo-reviewer` for validation.
+
+**Note:** If reviewer finds issues and requires corrections, make a follow-up commit:
+```bash
+git commit -m "docs(karimo): fix PRD issues for {slug}
+
+Co-Authored-By: Claude <noreply@anthropic.com>"
 ```
 
 ---
