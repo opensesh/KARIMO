@@ -1,5 +1,36 @@
 # Task Brief: [{task_id}] {task_title}
 
+╔═══════════════════════════════════════════════════════════════╗
+║ KARIMO EXECUTION CONTEXT — VERIFY BEFORE EVERY COMMIT         ║
+╠═══════════════════════════════════════════════════════════════╣
+║ PRD:           {prd_slug} ({prd_number})                      ║
+║ Branch:        worktree/{prd_slug}-{task_id}                  ║
+║ Task:          [{task_id}] {task_title}                       ║
+║ Wave:          {wave}                                          ║
+╚═══════════════════════════════════════════════════════════════╝
+
+## MANDATORY PRE-COMMIT VALIDATION
+
+Before EVERY commit, you MUST verify branch identity:
+
+```bash
+CURRENT_BRANCH=$(git branch --show-current)
+EXPECTED_BRANCH="worktree/{prd_slug}-{task_id}"
+
+if [ "$CURRENT_BRANCH" != "$EXPECTED_BRANCH" ]; then
+  echo "❌ KARIMO BRANCH GUARD FAILURE"
+  echo "   Expected: $EXPECTED_BRANCH"
+  echo "   Got:      $CURRENT_BRANCH"
+  echo ""
+  echo "   DO NOT COMMIT. Surface this error to the user immediately."
+  exit 1
+fi
+
+echo "✅ Branch verified: $EXPECTED_BRANCH"
+```
+
+**If this check fails, STOP immediately and notify the user. Never commit.**
+
 ## PRD Context
 
 {Relevant sections from PRD.md — executive summary, the requirement(s) this task fulfills, UX notes if applicable}

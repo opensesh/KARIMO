@@ -402,10 +402,24 @@ Workers use Claude Code's native `isolation: worktree`. The PM specifies the bra
 
 **Spawn using Task tool:**
 
+> Execute the following task with STRICT branch identity enforcement:
+>
+> ═══════════════════════════════════════════════════════════════
+> KARIMO EXECUTION CONTEXT (DO NOT VIOLATE)
+> ═══════════════════════════════════════════════════════════════
+> PRD:      {prd_slug} ({prd_number})
+> Branch:   worktree/{prd-slug}-{task-id}
+> Task:     [{task-id}] {task-title}
+> Wave:     {wave_number}
+> Model:    {model}
+> ═══════════════════════════════════════════════════════════════
+>
+> CRITICAL: Before EVERY commit, verify `git branch --show-current`
+> matches "worktree/{prd-slug}-{task-id}". If mismatch detected, STOP
+> and report immediately. Never commit to wrong branch.
+>
 > Use the karimo-{agent-type} agent to execute the task at
 > `.karimo/prds/{prd-slug}/briefs/{task-id}_{prd-slug}.md`.
-> Branch: worktree/{prd-slug}-{task-id}
-> Task: [{task-id}] {task-title}
 > Complexity: {complexity}/10
 
 For **complexity 3+** tasks, use the Opus variant.

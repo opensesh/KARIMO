@@ -265,6 +265,24 @@ Before committing:
 
 ---
 
+## Branch Identity Verification (MANDATORY)
+
+Before creating a commit, verify branch identity:
+
+```bash
+CURRENT_BRANCH=$(git branch --show-current)
+EXPECTED_BRANCH=$(grep -A5 "KARIMO EXECUTION CONTEXT" brief.md | grep "Branch:" | awk '{print $2}')
+
+if [ "$CURRENT_BRANCH" != "$EXPECTED_BRANCH" ]; then
+  echo "❌ BRANCH GUARD: Expected '$EXPECTED_BRANCH', got '$CURRENT_BRANCH'"
+  exit 1
+fi
+```
+
+This prevents branch contamination during parallel PRD execution.
+
+---
+
 ## Pre-Completion Validation
 
 ### Step 1: Verify Code Examples

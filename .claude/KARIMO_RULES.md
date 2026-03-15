@@ -77,7 +77,33 @@ PRs target main directly:
 - **Never touch `Never Touch` files.** These are defined in the CLAUDE.md Boundaries section and include migrations, lock files, and environment files.
 - **Flag `Require Review` files.** If your task requires modifying a file on this list, complete the task but note it prominently in the PR.
 
-### 2. Commit Standards
+### 2. Branch Identity & Parallel Execution
+
+#### 2.1 Mandatory Branch Verification
+
+Before EVERY commit operation, agents MUST verify branch identity:
+
+```bash
+CURRENT=$(git branch --show-current)
+EXPECTED="worktree/{prd-slug}-{task-id}"
+
+if [ "$CURRENT" != "$EXPECTED" ]; then
+  echo "FATAL: Branch mismatch. Expected '$EXPECTED', got '$CURRENT'"
+  echo "DO NOT COMMIT. Report to user immediately."
+  exit 1
+fi
+```
+
+**This is non-negotiable.** Branch contamination during parallel execution is
+unacceptable. This check prevents commits from landing on wrong branches.
+
+**When check fails:**
+1. STOP immediately (do not commit)
+2. Display expected vs actual branch
+3. Check `.karimo/worktrees.json` for manifest entry
+4. Surface error to user for manual investigation
+
+### 3. Commit Standards
 
 - **Use Conventional Commits.** All commits must follow the format:
   ```
@@ -92,20 +118,20 @@ PRs target main directly:
 - **Scope:** The component or module being modified
 - **Always include the Co-Authored-By footer**
 
-### 3. Code Quality
+### 4. Code Quality
 
 - **Follow existing patterns.** Before creating new patterns, check `files_affected` and `agent_context` for references to existing code.
 - **Match the codebase style.** Use the same formatting, naming conventions, and architectural patterns as surrounding code.
 - **No `any` types in TypeScript.** Use `unknown` and narrow, or define proper types.
 - **Handle errors explicitly.** Use structured error types, never bare try/catch.
 
-### 4. Testing
+### 5. Testing
 
 - **Add tests for new functionality.** If your task creates new code, include tests.
 - **Don't break existing tests.** Run the test suite before committing.
 - **Test edge cases.** Check for null, undefined, empty arrays, and error states.
 
-### 5. Documentation
+### 6. Documentation
 
 - **Update docs if behavior changes.** If your task changes how something works, update relevant documentation.
 - **Add JSDoc to exported functions.** Public APIs should have documentation.
