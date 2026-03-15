@@ -99,6 +99,11 @@ This is where everyone starts. Phase 1 provides everything needed to go from ide
     - 4-layer branch assertion validates commits
     - Semantic loop detection catches stuck tasks
     - Orphan cleanup removes abandoned worktrees
+  - **Traceability & transparency (v7.7.0):**
+    - Incremental PRD commits (4 commits track interview progression)
+    - Enhanced merge reports (markdown vs code breakdown)
+    - Git-based crash recovery for planning phase
+    - PR descriptions show docs/code separation
 
 - **PR-Centric Tracking**
   - PRs are the source of truth
