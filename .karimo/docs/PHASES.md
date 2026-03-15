@@ -94,6 +94,11 @@ This is where everyone starts. Phase 1 provides everything needed to go from ide
   - PRs merge directly to main
   - Git state reconstruction for crash recovery
   - Findings propagation between waves
+  - **Parallel execution safety (v7.6.0):**
+    - Worktree manifest prevents branch contamination
+    - 4-layer branch assertion validates commits
+    - Semantic loop detection catches stuck tasks
+    - Orphan cleanup removes abandoned worktrees
 
 - **PR-Centric Tracking**
   - PRs are the source of truth
