@@ -233,7 +233,36 @@ Wait for human confirmation before proceeding.
 **Git is truth. status.json is a cache. When they conflict, git wins.**
 
 ```bash
-# For each task, derive actual state from git + GitHub
+# Step 2a: Validate worktree manifest against git state
+echo "Validating worktree manifest..."
+
+if [ -f .karimo/worktrees.json ]; then
+  # Check each manifest entry has corresponding branch
+  jq -r ".prds.\"${prd_slug}\".active_tasks // {} | to_entries[] | .value.branch" \
+     .karimo/worktrees.json 2>/dev/null | while read -r branch; do
+    if [ -n "$branch" ] && ! git show-ref --verify --quiet "refs/heads/$branch"; then
+      task_id=$(echo "$branch" | grep -oE '[0-9]+[a-z]$')
+      echo "  ⚠️  Manifest lists $branch but branch doesn't exist (stale entry)"
+      # Remove stale manifest entry
+      jq --arg prd "${prd_slug}" --arg task "${task_id}" \
+         'del(.prds[$prd].active_tasks[$task])' \
+         .karimo/worktrees.json > .karimo/worktrees.json.tmp
+      mv .karimo/worktrees.json.tmp .karimo/worktrees.json
+    fi
+  done
+
+  # Detect orphaned branches (branch exists but not in manifest)
+  git branch --list "worktree/${prd_slug}-*" --format='%(refname:short)' | while read -r branch; do
+    task_id=$(echo "$branch" | grep -oE '[0-9]+[a-z]$')
+    if ! jq -e ".prds.\"${prd_slug}\".active_tasks.\"${task_id}\"" \
+          .karimo/worktrees.json &>/dev/null; then
+      echo "  ⚠️  Found orphaned branch: $branch (not in manifest)"
+      echo "     This may indicate a crashed agent. Will attempt reconciliation."
+    fi
+  done
+fi
+
+# Step 2b: Derive actual state from git + GitHub
 for task_id in $(get_task_ids); do
   branch="worktree/{prd-slug}-${task_id}"
 
@@ -350,6 +379,25 @@ Workers use Claude Code's native `isolation: worktree`. The PM specifies the bra
        mark_task_failed "$TASK_ID" "Pre-task hook failure"
        continue
    fi
+   ```
+
+2. **Register task in worktree manifest:**
+   ```bash
+   # Write to manifest before spawning (prevents branch contamination)
+   jq --arg prd "$PRD_SLUG" --arg task "$TASK_ID" \
+      --arg branch "worktree/${PRD_SLUG}-${TASK_ID}" \
+      --arg wave "$WAVE" --arg model "$MODEL" \
+      '.prds[$prd].active_tasks[$task] = {
+        worktree_id: "\($prd)-\($task)",
+        branch: $branch,
+        spawned_at: (now | todate),
+        task_id: $task,
+        wave: ($wave | tonumber),
+        model: $model
+      }' .karimo/worktrees.json > .karimo/worktrees.json.tmp
+   mv .karimo/worktrees.json.tmp .karimo/worktrees.json
+
+   echo "  Registered task $TASK_ID in worktree manifest"
    ```
 
 **Spawn using Task tool:**
@@ -702,6 +750,14 @@ When all tasks in a wave have merged PRs:
      if [ -d "$worktree_path" ]; then
        git worktree remove "$worktree_path" 2>/dev/null || true
      fi
+
+     # Remove from worktree manifest
+     jq --arg prd "${prd_slug}" --arg task "${task_id}" \
+        'del(.prds[$prd].active_tasks[$task])' \
+        .karimo/worktrees.json > .karimo/worktrees.json.tmp
+     mv .karimo/worktrees.json.tmp .karimo/worktrees.json
+
+     echo "  Cleaned up task $task_id from manifest"
    done
 
    # Prune stale worktree references
