@@ -556,7 +556,7 @@ fingerprint=$(cat <<EOF | sha256sum | cut -d' ' -f1
 action: commit
 files: $(git diff --name-only HEAD~1 HEAD 2>/dev/null | sort | tr '\n' ',')
 branch: $(git rev-parse HEAD 2>/dev/null)
-validation: $(git log -1 --format=%B | grep -oE 'ERROR:|FAILED:' | sort | tr '\n' ',')
+validation: $(git log -1 --format=%B | grep -oE 'ERROR:|FAILED:|TypeError:|SyntaxError:|ReferenceError:|cannot find module|module not found|compilation failed|build failed' | sort | tr '\n' ',')
 EOF
 )
 
@@ -606,7 +606,7 @@ fi
 - Action type (commit, validation, file_read)
 - Files touched (sorted list for consistency)
 - Branch state (git HEAD SHA)
-- Validation errors (normalized patterns)
+- Validation errors (ERROR, FAILED, TypeError, SyntaxError, module errors, build failures)
 
 **Circuit breaker behavior:**
 - **After 3 loops (action or semantic):** Trigger stall detection
