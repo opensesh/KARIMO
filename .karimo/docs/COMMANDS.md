@@ -74,6 +74,30 @@ Create a PRD through structured interview, using research context.
 | 3 | Dependencies | Task ordering, file overlaps |
 | 4 | Retrospective | Learnings from previous PRDs |
 
+### Incremental Commits (v7.7+)
+
+The interview now commits PRD sections progressively after each round:
+
+1. **After Round 1 (Framing):** Commits executive summary
+   - Commit: `docs(karimo): add PRD framing for {slug}`
+
+2. **After Round 2 (Requirements):** Commits goals and requirements
+   - Commit: `docs(karimo): add PRD requirements for {slug}`
+
+3. **After Round 3 (Dependencies):** Commits dependencies and milestones
+   - Commit: `docs(karimo): add PRD dependencies for {slug}`
+
+4. **After Round 4 (Retrospective):** Commits complete PRD with tasks
+   - Commit: `docs(karimo): complete PRD for {slug}`
+
+All commits follow conventional commit format with `Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>` footer.
+
+**Benefits:**
+- Git history shows interview progression
+- Crash recovery: PRD state preserved if interrupted
+- No leftover uncommitted markdown artifacts
+- Matches pattern used by research and task brief commits
+
 ### Approval Options
 
 After the review round, you'll see a summary with options:
@@ -636,6 +660,30 @@ Only use after:
 Created PR #127: feature/user-auth → main
 Review: https://github.com/owner/repo/pull/127
 ```
+
+### Enhanced PR Descriptions (v7.7+)
+
+The final PR description includes a markdown/code breakdown to distinguish documentation changes from production code:
+
+```markdown
+**Total:**
+- Files changed: 49 files
+- Additions: +8544 lines
+- Deletions: -512 lines
+
+**Breakdown:**
+- Docs: 12 files (4 new), +3200/-50 lines
+- Code: 37 files, +5344/-462 lines
+```
+
+This breakdown helps:
+- Distinguish documentation updates from production code changes
+- Accurately assess actual implementation complexity
+- Provide transparency in PR scope for reviewers
+
+**File Classification:**
+- **Docs:** Files with `.md` or `.mdx` extensions
+- **Code:** All other files (JS, TS, Python, etc.)
 
 ### Benefits vs Direct-to-Main
 
