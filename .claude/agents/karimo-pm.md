@@ -202,6 +202,24 @@ fi
 
 Store `base_branch` for use in PR creation and wave verification.
 
+**Extract PRD slug:**
+
+```bash
+# Extract PRD slug from current directory path
+# Expected format: .karimo/prds/{NNN}_{slug}/
+prd_slug=$(basename "$(pwd)" | sed 's/^[0-9]*_//')
+
+# Alternative: extract from status.json if available
+if [ -z "$prd_slug" ] && [ -f status.json ]; then
+  prd_slug=$(grep -o '"prd_slug"[[:space:]]*:[[:space:]]*"[^"]*"' status.json | \
+    sed 's/.*"\([^"]*\)"$/\1/')
+fi
+
+echo "PRD Slug: $prd_slug"
+```
+
+Store `prd_slug` for use in fingerprint storage, branch names, and reporting.
+
 **Present execution plan:**
 
 ```
