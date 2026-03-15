@@ -560,14 +560,19 @@ validation: $(git log -1 --format=%B | grep -oE 'ERROR:|FAILED:' | sort | tr '\n
 EOF
 )
 
-# Compare with last 5 fingerprints (stored in status.json)
+# Compare with last 5 fingerprints (stored in .fingerprints_{task-id}.txt)
+fingerprint_file=".karimo/prds/${prd_slug}/.fingerprints_${task_id}.txt"
 loop_detected=false
-for past_fp in $(jq -r ".tasks.\"$task_id\".fingerprints[-5:] // []" status.json); do
-  if [ "$fingerprint" = "$past_fp" ]; then
-    loop_detected=true
-    break
-  fi
-done
+
+if [ -f "$fingerprint_file" ]; then
+  # Read last 5 fingerprints and check for duplicates
+  while IFS= read -r past_fp; do
+    if [ "$fingerprint" = "$past_fp" ]; then
+      loop_detected=true
+      break
+    fi
+  done < <(tail -5 "$fingerprint_file")
+fi
 
 if [ "$loop_detected" = true ]; then
   echo "⚠️  SEMANTIC LOOP DETECTED for task $task_id"
@@ -575,7 +580,8 @@ if [ "$loop_detected" = true ]; then
   echo "   This task is stuck in a repeated state despite different actions."
 
   # Trigger circuit breaker
-  current_model=$(jq -r ".tasks.\"$task_id\".model" status.json)
+  current_model=$(grep -A 20 "\"${task_id}\":" status.json | grep -m1 '"model"' | \
+    sed -n 's/.*"model"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p')
   if [ "$current_model" = "sonnet" ]; then
     echo "   → Escalating to Opus and resetting loop count"
     escalate_to_opus "$task_id"
@@ -585,11 +591,15 @@ if [ "$loop_detected" = true ]; then
   fi
 fi
 
-# Store fingerprint for future comparison
-jq --arg task "$task_id" --arg fp "$fingerprint" \
-  '.tasks[$task].fingerprints += [$fp] | .tasks[$task].fingerprints |= .[-10:]' \
-  status.json > status.json.tmp
-mv status.json.tmp status.json
+# Store fingerprint for future comparison (keep last 10)
+fingerprint_file=".karimo/prds/${prd_slug}/.fingerprints_${task_id}.txt"
+echo "$fingerprint" >> "$fingerprint_file"
+
+# Keep only last 10 fingerprints
+if [ -f "$fingerprint_file" ]; then
+  tail -10 "$fingerprint_file" > "${fingerprint_file}.tmp"
+  mv "${fingerprint_file}.tmp" "$fingerprint_file"
+fi
 ```
 
 **Fingerprint components:**
