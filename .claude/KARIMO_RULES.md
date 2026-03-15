@@ -100,7 +100,7 @@ unacceptable. This check prevents commits from landing on wrong branches.
 **When check fails:**
 1. STOP immediately (do not commit)
 2. Display expected vs actual branch
-3. Check `.karimo/worktrees.json` for manifest entry
+3. Check git branch state with `git branch --show-current`
 4. Surface error to user for manual investigation
 
 ### 3. Commit Standards
