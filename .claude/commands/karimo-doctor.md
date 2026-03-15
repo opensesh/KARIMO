@@ -845,92 +845,9 @@ done
 
 Detect orphaned worktree branches and uncommitted changes.
 
-**6b.1. Orphaned Worktree Branches**
+**6b.1. Orphaned Worktree Branches (Git-Native Detection)**
 
-```bash
-echo "Checking for orphaned worktree branches..."
-
-# Get all worktree branches in git
-worktree_branches=$(git branch --list 'worktree/*' --format='%(refname:short)')
-
-# Get all active worktrees from manifest
-if [ -f .karimo/worktrees.json ]; then
-  active_branches=$(jq -r '.prds[].active_tasks[].branch' .karimo/worktrees.json)
-else
-  active_branches=""
-fi
-
-# Find orphans (branch exists but not in manifest)
-orphans=()
-for branch in $worktree_branches; do
-  if ! echo "$active_branches" | grep -q "^$branch$"; then
-    orphans+=("$branch")
-  fi
-done
-
-if [ ${#orphans[@]} -gt 0 ]; then
-  echo "⚠️  Found ${#orphans[@]} orphaned worktree branches:"
-  for branch in "${orphans[@]}"; do
-    echo "   - $branch"
-  done
-
-  read -p "Delete these branches? (y/n) " -n 1 -r
-  echo
-  if [[ $REPLY =~ ^[Yy]$ ]]; then
-    for branch in "${orphans[@]}"; do
-      git branch -D "$branch" 2>/dev/null
-      git push origin --delete "$branch" 2>/dev/null
-      echo "   ✅ Deleted $branch"
-    done
-  fi
-else
-  echo "✅ No orphaned worktree branches found"
-fi
-```
-
-**6b.2. Worktrees with Uncommitted Changes**
-
-```bash
-echo "Checking for worktrees with uncommitted work..."
-
-if [ -f .karimo/worktrees.json ]; then
-  worktree_paths=$(jq -r '.prds[].active_tasks[] |
-    "\(.worktree_id) .worktrees/\(.worktree_id | split("-")[0])/\(.task_id)"' \
-    .karimo/worktrees.json)
-
-  while IFS= read -r line; do
-    worktree_id=$(echo "$line" | cut -d' ' -f1)
-    worktree_path=$(echo "$line" | cut -d' ' -f2)
-
-    if [ -d "$worktree_path" ]; then
-      cd "$worktree_path" || continue
-
-      if ! git diff-index --quiet HEAD --; then
-        echo "⚠️  Worktree $worktree_id has uncommitted changes:"
-        git status --short | sed 's/^/     /'
-        echo ""
-      fi
-
-      cd - > /dev/null
-    fi
-  done <<< "$worktree_paths"
-fi
-```
-
-**6b.3. Manifest Validation**
-
-```bash
-echo "Validating worktree manifest against git state..."
-
-# Check each manifest entry has corresponding branch
-if [ -f .karimo/worktrees.json ]; then
-  jq -r '.prds[].active_tasks[].branch' .karimo/worktrees.json | while read -r branch; do
-    if ! git show-ref --verify --quiet "refs/heads/$branch"; then
-      echo "⚠️  Manifest lists $branch but branch doesn't exist (stale entry)"
-    fi
-  done
-fi
-```
+Placeholder for git-native orphan detection implementation.
 
 #### 6c. Ghost Branches
 
