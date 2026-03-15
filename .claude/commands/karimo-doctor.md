@@ -860,7 +860,8 @@ orphans_no_pr=()
 
 for branch in $worktree_branches; do
   # Extract PRD slug from branch name (format: worktree/{prd-slug}-{task-id})
-  prd_slug=$(echo "$branch" | sed 's|worktree/\([^-]*\)-.*|\1|')
+  # Task ID is always {digit}{letter}, so extract everything before final -{digit}{letter}
+  prd_slug=$(echo "$branch" | sed 's|worktree/\(.*\)-[0-9][a-z]$|\1|')
 
   # Check if PRD folder exists
   if [ ! -d ".karimo/prds/$prd_slug" ]; then

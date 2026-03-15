@@ -967,7 +967,7 @@ Beyond action-level loop detection (same command 3+ times), KARIMO detects **sem
 ```bash
 # Orphan Type 1: Branch exists but PRD folder deleted
 for branch in $(git branch --list 'worktree/*' --format='%(refname:short)'); do
-  prd_slug=$(echo "$branch" | sed 's|worktree/\([^-]*\)-.*|\1|')
+  prd_slug=$(echo "$branch" | sed 's|worktree/\(.*\)-[0-9][a-z]$|\1|')
   if [ ! -d ".karimo/prds/$prd_slug" ]; then
     orphans+=("$branch (PRD deleted)")
   fi

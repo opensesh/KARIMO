@@ -280,7 +280,8 @@ gh pr view $pr_number --json mergeable --jq '.mergeable' | grep -q false
 # Check for orphaned worktrees (git-native detection)
 orphan_count=0
 for branch in $(git branch --list 'worktree/*' --format='%(refname:short)'); do
-  prd_slug=$(echo "$branch" | sed 's|worktree/\([^-]*\)-.*|\1|')
+  # Extract PRD slug (task ID is always {digit}{letter} at end)
+  prd_slug=$(echo "$branch" | sed 's|worktree/\(.*\)-[0-9][a-z]$|\1|')
 
   # Count as orphan if PRD deleted OR no open PR
   if [ ! -d ".karimo/prds/$prd_slug" ] || \
