@@ -239,6 +239,7 @@ Provides:
 | **STALE** | Task `running` > 4h or `in-review` > 48h | Re-run execution or review PR |
 | **CRASHED** | Branch exists without corresponding PR | Re-run execution for task |
 | **CONFLICTS** | PR has merge conflicts | Manual rebase required |
+| **ORPHANED** | Worktree branch exists but not in manifest | Run /karimo-doctor --fix to clean up |
 
 ### Data Sources
 
@@ -246,6 +247,7 @@ Provides:
 2. **Stale tasks** — Compare `task.started_at` to current time
 3. **Crashed tasks** — Git branch exists but no PR found via `gh pr list --head {branch}`
 4. **Conflicts** — GitHub PR status shows mergeable: false
+5. **Orphaned worktrees** — Git branches matching `worktree/*` not in `.karimo/worktrees.json`
 
 ### Query Logic
 
@@ -274,6 +276,19 @@ done
 
 # Check for conflicts
 gh pr view $pr_number --json mergeable --jq '.mergeable' | grep -q false
+
+# Check for orphaned worktrees
+orphans=$(comm -23 \
+  <(git branch --list 'worktree/*' --format='%(refname:short)' | sort) \
+  <(jq -r '.prds[].active_tasks[].branch' .karimo/worktrees.json 2>/dev/null | sort))
+
+if [ -n "$orphans" ]; then
+  count=$(echo "$orphans" | wc -l)
+  echo "ORPHANED: $count worktree branches detected"
+  echo "$orphans" | sed 's/^/   - /'
+  echo ""
+  echo "Run: /karimo-doctor --fix to clean up"
+fi
 ```
 
 ### Output Format
