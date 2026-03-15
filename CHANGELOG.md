@@ -9,9 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [7.7.0] - 2026-03-15
 
-**Enhanced Traceability & Transparency Release**
+**Architectural Simplification & Enhanced Traceability Release**
 
-This release improves PRD planning traceability and merge report transparency through incremental commits and enhanced statistics.
+This release eliminates the worktree manifest system in favor of git-native queries, removing jq dependency and reducing system complexity by ~250 lines. Also improves PRD planning traceability and merge report transparency through incremental commits and enhanced statistics.
 
 ### Added
 
@@ -50,9 +50,47 @@ This release improves PRD planning traceability and merge report transparency th
 
 ### Changed
 
+**Git-Native Orphan Detection**
+
+- Replaced manifest-based orphan detection with direct git/GitHub queries
+  - Orphan Type 1: Branch exists but PRD folder deleted (no manifest required)
+  - Orphan Type 2: Branch exists but no open PR (stale branches)
+  - Uses `git branch --list`, `gh pr list`, and filesystem checks
+  - No jq dependency required
+
+**Semantic Loop Detection Improvements**
+
+- Fingerprint storage moved from status.json to `.fingerprints_{task-id}.txt`
+  - Simple append-only text file (last 10 kept)
+  - Eliminates jq dependency for array manipulation
+  - Uses grep/sed for model lookup instead of jq
+- Expanded validation error patterns to catch more failure types:
+  - JavaScript/TypeScript: TypeError, SyntaxError, ReferenceError
+  - Module errors: "cannot find module", "module not found"
+  - Build errors: "compilation failed", "build failed"
+
+**Other Changes**
+
 - Interview agent (karimo-interviewer) now has Bash and Write tools for commit operations
 - INTERVIEW_PROTOCOL.md updated with 4-round commit instructions
 - karimo-merge command includes markdown filtering and statistics calculation
+
+### Removed
+
+**Worktree Manifest System**
+
+- Eliminated `.karimo/worktrees.json` file and all associated code (~250 lines)
+  - Removed manifest write logic from PM agent (Step 3b)
+  - Removed manifest validation from PM agent (Step 2a)
+  - Removed manifest cleanup from PM agent (Step 3e)
+  - Removed manifest-based orphan detection from /karimo-doctor
+  - Removed manifest queries from /karimo-dashboard
+- **Benefits:**
+  - No synchronization issues (git is source of truth)
+  - No jq dependency required
+  - Simpler crash recovery (fewer files to reconcile)
+  - Reduced maintenance burden (~56% code reduction in v7.6.0 safety features)
+  - More context available for agents (less documentation overhead)
 
 ---
 
