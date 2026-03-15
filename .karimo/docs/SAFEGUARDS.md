@@ -11,10 +11,9 @@ KARIMO enforces code quality and security through multiple layers: file boundari
 | **File boundaries** | `never_touch` and `require_review` patterns | 1+ |
 | **Agent rules** | Behavior constraints in KARIMO_RULES.md | 1+ |
 | **Worktree isolation** | Each task runs in isolated directory | 1+ |
-| **Worktree manifest** | PRD-to-branch registry validates git state | 1+ (v7.6.0) |
 | **Branch assertion** | 4-layer pre-commit branch identity validation | 1+ (v7.6.0) |
-| **Semantic loop detection** | Fingerprinting detects stuck tasks | 1+ (v7.6.0) |
-| **Orphan detection** | Auto-cleanup of abandoned worktrees | 1+ (v7.6.0) |
+| **Semantic loop detection** | Fingerprinting detects stuck tasks | 1+ (v7.7.0) |
+| **Orphan detection** | Git-native cleanup of abandoned worktrees | 1+ (v7.7.0) |
 | **Incremental PRD commits** | Crash recovery via git during planning | 1+ (v7.7.0) |
 | **Enhanced merge reports** | Transparency in PR scope (docs vs code) | 1+ (v7.7.0) |
 | **Pre-PR validation** | Build/typecheck before PR creation | 1+ |
@@ -247,49 +246,9 @@ KARIMO uses Git worktrees to isolate task execution. Each task runs in its own w
 
 ---
 
-## Parallel Execution Safety (v7.6.0)
+## Parallel Execution Safety (v7.7.0)
 
-KARIMO v7.6.0 includes four guardrails to prevent branch contamination during parallel PRD execution. These safety features ensure tasks maintain branch identity and don't commit to wrong branches under concurrent load.
-
-### Worktree Manifest
-
-**File:** `.karimo/worktrees.json`
-
-**Purpose:** Registry binding PRD → branch → worktree for state validation.
-
-**Structure:**
-```json
-{
-  "version": "1.0",
-  "prds": {
-    "user-profiles": {
-      "feature_branch": "feature/user-profiles",
-      "execution_mode": "feature-branch",
-      "active_tasks": {
-        "1a": {
-          "worktree_id": "user-profiles-1a",
-          "branch": "worktree/user-profiles-1a",
-          "spawned_at": "2026-03-15T10:30:00Z",
-          "task_id": "1a",
-          "wave": 1,
-          "model": "sonnet"
-        }
-      }
-    }
-  }
-}
-```
-
-**Operations:**
-- **PM Agent writes** manifest entry before spawning worker (Step 3b)
-- **PM Agent removes** manifest entry after cleanup (Step 3e)
-- **PM Agent validates** manifest vs git state on resume (Step 2a)
-
-**Benefits:**
-- Detects orphaned branches (branch exists but no manifest entry)
-- Detects stale entries (manifest entry but no branch)
-- Provides crash recovery context
-- Prevents cross-contamination during parallel execution
+KARIMO v7.7.0 includes three guardrails to prevent branch contamination during parallel PRD execution. These safety features ensure tasks maintain branch identity and don't commit to wrong branches under concurrent load.
 
 ### Branch Assertion (4 Layers)
 
@@ -361,24 +320,35 @@ if fingerprint matches any of last 5:
 - **If Opus:** Mark `needs-human-review`, notify user
 - **Hard limit:** Max 5 total loops before human required
 
-### Orphan Worktree Detection
+### Orphan Worktree Detection (v7.7.0)
 
 **Tools:**
-- `/karimo-doctor` (Check 7: Execution Health)
+- `/karimo-doctor` (Check 6b: Worktree Health)
 - `/karimo-dashboard` (Critical Alerts: ORPHANED)
 
-**Detection:**
+**Git-Native Detection (no jq required):**
 ```bash
-# Orphaned branches (branch exists but not in manifest)
-orphans=$(comm -23 \
-  <(git branch --list 'worktree/*' --format='%(refname:short)' | sort) \
-  <(jq -r '.prds[].active_tasks[].branch' .karimo/worktrees.json | sort))
+# Orphan Type 1: Branch exists but PRD folder deleted
+for branch in $(git branch --list 'worktree/*' --format='%(refname:short)'); do
+  prd_slug=$(echo "$branch" | sed 's|worktree/\([^-]*\)-.*|\1|')
+  if [ ! -d ".karimo/prds/$prd_slug" ]; then
+    orphans+=("$branch (PRD deleted)")
+  fi
+done
+
+# Orphan Type 2: Branch exists but no open PR (stale)
+for branch in $(git branch --list 'worktree/*' --format='%(refname:short)'); do
+  if ! gh pr list --head "$branch" --state open --json number >/dev/null 2>&1; then
+    orphans+=("$branch (no PR)")
+  fi
+done
 ```
 
 **Cleanup:**
 - `/karimo-doctor` offers automated cleanup with confirmation
 - Deletes orphaned branches (local + remote)
 - Prunes stale worktree references
+- No manifest synchronization required
 
 ### Git-Native Progress Tracking
 
