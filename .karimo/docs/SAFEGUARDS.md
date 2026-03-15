@@ -245,6 +245,156 @@ KARIMO uses Git worktrees to isolate task execution. Each task runs in its own w
 
 ---
 
+## Parallel Execution Safety (v7.6.0)
+
+KARIMO v7.6.0 includes four guardrails to prevent branch contamination during parallel PRD execution. These safety features ensure tasks maintain branch identity and don't commit to wrong branches under concurrent load.
+
+### Worktree Manifest
+
+**File:** `.karimo/worktrees.json`
+
+**Purpose:** Registry binding PRD → branch → worktree for state validation.
+
+**Structure:**
+```json
+{
+  "version": "1.0",
+  "prds": {
+    "user-profiles": {
+      "feature_branch": "feature/user-profiles",
+      "execution_mode": "feature-branch",
+      "active_tasks": {
+        "1a": {
+          "worktree_id": "user-profiles-1a",
+          "branch": "worktree/user-profiles-1a",
+          "spawned_at": "2026-03-15T10:30:00Z",
+          "task_id": "1a",
+          "wave": 1,
+          "model": "sonnet"
+        }
+      }
+    }
+  }
+}
+```
+
+**Operations:**
+- **PM Agent writes** manifest entry before spawning worker (Step 3b)
+- **PM Agent removes** manifest entry after cleanup (Step 3e)
+- **PM Agent validates** manifest vs git state on resume (Step 2a)
+
+**Benefits:**
+- Detects orphaned branches (branch exists but no manifest entry)
+- Detects stale entries (manifest entry but no branch)
+- Provides crash recovery context
+- Prevents cross-contamination during parallel execution
+
+### Branch Assertion (4 Layers)
+
+KARIMO enforces branch identity through 4 non-bypassable validation layers:
+
+**Layer 1: Task Brief Template**
+- Visual execution context header in every task brief
+- Mandatory pre-commit validation script
+- Fails commit if branch mismatch detected
+
+**Layer 2: KARIMO Rules**
+- Section 2.1: Mandatory branch verification
+- Non-negotiable pre-commit check
+- Clear failure protocol (STOP, display, surface to user)
+
+**Layer 3: PM Agent Spawn Wrapper**
+- Identity enforcement in spawn prompt
+- Visual context header
+- Critical reminder before every commit
+
+**Layer 4: Task Agents (6 agents)**
+- All implementer/tester/documenter agents verify branch
+- Reads expected branch from task brief execution context
+- Blocks commit on mismatch
+
+**Pre-commit Check:**
+```bash
+CURRENT_BRANCH=$(git branch --show-current)
+EXPECTED_BRANCH="worktree/{prd-slug}-{task-id}"
+
+if [ "$CURRENT_BRANCH" != "$EXPECTED_BRANCH" ]; then
+  echo "❌ KARIMO BRANCH GUARD FAILURE"
+  echo "   Expected: $EXPECTED_BRANCH"
+  echo "   Got:      $CURRENT_BRANCH"
+  echo "   DO NOT COMMIT. Surface this error to the user immediately."
+  exit 1
+fi
+```
+
+### Semantic Loop Detection
+
+**Purpose:** Detects when tasks are stuck in same state despite varied actions.
+
+**Fingerprint Components:**
+- Action type (commit, validation, file_read)
+- Files touched (sorted list for consistency)
+- Branch state (git HEAD SHA)
+- Validation errors (normalized patterns)
+
+**Detection Logic:**
+```bash
+# Generate fingerprint
+fingerprint=$(cat <<EOF | sha256sum | cut -d' ' -f1
+action: commit
+files: $(git diff --name-only HEAD~1 HEAD 2>/dev/null | sort | tr '\n' ',')
+branch: $(git rev-parse HEAD 2>/dev/null)
+validation: $(git log -1 --format=%B | grep -oE 'ERROR:|FAILED:' | sort | tr '\n' ',')
+EOF
+)
+
+# Compare with last 5 fingerprints
+if fingerprint matches any of last 5:
+  SEMANTIC LOOP DETECTED
+```
+
+**Circuit Breaker:**
+- **After 3 loops:** Trigger stall detection
+- **If Sonnet:** Escalate to Opus, reset loop count
+- **If Opus:** Mark `needs-human-review`, notify user
+- **Hard limit:** Max 5 total loops before human required
+
+### Orphan Worktree Detection
+
+**Tools:**
+- `/karimo-doctor` (Check 7: Execution Health)
+- `/karimo-dashboard` (Critical Alerts: ORPHANED)
+
+**Detection:**
+```bash
+# Orphaned branches (branch exists but not in manifest)
+orphans=$(comm -23 \
+  <(git branch --list 'worktree/*' --format='%(refname:short)' | sort) \
+  <(jq -r '.prds[].active_tasks[].branch' .karimo/worktrees.json | sort))
+```
+
+**Cleanup:**
+- `/karimo-doctor` offers automated cleanup with confirmation
+- Deletes orphaned branches (local + remote)
+- Prunes stale worktree references
+
+### Git-Native Progress Tracking
+
+**Principle:** Git history is the source of truth. status.json is derived/cached metadata.
+
+**PM Agent Behavior:**
+- **Sole writer** of status.json
+- Derives task status from git + GitHub (branches, PRs, labels)
+- Validates status.json against git state on resume
+- Detects drift and offers reconciliation
+
+**Benefits:**
+- Immune to agent confusion (agents can't corrupt status.json)
+- Crash recovery via git history
+- Dashboard shows accurate state from git log
+
+---
+
 ## Pre-PR Validation
 
 Before creating a PR, KARIMO runs validation checks using your configured commands.
