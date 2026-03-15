@@ -83,6 +83,8 @@ Wave 3: [task-3a] ─────────── final task
 | **Branch assertion** | 4-layer validation prevents commits to wrong branches |
 | **Loop detection** | Semantic fingerprinting catches stuck tasks |
 | **Orphan cleanup** | Auto-detects and removes abandoned worktrees |
+| **Incremental PRD commits** | PRD sections committed after each interview round for traceability ([v7.7.0](#changelog)) |
+| **Enhanced merge reports** | PR descriptions show markdown vs code breakdown for transparency ([v7.7.0](#changelog)) |
 | **Model routing** | Sonnet for simple tasks, Opus for complex, auto-escalation on failures |
 | **18 agents** | 12 coordination + 6 task agents ([details](.karimo/docs/ARCHITECTURE.md#agents)) |
 | **Crash recovery** | Git state reconstruction via `/karimo-dashboard --reconcile` |
