@@ -62,6 +62,55 @@ Everything is installed into your project via `install.sh` — no binaries, no b
 
 ---
 
+## Recent Enhancements
+
+### v7.7.0: Enhanced Traceability & Transparency
+
+**Incremental PRD Commits**
+
+The interview agent (`karimo-interviewer`) now commits PRD sections progressively during `/karimo-plan`:
+- **Round 1:** Executive summary → commit with message `docs(karimo): add PRD framing for {slug}`
+- **Round 2:** Requirements → commit with message `docs(karimo): add PRD requirements for {slug}`
+- **Round 3:** Dependencies → commit with message `docs(karimo): add PRD dependencies for {slug}`
+- **Round 4:** Complete PRD → commit with message `docs(karimo): complete PRD for {slug}`
+
+**Implementation:**
+- Agent tools: Added `Bash` and `Write` to `karimo-interviewer.md` agent definition
+- Protocol: Commit instructions added to `.karimo/templates/INTERVIEW_PROTOCOL.md` after each round
+- Format: All commits follow conventional commits with `Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>` footer
+
+**Benefits:**
+- Git-based crash recovery if interview interrupted
+- Audit trail showing interview progression
+- Consistency with research and task brief commit patterns
+- No leftover uncommitted markdown artifacts
+
+**Enhanced Merge Reports**
+
+The `/karimo-merge` command generates PR descriptions with markdown/code breakdown:
+- Separates documentation files (`.md`, `.mdx`) from production code
+- Shows file counts and line additions/deletions for each category
+- Provides transparency in PR scope and complexity assessment
+
+**Implementation:**
+- Statistics calculation: Bash code in `.claude/commands/karimo-merge.md` (lines 105-128)
+- PR body template: Enhanced template includes breakdown section (lines 386-388)
+- Git diff parsing: Uses `git diff --numstat` with grep filtering for markdown detection
+
+**Example Output:**
+```
+**Total:**
+- Files changed: 49 files
+- Additions: +8544 lines
+- Deletions: -512 lines
+
+**Breakdown:**
+- Docs: 12 files (4 new), +3200/-50 lines
+- Code: 37 files, +5344/-462 lines
+```
+
+---
+
 ## Context Architecture
 
 KARIMO uses layered context management inspired by the [OpenViking Protocol](https://github.com/ArcadeAI/OpenViking) for efficient token usage and quick context scanning.
