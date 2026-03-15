@@ -7,6 +7,55 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [7.7.0] - 2026-03-15
+
+**Enhanced Traceability & Transparency Release**
+
+This release improves PRD planning traceability and merge report transparency through incremental commits and enhanced statistics.
+
+### Added
+
+**Incremental PRD Commits**
+
+- PRD sections now committed progressively during `/karimo-plan` interview
+  - Round 1 (Framing): Commits executive summary
+  - Round 2 (Requirements): Commits goals and requirements
+  - Round 3 (Dependencies): Commits dependencies and milestones
+  - Round 4 (Retrospective): Commits complete PRD with tasks.yaml
+- All commits follow conventional format with `docs(karimo):` prefix
+- Includes `Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>` footer
+- **Benefits:**
+  - Git-based crash recovery if interview interrupted
+  - Audit trail showing interview progression
+  - No leftover uncommitted markdown artifacts
+  - Matches pattern used by research and task brief commits
+
+**Enhanced Merge Reports**
+
+- `/karimo-merge` PR descriptions now include markdown/code breakdown
+  - Separates documentation files (.md, .mdx) from production code
+  - Shows file counts and line additions/deletions for each category
+  - Provides transparency in PR scope and complexity assessment
+- **PR Description Format:**
+  ```
+  **Total:**
+  - Files changed: N files
+  - Additions: +X lines
+  - Deletions: -Y lines
+
+  **Breakdown:**
+  - Docs: N files (M new), +X/-Y lines
+  - Code: N files, +X/-Y lines
+  ```
+
+### Changed
+
+- Interview agent (karimo-interviewer) now has Bash and Write tools for commit operations
+- INTERVIEW_PROTOCOL.md updated with 4-round commit instructions
+- karimo-merge command includes markdown filtering and statistics calculation
+
+---
+
 ## [7.6.0] - 2026-03-15
 
 **Parallel Execution Safety Release**
