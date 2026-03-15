@@ -933,44 +933,6 @@ This is a **project-level decision** — KARIMO doesn't mandate a specific packa
 
 KARIMO v7.6.0 adds four guardrails to prevent branch contamination during parallel PRD execution.
 
-#### Worktree Manifest
-
-**File:** `.karimo/worktrees.json`
-
-The worktree manifest is a PM-managed registry that binds PRD → branch → worktree for state validation:
-
-```json
-{
-  "version": "1.0",
-  "prds": {
-    "{prd-slug}": {
-      "feature_branch": "feature/{prd-slug}",
-      "execution_mode": "feature-branch",
-      "active_tasks": {
-        "{task-id}": {
-          "worktree_id": "{prd-slug}-{task-id}",
-          "branch": "worktree/{prd-slug}-{task-id}",
-          "spawned_at": "ISO timestamp",
-          "task_id": "{task-id}",
-          "wave": 1,
-          "model": "sonnet|opus"
-        }
-      }
-    }
-  }
-}
-```
-
-**Lifecycle:**
-- PM Agent writes entry before spawning worker
-- PM Agent removes entry after cleanup
-- PM Agent validates manifest vs git state on resume
-
-**Detects:**
-- Orphaned branches (branch exists but no manifest entry)
-- Stale entries (manifest entry but no branch)
-- Provides crash recovery context
-
 #### Branch Assertion (4 Layers)
 
 KARIMO enforces branch identity through 4 non-bypassable layers:
@@ -982,11 +944,13 @@ KARIMO enforces branch identity through 4 non-bypassable layers:
 
 This defense-in-depth approach makes branch contamination structurally impossible during parallel execution.
 
-#### Semantic Loop Detection
+#### Semantic Loop Detection (v7.7.0)
 
 Beyond action-level loop detection (same command 3+ times), KARIMO detects **semantic loops** where tasks are stuck in the same state despite different actions.
 
-**Fingerprint:** SHA256 hash of action type, files touched, branch state, validation errors
+**Fingerprint:** SHA256 hash of action type, files touched, branch state, validation errors (stored in `.fingerprints_{task-id}.txt`)
+
+**Validation patterns:** ERROR, FAILED, TypeError, SyntaxError, ReferenceError, module errors, build failures
 
 **Circuit Breaker:**
 - After 3 loops (action or semantic): Trigger stall detection
@@ -994,17 +958,30 @@ Beyond action-level loop detection (same command 3+ times), KARIMO detects **sem
 - If Opus: Mark needs-human-review
 - Hard limit: 5 total loops before human required
 
-#### Orphan Detection
+**Storage:** Fingerprints stored in simple text file (last 10 kept). No jq dependency required.
 
-`/karimo-doctor` (Check 7) and `/karimo-dashboard` (Critical Alerts) detect orphaned worktree branches:
+#### Orphan Detection (v7.7.0)
+
+`/karimo-doctor` (Check 6b) and `/karimo-dashboard` (Critical Alerts) detect orphaned worktree branches using git-native queries:
 
 ```bash
-orphans=$(comm -23 \
-  <(git branch --list 'worktree/*' --format='%(refname:short)' | sort) \
-  <(jq -r '.prds[].active_tasks[].branch' .karimo/worktrees.json | sort))
+# Orphan Type 1: Branch exists but PRD folder deleted
+for branch in $(git branch --list 'worktree/*' --format='%(refname:short)'); do
+  prd_slug=$(echo "$branch" | sed 's|worktree/\([^-]*\)-.*|\1|')
+  if [ ! -d ".karimo/prds/$prd_slug" ]; then
+    orphans+=("$branch (PRD deleted)")
+  fi
+done
+
+# Orphan Type 2: Branch exists but no open PR (stale)
+for branch in $(git branch --list 'worktree/*' --format='%(refname:short)'); do
+  if ! gh pr list --head "$branch" --state open --json number >/dev/null 2>&1; then
+    orphans+=("$branch (no PR)")
+  fi
+done
 ```
 
-Automated cleanup with user confirmation removes orphaned branches (local + remote).
+Automated cleanup with user confirmation removes orphaned branches (local + remote). No jq dependency required.
 
 ### Resource Estimation
 
