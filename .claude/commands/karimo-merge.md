@@ -102,6 +102,25 @@ files_changed=$(git diff main..."$feature_branch" --stat | tail -1)
 additions=$(git diff main..."$feature_branch" --numstat | awk '{sum+=$1} END {print sum}')
 deletions=$(git diff main..."$feature_branch" --numstat | awk '{sum+=$2} END {print sum}')
 
+# Calculate markdown-specific statistics
+md_files_changed=$(git diff main..."$feature_branch" --name-status | grep -E '\.(md|mdx)$' | wc -l | awk '{print $1}')
+md_files_created=$(git diff main..."$feature_branch" --name-status | grep -E '^A.*\.(md|mdx)$' | wc -l | awk '{print $1}')
+
+# Calculate markdown line additions/deletions
+md_stats=$(git diff main..."$feature_branch" --numstat | grep -E '\.(md|mdx)$')
+if [ -n "$md_stats" ]; then
+  md_additions=$(echo "$md_stats" | awk '{sum+=$1} END {print sum}')
+  md_deletions=$(echo "$md_stats" | awk '{sum+=$2} END {print sum}')
+else
+  md_additions=0
+  md_deletions=0
+fi
+
+# Calculate code-only statistics (total minus markdown)
+code_files_changed=$(($(git diff main..."$feature_branch" --name-status | wc -l | awk '{print $1}') - md_files_changed))
+code_additions=$((additions - md_additions))
+code_deletions=$((deletions - md_deletions))
+
 echo "Consolidated Changes:"
 echo "  Files changed: $files_changed"
 echo "  Additions: +${additions} lines"
@@ -359,9 +378,14 @@ $(jq -r '.tasks | to_entries | map("- [" + .key + "] " + .value.title + " (PR #"
 
 ### Changes
 
+**Total:**
 - Files changed: ${files_changed}
 - Additions: +${additions} lines
 - Deletions: -${deletions} lines
+
+**Breakdown:**
+- Docs: ${md_files_changed} files (${md_files_created} new), +${md_additions}/-${md_deletions} lines
+- Code: ${code_files_changed} files, +${code_additions}/-${code_deletions} lines
 
 ### Validation
 
