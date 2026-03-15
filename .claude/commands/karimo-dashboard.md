@@ -114,15 +114,57 @@ Provides:
 
 ### Data Sources
 
-1. **Aggregate all PRD status.json files**
+**CRITICAL: Git is the source of truth. status.json is derived/cached metadata only.**
+
+1. **Derive task completion from git history** (immune to agent confusion)
    ```bash
-   for prd in .karimo/prds/*/; do
-     status_file="${prd}status.json"
-     # Read and aggregate task counts, statuses
+   for prd_dir in .karimo/prds/*/; do
+     prd_slug=$(basename "$prd_dir")
+     feature_branch=$(jq -r '.feature_branch // "main"' "${prd_dir}status.json")
+
+     # Get all task IDs from commits on feature branch
+     completed_tasks=$(git log --oneline "$feature_branch" --not main | \
+       grep -oE '\([T0-9]+[a-z]\)' | \
+       sed 's/[()]//g' | \
+       sort -u)
+
+     # Get total tasks from tasks.yaml
+     total_tasks=$(yq '.tasks | length' "${prd_dir}tasks.yaml")
+
+     # Calculate completion percentage
+     completed_count=$(echo "$completed_tasks" | wc -l)
+     completion_pct=$(( completed_count * 100 / total_tasks ))
+
+     echo "$prd_slug: $completed_count/$total_tasks ($completion_pct%)"
    done
    ```
 
-2. **Calculate cross-PRD metrics**
+2. **Validate status.json against git** (detect drift)
+   ```bash
+   # For each PRD, compare status.json against git reality
+   for prd_dir in .karimo/prds/*/; do
+     prd_slug=$(basename "$prd_dir")
+
+     # Get task statuses from status.json
+     status_json_tasks=$(jq -r '.tasks | to_entries[] | "\(.key):\(.value.status)"' \
+       "${prd_dir}status.json")
+
+     # Get actual status from git/GitHub
+     for task_entry in $status_json_tasks; do
+       task_id=$(echo "$task_entry" | cut -d: -f1)
+       cached_status=$(echo "$task_entry" | cut -d: -f2)
+
+       # Derive actual status from git
+       branch="worktree/${prd_slug}-${task_id}"
+       if git show-ref --verify --quiet "refs/heads/$branch"; then
+         pr_state=$(gh pr view "$branch" --json state,mergedAt --jq '.state,.mergedAt' 2>/dev/null)
+         # Compare and detect drift
+       fi
+     done
+   done
+   ```
+
+3. **Calculate cross-PRD metrics**
    ```javascript
    const totalTasks = allPRDs.reduce((sum, prd) => sum + prd.tasks.length, 0);
    const doneTasks = allPRDs.reduce((sum, prd) =>

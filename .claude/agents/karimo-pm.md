@@ -262,34 +262,54 @@ if [ -f .karimo/worktrees.json ]; then
   done
 fi
 
-# Step 2b: Derive actual state from git + GitHub
-for task_id in $(get_task_ids); do
-  branch="worktree/{prd-slug}-${task_id}"
+# Step 2b: Derive actual state from git + GitHub (Git is truth)
+echo "Deriving state from git history..."
 
-  # Check if branch exists on remote
-  if git ls-remote --heads origin "$branch" | grep -q "$branch"; then
-    # Check for PR
-    pr_data=$(gh pr list --head "$branch" --json state,number,mergedAt --jq '.[0]')
+for task_id in $(get_all_task_ids); do
+  branch="worktree/${prd_slug}-${task_id}"
+
+  # Check if branch exists (local or remote)
+  if git show-ref --verify --quiet "refs/heads/$branch" || \
+     git ls-remote --heads origin "$branch" | grep -q "$branch"; then
+
+    # Branch exists — derive state from GitHub PR
+    pr_data=$(gh pr list --head "$branch" --json state,number,mergedAt,labels --jq '.[0]')
 
     if [ -n "$pr_data" ]; then
-      state=$(echo "$pr_data" | jq -r '.state')
-      if [ "$state" = "MERGED" ]; then
+      pr_state=$(echo "$pr_data" | jq -r '.state')
+      pr_number=$(echo "$pr_data" | jq -r '.number')
+      merged_at=$(echo "$pr_data" | jq -r '.mergedAt')
+      labels=$(echo "$pr_data" | jq -r '.labels[].name')
+
+      if [ "$merged_at" != "null" ]; then
         derived_status="done"
+      elif echo "$labels" | grep -q "needs-revision"; then
+        derived_status="needs-revision"
+      elif echo "$labels" | grep -q "needs-human-review"; then
+        derived_status="needs-human-review"
+      elif [ "$pr_state" = "OPEN" ]; then
+        derived_status="in-review"
       else
-        labels=$(gh pr view "$branch" --json labels --jq '.labels[].name')
-        if echo "$labels" | grep -q "needs-revision"; then
-          derived_status="needs-revision"
-        else
-          derived_status="in-review"
-        fi
+        derived_status="running"
       fi
+
+      # Write to status.json (PM is only writer)
+      update_task_status "$task_id" "$derived_status" "$pr_number"
     else
-      # Branch exists, no PR → agent crashed mid-execution
+      # Branch exists but no PR — agent crashed before creating PR
       derived_status="crashed"
+      update_task_status "$task_id" "$derived_status" ""
     fi
   else
-    # No branch = queued (check wave dependencies)
-    derived_status="queued"
+    # No branch — task not started or cleaned up after merge
+    current_status=$(get_task_status "$task_id")
+    if [ "$current_status" = "done" ]; then
+      # Branch cleaned up after merge — trust status.json
+      derived_status="done"
+    else
+      # Not started yet
+      derived_status="pending"
+    fi
   fi
 done
 ```
