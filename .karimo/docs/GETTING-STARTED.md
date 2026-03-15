@@ -236,6 +236,17 @@ The interviewer agent guides you through 4 rounds (research-informed):
 | 3 | **Dependencies** — Task ordering and blockers | ~5 min |
 | 4 | **Retrospective** — Apply learnings from previous PRDs | ~3 min |
 
+**Incremental Commits (v7.7+):** After each round, the PRD section is committed to git with a conventional commit message. This provides:
+- Git-based crash recovery if interrupted
+- Audit trail of interview progression
+- No leftover uncommitted markdown artifacts
+
+**Commit Messages:**
+- Round 1: `docs(karimo): add PRD framing for {slug}`
+- Round 2: `docs(karimo): add PRD requirements for {slug}`
+- Round 3: `docs(karimo): add PRD dependencies for {slug}`
+- Round 4: `docs(karimo): complete PRD for {slug}`
+
 **PRD Lifecycle Flow:**
 
 ```mermaid
