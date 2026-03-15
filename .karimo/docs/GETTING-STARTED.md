@@ -507,7 +507,7 @@ Wave 3: [3a] — Final task
   - 4-layer branch assertion prevents wrong-branch commits
   - Semantic loop detection catches stuck tasks
   - Orphan cleanup removes abandoned worktrees
-  - See [Safeguards](.karimo/docs/SAFEGUARDS.md#parallel-execution-safety) for details
+  - See [Safeguards](SAFEGUARDS.md#parallel-execution-safety) for details
 
 ### 3. Monitor Progress
 
