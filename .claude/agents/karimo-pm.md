@@ -592,6 +592,66 @@ When PR receives `needs-revision` label (score < 3):
 3. Add `blocked-needs-human` label
 4. Continue with other tasks
 
+##### Semantic Loop Detection
+
+**Purpose:** Detect when tasks are stuck in the same state despite different actions.
+
+**Trigger:** After each worker completion (before or after review loop).
+
+```bash
+# Generate fingerprint of current task execution state
+fingerprint=$(cat <<EOF | sha256sum | cut -d' ' -f1
+action: commit
+files: $(git diff --name-only HEAD~1 HEAD 2>/dev/null | sort | tr '\n' ',')
+branch: $(git rev-parse HEAD 2>/dev/null)
+validation: $(git log -1 --format=%B | grep -oE 'ERROR:|FAILED:' | sort | tr '\n' ',')
+EOF
+)
+
+# Compare with last 5 fingerprints (stored in status.json)
+loop_detected=false
+for past_fp in $(jq -r ".tasks.\"$task_id\".fingerprints[-5:] // []" status.json); do
+  if [ "$fingerprint" = "$past_fp" ]; then
+    loop_detected=true
+    break
+  fi
+done
+
+if [ "$loop_detected" = true ]; then
+  echo "⚠️  SEMANTIC LOOP DETECTED for task $task_id"
+  echo "   Fingerprint: $fingerprint"
+  echo "   This task is stuck in a repeated state despite different actions."
+
+  # Trigger circuit breaker
+  current_model=$(jq -r ".tasks.\"$task_id\".model" status.json)
+  if [ "$current_model" = "sonnet" ]; then
+    echo "   → Escalating to Opus and resetting loop count"
+    escalate_to_opus "$task_id"
+  else
+    echo "   → Already using Opus. Marking needs-human-review."
+    mark_needs_human_review "$task_id"
+  fi
+fi
+
+# Store fingerprint for future comparison
+jq --arg task "$task_id" --arg fp "$fingerprint" \
+  '.tasks[$task].fingerprints += [$fp] | .tasks[$task].fingerprints |= .[-10:]' \
+  status.json > status.json.tmp
+mv status.json.tmp status.json
+```
+
+**Fingerprint components:**
+- Action type (commit, validation, file_read)
+- Files touched (sorted list for consistency)
+- Branch state (git HEAD SHA)
+- Validation errors (normalized patterns)
+
+**Circuit breaker behavior:**
+- **After 3 loops (action or semantic):** Trigger stall detection
+- **If Sonnet:** Escalate to Opus, reset loop count to 1
+- **If Opus:** Mark `needs-human-review`, notify user
+- **Hard limit:** Max 5 total loops before human required
+
 ---
 
 ##### Code Review Revision Loop

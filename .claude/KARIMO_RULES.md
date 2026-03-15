@@ -210,28 +210,47 @@ The human architect uses `/karimo-feedback` to capture learnings. These become r
 
 ## Loop Awareness
 
-### 1. Loop Count Tracking
+### 1. Loop Awareness & Semantic Stall Detection
 
-Each task has a `loops` count tracked in `status.json`. A "loop" is one complete attempt at a task (code → validate → commit or retry).
+A "loop" is one complete attempt at a task (code → validate → commit or retry).
 
-**Guardrails:**
-- After 3 loops without progress → stall detection triggers
-- Maximum 5 loops per task before human intervention required
-- Model upgrades (Sonnet → Opus) reset loop count
+**Two types of loops detected:**
 
-### 2. Stall Detection
+1. **Action-level loops:** Same bash command run 3+ times (existing detection)
+2. **Semantic loops:** Different actions, but stuck in same state (NEW)
 
-The PM agent monitors for stalls:
-- Same error appearing across consecutive attempts
-- Validation failing repeatedly with same pattern
-- No meaningful progress between loops
+**Semantic loop fingerprint:**
+```
+SHA256({
+  action_type: "commit" | "validation" | "file_read",
+  files_touched: [sorted list],
+  branch_state: git-HEAD-sha,
+  validation_errors: [normalized patterns]
+})
+```
 
-**When stalled:**
-- Task is paused
-- PM assesses if model upgrade is appropriate
-- Human is notified with options
+**Detection:** If current fingerprint matches any of last 5 → semantic loop detected
 
-### 3. Model-Based Execution
+**Circuit breaker behavior:**
+- **After 3 loops (action or semantic):** Trigger stall detection
+- **If Sonnet:** Escalate to Opus, reset loop count to 1
+- **If Opus:** Mark `needs-human-review`, notify user
+- **Hard limit:** Max 5 total loops before human required
+
+**Tracked in status.json:**
+```json
+{
+  "tasks": {
+    "1a": {
+      "loops": 2,
+      "fingerprints": ["abc123...", "def456..."],
+      "model": "opus"
+    }
+  }
+}
+```
+
+### 2. Model-Based Execution
 
 Tasks are assigned models based on complexity:
 - **Complexity 1–4**: Sonnet (efficient for straightforward tasks)
