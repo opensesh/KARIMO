@@ -880,6 +880,83 @@ For large projects, use a shared dependency store to avoid reinstalling per work
 
 This is a **project-level decision** — KARIMO doesn't mandate a specific package manager.
 
+### Parallel Execution Safety (v7.6.0)
+
+KARIMO v7.6.0 adds four guardrails to prevent branch contamination during parallel PRD execution.
+
+#### Worktree Manifest
+
+**File:** `.karimo/worktrees.json`
+
+The worktree manifest is a PM-managed registry that binds PRD → branch → worktree for state validation:
+
+```json
+{
+  "version": "1.0",
+  "prds": {
+    "{prd-slug}": {
+      "feature_branch": "feature/{prd-slug}",
+      "execution_mode": "feature-branch",
+      "active_tasks": {
+        "{task-id}": {
+          "worktree_id": "{prd-slug}-{task-id}",
+          "branch": "worktree/{prd-slug}-{task-id}",
+          "spawned_at": "ISO timestamp",
+          "task_id": "{task-id}",
+          "wave": 1,
+          "model": "sonnet|opus"
+        }
+      }
+    }
+  }
+}
+```
+
+**Lifecycle:**
+- PM Agent writes entry before spawning worker
+- PM Agent removes entry after cleanup
+- PM Agent validates manifest vs git state on resume
+
+**Detects:**
+- Orphaned branches (branch exists but no manifest entry)
+- Stale entries (manifest entry but no branch)
+- Provides crash recovery context
+
+#### Branch Assertion (4 Layers)
+
+KARIMO enforces branch identity through 4 non-bypassable layers:
+
+1. **Task Brief Template:** Visual header + pre-commit script
+2. **KARIMO Rules:** Section 2.1 mandatory verification
+3. **PM Agent Spawn:** Identity enforcement in prompt
+4. **Task Agents (6):** All workers verify before commit
+
+This defense-in-depth approach makes branch contamination structurally impossible during parallel execution.
+
+#### Semantic Loop Detection
+
+Beyond action-level loop detection (same command 3+ times), KARIMO detects **semantic loops** where tasks are stuck in the same state despite different actions.
+
+**Fingerprint:** SHA256 hash of action type, files touched, branch state, validation errors
+
+**Circuit Breaker:**
+- After 3 loops (action or semantic): Trigger stall detection
+- If Sonnet: Escalate to Opus, reset loop count
+- If Opus: Mark needs-human-review
+- Hard limit: 5 total loops before human required
+
+#### Orphan Detection
+
+`/karimo-doctor` (Check 7) and `/karimo-dashboard` (Critical Alerts) detect orphaned worktree branches:
+
+```bash
+orphans=$(comm -23 \
+  <(git branch --list 'worktree/*' --format='%(refname:short)' | sort) \
+  <(jq -r '.prds[].active_tasks[].branch' .karimo/worktrees.json | sort))
+```
+
+Automated cleanup with user confirmation removes orphaned branches (local + remote).
+
 ### Resource Estimation
 
 | Concurrent Tasks | Est. Disk (typical) | Est. Disk (large monorepo) |
