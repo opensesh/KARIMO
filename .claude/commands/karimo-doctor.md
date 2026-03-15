@@ -847,7 +847,74 @@ Detect orphaned worktree branches and uncommitted changes.
 
 **6b.1. Orphaned Worktree Branches (Git-Native Detection)**
 
-Placeholder for git-native orphan detection implementation.
+Detect worktree branches for deleted PRDs or without open PRs (stale branches).
+
+```bash
+echo "Checking for orphaned worktree branches..."
+
+# Get all worktree branches from git
+worktree_branches=$(git branch --list 'worktree/*' --format='%(refname:short)')
+
+orphans_deleted_prd=()
+orphans_no_pr=()
+
+for branch in $worktree_branches; do
+  # Extract PRD slug from branch name (format: worktree/{prd-slug}-{task-id})
+  prd_slug=$(echo "$branch" | sed 's|worktree/\([^-]*\)-.*|\1|')
+
+  # Check if PRD folder exists
+  if [ ! -d ".karimo/prds/$prd_slug" ]; then
+    orphans_deleted_prd+=("$branch (PRD $prd_slug deleted)")
+    continue
+  fi
+
+  # Check if branch has open PR
+  if ! gh pr list --head "$branch" --state open --json number -q '.[0].number' >/dev/null 2>&1; then
+    orphans_no_pr+=("$branch (no open PR)")
+  fi
+done
+
+# Report orphans from deleted PRDs
+if [ ${#orphans_deleted_prd[@]} -gt 0 ]; then
+  echo "⚠️  Found ${#orphans_deleted_prd[@]} orphaned branches (PRD deleted):"
+  for branch in "${orphans_deleted_prd[@]}"; do
+    echo "   - $branch"
+  done
+  echo ""
+fi
+
+# Report stale branches (no PR)
+if [ ${#orphans_no_pr[@]} -gt 0 ]; then
+  echo "⚠️  Found ${#orphans_no_pr[@]} stale branches (no open PR):"
+  for branch in "${orphans_no_pr[@]}"; do
+    echo "   - $branch"
+  done
+  echo ""
+fi
+
+# Offer cleanup
+if [ ${#orphans_deleted_prd[@]} -gt 0 ] || [ ${#orphans_no_pr[@]} -gt 0 ]; then
+  total_orphans=$((${#orphans_deleted_prd[@]} + ${#orphans_no_pr[@]}))
+  read -p "Delete these $total_orphans branches? (y/n) " -n 1 -r
+  echo
+  if [[ $REPLY =~ ^[Yy]$ ]]; then
+    for branch_info in "${orphans_deleted_prd[@]}" "${orphans_no_pr[@]}"; do
+      branch=$(echo "$branch_info" | cut -d' ' -f1)
+      git branch -D "$branch" 2>/dev/null
+      git push origin --delete "$branch" 2>/dev/null
+      echo "   ✅ Deleted $branch"
+    done
+  fi
+else
+  echo "✅ No orphaned worktree branches found"
+fi
+```
+
+**Detection logic:**
+1. **Orphan Type 1 (Deleted PRD):** Branch exists but `.karimo/prds/{prd-slug}/` doesn't
+2. **Orphan Type 2 (Stale):** Branch exists but no open PR found via `gh pr list`
+
+**No jq dependency:** Uses only standard bash, git, and gh CLI commands.
 
 #### 6c. Ghost Branches
 
