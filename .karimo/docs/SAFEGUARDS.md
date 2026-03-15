@@ -209,7 +209,7 @@ KARIMO uses Git worktrees to isolate task execution. Each task runs in its own w
 | Branch Type | Format | Example |
 |-------------|--------|---------|
 | Feature branch | `feature/{prd-slug}` | `feature/user-profiles` |
-| Task branch | `feature/{prd-slug}/{task-id}` | `feature/user-profiles/1a` |
+| Task branch | `worktree/{prd-slug}-{task-id}` | `worktree/user-profiles-1a` |
 
 ### Worktree Lifecycle (v2.1)
 
