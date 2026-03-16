@@ -1294,20 +1294,38 @@ Rollback events are tracked in `status.json`:
 
 ## Learning Architecture
 
-KARIMO uses a unified feedback command with intelligent complexity detection:
+KARIMO has a two-tier knowledge system: **findings** (per-PRD, automatic) and **learnings** (project-wide, user-triggered).
 
-### Simple Path (`/karimo-feedback`)
+### Findings: Task-to-Task Communication
 
-Quick capture for well-defined feedback (70% of cases):
+Findings are discoveries made during PRD execution that downstream tasks need:
+
+| Aspect | Detail |
+|--------|--------|
+| **Scope** | One PRD cycle |
+| **Created by** | Worker agents automatically |
+| **Storage** | `.karimo/prds/{slug}/findings.md` |
+| **Purpose** | Coordinate tasks within a feature |
+
+When a worker discovers something (new API, gotcha, pattern), it writes to `findings.md`. The PM Agent propagates these to dependent task briefs. Findings are ephemeral.
+
+### Learnings: Project-Wide Wisdom
+
+Learnings are permanent rules captured via `/karimo-feedback`:
+
+| Aspect | Detail |
+|--------|--------|
+| **Scope** | All future PRDs |
+| **Created by** | User via `/karimo-feedback` |
+| **Storage** | `.karimo/learnings/` |
+| **Purpose** | Prevent recurring mistakes |
+
+**Simple Path** (70% of cases, < 5 min):
 - Developer describes pattern or mistake
-- 0-3 clarifying questions (if needed)
-- Agent generates actionable rule
-- Rule appended to `.karimo/learnings.md`
-- Time: < 5 minutes
+- 0-3 clarifying questions
+- Rule appended to `.karimo/learnings/{category}/`
 
-### Complex Path (Investigation Mode)
-
-Deep investigation for unclear or systemic issues (30% of cases):
+**Complex Path** (30% of cases, 10-20 min):
 
 | Step | Agent | Output |
 |------|-------|--------|
@@ -1317,14 +1335,15 @@ Deep investigation for unclear or systemic issues (30% of cases):
 | 4. Document | Generate feedback doc | `.karimo/feedback/{slug}.md` |
 | 5. Review & Apply | Human approval | Changes to multiple files |
 
-Key features:
-- Adaptive interview (3-7 questions, not rigid rounds)
-- Evidence-based investigation (status.json, PR history, codebase)
-- Per-change approval gate
-- Creates feedback document for provenance
-- Time: 10-20 minutes
+### Promotion: Findings → Learnings
 
-Learnings are stored in `.karimo/learnings/` (categorized by type: patterns, anti-patterns, project-notes, execution-rules), making them available to all future agent invocations. Investigation artifacts are preserved in `.karimo/feedback/` for reference.
+Patterns appearing in 3+ PRDs can be promoted to learnings:
+
+```
+/karimo-feedback --from-metrics {prd-slug}
+```
+
+This surfaces learning candidates from `metrics.json` for user approval.
 
 See [COMPOUND-LEARNING.md](COMPOUND-LEARNING.md) for full documentation.
 

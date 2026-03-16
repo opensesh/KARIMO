@@ -4,7 +4,105 @@ KARIMO has an intelligent compound learning system with automatic complexity det
 
 ---
 
-## Architecture Overview
+## Two-Tier Knowledge System
+
+KARIMO distinguishes between **findings** (per-PRD, automatic) and **learnings** (project-wide, user-triggered). Understanding this distinction is critical for effective use.
+
+### Findings: Per-PRD Task Communication
+
+**What they are:** Discoveries made during PRD execution that downstream tasks need to know.
+
+**Scope:** One PRD cycle. Findings are ephemeral — they exist to coordinate tasks within a single feature execution.
+
+**Created by:** Worker agents automatically during task execution.
+
+**Storage:**
+```
+During execution (worker level):
+.worktrees/{prd-slug}/{task-id}/findings.md
+
+After execution (PRD level):
+.karimo/prds/{slug}/findings.md          # Aggregated by PM Agent
+.karimo/findings/by-prd/{slug}.md        # Summary with links
+.karimo/findings/by-pattern/             # Cross-PRD patterns
+```
+
+**What gets recorded:**
+- New types, interfaces, or APIs created that other tasks will consume
+- Patterns established (e.g., "used X library for form validation")
+- Gotchas encountered (e.g., "this API returns paginated results")
+- Files created or moved not in original `files_affected`
+- Architecture decisions made under ambiguity
+
+**How they're used:**
+1. Worker agent creates `findings.md` in its worktree
+2. PM Agent reads and propagates to downstream task briefs
+3. After PRD completes, PM Agent aggregates into `.karimo/prds/{slug}/findings.md`
+4. Patterns appearing in 2+ PRDs get indexed in `.karimo/findings/by-pattern/`
+
+### Learnings: Project-Wide Wisdom
+
+**What they are:** Permanent rules and guidelines learned from operational feedback.
+
+**Scope:** All future tasks across all PRDs. Learnings persist indefinitely.
+
+**Created by:** User via `/karimo-feedback` command (never automatic).
+
+**Storage:**
+```
+.karimo/learnings/
+├── index.md              # Master overview + navigation
+├── TEMPLATE.md           # Template for new entries
+├── patterns/             # Positive practices to replicate
+├── anti-patterns/        # Mistakes to avoid
+├── project-notes/        # Project-specific context
+└── execution-rules/      # Mandatory guidelines
+```
+
+**What gets recorded:**
+- "Never use inline styles — always use Tailwind classes"
+- "All error handling must use structured error types"
+- "The auth middleware has a race condition on first load"
+- "Always check authentication requirements during PRD planning"
+
+**How they're used:**
+- Read by all agents before task execution
+- Enforcement levels: `critical` (hard stop), `important` (warning), `info` (optional)
+- Referenced in task briefs for relevant context
+
+### Key Differences
+
+| Aspect | Findings | Learnings |
+|--------|----------|-----------|
+| **Scope** | One PRD | All PRDs |
+| **Lifespan** | Temporary (PRD cycle) | Permanent |
+| **Created by** | Worker agents (automatic) | User via `/karimo-feedback` |
+| **Purpose** | Task-to-task coordination | Prevent recurring mistakes |
+| **Storage** | `.karimo/prds/{slug}/findings.md` | `.karimo/learnings/` |
+
+### Promotion Path
+
+Findings can become learnings when patterns repeat across PRDs:
+
+```
+FINDINGS (pattern in 3+ PRDs)
+    ↓
+PM Agent detects and flags in metrics.json
+    ↓
+/karimo-feedback --from-metrics surfaces candidates
+    ↓
+User approves promotion
+    ↓
+LEARNINGS (permanent rule)
+```
+
+This promotion is never automatic — user approval is required.
+
+---
+
+## Feedback Command Architecture
+
+The `/karimo-feedback` command is the sole mechanism for creating learnings. It does NOT create findings (those are automatic during execution).
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐

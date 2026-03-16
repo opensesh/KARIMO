@@ -167,8 +167,44 @@ KARIMO uses the [OpenViking Protocol](https://github.com/ArcadeAI/OpenViking) fo
 - `.claude/agents/*.abstract.md` — Verify specific agent (L0)
 - `.claude/skills.overview.md` — All skills with agent mapping (L1)
 - `.karimo/learnings/` — Categorized project learnings
+- `.karimo/findings/` — Cross-PRD pattern index
 
 Details: [Context Architecture](.karimo/docs/CONTEXT-ARCHITECTURE.md)
+
+### Compound Learning
+
+KARIMO has a two-tier knowledge system that makes agents smarter over time:
+
+| Tier | Scope | Created By | Storage |
+|------|-------|------------|---------|
+| **Findings** | Per-PRD | Worker agents (automatic) | `.karimo/prds/{slug}/findings.md` |
+| **Learnings** | Project-wide | User via `/karimo-feedback` | `.karimo/learnings/` |
+
+**Findings** are task-to-task communication during a single PRD execution:
+```
+.karimo/prds/{slug}/
+├── findings.md          # Aggregated discoveries from all tasks
+└── briefs/
+    └── {task}/findings.md  # Per-task discoveries (in worktree)
+```
+
+When a worker discovers something downstream tasks need (new API, gotcha, pattern), it writes to `findings.md`. The PM Agent propagates these to dependent task briefs. Findings are ephemeral — they exist for one PRD cycle.
+
+**Learnings** are permanent project wisdom captured via `/karimo-feedback`:
+```
+.karimo/learnings/
+├── index.md             # Navigation + stats
+├── patterns/            # Positive practices to replicate
+├── anti-patterns/       # Mistakes to avoid
+├── project-notes/       # Project-specific context
+└── execution-rules/     # Mandatory guidelines
+```
+
+Learnings are read by all agents before task execution. They prevent the same mistake from happening twice.
+
+**Promotion path:** Findings that appear in 3+ PRDs can be promoted to learnings via `/karimo-feedback --from-metrics`.
+
+Details: [Compound Learning](.karimo/docs/COMPOUND-LEARNING.md)
 
 ---
 
