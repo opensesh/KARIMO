@@ -242,7 +242,7 @@ When you run `install.sh`, these files are added:
 | `.claude/commands/` | **10** slash commands |
 | `.claude/skills/` | **6** skills (1 bash + 2 research + 3 task agent skills) |
 | `.claude/KARIMO_RULES.md` | Agent behavior rules |
-| `.karimo/templates/` | **15** templates |
+| `.karimo/templates/` | **19** templates |
 
 **Optional:** Run `/karimo-configure --review` to choose and configure your automated code review provider (Greptile or Claude Code Review).
 
