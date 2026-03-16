@@ -112,8 +112,61 @@ Accept images inline during the interview:
 - Screenshots of UI mockups
 - Figma references
 - Error states or existing UI
+- Design files or visual specifications
 
-Store images in `.karimo/prds/{slug}/assets/` and reference them in the PRD using relative paths.
+**Implementation:**
+
+When the user provides an image (URL or file path) during the interview:
+
+1. **Call karimo_add_asset()** from the karimo-bash-utilities skill:
+   ```bash
+   source .claude/skills/karimo-bash-utilities.md
+   karimo_add_asset "$PRD_SLUG" "$IMAGE_SOURCE" "planning" "$DESCRIPTION" "karimo-interviewer"
+   ```
+
+2. **Parameters:**
+   - `$PRD_SLUG` - The current PRD slug
+   - `$IMAGE_SOURCE` - URL (e.g., `https://example.com/mockup.png`) or local path (e.g., `/Users/me/Desktop/design.jpg`)
+   - `"planning"` - Always use "planning" stage for interviewer-added assets
+   - `$DESCRIPTION` - Brief description provided by user or inferred from context (e.g., "Dashboard mockup", "Login screen design")
+   - `"karimo-interviewer"` - Agent name (always this value)
+
+3. **Insert returned markdown reference** into the appropriate section of the PRD
+
+4. **Confirm to user:**
+   ```
+   ✓ Image stored: planning-mockup-20260315151500.png
+   I've embedded the mockup in the PRD under "Visual Design".
+   ```
+
+**Example interaction:**
+
+```
+User: Here's the mockup for the dashboard: https://example.com/dashboard.png
+
+Interviewer:
+[Calls karimo_add_asset]
+✓ Image stored: planning-dashboard-mockup-20260315151500.png
+
+I've added the dashboard mockup to the PRD. The design shows a card-based layout
+with metrics at the top. I'll reference this in the UX section.
+
+Continuing with Round 2...
+```
+
+**Error handling:**
+
+- If download fails: Inform user and ask for alternate source
+- If file is >10MB: Show warning but proceed
+- If duplicate detected: Inform user and ask whether to use existing or add new version
+- If unsupported file type: List supported types (png, jpg, jpeg, gif, svg, pdf, mp4)
+
+**Notes:**
+
+- Assets are stored in `.karimo/prds/{slug}/assets/planning/` with timestamped filenames
+- Metadata is tracked in `.karimo/prds/{slug}/assets.json`
+- PRD contains relative path references: `![Description](./assets/planning/filename.png)`
+- Images are NOT loaded into agent context (reference-only approach)
 
 ---
 
