@@ -187,11 +187,12 @@ claude
 
 This creates the PRD folder and runs research:
 
-1. **Creates folder structure** — `.karimo/prds/user-profiles/research/`
+1. **Creates folder structure** — `.karimo/prds/user-profiles/research/` and `assets/`
 2. **Asks focus questions** — What patterns to look for, external research topics
 3. **Scans codebase** — Finds patterns, dependencies, conventions
 4. **External research** — Best practices, libraries, documentation
-5. **Generates findings** — `research/findings.md` summary
+5. **Captures visual assets** — Downloads diagrams and screenshots from docs
+6. **Generates findings** — `research/findings.md` summary
 
 Research output:
 ```
@@ -205,6 +206,9 @@ Research output:
 │   │   ├── best-practices.md
 │   │   └── libraries.md
 │   └── findings.md          # Summary for interview
+├── assets/
+│   └── research/            # Screenshots and diagrams captured
+└── assets.json              # Asset metadata (if assets captured)
 ```
 
 ### 3. Run the Plan Command
@@ -235,6 +239,25 @@ The interviewer agent guides you through 4 rounds (research-informed):
 | 2 | **Requirements** — Priorities and acceptance criteria | ~10 min |
 | 3 | **Dependencies** — Task ordering and blockers | ~5 min |
 | 4 | **Retrospective** — Apply learnings from previous PRDs | ~3 min |
+
+**Visual Assets (NEW in v7.8):** During the interview, you can provide:
+- **Image URLs** — `https://example.com/mockup.png`
+- **Local file paths** — `/Users/you/Desktop/design.jpg`
+
+The interviewer automatically:
+- Downloads or copies the file
+- Stores in `assets/planning/` with timestamped filename
+- Updates `assets.json` metadata
+- Embeds markdown reference in PRD
+
+**Example interaction:**
+```
+You: Here's the dashboard mockup: https://example.com/dashboard.png
+
+Interviewer:
+✓ Image stored: planning-dashboard-mockup-20260315151500.png
+I've embedded the mockup in the PRD.
+```
 
 **Incremental Commits (v7.7+):** After each round, the PRD section is committed to git with a conventional commit message. This provides:
 - Git-based crash recovery if interrupted
@@ -459,6 +482,7 @@ KARIMO v7.0 uses a 4-phase execution model with a user approval loop before task
 - Reads research findings + PRD
 - Generates self-contained task briefs (`.karimo/prds/{slug}/briefs/`)
 - Each brief includes research context
+- **NEW in v7.8:** Briefs inherit asset references from PRD for tasks involving UI/design
 
 ### Phase 2: Auto-Review
 
