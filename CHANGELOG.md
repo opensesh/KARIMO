@@ -7,6 +7,88 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [7.8.0] - 2026-03-15
+
+**Asset Management System Release**
+
+This release introduces a comprehensive asset management system that enables storing and tracking visual artifacts (mockups, screenshots, diagrams) throughout the PRD lifecycle. Assets are organized by stage (research/planning/execution) with lightweight JSON metadata tracking, supporting the full workflow from initial research through final execution.
+
+### Added
+
+**Asset Management System**
+
+- **Stage-based organization** — Assets stored in `assets/research/`, `assets/planning/`, `assets/execution/` folders
+- **Lightweight JSON metadata** — Tracking via `assets.json` manifest with SHA256 duplicate detection
+- **Cross-platform bash utilities** — Works on macOS, Linux, WSL with no external dependencies
+- **Context-efficient references** — Markdown links only, no image data loaded into agent context
+- **Memory-efficient streaming** — No buffering for large files, <50MB per operation
+
+**Bash Utilities** (`.claude/skills/karimo-bash-utilities.md`)
+
+- `karimo_add_asset()` — Download or copy assets with automated metadata tracking
+- `karimo_list_assets()` — Display all assets for a PRD with filtering by stage
+- `karimo_get_asset_reference()` — Generate markdown references by ID or filename
+- `karimo_validate_assets()` — Check asset integrity and detect orphans/broken refs
+
+**Agent Integration**
+
+- **Interviewer** (`karimo-interviewer.md`) — Store user-provided images during planning interview
+- **Researcher** (`karimo-researcher.md`) — Download screenshots/diagrams during external research
+- **PM** (`karimo-pm.md`) — Handle execution-stage assets (bug screenshots, error states)
+- **Brief Writer** (`karimo-brief-writer.md`) — Inherit asset references in task briefs for UI/design tasks
+
+**Validation & Health Checks**
+
+- **Check 8: Asset Integrity** in `/karimo-doctor`
+  - Verify all manifest assets exist on disk
+  - Detect orphaned assets (on disk but not in manifest)
+  - Detect broken references (in manifest but missing from disk)
+  - Validate file sizes and types
+  - Non-blocking warnings for orphaned files
+
+**Documentation**
+
+- **ASSETS.md** — Comprehensive 700-line asset management guide
+  - Quick start for research/planning/execution stages
+  - Storage structure and naming conventions
+  - Metadata format (assets.json) specification
+  - Supported file types and size recommendations
+  - Agent integration details for all workflow stages
+  - Bash utilities reference with examples
+  - Troubleshooting guide for downloads, dependencies, cross-platform issues
+  - Complete workflow examples
+
+### Changed
+
+- **PRD Template** — Updated section 5 (UX & Interaction Notes) with visual assets guidance
+- **Doctor Command** — Now runs 8 diagnostic checks (was 5), includes asset integrity validation
+- **ARCHITECTURE.md** — Added Asset Management section with context/memory efficiency details
+- **COMMANDS.md** — Updated `/karimo-doctor` documentation with Check 8 details
+- **GETTING-STARTED.md** — Added asset workflow to research and planning sections
+- **README.md** — Added Asset Management feature to orchestration table, updated version badge
+
+### Technical Notes
+
+**Dependencies:**
+- Zero external dependencies (uses curl/wget, shasum, Node.js for JSON operations)
+- Streaming downloads prevent memory issues with large files
+- Cross-platform compatibility tested on macOS, Ubuntu 20.04+, WSL2, Alpine Linux
+
+**Storage:**
+- Metadata-only context approach (images not loaded into agent context)
+- SHA256 hashing for duplicate detection
+- Timestamped filenames ensure uniqueness and chronological ordering
+- Stage prefixes (`research-`, `planning-`, `execution-`) for visual scanning
+
+**Supported file types:** png, jpg, jpeg, gif, svg, pdf, mp4
+
+**File size recommendations:**
+- ✅ Under 1 MB: Optimal
+- ⚠️  1-10 MB: Acceptable (warning shown)
+- ❌ Over 10 MB: Not recommended (consider compression or external hosting)
+
+---
+
 ## [7.7.0] - 2026-03-15
 
 **Architectural Simplification & Enhanced Traceability Release**
