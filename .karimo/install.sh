@@ -215,9 +215,9 @@ echo
 
 # Create directory structure
 echo "Creating directories..."
-mkdir -p "$TARGET_DIR/.claude/agents/karimo"
-mkdir -p "$TARGET_DIR/.claude/commands/karimo"
-mkdir -p "$TARGET_DIR/.claude/skills/karimo"
+mkdir -p "$TARGET_DIR/.claude/agents"
+mkdir -p "$TARGET_DIR/.claude/commands"
+mkdir -p "$TARGET_DIR/.claude/skills"
 mkdir -p "$TARGET_DIR/.karimo/templates"
 mkdir -p "$TARGET_DIR/.karimo/prds"
 mkdir -p "$TARGET_DIR/.karimo/findings/by-prd"
@@ -228,14 +228,13 @@ mkdir -p "$TARGET_DIR/.github/ISSUE_TEMPLATE"
 # MANIFEST-DRIVEN FILE INSTALLATION
 # ==============================================================================
 
-# Copy agents from manifest (preserves subfolder structure)
+# Copy agents from manifest
 echo "Copying agents..."
 AGENT_COUNT=0
 for agent in $(manifest_list "agents"); do
     src="$KARIMO_ROOT/.claude/agents/$agent"
     dst="$TARGET_DIR/.claude/agents/$agent"
     if [ -f "$src" ]; then
-        mkdir -p "$(dirname "$dst")"
         cp "$src" "$dst"
         AGENT_COUNT=$((AGENT_COUNT + 1))
     else
@@ -244,14 +243,13 @@ for agent in $(manifest_list "agents"); do
 done
 echo "  Copied $AGENT_COUNT agents"
 
-# Copy commands from manifest (preserves subfolder structure)
+# Copy commands from manifest
 echo "Copying commands..."
 COMMAND_COUNT=0
 for cmd in $(manifest_list "commands"); do
     src="$KARIMO_ROOT/.claude/commands/$cmd"
     dst="$TARGET_DIR/.claude/commands/$cmd"
     if [ -f "$src" ]; then
-        mkdir -p "$(dirname "$dst")"
         cp "$src" "$dst"
         COMMAND_COUNT=$((COMMAND_COUNT + 1))
     else
@@ -260,14 +258,13 @@ for cmd in $(manifest_list "commands"); do
 done
 echo "  Copied $COMMAND_COUNT commands"
 
-# Copy skills from manifest (preserves subfolder structure)
+# Copy skills from manifest
 echo "Copying skills..."
 SKILL_COUNT=0
 for skill in $(manifest_list "skills"); do
     src="$KARIMO_ROOT/.claude/skills/$skill"
     dst="$TARGET_DIR/.claude/skills/$skill"
     if [ -f "$src" ]; then
-        mkdir -p "$(dirname "$dst")"
         cp "$src" "$dst"
         SKILL_COUNT=$((SKILL_COUNT + 1))
     else
@@ -590,9 +587,9 @@ echo -e "${GREEN}│  Installation Complete!                                    
 echo -e "${GREEN}╰──────────────────────────────────────────────────────────────╯${NC}"
 echo
 echo "Installed files:"
-echo "  .claude/agents/karimo/    $MANIFEST_AGENTS agent definitions"
-echo "  .claude/commands/karimo/  $MANIFEST_COMMANDS slash commands"
-echo "  .claude/skills/karimo/    $MANIFEST_SKILLS skill definitions"
+echo "  .claude/agents/           $MANIFEST_AGENTS agent definitions"
+echo "  .claude/commands/         $MANIFEST_COMMANDS slash commands"
+echo "  .claude/skills/           $MANIFEST_SKILLS skill definitions"
 echo "  .claude/KARIMO_RULES.md   Agent behavior rules"
 echo "  .karimo/templates/        $MANIFEST_TEMPLATES templates"
 echo "  .karimo/VERSION           Version tracking"
