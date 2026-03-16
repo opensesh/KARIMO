@@ -165,7 +165,7 @@ These files are **never modified** by updates:
 | File | Reason |
 |------|--------|
 | `.karimo/config.yaml` | Your project configuration |
-| `.karimo/learnings.md` | Your accumulated learnings |
+| `.karimo/learnings/` | Your accumulated learnings (categorized) |
 | `.karimo/prds/*` | Your PRD files |
 | `CLAUDE.md` | Your project instructions |
 

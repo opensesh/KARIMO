@@ -27,6 +27,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `karimo-doctor.md` — Updated 6 references, changed file check to directory check
 - `karimo-plan.md` — Updated 2 references to use categorized learnings
 - `karimo-configure.md` — Updated to reference categorized directories
+- `karimo-update.md` — Updated preserved files list to reference directory
 
 **Documentation Files**
 - `CLAUDE.md` — Updated 2 references to describe categorized structure
