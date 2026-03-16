@@ -21,15 +21,14 @@ When the `--test` flag is passed, run a lightweight pass/fail verification inste
 
 ### Test Suite
 
-Run these 5 tests:
+Run these 4 tests:
 
 | Test | Description |
 |------|-------------|
 | **1. File Presence** | Verify all required files exist per MANIFEST.json |
 | **2. Template Parsing** | Ensure templates have valid markdown structure |
 | **3. GitHub CLI Auth** | Verify `gh auth status` succeeds |
-| **4. State File Integrity** | Validate state.json is valid JSON (if exists) |
-| **5. CLAUDE.md Integration** | Verify KARIMO section and config files exist |
+| **4. CLAUDE.md Integration** | Verify KARIMO section and config files exist |
 
 ### Output Format
 
@@ -57,23 +56,18 @@ Test 3: GitHub CLI Auth
 
   ✅ Authenticated as @username
 
-Test 4: State File Integrity
-────────────────────────────
-
-  ✅ state.json           Valid JSON structure
-  ✅ prds/ directory      Exists with .gitkeep
-
-Test 5: CLAUDE.md Integration
+Test 4: CLAUDE.md Integration
 ─────────────────────────────
 
   ✅ KARIMO section        Present in CLAUDE.md (with markers)
   ✅ learnings.md          Present in .karimo/
   ✅ KARIMO_RULES.md       Present in .claude/
+  ✅ prds/ directory       Exists
 
 Summary
 ───────
 
-  ✅ 5/5 tests passed
+  ✅ 4/4 tests passed
 
   KARIMO installation verified.
 ```

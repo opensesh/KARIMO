@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [7.8.1] - 2026-03-16
+
+### Removed
+
+- **Global state.json** — Removed unused `.karimo/state.json` file. Per-PRD `status.json` files and GitHub are the actual sources of truth for execution state. This simplifies the data model and reduces agent cognitive load.
+
+### Changed
+
+- **`/karimo-doctor --test`** — Reduced from 5 tests to 4 tests (removed state.json integrity check)
+- **GLOSSARY.md** — Updated file structure documentation to reflect removal
+
+---
+
 ## [7.8.0] - 2026-03-15
 
 **Asset Management System Release**

@@ -145,7 +145,6 @@ Tasks and PRDs progress through defined lifecycle states:
 .karimo/
 ├── config.yaml         # Project configuration (runtime, commands, boundaries)
 ├── learnings.md        # Accumulated patterns/anti-patterns from feedback
-├── state.json          # Global KARIMO state
 ├── MANIFEST.json       # Installed component tracking
 └── VERSION             # Current KARIMO version
 ```
