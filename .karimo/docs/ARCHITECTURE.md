@@ -995,6 +995,85 @@ Estimates assume shared dependency store. Without sharing, multiply by 3-5x.
 
 ---
 
+## Asset Management
+
+KARIMO supports storing and tracking visual artifacts (images, screenshots, diagrams) throughout the PRD lifecycle.
+
+### Storage Model
+
+Assets are organized by stage:
+- `assets/research/` - External research findings, screenshots
+- `assets/planning/` - User-provided mockups, designs during PRD interview
+- `assets/execution/` - Bug screenshots, runtime context added during execution
+
+### Metadata Tracking
+
+Each PRD has an `assets.json` manifest that tracks:
+- Source URL or upload path
+- Stage when added (research/planning/execution)
+- Timestamp and agent that added it
+- SHA256 hash for duplicate detection
+- File size and MIME type
+- References (which files link to this asset)
+
+**Example metadata:**
+```json
+{
+  "version": "1.0",
+  "assets": [
+    {
+      "id": "asset-001",
+      "filename": "planning-mockup-20260315151500.png",
+      "originalSource": "https://example.com/mockup.png",
+      "sourceType": "url",
+      "stage": "planning",
+      "timestamp": "2026-03-15T15:15:00Z",
+      "addedBy": "karimo-interviewer",
+      "description": "Dashboard mockup",
+      "size": 128000,
+      "mimeType": "image/png",
+      "sha256": "a3b5c7d9..."
+    }
+  ]
+}
+```
+
+### Context Efficiency
+
+Assets are **never loaded into agent context**. Instead:
+- Agents read lightweight metadata from `assets.json`
+- PRDs and briefs contain markdown references: `![Desc](./assets/planning/file.png)`
+- Visual content is accessed on-demand via file paths
+
+**Token impact:**
+- Manifest file: ~50-100 tokens per PRD (even with 20+ assets)
+- Image references: ~10 tokens each (markdown link only)
+- No image data in context (images are external files)
+
+### Memory Efficiency
+
+Large files are handled via streaming downloads:
+- `curl` writes directly to disk (no in-memory buffering)
+- `shasum` reads files in chunks (system-level, no bash memory use)
+- File size warnings shown for files >10MB
+- Assets processed sequentially (one at a time)
+
+**Memory footprint:** <50MB per asset operation (bash + curl + Node.js JSON updates)
+
+### Cross-Platform Compatibility
+
+Bash utilities handle platform differences:
+- **Download:** curl (macOS/Linux/WSL) or wget fallback
+- **File size:** `stat -f%z` (macOS) vs `stat -c%s` (Linux)
+- **Hashing:** `shasum` (universal) vs `sha256sum` (Linux-only fallback)
+- **Paths:** Forward slashes work on all platforms including WSL
+
+**Tested environments:** macOS, Ubuntu 20.04+, WSL2, Alpine Linux
+
+See [ASSETS.md](./ASSETS.md) for complete guide.
+
+---
+
 ## GitHub Integration
 
 ### Workflows
