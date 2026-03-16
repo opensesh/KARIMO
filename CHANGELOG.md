@@ -7,6 +7,51 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [7.9.0] - 2026-03-16
+
+### Changed
+
+- **Reorganized KARIMO files into `karimo/` subfolders** — All KARIMO agents, commands, and skills now live in a dedicated subfolder, improving organization and reducing clutter when mixed with project-specific files.
+
+**New Structure:**
+```
+.claude/
+├── agents/
+│   ├── karimo/              # KARIMO agents
+│   │   ├── pm.md
+│   │   ├── implementer.md
+│   │   └── ...
+│   └── your-agent.md        # Your project agents
+├── commands/
+│   ├── karimo/              # KARIMO commands (keep karimo- prefix)
+│   │   ├── karimo-plan.md
+│   │   ├── karimo-run.md
+│   │   └── ...
+│   └── your-command.md      # Your project commands
+└── skills/
+    ├── karimo/              # KARIMO skills
+    │   ├── code-standards.md
+    │   └── ...
+    └── your-skill.md        # Your project skills
+```
+
+**File Naming:**
+- Agents: Prefix removed (e.g., `karimo-pm.md` → `karimo/pm.md`)
+- Commands: Prefix kept to preserve slash command names (e.g., `karimo-plan.md` → `karimo/karimo-plan.md`)
+- Skills: Prefix removed (e.g., `karimo-code-standards.md` → `karimo/code-standards.md`)
+
+### Added
+
+- **Migration logic in update.sh** — Automatically migrates existing flat-file installations to the new subfolder structure. Old files are removed during update, and new files are installed to the `karimo/` subfolders.
+
+### Fixed
+
+- **Cross-references** — Updated all path references in agent, command, and skill files to use the new subfolder structure
+- **Overview files** — Updated `agents.overview.md` and `skills.overview.md` with correct paths
+- **Doctor command** — Updated file counting paths to check `karimo/` subfolders
+
+---
+
 ## [7.8.2] - 2026-03-16
 
 ### Fixed
