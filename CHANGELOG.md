@@ -11,26 +11,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- **Restored `karimo-` prefix on agent and skill filenames** — All agent and skill files now include the `karimo-` prefix for consistency with commands. This improves traceability and auditability when KARIMO agents are invoked.
+- **Reverted to flat file structure** — Commands now appear as `/karimo-configure` instead of `/karimo:karimo-configure`. The v7.9.0 subfolder organization caused double namespace redundancy in Claude Code CLI.
 
-**Updated Naming:**
+**File Structure:**
 
 | Component | Old (7.9.0) | New (7.10.0) |
 |-----------|-------------|--------------|
-| Agents | `karimo/pm.md` | `karimo/karimo-pm.md` |
-| Skills | `karimo/code-standards.md` | `karimo/karimo-code-standards.md` |
-| Commands | `karimo/karimo-plan.md` | `karimo/karimo-plan.md` (unchanged) |
+| Agents | `.claude/agents/karimo/karimo-pm.md` | `.claude/agents/karimo-pm.md` |
+| Commands | `.claude/commands/karimo/karimo-plan.md` | `.claude/commands/karimo-plan.md` |
+| Skills | `.claude/skills/karimo/karimo-bash-utilities.md` | `.claude/skills/karimo-bash-utilities.md` |
 
-**Rationale:**
-- Double redundancy is intentional for clear identification
-- Agent invocations now clearly show "karimo-" in the name
-- Consistent naming across all KARIMO components (agents, commands, skills)
-- Better auditability for end-users tracking KARIMO operations
+### Removed
+
+- **Abstract files (35 files)** — The `.abstract.md` files were inspired by OpenViking Protocol but never actually used by any agents. Removed to reduce maintenance overhead.
+- **OpenViking Protocol references** — Removed from README.md and architecture docs since the implementation was incomplete.
 
 ### Fixed
 
-- **Internal cross-references** — Updated all path references in agent, skill, and overview files to use new `karimo-` prefixed filenames
-- **MANIFEST.json** — Updated to reflect new filenames
+- **CLI namespace** — Commands now show as `/karimo-configure` instead of `/karimo:karimo-configure`
+- **Abstract file visibility** — `.abstract.md` files no longer appear in command list
+- **Update migration** — `update.sh` now automatically migrates existing installs from subfolder to flat structure
 
 ---
 
