@@ -131,33 +131,24 @@ manifest_get() {
 }
 
 # Remove files not in manifest (handles renames/deletions)
-# Supports both flat files (*.md) and subfolder files (karimo/*.md)
+# Works with flat structure (karimo-*.md files at root level)
 cleanup_stale_files() {
     local dir="$1"
     local manifest_key="$2"
     local manifest_file="$3"
-    local subdir="${4:-}"  # Optional subdirectory (e.g., "karimo")
     local removed=0
 
     # Get list of files that SHOULD exist (from manifest)
     local expected_files=$(manifest_list "$manifest_key" "$manifest_file")
 
-    # Determine search path
-    local search_dir="$dir"
-    [ -n "$subdir" ] && search_dir="$dir/$subdir"
-
-    # Check each .md file in directory
-    for file in "$search_dir"/*.md; do
+    # Check each karimo-*.md file in directory (flat structure)
+    for file in "$dir"/karimo-*.md; do
         [ -f "$file" ] || continue
         local filename=$(basename "$file")
 
-        # Build relative path for comparison
-        local rel_path="$filename"
-        [ -n "$subdir" ] && rel_path="$subdir/$filename"
-
         # If not in manifest, remove it
-        if ! echo "$expected_files" | grep -qx "$rel_path"; then
-            echo "    Removing stale: $rel_path" >&2
+        if ! echo "$expected_files" | grep -qx "$filename"; then
+            echo "    Removing stale: $filename" >&2
             rm "$file"
             removed=$((removed + 1))
         fi
@@ -190,6 +181,23 @@ cleanup_deprecated() {
         done
     done
 
+    # Handle abstract_files section (cleanup from v7.9.0 subfolder structure)
+    local deprecated_abstracts=$(sed -n '/"deprecated"/,/^[[:space:]]*}/p' "$manifest_file" | \
+        sed -n '/"abstract_files"/,/]/p' | grep '"' | grep -v '"abstract_files"' | \
+        sed 's/.*"\([^"]*\)".*/\1/')
+
+    for file in $deprecated_abstracts; do
+        # Check in all three locations (agents, commands, skills)
+        for category in agents commands skills; do
+            local path="$target_dir/.claude/$category/$file"
+            if [ -f "$path" ]; then
+                echo "    Removing abstract: $file" >&2
+                rm "$path"
+                removed=$((removed + 1))
+            fi
+        done
+    done
+
     # Handle templates separately (different path)
     local deprecated_templates=$(sed -n '/"deprecated"/,/^[[:space:]]*}/p' "$manifest_file" | \
         sed -n '/"templates"/,/]/p' | grep '"' | grep -v '"templates"' | \
@@ -201,6 +209,16 @@ cleanup_deprecated() {
             echo "    Removing deprecated template: $file" >&2
             rm "$path"
             removed=$((removed + 1))
+        fi
+    done
+
+    # Remove empty karimo/ subfolders (migration from v7.9.0)
+    for category in agents commands skills; do
+        if [ -d "$target_dir/.claude/$category/karimo" ]; then
+            if [ -z "$(ls -A "$target_dir/.claude/$category/karimo")" ]; then
+                echo "    Removing empty karimo/ subfolder from $category..." >&2
+                rmdir "$target_dir/.claude/$category/karimo"
+            fi
         fi
     done
 
@@ -459,10 +477,10 @@ UPDATED_SKILLS=0
 UPDATED_TEMPLATES=0
 UPDATED_WORKFLOWS=0
 
-# Create directories if needed (including karimo subfolders)
-mkdir -p "$PROJECT_ROOT/.claude/agents/karimo"
-mkdir -p "$PROJECT_ROOT/.claude/commands/karimo"
-mkdir -p "$PROJECT_ROOT/.claude/skills/karimo"
+# Create directories if needed (flat structure)
+mkdir -p "$PROJECT_ROOT/.claude/agents"
+mkdir -p "$PROJECT_ROOT/.claude/commands"
+mkdir -p "$PROJECT_ROOT/.claude/skills"
 mkdir -p "$PROJECT_ROOT/.karimo/templates"
 mkdir -p "$PROJECT_ROOT/.karimo/learnings/patterns"
 mkdir -p "$PROJECT_ROOT/.karimo/learnings/anti-patterns"
@@ -531,80 +549,87 @@ for subdir in by-prd by-pattern; do
 done
 
 # ==============================================================================
-# MIGRATE OLD FLAT STRUCTURE TO SUBFOLDER STRUCTURE
+# MIGRATE OLD SUBFOLDER STRUCTURE TO FLAT STRUCTURE (v7.10.0+)
 # ==============================================================================
-# If old flat files exist (karimo-*.md at root level), remove them
-# The new files will be installed to karimo/ subfolder
+# If old subfolder files exist (karimo/*.md), move them to flat structure
+# This handles migration from v7.9.0 subfolder organization
 
-migrate_flat_to_subfolder() {
+migrate_subfolder_to_flat() {
     local dir="$1"
-    local pattern="$2"
     local migrated=0
 
-    for file in "$dir"/$pattern; do
-        [ -f "$file" ] || continue
-        # Only remove if it's a karimo- prefixed file at root level (not in karimo/ subfolder)
-        local filename=$(basename "$file")
-        local dirname=$(dirname "$file")
-        if [[ "$filename" == karimo-* ]] && [[ "$dirname" != *"/karimo" ]]; then
-            echo "    Migrating: $filename (removing old flat location)" >&2
-            rm "$file"
-            migrated=$((migrated + 1))
+    # Check if karimo/ subfolder exists
+    if [ -d "$dir/karimo" ]; then
+        for file in "$dir/karimo"/*.md; do
+            [ -f "$file" ] || continue
+            local filename=$(basename "$file")
+            # Move to parent directory (flat structure)
+            if [ ! -f "$dir/$filename" ]; then
+                echo "    Migrating: karimo/$filename -> $filename" >&2
+                mv "$file" "$dir/$filename"
+                migrated=$((migrated + 1))
+            else
+                # File already exists at flat location, just remove subfolder copy
+                rm "$file"
+            fi
+        done
+
+        # Remove empty karimo/ directory
+        if [ -z "$(ls -A "$dir/karimo" 2>/dev/null)" ]; then
+            rmdir "$dir/karimo" 2>/dev/null || true
         fi
-    done
+    fi
 
     if [ $migrated -gt 0 ]; then
-        echo "    Migrated $migrated files from flat to subfolder structure" >&2
+        echo "    Migrated $migrated files from subfolder to flat structure" >&2
     fi
 }
 
-echo "  Migrating to subfolder structure if needed..."
-migrate_flat_to_subfolder "$PROJECT_ROOT/.claude/agents" "karimo-*.md"
-migrate_flat_to_subfolder "$PROJECT_ROOT/.claude/commands" "karimo-*.md"
-migrate_flat_to_subfolder "$PROJECT_ROOT/.claude/skills" "karimo-*.md"
+echo "  Migrating from subfolder to flat structure if needed..."
+migrate_subfolder_to_flat "$PROJECT_ROOT/.claude/agents"
+migrate_subfolder_to_flat "$PROJECT_ROOT/.claude/commands"
+migrate_subfolder_to_flat "$PROJECT_ROOT/.claude/skills"
 
-# Update agents (preserves subfolder structure)
+# Update agents (flat structure)
 echo "  Updating agents..."
 for agent in $(manifest_list "agents" "$MANIFEST"); do
     src="$KARIMO_SOURCE/.claude/agents/$agent"
     dst="$PROJECT_ROOT/.claude/agents/$agent"
     if [ -f "$src" ]; then
-        mkdir -p "$(dirname "$dst")"
         cp "$src" "$dst"
         UPDATED_AGENTS=$((UPDATED_AGENTS + 1))
     fi
 done
 
-# Update commands (preserves subfolder structure)
+# Update commands (flat structure)
 echo "  Updating commands..."
 for cmd in $(manifest_list "commands" "$MANIFEST"); do
     src="$KARIMO_SOURCE/.claude/commands/$cmd"
     dst="$PROJECT_ROOT/.claude/commands/$cmd"
     if [ -f "$src" ]; then
-        mkdir -p "$(dirname "$dst")"
         cp "$src" "$dst"
         UPDATED_COMMANDS=$((UPDATED_COMMANDS + 1))
     fi
 done
 
-# Update skills (preserves subfolder structure)
+# Update skills (flat structure)
 echo "  Updating skills..."
 for skill in $(manifest_list "skills" "$MANIFEST"); do
     src="$KARIMO_SOURCE/.claude/skills/$skill"
     dst="$PROJECT_ROOT/.claude/skills/$skill"
     if [ -f "$src" ]; then
-        mkdir -p "$(dirname "$dst")"
         cp "$src" "$dst"
         UPDATED_SKILLS=$((UPDATED_SKILLS + 1))
     fi
 done
 
-# Cleanup stale files in karimo/ subfolders (handles renames/deletions)
+# Cleanup stale files (handles renames/deletions)
 echo "  Cleaning up stale files..."
-CLEANED_AGENTS=$(cleanup_stale_files "$PROJECT_ROOT/.claude/agents" "agents" "$MANIFEST" "karimo")
-CLEANED_COMMANDS=$(cleanup_stale_files "$PROJECT_ROOT/.claude/commands" "commands" "$MANIFEST" "karimo")
-CLEANED_SKILLS=$(cleanup_stale_files "$PROJECT_ROOT/.claude/skills" "skills" "$MANIFEST" "karimo")
-CLEANED_TEMPLATES=$(cleanup_stale_files "$PROJECT_ROOT/.karimo/templates" "templates" "$MANIFEST" "")
+CLEANED_AGENTS=$(cleanup_stale_files "$PROJECT_ROOT/.claude/agents" "agents" "$MANIFEST")
+CLEANED_COMMANDS=$(cleanup_stale_files "$PROJECT_ROOT/.claude/commands" "commands" "$MANIFEST")
+CLEANED_SKILLS=$(cleanup_stale_files "$PROJECT_ROOT/.claude/skills" "skills" "$MANIFEST")
+# Templates use different naming pattern, check manually
+CLEANED_TEMPLATES=0
 
 TOTAL_CLEANED=$((CLEANED_AGENTS + CLEANED_COMMANDS + CLEANED_SKILLS + CLEANED_TEMPLATES))
 if [ $TOTAL_CLEANED -gt 0 ]; then
