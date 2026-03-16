@@ -838,6 +838,64 @@ When all tasks in a wave have merged PRs:
 
 ---
 
+#### 3c. User-Provided Context During Execution
+
+If the user provides additional context (bug screenshots, error states, visual clarifications) during execution:
+
+**Asset Handling:**
+
+1. **Store execution-stage assets** using karimo_add_asset():
+   ```bash
+   source .claude/skills/karimo-bash-utilities.md
+   karimo_add_asset "$PRD_SLUG" "$IMAGE_SOURCE" "execution" "$DESCRIPTION" "karimo-pm"
+   ```
+
+2. **Parameters:**
+   - `$PRD_SLUG` - Current PRD slug
+   - `$IMAGE_SOURCE` - URL or local file path
+   - `"execution"` - Always use "execution" stage for PM-added assets
+   - `$DESCRIPTION` - Brief description (e.g., "Bug screenshot", "Error state")
+   - `"karimo-pm"` - Agent name (always this value)
+
+3. **Update relevant task brief or create findings file:**
+   - If specific to one task: Add to `briefs/{task-id}_{slug}.md` under "## Additional Context"
+   - If applies to multiple tasks: Create `execution-context-{timestamp}.md` in PRD folder
+   - Include markdown reference to asset
+
+4. **Notify active workers** (if applicable):
+   - Leave PR comment with asset reference
+   - Or re-spawn worker with updated brief context
+
+**Example:**
+
+```
+User: Here's a screenshot of the error state I'm seeing:
+      /Users/me/Desktop/error-screenshot.png
+
+PM:
+[Calls karimo_add_asset]
+✓ Asset stored: execution-error-state-20260315163000.png
+
+I've added this to the task brief for task 2a (error handling).
+The worker will see this context when implementing the fix.
+```
+
+**When to use execution-stage assets:**
+
+- Bug screenshots from user testing
+- Error states not covered in original PRD
+- Visual clarifications requested by workers
+- Runtime behavior examples
+- Console output screenshots (for debugging context)
+
+**Notes:**
+
+- Execution assets are NOT part of original design/requirements
+- They represent runtime context discovered during implementation
+- Store separately from planning assets to maintain stage clarity
+
+---
+
 ### Step 4: Finalization
 
 **Trigger:** All task PRs merged to target branch (base_branch).
