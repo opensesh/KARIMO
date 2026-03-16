@@ -1041,6 +1041,9 @@ Summary
 | Ghost branches | Re-run `/karimo-run --prd {slug}` |
 | Status-PR mismatch | Re-run `/karimo-run --prd {slug}` |
 | Pending cleanup | Re-run `/karimo-run --prd {slug}` |
+| Orphaned assets | Remove manually: `rm <filepath>` |
+| Broken asset references | Re-download asset or remove from manifest |
+| Asset size mismatch | Re-download asset |
 
 Or if all checks pass:
 
@@ -1052,6 +1055,87 @@ Summary
 
   KARIMO installation is healthy.
 ```
+
+---
+
+### Check 8: Asset Integrity
+
+**Purpose:** Validate asset storage consistency across all PRDs.
+
+**Skip this check if no PRDs exist or no assets.json files found.**
+
+#### 8a. Manifest Validation
+
+For each PRD with an `assets.json` file:
+
+```bash
+for prd_dir in .karimo/prds/*/; do
+  prd_slug=$(basename "$prd_dir")
+  manifest="${prd_dir}assets.json"
+
+  if [ ! -f "$manifest" ]; then
+    continue  # No assets for this PRD
+  fi
+
+  # Call karimo_validate_assets from bash utilities
+  source .claude/skills/karimo-bash-utilities.md
+  karimo_validate_assets "$prd_slug"
+done
+```
+
+#### 8b. Issues Detected
+
+**Broken References:**
+- Files listed in manifest but missing from disk
+- Indicates accidental deletion or incomplete asset download
+
+**Orphaned Files:**
+- Files on disk in `assets/*/` folders but not tracked in manifest
+- Indicates manual file additions or manifest corruption
+
+**Size Mismatches:**
+- File size on disk doesn't match manifest metadata
+- Indicates file corruption or partial download
+
+#### Output Format
+
+```bash
+Check 8: Asset Integrity
+────────────────────────
+
+PRD: user-profiles
+  ✅ 5/5 assets validated
+
+PRD: token-studio
+  ✅ 3/3 assets validated
+  ⚠️  1 orphaned file: assets/planning/old-mockup.png
+      Run: rm .karimo/prds/token-studio/assets/planning/old-mockup.png
+
+PRD: authentication-flow
+  ❌ 1 broken reference: asset-003 (file missing from disk)
+      Asset: planning-design-system-20260315151500.png
+      Action: Re-download or remove from manifest
+
+Summary:
+  ✅ 8 assets validated across 3 PRDs
+  ⚠️  1 orphaned asset (non-blocking)
+  ❌ 1 broken reference (requires action)
+```
+
+**Status determination:**
+- ✅ **Pass:** All assets valid (orphans are warnings, not failures)
+- ⚠️  **Warning:** Orphaned files exist (cleanup recommended)
+- ❌ **Fail:** Broken references exist (requires user action)
+
+#### Recommendations
+
+| Issue Type | Recommendation |
+|------------|----------------|
+| Orphaned files | Remove manually or update manifest to track them |
+| Broken references | Re-download asset or remove manifest entry |
+| Size mismatches | Re-download asset (indicates corruption) |
+
+---
 
 ## Error States
 
@@ -1174,6 +1258,27 @@ cat package.json | grep -o '"[^"]*"[[:space:]]*:' | tr -d '":' | head -20
 # Check 5: Phase Assessment
 ls .karimo/prds/*/status.json
 # Parse status.json files for state
+
+# Check 6: Execution Mode Validation
+grep "^execution_mode:" .karimo/config.yaml
+
+# Check 7: Execution Health
+# Parse status.json for running tasks with timestamps
+# Check git worktree list for orphaned worktrees
+git worktree list
+git branch --list 'worktree/*'
+
+# Check 8: Asset Integrity
+# For each PRD with assets.json
+for prd_dir in .karimo/prds/*/; do
+  prd_slug=$(basename "$prd_dir")
+  manifest="${prd_dir}assets.json"
+
+  if [ -f "$manifest" ]; then
+    source .claude/skills/karimo-bash-utilities.md
+    karimo_validate_assets "$prd_slug"
+  fi
+done
 ```
 
 ### Key Implementation Behaviors
