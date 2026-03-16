@@ -115,7 +115,7 @@ Full research details available in:
 
 To refine this research:
 1. Add annotations to research artifacts using `<!-- ANNOTATION -->` syntax
-2. Run: `/karimo-research --refine --prd {slug}`
+2. Run: `/karimo:research --refine --prd {slug}`
 
 See `.karimo/templates/ANNOTATION_GUIDE.md` for annotation syntax.
 

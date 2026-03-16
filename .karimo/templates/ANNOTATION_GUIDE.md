@@ -192,7 +192,7 @@ text: "Research React Suspense integration with error boundaries"
 ### Step 3: Run Refinement
 
 ```bash
-/karimo-research --refine --prd {slug}
+/karimo:research --refine --prd {slug}
 ```
 
 ### Step 4: Review Refined Research
@@ -206,7 +206,7 @@ Check:
 
 If more refinement needed:
 - Add more annotations
-- Run `/karimo-research --refine --prd {slug}` again
+- Run `/karimo:research --refine --prd {slug}` again
 - Repeat until satisfied
 
 ---
@@ -358,9 +358,9 @@ text: "Does this affect the import statements in existing components?"
 
 ## Related Commands
 
-- `/karimo-research --prd {slug}` — Initial research
-- `/karimo-research --refine --prd {slug}` — Process annotations
-- `/karimo-status --prd {slug}` — Check research status
+- `/karimo:research --prd {slug}` — Initial research
+- `/karimo:research --refine --prd {slug}` — Process annotations
+- `/karimo:status --prd {slug}` — Check research status
 
 ---
 
@@ -369,7 +369,7 @@ text: "Does this affect the import statements in existing components?"
 ### Initial Research
 
 ```bash
-/karimo-research --prd user-profiles
+/karimo:research --prd user-profiles
 ```
 
 Research completed, PRD enhanced.
@@ -399,7 +399,7 @@ text: "Research file upload validation patterns (size limits, file types)"
 ### Refine
 
 ```bash
-/karimo-research --refine --prd user-profiles
+/karimo:research --refine --prd user-profiles
 ```
 
 ### Review Results
@@ -464,4 +464,4 @@ text: "Architectural decision made and why"
 -->
 ```
 
-Run refinement: `/karimo-research --refine --prd {slug}`
+Run refinement: `/karimo:research --refine --prd {slug}`

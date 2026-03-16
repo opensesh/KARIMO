@@ -44,7 +44,7 @@ KARIMO uses `.karimo/MANIFEST.json` as the single source of truth for installed 
 }
 ```
 
-> **Note:** KARIMO installs zero workflows by default. Greptile integration is available via `/karimo-configure --greptile`.
+> **Note:** KARIMO installs zero workflows by default. Greptile integration is available via `/karimo:configure --greptile`.
 
 ---
 
@@ -68,7 +68,7 @@ Everything is installed into your project via `install.sh` — no binaries, no b
 
 **Incremental PRD Commits**
 
-The interview agent (`karimo-interviewer`) now commits PRD sections progressively during `/karimo-plan`:
+The interview agent (`karimo-interviewer`) now commits PRD sections progressively during `/karimo:plan`:
 - **Round 1:** Executive summary → commit with message `docs(karimo): add PRD framing for {slug}`
 - **Round 2:** Requirements → commit with message `docs(karimo): add PRD requirements for {slug}`
 - **Round 3:** Dependencies → commit with message `docs(karimo): add PRD dependencies for {slug}`
@@ -87,13 +87,13 @@ The interview agent (`karimo-interviewer`) now commits PRD sections progressivel
 
 **Enhanced Merge Reports**
 
-The `/karimo-merge` command generates PR descriptions with markdown/code breakdown:
+The `/karimo:merge` command generates PR descriptions with markdown/code breakdown:
 - Separates documentation files (`.md`, `.mdx`) from production code
 - Shows file counts and line additions/deletions for each category
 - Provides transparency in PR scope and complexity assessment
 
 **Implementation:**
-- Statistics calculation: Bash code in `.claude/commands/karimo-merge.md` (lines 105-128)
+- Statistics calculation: Bash code in `.claude/commands/karimo/merge.md` (lines 105-128)
 - PR body template: Enhanced template includes breakdown section (lines 386-388)
 - Git diff parsing: Uses `git diff --numstat` with grep filtering for markdown detection
 
@@ -241,16 +241,16 @@ Target Project/
 │   │   ├── karimo-documenter.md     # Task agent: docs (Sonnet)
 │   │   └── karimo-documenter-opus.md # Task agent: docs (Opus)
 │   ├── commands/                    # 10 commands from manifest
-│   │   ├── karimo-configure.md      # /karimo-configure
-│   │   ├── karimo-dashboard.md      # /karimo-dashboard (includes status)
-│   │   ├── karimo-doctor.md         # /karimo-doctor (includes --test)
-│   │   ├── karimo-feedback.md       # /karimo-feedback (unified with complexity detection)
-│   │   ├── karimo-help.md           # /karimo-help
-│   │   ├── karimo-merge.md          # /karimo-merge (final PR to main)
-│   │   ├── karimo-plan.md           # /karimo-plan (with interactive review)
-│   │   ├── karimo-research.md       # /karimo-research (required first step)
-│   │   ├── karimo-run.md            # /karimo-run (brief gen + execution)
-│   │   └── karimo-update.md         # /karimo-update
+│   │   ├── karimo-configure.md      # /karimo:configure
+│   │   ├── karimo-dashboard.md      # /karimo:dashboard (includes status)
+│   │   ├── karimo-doctor.md         # /karimo:doctor (includes --test)
+│   │   ├── karimo-feedback.md       # /karimo:feedback (unified with complexity detection)
+│   │   ├── karimo-help.md           # /karimo:help
+│   │   ├── karimo-merge.md          # /karimo:merge (final PR to main)
+│   │   ├── karimo-plan.md           # /karimo:plan (with interactive review)
+│   │   ├── karimo-research.md       # /karimo:research (required first step)
+│   │   ├── karimo-run.md            # /karimo:run (brief gen + execution)
+│   │   └── karimo-update.md         # /karimo:update
 │   ├── skills/                      # 6 skills from manifest
 │   │   ├── karimo-bash-utilities.md       # Bash utilities
 │   │   ├── karimo-research-methods.md     # Research methodology
@@ -296,8 +296,8 @@ bash KARIMO/.karimo/install.sh --ci /path/to/project
 KARIMO follows Anthropic's best practice of keeping CLAUDE.md minimal. `install.sh` uses a **modular approach**:
 
 1. **Copies** `KARIMO_RULES.md` to `.claude/KARIMO_RULES.md` (agent behavior rules)
-2. **Creates** `.karimo/config.yaml` (project configuration — filled by `/karimo-configure`)
-3. **Creates** `.karimo/learnings/` directory (categorized learnings — filled by `/karimo-feedback`)
+2. **Creates** `.karimo/config.yaml` (project configuration — filled by `/karimo:configure`)
+3. **Creates** `.karimo/learnings/` directory (categorized learnings — filled by `/karimo:feedback`)
 4. **Creates** `.karimo/findings/` directory (cross-PRD patterns — populated during execution)
 5. **Appends** a minimal reference block (~8 lines) to `CLAUDE.md`:
 
@@ -472,7 +472,7 @@ mv .karimo/hooks/pre-task.sh .karimo/hooks/pre-task.sh.disabled
 
 ```
 ┌──────────────────────┐    ┌─────────────────────────────────────────┐    ┌─────────────────────────────────────────┐    ┌────────────┐    ┌─────────────┐    ┌───────────┐
-│   /karimo-research   │    │            /karimo-plan                 │    │           /karimo-run                   │    │   Review   │    │ Reconcile   │    │   Merge   │
+│   /karimo:research   │    │            /karimo:plan                 │    │           /karimo:run                   │    │   Review   │    │ Reconcile   │    │   Merge   │
 │  (required first)    │ →  │  Interview → PRD → Review → Approve     │ →  │  Brief Gen → Agent Execution → PRs     │ →  │ (Greptile) │ →  │ (Architect) │ →  │   (PR)    │
 │  Pattern Discovery   │    │                                         │    │                                         │    │            │    │             │    │           │
 └──────────────────────┘    └─────────────────────────────────────────┘    └─────────────────────────────────────────┘    └────────────┘    └─────────────┘    └───────────┘
@@ -506,7 +506,7 @@ task-branch-1b ─┘         ▲                  ▲
 - Human reviews and approves final merge
 - This is the single human approval gate per feature
 
-### Interview Phase (`/karimo-plan`)
+### Interview Phase (`/karimo:plan`)
 
 1. **Intake**: User provides initial context
 2. **Investigator**: Scans codebase for patterns
@@ -521,15 +521,15 @@ task-branch-1b ─┘         ▲                  ▲
 - `status.json` — Execution tracking (status: `ready` when approved)
 - `findings.md` — Cross-task discoveries (populated during execution)
 
-### Research Phase (`/karimo-research`)
+### Research Phase (`/karimo:research`)
 
-Research is the required first step in v7.0. Run `/karimo-research "feature-name"` to create the PRD folder and run research before `/karimo-plan`.
+Research is the required first step in v7.0. Run `/karimo:research "feature-name"` to create the PRD folder and run research before `/karimo:plan`.
 
 **Two Research Modes:**
 
 1. **General Research** (not tied to PRD):
    ```bash
-   /karimo-research "topic to research"
+   /karimo:research "topic to research"
    ```
    - Interactive questions about research focus
    - Internal codebase research (if relevant)
@@ -540,7 +540,7 @@ Research is the required first step in v7.0. Run `/karimo-research "feature-name
 
 2. **PRD-Scoped Research** (enhances specific PRD):
    ```bash
-   /karimo-research --prd {slug}
+   /karimo:research --prd {slug}
    ```
    - Loads PRD context
    - Offers import from general research
@@ -590,7 +590,7 @@ text: "feedback text"
 
 Then refine:
 ```bash
-/karimo-research --refine --prd {slug}
+/karimo:research --refine --prd {slug}
 ```
 
 Refiner agent processes annotations, updates research, re-enhances PRD.
@@ -608,7 +608,7 @@ Refiner agent processes annotations, updates research, re-enhances PRD.
 - Knowledge accumulation (build reusable pattern library)
 - Reduced execution errors (research-informed briefs)
 
-### Execution Phase (`/karimo-run`)
+### Execution Phase (`/karimo:run`)
 
 **Phase 1: Brief Generation**
 1. Brief Writer generates self-contained briefs per task
@@ -694,21 +694,21 @@ graph TD
 
 ### Review Phase (Phase 2)
 
-When automated review is enabled via `/karimo-configure --review`:
+When automated review is enabled via `/karimo:configure --review`:
 
-**Option A: Greptile** (`/karimo-configure --greptile`)
+**Option A: Greptile** (`/karimo:configure --greptile`)
 - `karimo-greptile-review.yml` triggers Greptile review on PR open
 - Greptile scores PRs (0-5 scale)
 - Score < 3 triggers agent revision loop
 
-**Option B: Claude Code Review** (`/karimo-configure --code-review`)
+**Option B: Claude Code Review** (`/karimo:configure --code-review`)
 - Code Review activates automatically on PR
 - Posts inline comments with severity markers (🔴 🟡 🟣)
 - 🔴 findings trigger agent revision loop
 
-### Human Oversight (`/karimo-dashboard`)
+### Human Oversight (`/karimo:dashboard`)
 
-After execution completes (or during long runs), use `/karimo-dashboard` to surface:
+After execution completes (or during long runs), use `/karimo:dashboard` to surface:
 - Tasks blocked by Greptile review failures (needs human intervention)
 - Tasks in active revision loops
 - Tasks with merge conflicts (needs human rebase)
@@ -962,7 +962,7 @@ Beyond action-level loop detection (same command 3+ times), KARIMO detects **sem
 
 #### Orphan Detection (v7.7.0)
 
-`/karimo-doctor` (Check 6b) and `/karimo-dashboard` (Critical Alerts) detect orphaned worktree branches using git-native queries:
+`/karimo:doctor` (Check 6b) and `/karimo:dashboard` (Critical Alerts) detect orphaned worktree branches using git-native queries:
 
 ```bash
 # Orphan Type 1: Branch exists but PRD folder deleted
@@ -1082,7 +1082,7 @@ KARIMO installs zero workflows by default. Your existing CI (GitHub Actions, Cir
 
 **Optional Greptile integration:**
 ```
-/karimo-configure --greptile
+/karimo:configure --greptile
 ```
 
 This installs `karimo-greptile-review.yml` for automated code review. Requires `GREPTILE_API_KEY` secret.
@@ -1134,7 +1134,7 @@ PRs are created with KARIMO metadata:
 
 ## Configuration
 
-KARIMO configuration lives in `.karimo/config.yaml`. Run `/karimo-configure` to auto-detect your project and populate this file:
+KARIMO configuration lives in `.karimo/config.yaml`. Run `/karimo:configure` to auto-detect your project and populate this file:
 
 ```yaml
 # Example .karimo/config.yaml
@@ -1230,7 +1230,7 @@ The PM Agent automatically identifies tasks that warrant learning capture:
 - **Model escalation** — Tasks that required Sonnet → Opus upgrade
 - **Low Greptile scores** — Tasks with initial score < 2
 
-Use `/karimo-feedback --from-metrics` to batch-process these candidates.
+Use `/karimo:feedback --from-metrics` to batch-process these candidates.
 
 **Reference:** `.karimo/templates/METRICS_SCHEMA.md`
 
@@ -1311,12 +1311,12 @@ When a worker discovers something (new API, gotcha, pattern), it writes to `find
 
 ### Learnings: Project-Wide Wisdom
 
-Learnings are permanent rules captured via `/karimo-feedback`:
+Learnings are permanent rules captured via `/karimo:feedback`:
 
 | Aspect | Detail |
 |--------|--------|
 | **Scope** | All future PRDs |
-| **Created by** | User via `/karimo-feedback` |
+| **Created by** | User via `/karimo:feedback` |
 | **Storage** | `.karimo/learnings/` |
 | **Purpose** | Prevent recurring mistakes |
 
@@ -1340,7 +1340,7 @@ Learnings are permanent rules captured via `/karimo-feedback`:
 Patterns appearing in 3+ PRDs can be promoted to learnings:
 
 ```
-/karimo-feedback --from-metrics {prd-slug}
+/karimo:feedback --from-metrics {prd-slug}
 ```
 
 This surfaces learning candidates from `metrics.json` for user approval.

@@ -1,4 +1,4 @@
-# /karimo-merge — Feature Branch Merge Command
+# /karimo:merge — Feature Branch Merge Command
 
 Consolidate feature branch changes and create final PR to main. This completes the v5.0 feature branch workflow after all task PRs have been merged.
 
@@ -11,7 +11,7 @@ Consolidate feature branch changes and create final PR to main. This completes t
 ## Prerequisites
 
 Before merge, the PRD must be:
-1. **Orchestrated** via `/karimo-run` (execution_mode: "feature-branch")
+1. **Orchestrated** via `/karimo:run` (execution_mode: "feature-branch")
 2. **All tasks complete** (status: "ready-for-merge")
 3. **Feature branch exists** with all task commits
 
@@ -30,7 +30,7 @@ feature_branch=$(jq -r '.feature_branch' .karimo/prds/{NNN}_{slug}/status.json)
 if [ "$status" != "ready-for-merge" ]; then
   echo "❌ PRD not ready for merge (status: $status)"
   echo "   Expected: ready-for-merge"
-  echo "   Hint: Run /karimo-run --prd {slug} first"
+  echo "   Hint: Run /karimo:run --prd {slug} first"
   exit 1
 fi
 
@@ -52,7 +52,7 @@ open_prs=$(gh pr list --label karimo-${prd_slug} --base "$feature_branch" --stat
 if [ "$open_prs" -gt 0 ]; then
   echo "❌ $open_prs task PRs still open to feature branch"
   gh pr list --label karimo-${prd_slug} --base "$feature_branch" --state open
-  echo "   Wait for all task PRs to merge before running /karimo-merge"
+  echo "   Wait for all task PRs to merge before running /karimo:merge"
   exit 1
 fi
 
@@ -223,7 +223,7 @@ fi
 if [ "$validation_failed" = true ]; then
   echo ""
   echo "❌ Validation failed"
-  echo "   Fix issues on feature branch and retry: /karimo-merge --prd {slug}"
+  echo "   Fix issues on feature branch and retry: /karimo:merge --prd {slug}"
   exit 1
 fi
 
@@ -549,7 +549,7 @@ Branch Cleanup:
   ✓ worktree/user-profiles-2b (deleted)
   ✓ worktree/user-profiles-3a (deleted)
 
-Consider running /karimo-feedback to capture learnings.
+Consider running /karimo:feedback to capture learnings.
 ```
 
 ---
@@ -574,7 +574,7 @@ Fix the issue on feature branch and retry:
   1. Checkout feature branch: git checkout feature/user-profiles
   2. Fix failing tests
   3. Push changes: git push origin feature/user-profiles
-  4. Retry merge: /karimo-merge --prd user-profiles
+  4. Retry merge: /karimo:merge --prd user-profiles
 ```
 
 ### Merge Conflicts with Main
@@ -592,7 +592,7 @@ Resolution:
      git rebase main
   2. Resolve conflicts
   3. Force push: git push --force-with-lease origin feature/user-profiles
-  4. Retry merge: /karimo-merge --prd user-profiles
+  4. Retry merge: /karimo:merge --prd user-profiles
 
 Or use GitHub's merge UI to resolve conflicts in PR.
 ```
@@ -605,12 +605,12 @@ Or use GitHub's merge UI to resolve conflicts in PR.
 This PRD's feature branch has been deleted or never created.
 
 Check:
-  - Was /karimo-run run for this PRD?
+  - Was /karimo:run run for this PRD?
   - Was the feature branch accidentally deleted?
 
 Recovery:
   - If tasks are complete but branch missing, create PR manually
-  - If tasks incomplete, restart with /karimo-run --prd user-profiles
+  - If tasks incomplete, restart with /karimo:run --prd user-profiles
 ```
 
 ---

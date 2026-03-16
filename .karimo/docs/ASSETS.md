@@ -46,7 +46,7 @@ KARIMO's asset management system enables you to capture and reference visual con
 
 ### Adding Assets During Planning
 
-When running `/karimo-plan`, provide image URLs or file paths:
+When running `/karimo:plan`, provide image URLs or file paths:
 
 ```
 User: Here's the dashboard mockup: https://example.com/dashboard.png
@@ -64,7 +64,7 @@ The interviewer agent automatically:
 
 ### Adding Assets During Research
 
-When running `/karimo-research`, the researcher agent captures relevant visuals:
+When running `/karimo:research`, the researcher agent captures relevant visuals:
 
 ```bash
 # Researcher encounters OAuth2 flow diagram during documentation scraping
@@ -203,7 +203,7 @@ karimo_add_asset <prd_slug> <source> <stage> <description> <added_by>
 
 **Example:**
 ```bash
-source .claude/skills/karimo-bash-utilities.md
+source .claude/skills/karimo/bash-utilities.md
 karimo_add_asset "user-profiles" \
   "https://example.com/mockup.png" \
   "planning" \
@@ -309,7 +309,7 @@ karimo_validate_assets "user-profiles"
 
 ### Interviewer Agent (Planning Stage)
 
-During `/karimo-plan` interview, when user provides images:
+During `/karimo:plan` interview, when user provides images:
 
 1. Agent calls `karimo_add_asset()` with stage="planning"
 2. Returns markdown reference for PRD embedding
@@ -326,7 +326,7 @@ I've embedded the mockup in the PRD under "Visual Design".
 
 ### Researcher Agent (Research Stage)
 
-During `/karimo-research`, when encountering relevant images:
+During `/karimo:research`, when encountering relevant images:
 
 1. Uses Firecrawl screenshot tools or WebFetch
 2. Calls `karimo_add_asset()` with stage="research"
@@ -342,7 +342,7 @@ Referenced in findings with source attribution.
 
 ### PM Agent (Execution Stage)
 
-During `/karimo-run`, if user provides additional context:
+During `/karimo:run`, if user provides additional context:
 
 1. Calls `karimo_add_asset()` with stage="execution"
 2. Updates relevant task brief or creates findings file
@@ -378,12 +378,12 @@ When generating task briefs:
 
 ## Validation & Health Checks
 
-### Running /karimo-doctor
+### Running /karimo:doctor
 
 The doctor command includes asset integrity validation:
 
 ```bash
-/karimo-doctor
+/karimo:doctor
 
 # Includes Check 8: Asset Integrity
 # - Validates all manifest assets exist on disk
@@ -417,7 +417,7 @@ Summary:
 - Failed asset addition operation
 
 **Resolution:**
-1. Identify file: `/karimo-doctor` shows filename
+1. Identify file: `/karimo:doctor` shows filename
 2. Options:
    - Add to manifest manually (regenerate ID and metadata)
    - Delete file: `rm .karimo/prds/{slug}/assets/{stage}/{filename}`
@@ -544,7 +544,7 @@ Source: https://oauth.net/2/grant-types/authorization-code/
 
 **Detection:**
 ```bash
-/karimo-doctor
+/karimo:doctor
 # Shows: ❌ 1 broken reference: asset-003 (file missing from disk)
 ```
 
@@ -582,13 +582,13 @@ karimo_add_asset "{prd_slug}" "{original_source}" "{stage}" "{description}" "man
 
 ```bash
 # 1. Run research
-/karimo-research "authentication-flow"
+/karimo:research "authentication-flow"
 
 # Researcher captures OAuth2 diagram:
 # ✓ Asset stored: research-oauth2-flow-20260315143022.png
 
 # 2. Create PRD
-/karimo-plan --prd authentication-flow
+/karimo:plan --prd authentication-flow
 
 # During interview, user provides mockup:
 User: Login screen: https://example.com/login-mockup.png
@@ -597,7 +597,7 @@ User: Login screen: https://example.com/login-mockup.png
 # ✓ Asset stored: planning-login-screen-20260315151500.png
 
 # 3. Execute tasks
-/karimo-run --prd authentication-flow
+/karimo:run --prd authentication-flow
 
 # Brief writer includes assets in task briefs
 # Workers see mockups during implementation
@@ -609,7 +609,7 @@ User: Error screenshot: /Users/me/Desktop/auth-error.png
 # ✓ Asset stored: execution-auth-error-20260315163000.png
 
 # 5. Validate integrity
-/karimo-doctor
+/karimo:doctor
 
 # Check 8: Asset Integrity
 # PRD: authentication-flow
@@ -660,4 +660,4 @@ karimo_add_asset "dashboard" \
 
 ---
 
-*For implementation details, see the bash utilities in `.claude/skills/karimo-bash-utilities.md`*
+*For implementation details, see the bash utilities in `.claude/skills/karimo/bash-utilities.md`*

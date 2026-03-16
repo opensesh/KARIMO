@@ -27,7 +27,7 @@ Research is executed in **two distinct phases** with commits after each:
 **Focus:** Codebase analysis
 **Tools:** Grep, Glob, Read, Bash (read-only)
 **Output:** `research/internal/findings.md`
-**Skill:** `.claude/skills/karimo-research-methods.md`
+**Skill:** `.claude/skills/karimo/research-methods.md`
 
 | Component | Purpose |
 |-----------|---------|
@@ -43,7 +43,7 @@ Research is executed in **two distinct phases** with commits after each:
 **Focus:** Web research, documentation, libraries
 **Tools:** Firecrawl (recommended), WebSearch, WebFetch
 **Output:** `research/external/findings.md`
-**Skill:** `.claude/skills/karimo-external-research.md`
+**Skill:** `.claude/skills/karimo/external-research.md`
 
 | Component | Purpose |
 |-----------|---------|
@@ -75,7 +75,7 @@ Research is executed in **two distinct phases** with commits after each:
 
 Firecrawl is the **recommended tool** for external research when available.
 
-**Full Reference:** `.claude/skills/karimo-firecrawl-web-tools.md`
+**Full Reference:** `.claude/skills/karimo/firecrawl-web-tools.md`
 
 **Tool Decision Tree:**
 
@@ -117,12 +117,12 @@ When Firecrawl is not available:
 **Purpose:** Create PRD folder and gather context for a new feature
 
 **When to use:**
-- Starting any new feature (required before `/karimo-plan`)
+- Starting any new feature (required before `/karimo:plan`)
 - Beginning the KARIMO workflow
 
 **Command:**
 ```bash
-/karimo-research "feature-name"
+/karimo:research "feature-name"
 ```
 
 **What it does:**
@@ -138,7 +138,7 @@ When Firecrawl is not available:
 
 **Next Step:**
 ```bash
-/karimo-plan --prd {slug}
+/karimo:plan --prd {slug}
 ```
 
 ---
@@ -154,7 +154,7 @@ When Firecrawl is not available:
 
 **Command:**
 ```bash
-/karimo-research --prd {slug}
+/karimo:research --prd {slug}
 ```
 
 **Output Location:**
@@ -173,7 +173,7 @@ When Firecrawl is not available:
 
 **Command:**
 ```bash
-/karimo-research --refine --prd {slug}
+/karimo:research --refine --prd {slug}
 ```
 
 ---
@@ -183,7 +183,7 @@ When Firecrawl is not available:
 ### Step 1: Research First
 
 ```bash
-/karimo-research "my-feature"
+/karimo:research "my-feature"
 ```
 
 1. Creates PRD folder: `.karimo/prds/my-feature/`
@@ -195,7 +195,7 @@ When Firecrawl is not available:
 ### Step 2: Plan with Research Context
 
 ```bash
-/karimo-plan --prd my-feature
+/karimo:plan --prd my-feature
 ```
 
 1. Loads research findings into context
@@ -208,7 +208,7 @@ When Firecrawl is not available:
 If more research needed after planning:
 
 ```bash
-/karimo-research --prd my-feature
+/karimo:research --prd my-feature
 ```
 
 Returns to planning to incorporate new findings.
@@ -216,7 +216,7 @@ Returns to planning to incorporate new findings.
 ### Step 4: Run with Research
 
 ```bash
-/karimo-run --prd my-feature
+/karimo:run --prd my-feature
 ```
 
 1. **Brief generation:**
@@ -243,7 +243,7 @@ Returns to planning to incorporate new findings.
 For urgent hotfixes:
 
 ```bash
-/karimo-plan --prd my-feature --skip-research
+/karimo:plan --prd my-feature --skip-research
 ```
 
 This bypasses the research requirement but shows a warning.
@@ -444,7 +444,7 @@ After research completes, PRD is enhanced with:
 ### Research Artifacts
 
 Full details: `.karimo/prds/{slug}/research/`
-To refine: Add annotations, run `/karimo-research --refine --prd {slug}`
+To refine: Add annotations, run `/karimo:research --refine --prd {slug}`
 ```
 
 ---
@@ -521,7 +521,7 @@ text: "We've decided to use Zustand for consistency with existing code"
 1. **Add annotations** to research artifacts
 2. **Run refinement:**
    ```bash
-   /karimo-research --refine --prd {slug}
+   /karimo:research --refine --prd {slug}
    ```
 3. **Agent processes annotations:**
    - Answers questions
@@ -675,13 +675,13 @@ Never guess or assume:
 
 ## Troubleshooting
 
-### "No research found" warning during /karimo-run
+### "No research found" warning during /karimo:run
 
 **Problem:** PRD missing research section
 
 **Solution:**
 ```bash
-/karimo-research --prd {slug}
+/karimo:research --prd {slug}
 ```
 
 Run research before execution (or use `--skip-research` flag).
@@ -695,7 +695,7 @@ Run research before execution (or use `--skip-research` flag).
 **Solution:**
 1. Review `findings.md` from brief-reviewer
 2. Add annotations to research artifacts addressing issues
-3. Run `/karimo-research --refine --prd {slug}`
+3. Run `/karimo:research --refine --prd {slug}`
 4. Re-generate briefs
 
 ---
@@ -737,7 +737,7 @@ See `.karimo/templates/ANNOTATION_GUIDE.md` for full syntax.
 ## Related Documentation
 
 - [ANNOTATION_GUIDE.md](../templates/ANNOTATION_GUIDE.md) — Annotation syntax reference
-- [COMMANDS.md](COMMANDS.md) — Command reference including `/karimo-research`
+- [COMMANDS.md](COMMANDS.md) — Command reference including `/karimo:research`
 - [GETTING-STARTED.md](GETTING-STARTED.md) — Setup and first PRD walkthrough
 - [ARCHITECTURE.md](ARCHITECTURE.md) — System architecture including research phase
 

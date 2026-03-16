@@ -7,6 +7,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [7.11.0] - 2026-03-16
+
+### Changed
+
+- **Restored subfolder organization with simplified filenames** — Files now live in `karimo/` subfolders with the `karimo-` prefix removed from filenames. This provides clean directory organization AND clean CLI display.
+
+**New Structure (best of both worlds):**
+
+| Component | Old (7.10.0) | New (7.11.0) | CLI Display |
+|-----------|--------------|--------------|-------------|
+| Agents | `.claude/agents/karimo-pm.md` | `.claude/agents/karimo/pm.md` | `karimo-pm` |
+| Commands | `.claude/commands/karimo-plan.md` | `.claude/commands/karimo/plan.md` | `/karimo:plan` |
+| Skills | `.claude/skills/karimo-bash-utilities.md` | `.claude/skills/karimo/bash-utilities.md` | N/A |
+
+**Command Format:**
+- Commands now appear as `/karimo:plan` instead of `/karimo-plan`
+- The colon separator comes from the subfolder name (`karimo/`)
+- This is cleaner and matches Claude Code's namespace conventions
+
+### Added
+
+- **Universal migration in update.sh** — Handles migration from both v7.9.0 (subfolder with prefix) and v7.10.0 (flat) to the new v7.11.0 structure
+
+### Fixed
+
+- **All documentation** — Updated command references to use `/karimo:*` format
+- **Cross-references** — Updated all agent, skill, and command file links
+
+---
+
 ## [7.10.0] - 2026-03-16
 
 ### Changed

@@ -54,13 +54,13 @@ KARIMO has **three strategic loops** with increasing automation:
 | **2** | Tasks ↔ Auto-Review | **Claude** | Built-in validation before execution starts |
 | **3** | Orchestrate ↔ Inspect | **Configurable** | Manual, Claude Code Review, or Greptile |
 
-**Loop 1 — Human-Driven:** `/karimo-research` ↔ `/karimo-plan` — You iterate until PRD is ready
+**Loop 1 — Human-Driven:** `/karimo:research` ↔ `/karimo:plan` — You iterate until PRD is ready
 
-**Loop 2 — Claude Built-In:** `/karimo-run` generates briefs → auto-review validates → you approve
+**Loop 2 — Claude Built-In:** `/karimo:run` generates briefs → auto-review validates → you approve
 
 **Loop 3 — Review Automation:** Each wave creates PRs → inspect (your choice of tooling) → merge
 
-After all waves complete → `/karimo-merge` creates final PR to main.
+After all waves complete → `/karimo:merge` creates final PR to main.
 
 ---
 
@@ -87,7 +87,7 @@ Wave 3: [task-3a] ─────────── final task
 | **Asset management** | Store and track visual context (mockups, screenshots, diagrams) throughout PRD lifecycle ([v7.8.0](#changelog)) |
 | **Model routing** | Sonnet for simple tasks, Opus for complex, auto-escalation on failures |
 | **18 agents** | 12 coordination + 6 task agents ([details](.karimo/docs/ARCHITECTURE.md#agents)) |
-| **Crash recovery** | Git state reconstruction via `/karimo-dashboard --reconcile` |
+| **Crash recovery** | Git state reconstruction via `/karimo:dashboard --reconcile` |
 
 ---
 
@@ -128,13 +128,13 @@ Full walkthrough: [Getting Started](.karimo/docs/GETTING-STARTED.md)
 
 | Command | What it does |
 |---------|--------------|
-| `/karimo-research "feature"` | **Start here** — Creates PRD folder + runs research |
-| `/karimo-plan --prd {slug}` | Interactive PRD creation (~10 min) |
-| `/karimo-run --prd {slug}` | Brief generation → review → execution |
-| `/karimo-merge --prd {slug}` | Final PR to main |
-| `/karimo-dashboard` | Monitor progress |
-| `/karimo-feedback` | Capture learnings |
-| `/karimo-doctor` | Diagnose issues |
+| `/karimo:research "feature"` | **Start here** — Creates PRD folder + runs research |
+| `/karimo:plan --prd {slug}` | Interactive PRD creation (~10 min) |
+| `/karimo:run --prd {slug}` | Brief generation → review → execution |
+| `/karimo:merge --prd {slug}` | Final PR to main |
+| `/karimo:dashboard` | Monitor progress |
+| `/karimo:feedback` | Capture learnings |
+| `/karimo:doctor` | Diagnose issues |
 
 Full reference: [COMMANDS.md](.karimo/docs/COMMANDS.md)
 
@@ -146,7 +146,7 @@ Full reference: [COMMANDS.md](.karimo/docs/COMMANDS.md)
 |-------|--------------|
 | **Phase 1** | PRD interviews, agent execution, worktrees, PRs — works out of the box |
 | **Phase 2** | Automated review via Greptile ($30/mo) or Claude Code Review ($15-25/PR) |
-| **Phase 3** | CLI dashboard with velocity metrics via `/karimo-dashboard` |
+| **Phase 3** | CLI dashboard with velocity metrics via `/karimo:dashboard` |
 
 Details: [PHASES.md](.karimo/docs/PHASES.md)
 
@@ -163,7 +163,7 @@ KARIMO uses layered context management for efficient token usage:
 
 **Key files:**
 - `.claude/agents.overview.md` — All agents at a glance
-- `.claude/agents/karimo-*.md` — Full agent definitions
+- `.claude/agents/karimo/*.md` — Full agent definitions
 - `.claude/skills.overview.md` — All skills with agent mapping
 - `.karimo/learnings/` — Categorized project learnings
 - `.karimo/findings/` — Cross-PRD pattern index
@@ -177,7 +177,7 @@ KARIMO has a two-tier knowledge system that makes agents smarter over time:
 | Tier | Scope | Created By | Storage |
 |------|-------|------------|---------|
 | **Findings** | Per-PRD | Worker agents (automatic) | `.karimo/prds/{slug}/findings.md` |
-| **Learnings** | Project-wide | User via `/karimo-feedback` | `.karimo/learnings/` |
+| **Learnings** | Project-wide | User via `/karimo:feedback` | `.karimo/learnings/` |
 
 **Findings** are task-to-task communication during a single PRD execution:
 ```
@@ -189,7 +189,7 @@ KARIMO has a two-tier knowledge system that makes agents smarter over time:
 
 When a worker discovers something downstream tasks need (new API, gotcha, pattern), it writes to `findings.md`. The PM Agent propagates these to dependent task briefs. Findings are ephemeral — they exist for one PRD cycle.
 
-**Learnings** are permanent project wisdom captured via `/karimo-feedback`:
+**Learnings** are permanent project wisdom captured via `/karimo:feedback`:
 ```
 .karimo/learnings/
 ├── index.md             # Navigation + stats
@@ -201,7 +201,7 @@ When a worker discovers something downstream tasks need (new API, gotcha, patter
 
 Learnings are read by all agents before task execution. They prevent the same mistake from happening twice.
 
-**Promotion path:** Findings that appear in 3+ PRDs can be promoted to learnings via `/karimo-feedback --from-metrics`.
+**Promotion path:** Findings that appear in 3+ PRDs can be promoted to learnings via `/karimo:feedback --from-metrics`.
 
 Details: [Compound Learning](.karimo/docs/COMPOUND-LEARNING.md)
 
@@ -217,7 +217,7 @@ Details: [Compound Learning](.karimo/docs/COMPOUND-LEARNING.md)
 | [Phases](.karimo/docs/PHASES.md) | Adoption phases explained |
 | [Safeguards](.karimo/docs/SAFEGUARDS.md) | Code integrity & security |
 
-Configuration lives in `.karimo/config.yaml` — run `/karimo-configure` after install.
+Configuration lives in `.karimo/config.yaml` — run `/karimo:configure` after install.
 
 ---
 
@@ -227,7 +227,7 @@ Configuration lives in `.karimo/config.yaml` — run `/karimo-configure` after i
 Yes. Review is optional (Phase 2). PRD interviews, execution, and PRs all work out of the box.
 
 **Having issues?**
-Run `/karimo-doctor` to diagnose. Still stuck? [hello@opensession.co](mailto:hello@opensession.co)
+Run `/karimo:doctor` to diagnose. Still stuck? [hello@opensession.co](mailto:hello@opensession.co)
 
 ---
 

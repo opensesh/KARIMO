@@ -179,5 +179,5 @@
 ---
 
 *Investigation completed: {duration}*
-*Feedback document created by `/karimo-feedback` (complex path)*
+*Feedback document created by `/karimo:feedback` (complex path)*
 *Evidence gathered by karimo-feedback-auditor*

@@ -23,7 +23,7 @@ When changes impact target repositories (installed KARIMO projects), you MUST co
 [ ] 4. GITHUB RELEASE (CRITICAL - DO NOT SKIP)
     - gh release create vX.Y.Z --title "vX.Y.Z" --notes "..."
     - Include summary of changes in release notes
-    - WITHOUT THIS, /karimo-update WILL NOT DETECT THE NEW VERSION
+    - WITHOUT THIS, /karimo:update WILL NOT DETECT THE NEW VERSION
 
 [ ] 5. DOCUMENTATION SCAN
     - README.md — Installation, features, command reference
@@ -38,7 +38,7 @@ Before marking a version bump task as complete, verify:
 1. `gh release view vX.Y.Z` returns the release (not "release not found")
 2. The release URL is provided to the user
 
-**If you forget the GitHub release, /karimo-update will not work.** This breaks the update flow for all users.
+**If you forget the GitHub release, /karimo:update will not work.** This breaks the update flow for all users.
 
 ## What Impacts Target Repositories
 
@@ -134,16 +134,16 @@ KARIMO is an autonomous development **methodology** delivered via Claude Code co
 
 | Command | Purpose |
 |---------|---------|
-| `/karimo-research "feature-name"` | **REQUIRED first step** — Create PRD folder + run research |
-| `/karimo-plan --prd {slug}` | PRD interview using research context |
-| `/karimo-run --prd {slug}` | Execute tasks from a PRD |
-| `/karimo-merge --prd {slug}` | Create final PR to main after execution completes |
-| `/karimo-dashboard [--prd {slug}]` | Monitor progress and system health |
-| `/karimo-feedback` | Intelligent feedback with auto-detection |
-| `/karimo-configure` | Create or update project configuration |
-| `/karimo-update` | Check for and apply KARIMO updates |
-| `/karimo-doctor [--test]` | Check installation health |
-| `/karimo-help` | Help & documentation search |
+| `/karimo:research "feature-name"` | **REQUIRED first step** — Create PRD folder + run research |
+| `/karimo:plan --prd {slug}` | PRD interview using research context |
+| `/karimo:run --prd {slug}` | Execute tasks from a PRD |
+| `/karimo:merge --prd {slug}` | Create final PR to main after execution completes |
+| `/karimo:dashboard [--prd {slug}]` | Monitor progress and system health |
+| `/karimo:feedback` | Intelligent feedback with auto-detection |
+| `/karimo:configure` | Create or update project configuration |
+| `/karimo:update` | Check for and apply KARIMO updates |
+| `/karimo:doctor [--test]` | Check installation health |
+| `/karimo:help` | Help & documentation search |
 
 ---
 
@@ -153,8 +153,8 @@ KARIMO uses three optional adoption phases:
 
 ### Phase 1: Execute PRD
 Your first planning process with KARIMO:
-- Run `/karimo-research "feature-name"` to create PRD folder and run research
-- Run `/karimo-plan --prd {slug}` to create PRD through agent interviews
+- Run `/karimo:research "feature-name"` to create PRD folder and run research
+- Run `/karimo:plan --prd {slug}` to create PRD through agent interviews
 - Agent teams coordinate task execution
 - Wave-based execution (wave 2 waits for wave 1 to merge)
 - PRs target main directly with labels for tracking
@@ -175,11 +175,11 @@ Both providers support:
 - Model escalation (Sonnet → Opus) after first failure
 - Hard gate after 3 failed attempts (needs human review)
 
-**Optional but highly recommended.** Run `/karimo-configure --review` to choose your provider.
+**Optional but highly recommended.** Run `/karimo:configure --review` to choose your provider.
 
 ### Phase 3: Monitor & Review
 GitHub-native monitoring — no separate dashboard needed:
-- `/karimo-status` — Smart monitoring (no arg = all PRDs, with arg = specific details)
+- `/karimo:status` — Smart monitoring (no arg = all PRDs, with arg = specific details)
 - GitHub — PR comments, labels, activity
 - Claude Code analytics — Review usage (if using Code Review)
 
@@ -211,7 +211,7 @@ KARIMO uses a PR-centric workflow with wave-based execution:
 
 ## Configuration
 
-KARIMO configuration lives in `.karimo/config.yaml`. On first `/karimo-plan` or `/karimo-configure`, the investigator agent auto-detects project context and populates the config file.
+KARIMO configuration lives in `.karimo/config.yaml`. On first `/karimo:plan` or `/karimo:configure`, the investigator agent auto-detects project context and populates the config file.
 
 Key settings:
 - **Project** — Runtime, framework, package manager
@@ -244,7 +244,7 @@ When you run `install.sh`, these files are added:
 | `.claude/KARIMO_RULES.md` | Agent behavior rules |
 | `.karimo/templates/` | **19** templates |
 
-**Optional:** Run `/karimo-configure --review` to choose and configure your automated code review provider (Greptile or Claude Code Review).
+**Optional:** Run `/karimo:configure --review` to choose and configure your automated code review provider (Greptile or Claude Code Review).
 
 ### Agent Types
 
@@ -281,4 +281,4 @@ All skills use the `karimo-*` prefix for reliable update management and clear di
 
 ## Learnings
 
-Project-specific learnings are stored in `.karimo/learnings/` (categorized directories: patterns, anti-patterns, project-notes, execution-rules) and populated via `/karimo-feedback`. This keeps CLAUDE.md minimal while providing agents with accumulated knowledge.
+Project-specific learnings are stored in `.karimo/learnings/` (categorized directories: patterns, anti-patterns, project-notes, execution-rules) and populated via `/karimo:feedback`. This keeps CLAUDE.md minimal while providing agents with accumulated knowledge.

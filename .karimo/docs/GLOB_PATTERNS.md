@@ -2,7 +2,7 @@
 
 Common glob patterns for `never_touch` and `require_review` boundaries across popular frameworks and runtimes.
 
-Use these as starting points during `/karimo-configure` to protect critical files from agent modification.
+Use these as starting points during `/karimo:configure` to protect critical files from agent modification.
 
 ---
 
@@ -797,7 +797,7 @@ boundaries:
 
 - [SAFEGUARDS.md](SAFEGUARDS.md) — Boundary enforcement and security
 - [GETTING-STARTED.md](GETTING-STARTED.md) — Initial configuration walkthrough
-- [COMMANDS.md](COMMANDS.md) — `/karimo-configure` command reference
+- [COMMANDS.md](COMMANDS.md) — `/karimo:configure` command reference
 
 ---
 

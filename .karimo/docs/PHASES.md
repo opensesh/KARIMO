@@ -29,7 +29,7 @@ Phases are **optional progression**, not requirements. Phase 1 is fully function
 ```mermaid
 graph TB
     subgraph "Phase 1: Execute PRD"
-        A[/karimo-plan] --> B[Interview + Investigation]
+        A[/karimo:plan] --> B[Interview + Investigation]
         B --> C[Task Execution]
         C --> D[PRs to main]
         D --> E{Manual<br/>Review}
@@ -39,7 +39,7 @@ graph TB
     end
 
     subgraph "Phase 2: Automate Review"
-        H[/karimo-run] --> I[Task Execution]
+        H[/karimo:run] --> I[Task Execution]
         I --> J[PRs to main]
         J --> K{Automated<br/>Review}
         K -->|Pass| L[Merge]
@@ -49,7 +49,7 @@ graph TB
     end
 
     subgraph "Phase 3: Monitor & Review"
-        O[/karimo-dashboard] --> P[Execution Metrics]
+        O[/karimo:dashboard] --> P[Execution Metrics]
         O --> Q[Review Analytics]
         O --> R[Task Timeline]
         O --> S[Model Usage]
@@ -59,8 +59,8 @@ graph TB
         S --> T
     end
 
-    F -.->|"Upgrade:<br/>/karimo-configure --review"| H
-    L -.->|"Monitor:<br/>/karimo-dashboard"| O
+    F -.->|"Upgrade:<br/>/karimo:configure --review"| H
+    L -.->|"Monitor:<br/>/karimo:dashboard"| O
 
     style A fill:#e1f5ff
     style H fill:#fff4e1
@@ -77,13 +77,13 @@ This is where everyone starts. Phase 1 provides everything needed to go from ide
 
 ### What You Get
 
-- **PRD Interview** (`/karimo-plan`)
+- **PRD Interview** (`/karimo:plan`)
   - 5-round structured conversation
   - Codebase investigation
   - Task decomposition with dependencies
   - Automated DAG generation
 
-- **Task Execution** (`/karimo-run`)
+- **Task Execution** (`/karimo:run`)
   - PM Agent coordinates wave-ordered execution
   - Claude Code handles worktrees via `isolation: worktree`
   - PRs target main directly
@@ -110,7 +110,7 @@ This is where everyone starts. Phase 1 provides everything needed to go from ide
   - Labels replace GitHub Projects for tracking
   - Dashboard queries via `gh pr list --label karimo`
 
-- **Compound Learning** (`/karimo-feedback`)
+- **Compound Learning** (`/karimo:feedback`)
   - Capture patterns and anti-patterns
   - Rules created in `.karimo/learnings/{category}/`
   - Future agents learn from feedback
@@ -132,10 +132,10 @@ cd your-project
 claude
 
 # Create your first PRD
-/karimo-plan
+/karimo:plan
 
 # Execute tasks
-/karimo-run --prd {slug}
+/karimo:run --prd {slug}
 ```
 
 ---
@@ -164,9 +164,9 @@ Phase 2 adds automated code review through your choice of provider. Both options
 
 ### Choose Your Provider
 
-Run `/karimo-configure --review` to choose interactively, or use:
-- `/karimo-configure --greptile` for Greptile
-- `/karimo-configure --code-review` for Claude Code Review
+Run `/karimo:configure --review` to choose interactively, or use:
+- `/karimo:configure --greptile` for Greptile
+- `/karimo:configure --code-review` for Claude Code Review
 
 ---
 
@@ -180,7 +180,7 @@ Run `/karimo-configure --review` to choose interactively, or use:
 
 **Setup:**
 1. Get API key from [greptile.com](https://greptile.com)
-2. Run `/karimo-configure --greptile`
+2. Run `/karimo:configure --greptile`
 3. Add `GREPTILE_API_KEY` to repository secrets
 4. PRs with `karimo` label trigger automated review
 
@@ -216,7 +216,7 @@ PR Created → Greptile Review → Score 0-5
 2. Enable "Code Review" in the Code Review section
 3. Install Claude GitHub App on your repository
 4. Enable repository for Code Review in admin settings
-5. Run `/karimo-configure --code-review` to create REVIEW.md
+5. Run `/karimo:configure --code-review` to create REVIEW.md
 
 **How it works:**
 - Multi-agent fleet examines code in full codebase context
@@ -283,7 +283,7 @@ Phase 3 uses KARIMO's CLI dashboard for monitoring — no separate web dashboard
 
 ### What You Get
 
-- **`/karimo-dashboard`** — Comprehensive CLI dashboard
+- **`/karimo:dashboard`** — Comprehensive CLI dashboard
   - **Executive Summary** — System health score, quick stats, next completions
   - **Critical Alerts** — Blocked, stale, crashed tasks needing intervention
   - **Execution Velocity** — Completion rate, loop efficiency, wave progress, ETAs
@@ -291,7 +291,7 @@ Phase 3 uses KARIMO's CLI dashboard for monitoring — no separate web dashboard
   - **Recent Activity** — Timeline of events across all PRDs
   - Replaces `/karimo-overview` with enhanced capabilities
 
-- **`/karimo-dashboard`** — PRD-specific deep dive
+- **`/karimo:dashboard`** — PRD-specific deep dive
   - Task progress, wave status, PR links
   - Loop counts and model usage
   - Blocked tasks and error details
@@ -345,8 +345,8 @@ gh pr list --label blocked-needs-human
 | Crash Recovery | Yes | Yes | Yes |
 | Automated Review | — | Yes (choice) | Yes |
 | Revision Loops | — | Yes | Yes |
-| /karimo-dashboard | Yes | Yes | Yes |
-| /karimo-dashboard | Yes | Yes | Yes |
+| /karimo:dashboard | Yes | Yes | Yes |
+| /karimo:dashboard | Yes | Yes | Yes |
 | GitHub Queries | Yes | Yes | Yes |
 
 ---
@@ -357,11 +357,11 @@ gh pr list --label blocked-needs-human
 
 **Choose your review provider:**
 
-Run `/karimo-configure --review` to choose interactively, or:
+Run `/karimo:configure --review` to choose interactively, or:
 
 **Option A: Greptile**
 1. Get API key from [greptile.com](https://greptile.com)
-2. Run `/karimo-configure --greptile`
+2. Run `/karimo:configure --greptile`
 3. Add `GREPTILE_API_KEY` to repository secrets
 4. PRs with `karimo` label trigger automated review
 
@@ -369,13 +369,13 @@ Run `/karimo-configure --review` to choose interactively, or:
 1. Go to `claude.ai/admin-settings/claude-code`
 2. Enable Code Review, install GitHub App
 3. Enable repository for Code Review
-4. Run `/karimo-configure --code-review` to create REVIEW.md
+4. Run `/karimo:configure --code-review` to create REVIEW.md
 
 ### Phase 2 → Phase 3
 
 Phase 3 uses existing tooling — no upgrade required:
-- `/karimo-dashboard` for comprehensive monitoring and analytics
-- `/karimo-dashboard` for per-PRD deep dives
+- `/karimo:dashboard` for comprehensive monitoring and analytics
+- `/karimo:dashboard` for per-PRD deep dives
 - `gh pr list --label karimo` for GitHub queries
 
 ---

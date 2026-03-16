@@ -11,8 +11,8 @@
 Each PRD folder contains a `status.json` file that tracks execution state. This file is:
 - Created by the reviewer agent when the PRD is finalized
 - Updated continuously by the PM agent during execution
-- Read by `/karimo-run` for resume scenarios
-- Read by `/karimo-status` to display progress
+- Read by `/karimo:run` for resume scenarios
+- Read by `/karimo:status` to display progress
 
 **v5.0 Changes:**
 - Added: `execution_mode`, `feature_branch`, `ready_for_merge_at`, `merged_to_main_at`
@@ -225,12 +225,12 @@ Each PRD folder contains a `status.json` file that tracks execution state. This 
 
 | Status | Meaning |
 |--------|---------|
-| `draft` | PRD in progress via /karimo-plan |
+| `draft` | PRD in progress via /karimo:plan |
 | `ready` | PRD approved, ready for execution |
 | `active` | Execution in progress |
 | `paused` | Execution paused (manual or usage limit) |
-| `ready-for-merge` | All tasks merged to feature branch, awaiting /karimo-merge (v5.0, feature-branch mode only) |
-| `merging` | /karimo-merge in progress (v5.0, feature-branch mode only) |
+| `ready-for-merge` | All tasks merged to feature branch, awaiting /karimo:merge (v5.0, feature-branch mode only) |
+| `merging` | /karimo:merge in progress (v5.0, feature-branch mode only) |
 | `complete` | All tasks merged, finalization done |
 | `partial` | Some tasks failed, others complete |
 
@@ -287,9 +287,9 @@ draft ──► ready ──► active ──► ready-for-merge ──► mergi
              │         │              │
              │         └──► partial   │
              │                        │
-             └─ (/karimo-plan interactive review)
+             └─ (/karimo:plan interactive review)
                                       │
-                                      └─ (/karimo-merge)
+                                      └─ (/karimo:merge)
 ```
 
 **Direct-to-Main Mode (v4.0 compatible):**
@@ -300,7 +300,7 @@ draft ──► ready ──► active ──► complete
              │         │
              │         └──► partial
              │
-             └─ (/karimo-plan interactive review)
+             └─ (/karimo:plan interactive review)
 ```
 
 ### Task State
@@ -331,7 +331,7 @@ pending ──► running ──► complete
 
 **Principle:** Git is truth. status.json is a cache.
 
-When `/karimo-run` resumes or `/karimo-status` runs, derive actual state from git:
+When `/karimo:run` resumes or `/karimo:status` runs, derive actual state from git:
 
 ```bash
 for task_id in tasks; do

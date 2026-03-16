@@ -1,4 +1,4 @@
-<command-name>/karimo-research</command-name>
+<command-name>/karimo:research</command-name>
 
 # KARIMO Research Command
 
@@ -7,28 +7,28 @@
 Conduct research to discover codebase patterns, identify gaps, recommend libraries, and provide implementation guidance. **This is the REQUIRED first step before planning.**
 
 **Three research modes:**
-1. **Feature Init** — `/karimo-research "feature-name"` creates PRD folder and runs initial research
-2. **PRD-Scoped** — `/karimo-research --prd {slug}` adds research to existing PRD (iterate loop)
-3. **Refinement** — `/karimo-research --refine --prd {slug}` processes annotations
+1. **Feature Init** — `/karimo:research "feature-name"` creates PRD folder and runs initial research
+2. **PRD-Scoped** — `/karimo:research --prd {slug}` adds research to existing PRD (iterate loop)
+3. **Refinement** — `/karimo:research --refine --prd {slug}` processes annotations
 
 ## Command Syntax
 
 ```bash
 # Start new feature (REQUIRED first step)
 # Creates PRD folder and runs research
-/karimo-research "feature-name"
+/karimo:research "feature-name"
 
 # Add research to existing PRD (iterate loop after planning)
-/karimo-research --prd {slug}
+/karimo:research --prd {slug}
 
 # Refine research based on annotations
-/karimo-research --refine --prd {slug}
+/karimo:research --refine --prd {slug}
 
 # Research with constraints
-/karimo-research "feature-name" --internal-only
-/karimo-research "feature-name" --external-only
-/karimo-research --prd {slug} --internal-only
-/karimo-research --prd {slug} --external-only
+/karimo:research "feature-name" --internal-only
+/karimo:research "feature-name" --external-only
+/karimo:research --prd {slug} --internal-only
+/karimo:research --prd {slug} --external-only
 ```
 
 ## Feature Init Mode (Default)
@@ -65,11 +65,11 @@ When invoked with a bare feature name (no `--prd` flag), this is the **first ste
      ```
 
 3. **Feature Name Resolution**
-   - If invoked with argument (`/karimo-research "embedding engine"`):
+   - If invoked with argument (`/karimo:research "embedding engine"`):
      - Use argument directly as feature description
      - Derive slug: "embedding-engine"
      - Proceed immediately to research execution
-   - If invoked bare (`/karimo-research`):
+   - If invoked bare (`/karimo:research`):
      - Respond conversationally: "What feature would you like me to research?"
      - User types naturally (no structured input)
      - Derive slug from their natural language description
@@ -152,9 +152,9 @@ When invoked with a bare feature name (no `--prd` flag), this is the **first ste
 
    Continue with planning:
 
-     /karimo-plan --prd {slug}
+     /karimo:plan --prd {slug}
 
-   Tip: After planning, loop back with /karimo-research --prd {slug}
+   Tip: After planning, loop back with /karimo:research --prd {slug}
         if you need more context.
    ```
 
@@ -212,9 +212,9 @@ When invoked with `--prd {slug}`, adds research to an existing PRD folder.
    ✓ PRD enhanced with ## Research Findings section
 
    Next steps:
-     • Continue planning: /karimo-plan --prd {slug}
-     • Execute tasks: /karimo-run --prd {slug}
-     • Refine research: /karimo-research --refine --prd {slug}
+     • Continue planning: /karimo:plan --prd {slug}
+     • Execute tasks: /karimo:run --prd {slug}
+     • Refine research: /karimo:research --refine --prd {slug}
    ```
 
 ---
@@ -295,19 +295,19 @@ parameters:
 
 ## Integration with Other Commands
 
-### `/karimo-plan`
+### `/karimo:plan`
 
-**v7.0 Change:** `/karimo-plan` now REQUIRES `--prd {slug}`:
-- Must run `/karimo-research "feature"` first
-- Then `/karimo-plan --prd feature` uses the research
+**v7.0 Change:** `/karimo:plan` now REQUIRES `--prd {slug}`:
+- Must run `/karimo:research "feature"` first
+- Then `/karimo:plan --prd feature` uses the research
 
 After PRD creation, can loop back:
 ```
-/karimo-research --prd {slug}   # Add more research
-/karimo-plan --prd {slug}       # Resume planning
+/karimo:research --prd {slug}   # Add more research
+/karimo:plan --prd {slug}       # Resume planning
 ```
 
-### `/karimo-run`
+### `/karimo:run`
 
 Before execution, checks for PRD research:
 - If `## Research Findings` exists in PRD → Load into brief generation
@@ -385,9 +385,9 @@ Before execution, checks for PRD research:
 A PRD folder with this slug has already been created.
 
 Options:
-  1. Add research to existing: /karimo-research --prd {slug}
+  1. Add research to existing: /karimo:research --prd {slug}
   2. Check existing research: cat .karimo/prds/{slug}/research/findings.md
-  3. Start fresh: rm -rf .karimo/prds/{slug} && /karimo-research "{slug}"
+  3. Start fresh: rm -rf .karimo/prds/{slug} && /karimo:research "{slug}"
 
 Recommendation: Use --prd flag to add to existing research
 ```
@@ -399,16 +399,16 @@ Recommendation: Use --prd flag to add to existing research
 No PRD folder found for this slug.
 
 How to fix:
-  1. Start with research: /karimo-research "{slug}"
+  1. Start with research: /karimo:research "{slug}"
   2. Check available PRDs: ls .karimo/prds/
 
-Note: v7.0 requires /karimo-research before /karimo-plan
+Note: v7.0 requires /karimo:research before /karimo:plan
 ```
 
 **Invalid Refine Mode:**
 ```
 ❌ Error: --refine requires --prd flag
-Usage: /karimo-research --refine --prd {slug}
+Usage: /karimo:research --refine --prd {slug}
 ```
 
 **No Annotations Found:**
@@ -438,22 +438,22 @@ See .karimo/templates/ANNOTATION_GUIDE.md for syntax
 STAGE 1: RESEARCH → PLAN (iterate loop)
 ═══════════════════════════════════════════════════════
 
-USER: /karimo-research "dark-mode-toggle"
+USER: /karimo:research "dark-mode-toggle"
   → Creates: .karimo/prds/dark-mode-toggle/
   → Creates: .karimo/prds/dark-mode-toggle/research/
   → Runs: internal codebase scan + external research
   → Saves: research/findings.md
-  → Outputs: "Research complete. Run /karimo-plan --prd dark-mode-toggle"
+  → Outputs: "Research complete. Run /karimo:plan --prd dark-mode-toggle"
 
-USER: /karimo-plan --prd dark-mode-toggle
+USER: /karimo:plan --prd dark-mode-toggle
   → Loads: research/findings.md into context
   → Runs: 5-round interview (research-informed)
   → Renames: folder to {NNN}_dark-mode-toggle
   → Creates: PRD.md, tasks.yaml
-  → Offers: "Need more research? Run /karimo-research --prd dark-mode-toggle"
+  → Offers: "Need more research? Run /karimo:research --prd dark-mode-toggle"
 
 [ITERATE if needed — research the plan]
-USER: /karimo-research --prd dark-mode-toggle
+USER: /karimo:research --prd dark-mode-toggle
   → Adds: additional research to existing findings
   → Returns to planning or proceeds to execution
 ```
@@ -462,9 +462,9 @@ USER: /karimo-research --prd dark-mode-toggle
 
 ## Related Commands
 
-- `/karimo-plan` — Uses research, creates PRD (requires `--prd {slug}`)
-- `/karimo-run` — Checks for research before execution
-- `/karimo-dashboard` — Shows research status per PRD
+- `/karimo:plan` — Uses research, creates PRD (requires `--prd {slug}`)
+- `/karimo:run` — Checks for research before execution
+- `/karimo:dashboard` — Shows research status per PRD
 
 ## Related Documentation
 

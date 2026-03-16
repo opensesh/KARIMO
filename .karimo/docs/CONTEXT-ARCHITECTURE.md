@@ -142,7 +142,7 @@ Quick reference for all 17 KARIMO agents.
 
 ## Brief Abstracts
 
-Task briefs generated during `/karimo-run` also use the L0/L1/L2 pattern.
+Task briefs generated during `/karimo:run` also use the L0/L1/L2 pattern.
 
 ### Directory Structure
 
@@ -247,7 +247,7 @@ Project learnings are organized into categories for efficient retrieval.
 **Category:** pattern | anti-pattern | project-note | execution-rule
 **Severity:** info | important | critical
 **Added:** {ISO date}
-**Source:** {/karimo-feedback | PRD-{slug} | manual}
+**Source:** {/karimo:feedback | PRD-{slug} | manual}
 
 ## Description
 {What this learning teaches}

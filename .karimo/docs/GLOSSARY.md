@@ -43,7 +43,7 @@ Revision cycle in automated code review:
 URL-friendly identifier for a PRD (e.g., `user-authentication`, `payment-integration`). Used in folder names and command arguments.
 
 ### Feature Branch
-Long-lived git branch (e.g., `feature/user-auth`) that contains all PRs for a single PRD. Created by `/karimo-run`, merged to main via `/karimo-merge`.
+Long-lived git branch (e.g., `feature/user-auth`) that contains all PRs for a single PRD. Created by `/karimo:run`, merged to main via `/karimo:merge`.
 
 ### Finding
 Issue or concern discovered during pre-execution review (brief-reviewer agent). Critical findings must be corrected before execution begins. Stored in `findings.md`.
@@ -70,7 +70,7 @@ Pre-execution validation agent that investigates PRD and task briefs against cod
 Applies fixes to task briefs and PRD based on review findings. Modifies `prd.md`, `tasks.yaml`, and briefs as needed to resolve critical issues.
 
 #### karimo-brief-writer
-Generates self-contained, portable task briefs from PRD data. Spawned during Phase 1 of `/karimo-run` for each task.
+Generates self-contained, portable task briefs from PRD data. Spawned during Phase 1 of `/karimo:run` for each task.
 
 #### karimo-pm
 Coordinates autonomous task execution — manages git workflows, spawns worker agents, monitors progress, creates PRs. **Never writes code.** Acts as orchestrator only.
@@ -180,36 +180,36 @@ Tasks and PRDs progress through defined lifecycle states:
 ## Command Categories
 
 ### Core Workflow
-- **`/karimo-plan`** — Create new PRD through structured interview
-- **`/karimo-run --prd {slug}`** — Execute PRD tasks (feature branch workflow)
-- **`/karimo-dashboard`** — Check execution progress (all PRDs)
-- **`/karimo-dashboard --prd {slug}`** — Detailed status for specific PRD
-- **`/karimo-merge --prd {slug}`** — Create final PR from feature branch to main
+- **`/karimo:plan`** — Create new PRD through structured interview
+- **`/karimo:run --prd {slug}`** — Execute PRD tasks (feature branch workflow)
+- **`/karimo:dashboard`** — Check execution progress (all PRDs)
+- **`/karimo:dashboard --prd {slug}`** — Detailed status for specific PRD
+- **`/karimo:merge --prd {slug}`** — Create final PR from feature branch to main
 
 ### Configuration
-- **`/karimo-configure`** — Project setup (basic mode, auto-detection)
-- **`/karimo-configure --advanced`** — Full 9-step configuration
-- **`/karimo-configure --preview`** — Preview config without saving
-- **`/karimo-configure --validate`** — Validate existing config against codebase
+- **`/karimo:configure`** — Project setup (basic mode, auto-detection)
+- **`/karimo:configure --advanced`** — Full 9-step configuration
+- **`/karimo:configure --preview`** — Preview config without saving
+- **`/karimo:configure --validate`** — Validate existing config against codebase
 
 ### Management
-- **`/karimo-feedback`** — Capture learnings (auto-detects simple vs. complex feedback)
+- **`/karimo:feedback`** — Capture learnings (auto-detects simple vs. complex feedback)
 
 ### Diagnostics
-- **`/karimo-doctor`** — Health check with 7 diagnostic categories
-- **`/karimo-doctor --test`** — Installation smoke test (end-to-end verification)
-- **`/karimo-dashboard`** — Comprehensive metrics and analytics view
+- **`/karimo:doctor`** — Health check with 7 diagnostic categories
+- **`/karimo:doctor --test`** — Installation smoke test (end-to-end verification)
+- **`/karimo:dashboard`** — Comprehensive metrics and analytics view
 
 ### Maintenance
-- **`/karimo-update`** — Update to latest KARIMO version from GitHub
-- **`/karimo-configure --cd`** — Configure preview deployment providers (Vercel, Netlify, etc.)
+- **`/karimo:update`** — Update to latest KARIMO version from GitHub
+- **`/karimo:configure --cd`** — Configure preview deployment providers (Vercel, Netlify, etc.)
 
 ---
 
 ## Execution Models
 
 ### Feature Branch Model (Recommended)
-**Command:** `/karimo-run --prd {slug}`
+**Command:** `/karimo:run --prd {slug}`
 
 **Workflow:**
 1. Creates feature branch `feature/{prd-slug}`
@@ -217,7 +217,7 @@ Tasks and PRDs progress through defined lifecycle states:
 3. Wave-based parallel execution (Wave 2 waits for Wave 1)
 4. Each PR reviewed independently
 5. Merge PRs to feature branch as they complete
-6. Final PR to main via `/karimo-merge --prd {slug}`
+6. Final PR to main via `/karimo:merge --prd {slug}`
 
 **Benefits:**
 - Complete isolation from main branch
@@ -226,7 +226,7 @@ Tasks and PRDs progress through defined lifecycle states:
 - Rollback entire feature if needed
 
 ### Direct-to-Main Model (Legacy, v4.0)
-**Command:** `/karimo-run --prd {slug}`
+**Command:** `/karimo:run --prd {slug}`
 
 **Workflow:**
 1. Tasks create PRs directly to main
@@ -309,13 +309,13 @@ When a task in Wave 1 discovers new information:
 **Questions:** 9
 **Time:** 10-15 minutes
 **Control:** Complete manual configuration
-**Invoke:** `/karimo-configure --advanced`
+**Invoke:** `/karimo:configure --advanced`
 
 ### Auto Mode (CI/Testing)
 **Questions:** 0
 **Time:** < 1 minute
 **Behavior:** Accepts all defaults, no interaction
-**Invoke:** `/karimo-configure --auto`
+**Invoke:** `/karimo:configure --auto`
 
 ---
 
@@ -390,27 +390,27 @@ Agents can edit these files but PRs will be flagged for mandatory human review.
 
 **Create and execute a feature:**
 ```bash
-/karimo-plan                      # Interview → PRD
-/karimo-run --prd my-feature      # Execute tasks
-/karimo-dashboard --prd my-feature   # Check progress
-/karimo-merge --prd my-feature    # Final PR to main
+/karimo:plan                      # Interview → PRD
+/karimo:run --prd my-feature      # Execute tasks
+/karimo:dashboard --prd my-feature   # Check progress
+/karimo:merge --prd my-feature    # Final PR to main
 ```
 
 **Diagnose issues:**
 ```bash
-/karimo-doctor                    # Health check
-/karimo-dashboard                    # All PRDs overview
-/karimo-dashboard                 # Detailed metrics
+/karimo:doctor                    # Health check
+/karimo:dashboard                    # All PRDs overview
+/karimo:dashboard                 # Detailed metrics
 ```
 
 **Capture learnings:**
 ```bash
-/karimo-feedback                  # Auto-detection mode
+/karimo:feedback                  # Auto-detection mode
 ```
 
 **Update KARIMO:**
 ```bash
-/karimo-update                    # Check and apply updates
+/karimo:update                    # Check and apply updates
 ```
 
 ---

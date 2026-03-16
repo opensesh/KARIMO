@@ -15,11 +15,11 @@ KARIMO agents execute tasks defined in PRDs. The human architect designs the fea
 ## Command Context
 
 Agents are spawned by these primary commands:
-- `/karimo-research` — Spawns researcher + refiner agents (required first step)
-- `/karimo-plan` — Spawns interviewer + investigator + reviewer
-- `/karimo-run` — Creates feature branch, spawns PM agent for execution
-- `/karimo-merge` — Final PR creation after feature branch execution
-- `/karimo-feedback` — Intelligent feedback with auto-detection (simple or complex path)
+- `/karimo:research` — Spawns researcher + refiner agents (required first step)
+- `/karimo:plan` — Spawns interviewer + investigator + reviewer
+- `/karimo:run` — Creates feature branch, spawns PM agent for execution
+- `/karimo:merge` — Final PR creation after feature branch execution
+- `/karimo:feedback` — Intelligent feedback with auto-detection (simple or complex path)
 
 Task agents (implementer, tester, documenter) are spawned by PM agent, not directly by commands.
 
@@ -33,7 +33,7 @@ KARIMO v5.0 supports two execution models:
 
 PRs target a feature branch, which merges to main after all tasks complete:
 
-- **Feature branch:** `feature/{prd-slug}` (created by `/karimo-run`)
+- **Feature branch:** `feature/{prd-slug}` (created by `/karimo:run`)
 - **Task PRs:** Target feature branch
 - **Wave execution:** Within feature branch (wave 2 waits for wave 1 to merge to feature branch)
 - **Final PR:** `feature/{prd-slug}` → main (one production deployment)
@@ -165,7 +165,7 @@ Task branches are cleaned **immediately after their PR merges**:
 |-------|--------|
 | Task PR merges to feature branch | PM deletes task branch + worktree |
 | Final PR merges to main | Feature branch deleted by GitHub |
-| `/karimo-merge` completes | Remaining branches cleaned (safety net) |
+| `/karimo:merge` completes | Remaining branches cleaned (safety net) |
 
 Branch naming uses `worktree/` prefix (e.g., `worktree/user-profiles-1a`) for visual distinction in GitHub UI and easier cleanup via pattern matching.
 
@@ -193,7 +193,7 @@ PRs are created by the PM agent with:
 ### 1. Pattern Recognition
 
 - **Note patterns that work.** When you find an effective approach, it may apply to similar future tasks.
-- **Identify anti-patterns.** When something causes problems, flag it for the `/karimo-feedback` system.
+- **Identify anti-patterns.** When something causes problems, flag it for the `/karimo:feedback` system.
 
 ### 2. Post-PR Learning
 
@@ -204,7 +204,7 @@ After a PR is merged:
 
 ### 3. Continuous Improvement
 
-The human architect uses `/karimo-feedback` to capture learnings. These become rules that apply to future executions. Always check `.karimo/learnings/` for project-specific guidance (patterns, anti-patterns, project-notes, execution-rules).
+The human architect uses `/karimo:feedback` to capture learnings. These become rules that apply to future executions. Always check `.karimo/learnings/` for project-specific guidance (patterns, anti-patterns, project-notes, execution-rules).
 
 ---
 

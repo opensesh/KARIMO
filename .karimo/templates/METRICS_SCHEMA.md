@@ -338,10 +338,10 @@ const learning_candidates = {
 
 ## Usage
 
-### By `/karimo-feedback --from-metrics`
+### By `/karimo:feedback --from-metrics`
 
 ```bash
-/karimo-feedback --from-metrics user-profiles
+/karimo:feedback --from-metrics user-profiles
 ```
 
 Reads `metrics.json` and presents `suggested_learnings` for user confirmation.

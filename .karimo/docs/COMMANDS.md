@@ -3,9 +3,9 @@
 Reference for all KARIMO slash commands available in Claude Code.
 
 **v7.0 Change:** Research is now required before planning. The new workflow is:
-1. `/karimo-research "feature-name"` — Creates folder, runs research
-2. `/karimo-plan --prd feature-name` — Uses research, creates PRD
-3. `/karimo-run --prd feature-name` — 4-phase execution with user iterate loop
+1. `/karimo:research "feature-name"` — Creates folder, runs research
+2. `/karimo:plan --prd feature-name` — Uses research, creates PRD
+3. `/karimo:run --prd feature-name` — 4-phase execution with user iterate loop
 
 ---
 
@@ -15,30 +15,30 @@ Reference for all KARIMO slash commands available in Claude Code.
 
 | Command | Purpose |
 |---------|---------|
-| `/karimo-research "feature-name"` | **REQUIRED first step** — Creates PRD folder + runs research |
-| `/karimo-plan --prd {slug}` | PRD interview using research context |
-| `/karimo-run --prd {slug}` | 4-phase execution (briefs → review → iterate → orchestrate) |
-| `/karimo-merge --prd {slug}` | Create final PR to main after execution |
-| `/karimo-dashboard [--prd {slug}]` | Monitor progress (no arg = all PRDs, with arg = details) |
-| `/karimo-feedback` | Intelligent feedback capture with auto-detection (simple or complex) |
+| `/karimo:research "feature-name"` | **REQUIRED first step** — Creates PRD folder + runs research |
+| `/karimo:plan --prd {slug}` | PRD interview using research context |
+| `/karimo:run --prd {slug}` | 4-phase execution (briefs → review → iterate → orchestrate) |
+| `/karimo:merge --prd {slug}` | Create final PR to main after execution |
+| `/karimo:dashboard [--prd {slug}]` | Monitor progress (no arg = all PRDs, with arg = details) |
+| `/karimo:feedback` | Intelligent feedback capture with auto-detection (simple or complex) |
 
 ### Setup & Maintenance
 
 | Command | Purpose |
 |---------|---------|
-| `/karimo-configure` | Create or update project configuration |
-| `/karimo-doctor [--test]` | Check installation health (--test for quick verification) |
-| `/karimo-update` | Check for and apply KARIMO updates |
+| `/karimo:configure` | Create or update project configuration |
+| `/karimo:doctor [--test]` | Check installation health (--test for quick verification) |
+| `/karimo:update` | Check for and apply KARIMO updates |
 
 ### Advanced
 
 | Command | Purpose |
 |---------|---------|
-| `/karimo-help` | Help and documentation search |
+| `/karimo:help` | Help and documentation search |
 
 ---
 
-## /karimo-plan
+## /karimo:plan
 
 Create a PRD through structured interview, using research context.
 
@@ -48,18 +48,18 @@ Create a PRD through structured interview, using research context.
 
 ```bash
 # Standard usage (research required)
-/karimo-plan --prd {slug}
+/karimo:plan --prd {slug}
 
 # Skip research (not recommended)
-/karimo-plan --prd {slug} --skip-research
+/karimo:plan --prd {slug} --skip-research
 
 # Resume a draft
-/karimo-plan --resume {slug}
+/karimo:plan --resume {slug}
 ```
 
 ### What It Does
 
-1. **Load Research** — Reads findings from `/karimo-research`
+1. **Load Research** — Reads findings from `/karimo:research`
 2. **Investigation** — Scans codebase for patterns
 3. **Conversation** — 4-round research-informed interview
 4. **Review** — Validates and generates task DAG
@@ -103,8 +103,8 @@ All commits follow conventional commit format with `Co-Authored-By: Claude Sonne
 After the review round, you'll see a summary with options:
 - **Approve** — Marks PRD as `ready` for execution
 - **Modify** — Make changes and re-run the reviewer
-- **More research** — Loop back to `/karimo-research --prd {slug}`
-- **Save as draft** — Come back later with `/karimo-plan --resume {slug}`
+- **More research** — Loop back to `/karimo:research --prd {slug}`
+- **Save as draft** — Come back later with `/karimo:plan --resume {slug}`
 
 ### Output
 
@@ -113,16 +113,16 @@ Creates `.karimo/prds/{NNN}_{slug}/`:
 - `tasks.yaml` — Task definitions
 - `execution_plan.yaml` — Wave-based execution plan
 - `status.json` — Execution tracking
-- `research/` — Research artifacts (from `/karimo-research`)
+- `research/` — Research artifacts (from `/karimo:research`)
 
 ### Example
 
 ```bash
 # First run research
-/karimo-research "user-profile-pages"
+/karimo:research "user-profile-pages"
 
 # Then plan with research context
-/karimo-plan --prd user-profile-pages
+/karimo:plan --prd user-profile-pages
 
 > I want to add user profile pages where users can edit their
 > name, avatar, and notification preferences.
@@ -130,7 +130,7 @@ Creates `.karimo/prds/{NNN}_{slug}/`:
 
 ---
 
-## /karimo-research
+## /karimo:research
 
 **v7.0 Change:** This is now the **REQUIRED first step** before planning.
 
@@ -139,17 +139,17 @@ Creates `.karimo/prds/{NNN}_{slug}/`:
 ```bash
 # Start new feature (REQUIRED first step)
 # Creates PRD folder and runs research
-/karimo-research "feature-name"
+/karimo:research "feature-name"
 
 # Add research to existing PRD (iterate loop)
-/karimo-research --prd {slug}
+/karimo:research --prd {slug}
 
 # Refine research based on annotations
-/karimo-research --refine --prd {slug}
+/karimo:research --refine --prd {slug}
 
 # Research with constraints
-/karimo-research "feature-name" --internal-only    # Skip external research
-/karimo-research "feature-name" --external-only    # Skip codebase research
+/karimo:research "feature-name" --internal-only    # Skip external research
+/karimo:research "feature-name" --external-only    # Skip codebase research
 ```
 
 ### What It Does
@@ -163,7 +163,7 @@ Creates `.karimo/prds/{NNN}_{slug}/`:
 6. External web search and documentation
 7. Saves findings to `research/findings.md`
 8. Commits research: "docs(karimo): init research for {slug}"
-9. Outputs: "Continue with `/karimo-plan --prd {slug}`"
+9. Outputs: "Continue with `/karimo:plan --prd {slug}`"
 
 **PRD-Scoped Mode** (--prd flag):
 1. Loads existing research context
@@ -233,21 +233,21 @@ text: "Should this pattern apply to API routes too?"
 
 Then refine:
 ```bash
-/karimo-research --refine --prd {slug}
+/karimo:research --refine --prd {slug}
 ```
 
 Agent processes annotations and updates PRD.
 
 ### Integration with Workflow
 
-**During /karimo-plan:**
+**During /karimo:plan:**
 After PRD approval, you're prompted:
 ```
 Import existing research? [list of .karimo/research/*.md]
 Run research on this PRD? [Y/n] (recommended)
 ```
 
-**During /karimo-run:**
+**During /karimo:run:**
 If no research exists, you're prompted:
 ```
 ⚠️ No research found for this PRD.
@@ -273,19 +273,19 @@ Skip with `--skip-research` flag if needed.
 
 ```bash
 # Explore authentication patterns (general)
-/karimo-research "React authentication patterns"
+/karimo:research "React authentication patterns"
 
 # Research for specific PRD (recommended workflow)
-/karimo-plan
+/karimo:plan
 # ... PRD approved ...
 # ... Prompted for research, accept ...
 # Research runs automatically
 
 # Manual PRD research
-/karimo-research --prd user-profiles
+/karimo:research --prd user-profiles
 
 # Refine after adding annotations
-/karimo-research --refine --prd user-profiles
+/karimo:research --refine --prd user-profiles
 ```
 
 ### Related Documentation
@@ -295,22 +295,22 @@ Skip with `--skip-research` flag if needed.
 
 ---
 
-## /karimo-dashboard
+## /karimo:dashboard
 
 Comprehensive CLI dashboard for KARIMO monitoring with system health, execution insights, and velocity analytics.
 
 ### Usage
 
 ```bash
-/karimo-dashboard              # Full dashboard (all 5 sections)
-/karimo-dashboard --active     # Show only active PRDs with progress
-/karimo-dashboard --blocked    # Show only blocked tasks
-/karimo-dashboard --deps       # Show cross-PRD dependency graph
-/karimo-dashboard --prd {slug} # PRD-specific dashboard
-/karimo-dashboard --alerts     # Show only Critical Alerts section
-/karimo-dashboard --activity   # Extended activity feed (last 50 events)
-/karimo-dashboard --json       # JSON output for scripting/automation
-/karimo-dashboard --refresh    # Force refresh (bypass cache)
+/karimo:dashboard              # Full dashboard (all 5 sections)
+/karimo:dashboard --active     # Show only active PRDs with progress
+/karimo:dashboard --blocked    # Show only blocked tasks
+/karimo:dashboard --deps       # Show cross-PRD dependency graph
+/karimo:dashboard --prd {slug} # PRD-specific dashboard
+/karimo:dashboard --alerts     # Show only Critical Alerts section
+/karimo:dashboard --activity   # Extended activity feed (last 50 events)
+/karimo:dashboard --json       # JSON output for scripting/automation
+/karimo:dashboard --refresh    # Force refresh (bypass cache)
 ```
 
 ### What It Shows
@@ -350,7 +350,7 @@ The dashboard has 5 comprehensive sections:
 
   [token-studio / 1c] STALE — Running for 6h 23m
     → Agent may have crashed
-    → Action: /karimo-run --prd token-studio
+    → Action: /karimo:run --prd token-studio
 
   Total: 2 items requiring human intervention
 ```
@@ -425,32 +425,32 @@ Check this each morning or after execution runs complete.
 
 **During execution:**
 ```bash
-/karimo-dashboard           # System health, what needs attention, progress
-/karimo-dashboard --prd X   # Wave-level task details (deep dive)
-/karimo-run --prd X         # Resume/start execution
+/karimo:dashboard           # System health, what needs attention, progress
+/karimo:dashboard --prd X   # Wave-level task details (deep dive)
+/karimo:run --prd X         # Resume/start execution
 ```
 
 **Post-execution:**
 ```bash
-/karimo-dashboard --activity # Review execution history
-/karimo-dashboard --prd X    # PRD-specific metrics and insights
-/karimo-feedback             # Capture learnings
+/karimo:dashboard --activity # Review execution history
+/karimo:dashboard --prd X    # PRD-specific metrics and insights
+/karimo:feedback             # Capture learnings
 ```
 
 ---
 
-## /karimo-run
+## /karimo:run
 
 Execute tasks from an approved PRD using the 4-phase execution model (v7.0).
 
 ### Usage
 
 ```bash
-/karimo-run --prd {slug}
-/karimo-run --prd {slug} --dry-run
-/karimo-run --prd {slug} --skip-review
-/karimo-run --prd {slug} --review-only
-/karimo-run --prd {slug} --brief-only
+/karimo:run --prd {slug}
+/karimo:run --prd {slug} --dry-run
+/karimo:run --prd {slug} --skip-review
+/karimo:run --prd {slug} --review-only
+/karimo:run --prd {slug} --brief-only
 ```
 
 ### What It Does (4 Phases)
@@ -549,7 +549,7 @@ If you choose "Apply corrections":
 Use `--skip-review` to bypass the review gate entirely:
 
 ```
-/karimo-run --prd feature-name --skip-review
+/karimo:run --prd feature-name --skip-review
 ```
 
 **When to skip:**
@@ -562,7 +562,7 @@ Use `--skip-review` to bypass the review gate entirely:
 Use `--review-only` to review briefs without executing:
 
 ```
-/karimo-run --prd feature-name --review-only
+/karimo:run --prd feature-name --review-only
 ```
 
 **Use case:**
@@ -588,7 +588,7 @@ Feature Branch: feature/user-profiles (will be created)
 ✓ Spawned PM agent for wave-based execution
 
 Task PRs will target: feature/user-profiles
-Final PR will be created with: /karimo-merge --prd user-profiles
+Final PR will be created with: /karimo:merge --prd user-profiles
 
 Execution started in background...
 ```
@@ -598,19 +598,19 @@ Execution started in background...
 When all tasks complete and status is `ready-for-merge`:
 
 ```
-/karimo-merge --prd user-profiles
+/karimo:merge --prd user-profiles
 ```
 
 ---
 
-## /karimo-merge
+## /karimo:merge
 
 Consolidate feature branch changes and create final PR to main (completes v5.0 workflow).
 
 ### Usage
 
 ```
-/karimo-merge --prd {slug}
+/karimo:merge --prd {slug}
 ```
 
 ### What It Does
@@ -636,7 +636,7 @@ Before creating PR:
 ### When to Use
 
 Only use after:
-- `/karimo-run` completed successfully
+- `/karimo:run` completed successfully
 - PRD status is `ready-for-merge`
 - You've reviewed the feature branch changes
 
@@ -697,17 +697,17 @@ This breakdown helps:
 
 ---
 
-## /karimo-configure
+## /karimo:configure
 
 Create or update configuration in `.karimo/config.yaml` (single source of truth).
 
 ### Usage
 
 ```
-/karimo-configure              # Create new config or update existing
-/karimo-configure --reset      # Start fresh, ignore existing config
-/karimo-configure --cd         # Configure CD provider to skip KARIMO branches
-/karimo-configure --check      # Show current configuration status
+/karimo:configure              # Create new config or update existing
+/karimo:configure --reset      # Start fresh, ignore existing config
+/karimo:configure --cd         # Configure CD provider to skip KARIMO branches
+/karimo:configure --check      # Show current configuration status
 ```
 
 ### Flags
@@ -737,7 +737,7 @@ On completion:
 
 ### When to Use
 
-| Use `/karimo-configure` | Use `/karimo-plan` |
+| Use `/karimo:configure` | Use `/karimo:plan` |
 |-------------------------|-------------------|
 | Doctor found config issues | Creating a PRD |
 | Changing config later | Config already in place |
@@ -819,16 +819,16 @@ When config already exists, shows current vs new values:
 
 ---
 
-## /karimo-update
+## /karimo:update
 
 Check for and apply KARIMO updates from GitHub releases.
 
 ### Usage
 
 ```
-/karimo-update              # Check for updates and install if available
-/karimo-update --check      # Only check, don't install
-/karimo-update --force      # Update even if already on latest
+/karimo:update              # Check for updates and install if available
+/karimo:update --check      # Only check, don't install
+/karimo:update --force      # Update even if already on latest
 ```
 
 ### What It Does
@@ -910,23 +910,23 @@ If GitHub is unreachable:
 
 | Scenario | Command |
 |----------|---------|
-| Check if updates available | `/karimo-update --check` |
-| Apply updates | `/karimo-update` |
-| Force reinstall | `/karimo-update --force` |
+| Check if updates available | `/karimo:update --check` |
+| Apply updates | `/karimo:update` |
+| Force reinstall | `/karimo:update --force` |
 | CI/automated pipelines | `bash .karimo/update.sh --ci` |
 
 ---
 
-## /karimo-feedback
+## /karimo:feedback
 
 Intelligent feedback capture with automatic complexity detection and adaptive investigation.
 
 ### Usage
 
 ```
-/karimo-feedback                           # Interactive with auto-detection
-/karimo-feedback --from-metrics {slug}     # Batch from PRD metrics
-/karimo-feedback --undo                    # Remove recent learnings
+/karimo:feedback                           # Interactive with auto-detection
+/karimo:feedback --from-metrics {slug}     # Batch from PRD metrics
+/karimo:feedback --undo                    # Remove recent learnings
 
 > {your observation}
 ```
@@ -968,7 +968,7 @@ Analyzes your feedback for signals:
 ### Simple Path Example
 
 ```
-/karimo-feedback
+/karimo:feedback
 
 > "Never use inline styles — always use Tailwind classes"
 ```
@@ -986,7 +986,7 @@ Reference existing components for class patterns.
 ### Complex Path Example
 
 ```
-/karimo-feedback
+/karimo:feedback
 
 > "Tests failing on deploy but passing locally — investigate why"
 ```
@@ -1013,7 +1013,7 @@ Reference existing components for class patterns.
 After PRD execution completes, `metrics.json` contains auto-identified learning candidates. Use batch mode to process them:
 
 ```
-/karimo-feedback --from-metrics user-profiles
+/karimo:feedback --from-metrics user-profiles
 ```
 
 This reads `.karimo/prds/user-profiles/metrics.json` and presents each candidate:
@@ -1038,14 +1038,14 @@ Approved rules are batch-created in `.karimo/learnings/{category}/`.
 
 ---
 
-## /karimo-doctor
+## /karimo:doctor
 
 Check the health of a KARIMO installation and detect configuration drift.
 
 ### Usage
 
 ```
-/karimo-doctor
+/karimo:doctor
 ```
 
 ### What It Does
@@ -1140,9 +1140,9 @@ Summary:
 ```
 
 **Recommendations mapping:**
-- Missing KARIMO section → `/karimo-configure`
-- Configuration drift → `/karimo-configure`
-- `_pending_` placeholders → `/karimo-configure`
+- Missing KARIMO section → `/karimo:configure`
+- Configuration drift → `/karimo:configure`
+- `_pending_` placeholders → `/karimo:configure`
 - Missing files → Re-run installer
 - Orphaned assets → Remove manually: `rm <filepath>`
 - Broken asset references → Re-download asset or remove from manifest
@@ -1163,16 +1163,16 @@ Commands are defined in `.claude/commands/`:
 
 | File | Command |
 |------|---------|
-| `karimo-configure.md` | `/karimo-configure` |
-| `karimo-dashboard.md` | `/karimo-dashboard` |
-| `karimo-doctor.md` | `/karimo-doctor [--test]` |
-| `karimo-feedback.md` | `/karimo-feedback` |
-| `karimo-help.md` | `/karimo-help` |
-| `karimo-merge.md` | `/karimo-merge` |
-| `karimo-plan.md` | `/karimo-plan` |
-| `karimo-research.md` | `/karimo-research` |
-| `karimo-run.md` | `/karimo-run` |
-| `karimo-update.md` | `/karimo-update` |
+| `karimo-configure.md` | `/karimo:configure` |
+| `karimo-dashboard.md` | `/karimo:dashboard` |
+| `karimo-doctor.md` | `/karimo:doctor [--test]` |
+| `karimo-feedback.md` | `/karimo:feedback` |
+| `karimo-help.md` | `/karimo:help` |
+| `karimo-merge.md` | `/karimo:merge` |
+| `karimo-plan.md` | `/karimo:plan` |
+| `karimo-research.md` | `/karimo:research` |
+| `karimo-run.md` | `/karimo:run` |
+| `karimo-update.md` | `/karimo:update` |
 
 ---
 
@@ -1182,10 +1182,10 @@ The following commands have been consolidated:
 
 | Old Command | New Command |
 |-------------|-------------|
-| `/karimo-status` | `/karimo-dashboard` |
-| `/karimo-status --prd X` | `/karimo-dashboard --prd X` |
-| `/karimo-status --reconcile` | `/karimo-dashboard --reconcile` |
-| `/karimo-test` | `/karimo-doctor --test` |
+| `/karimo:status` | `/karimo:dashboard` |
+| `/karimo:status --prd X` | `/karimo:dashboard --prd X` |
+| `/karimo:status --reconcile` | `/karimo:dashboard --reconcile` |
+| `/karimo-test` | `/karimo:doctor --test` |
 | `/karimo-plugin` | Deferred (no plugin ecosystem yet) |
 
 ---

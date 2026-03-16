@@ -4,7 +4,7 @@
 
 KARIMO Phase 3 provides comprehensive monitoring through a CLI-native dashboard — no separate web interface needed.
 
-The `/karimo-dashboard` command replaces the planned web dashboard with a fast, integrated CLI solution that provides:
+The `/karimo:dashboard` command replaces the planned web dashboard with a fast, integrated CLI solution that provides:
 
 - **System health scoring** — 0-100 score based on task success, loop efficiency, and blocked counts
 - **Critical alerts** — Immediate attention needed for blocked, stale, or crashed tasks
@@ -18,7 +18,7 @@ The `/karimo-dashboard` command replaces the planned web dashboard with a fast, 
 |---------|-------------|
 | **Zero setup** | Built into KARIMO, no server deployment required |
 | **Fast** | < 2s render with caching, < 1s with valid cache |
-| **Integrated** | Same terminal as `/karimo-dashboard`, `/karimo-run` |
+| **Integrated** | Same terminal as `/karimo:dashboard`, `/karimo:run` |
 | **Scriptable** | JSON output for automation (`--json` flag) |
 | **Offline capable** | Works without network (except GitHub API calls) |
 
@@ -26,19 +26,19 @@ The `/karimo-dashboard` command replaces the planned web dashboard with a fast, 
 
 ```bash
 # Full dashboard (all 5 sections)
-/karimo-dashboard
+/karimo:dashboard
 
 # Minimal mode (alerts only)
-/karimo-dashboard --alerts
+/karimo:dashboard --alerts
 
 # PRD-specific insights
-/karimo-dashboard --prd user-profiles
+/karimo:dashboard --prd user-profiles
 
 # Extended activity feed
-/karimo-dashboard --activity
+/karimo:dashboard --activity
 
 # JSON for automation
-/karimo-dashboard --json
+/karimo:dashboard --json
 ```
 
 ## Dashboard Sections
@@ -86,7 +86,7 @@ Tasks requiring immediate human intervention.
 
   [token-studio / 1c] STALE — Running for 6h 23m
     → Agent may have crashed
-    → Action: /karimo-run --prd token-studio --task 1c
+    → Action: /karimo:run --prd token-studio --task 1c
 
   Total: 2 items requiring human intervention
 ```
@@ -183,42 +183,42 @@ Timeline of events across all PRDs.
 
 ```bash
 # Full dashboard (default)
-/karimo-dashboard
+/karimo:dashboard
 
 # Minimal mode (alerts only)
-/karimo-dashboard --alerts
+/karimo:dashboard --alerts
 
 # Extended activity (50 events instead of 10)
-/karimo-dashboard --activity
+/karimo:dashboard --activity
 
 # PRD-specific dashboard
-/karimo-dashboard --prd user-profiles
+/karimo:dashboard --prd user-profiles
 ```
 
 ### Filters (Inherited from `/karimo-overview`)
 
 ```bash
 # Show only active PRDs
-/karimo-dashboard --active
+/karimo:dashboard --active
 
 # Show only blocked tasks
-/karimo-dashboard --blocked
+/karimo:dashboard --blocked
 
 # Show cross-PRD dependency graph
-/karimo-dashboard --deps
+/karimo:dashboard --deps
 ```
 
 ### Output Formats
 
 ```bash
 # Default (human-readable)
-/karimo-dashboard
+/karimo:dashboard
 
 # JSON output for automation
-/karimo-dashboard --json
+/karimo:dashboard --json
 
 # Force refresh (bypass cache)
-/karimo-dashboard --refresh
+/karimo:dashboard --refresh
 ```
 
 ---
@@ -237,7 +237,7 @@ Timeline of events across all PRDs.
 ### Cache Invalidation
 
 Cache is invalidated on:
-- Any `/karimo-run` run
+- Any `/karimo:run` run
 - Any `status.json` update
 - Manual `--refresh` flag
 - Cache age > 2 minutes
@@ -249,17 +249,17 @@ Cache is invalidated on:
 ### Active Monitoring (During Execution)
 
 ```bash
-/karimo-dashboard           # System health, alerts, progress
-/karimo-dashboard --prd X      # Wave-level task details (deep dive)
-/karimo-run --prd X     # Resume/start execution
+/karimo:dashboard           # System health, alerts, progress
+/karimo:dashboard --prd X      # Wave-level task details (deep dive)
+/karimo:run --prd X     # Resume/start execution
 ```
 
 ### Post-Execution Analysis
 
 ```bash
-/karimo-dashboard --activity # Review execution history
-/karimo-dashboard --prd X    # PRD-specific metrics and insights
-/karimo-feedback             # Capture learnings
+/karimo:dashboard --activity # Review execution history
+/karimo:dashboard --prd X    # PRD-specific metrics and insights
+/karimo:feedback             # Capture learnings
 ```
 
 ---
@@ -268,8 +268,8 @@ Cache is invalidated on:
 
 | Tool | Focus | When to Use |
 |------|-------|-------------|
-| `/karimo-dashboard` | Cross-PRD overview, health, velocity, alerts | Active monitoring, post-execution analysis |
-| `/karimo-dashboard` | Single PRD deep dive, wave details | Debugging specific PRD, wave-level task tracking |
+| `/karimo:dashboard` | Cross-PRD overview, health, velocity, alerts | Active monitoring, post-execution analysis |
+| `/karimo:dashboard` | Single PRD deep dive, wave details | Debugging specific PRD, wave-level task tracking |
 | `gh pr list` | GitHub PR queries | Integration with external tools, CI/CD |
 
 ---
@@ -288,7 +288,7 @@ The dashboard aggregates data from:
 
 **Principle:** Git is truth. status.json is a cache.
 
-The dashboard uses the same reconciliation logic as `/karimo-dashboard`:
+The dashboard uses the same reconciliation logic as `/karimo:dashboard`:
 - Branch exists + PR merged → Task done
 - Branch exists + no PR → Task crashed
 - No branch + status.json says done → Trust status.json (branch cleaned)
@@ -323,7 +323,7 @@ gh pr list --label karimo,wave-1
 
 ### What Changed
 
-`/karimo-overview` is **deprecated** and replaced by `/karimo-dashboard`.
+`/karimo-overview` is **deprecated** and replaced by `/karimo:dashboard`.
 
 All functionality preserved:
 - Blocked tasks → **Critical Alerts** section
@@ -349,12 +349,12 @@ New functionality added:
 
 **New:**
 ```bash
-/karimo-dashboard             # Full dashboard (5 sections)
-/karimo-dashboard --blocked   # Only blocked tasks (same)
-/karimo-dashboard --active    # Only active PRDs (same)
-/karimo-dashboard --deps      # Dependency graph (same)
-/karimo-dashboard --alerts    # Minimal mode (new)
-/karimo-dashboard --prd X     # PRD-specific dashboard (new)
+/karimo:dashboard             # Full dashboard (5 sections)
+/karimo:dashboard --blocked   # Only blocked tasks (same)
+/karimo:dashboard --active    # Only active PRDs (same)
+/karimo:dashboard --deps      # Dependency graph (same)
+/karimo:dashboard --alerts    # Minimal mode (new)
+/karimo:dashboard --prd X     # PRD-specific dashboard (new)
 ```
 
 ---

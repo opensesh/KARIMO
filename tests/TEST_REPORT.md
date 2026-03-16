@@ -22,7 +22,7 @@ All documentation has been updated across 6 files, test infrastructure created, 
 
 **Implementation Location:**
 - `.karimo/templates/INTERVIEW_PROTOCOL.md` - Commit instructions after each round
-- `.claude/agents/karimo-interviewer.md` - Agent has Bash and Write tools
+- `.claude/agents/karimo/interviewer.md` - Agent has Bash and Write tools
 
 **Verification:**
 ✅ Four commit points identified in INTERVIEW_PROTOCOL.md:
@@ -44,8 +44,8 @@ All documentation has been updated across 6 files, test infrastructure created, 
 ### Feature 2: Enhanced Merge Reports
 
 **Implementation Location:**
-- `.claude/commands/karimo-merge.md` (lines 105-128) - Statistics calculation
-- `.claude/commands/karimo-merge.md` (lines 386-388) - PR body template
+- `.claude/commands/karimo/merge.md` (lines 105-128) - Statistics calculation
+- `.claude/commands/karimo/merge.md` (lines 386-388) - PR body template
 
 **Verification:**
 ✅ Statistics calculation logic present:

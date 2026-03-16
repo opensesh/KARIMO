@@ -46,7 +46,7 @@ git clone https://github.com/opensesh/KARIMO.git
 bash KARIMO/.karimo/install.sh /path/to/your/project
 ```
 
-**Configuration:** After installation, run `/karimo-configure` to auto-detect your project:
+**Configuration:** After installation, run `/karimo:configure` to auto-detect your project:
 - Package manager (pnpm, yarn, npm, bun, poetry, etc.)
 - Runtime (Node.js, Bun, Deno, Python, Go, Rust)
 - Framework (Next.js, Nuxt, SvelteKit, Astro, etc.)
@@ -59,7 +59,7 @@ Configuration is written to `.karimo/config.yaml`.
 
 The installer uses `.karimo/MANIFEST.json` as the single source of truth for file inventory.
 
-**Note:** KARIMO installs zero workflows by default. If you want Greptile integration, run `/karimo-configure --greptile` after installation.
+**Note:** KARIMO installs zero workflows by default. If you want Greptile integration, run `/karimo:configure --greptile` after installation.
 
 This installs:
 - Agent definitions to `.claude/agents/`
@@ -152,7 +152,7 @@ If your project already has `.claude/` with custom agents, commands, or `CLAUDE.
 - `.karimo/` directory with templates, manifest, and learnings
 - Marker-delimited KARIMO section appended to `CLAUDE.md` (~20 lines)
 
-**Optional (installed via `/karimo-configure --greptile`):**
+**Optional (installed via `/karimo:configure --greptile`):**
 - `karimo-greptile-review.yml` — automated code review via Greptile
 
 **Naming convention:** All KARIMO-managed files use the `karimo-*` prefix for agents, commands, and skills. This enables reliable cleanup during updates and clear distinction from user-added files.
@@ -168,8 +168,8 @@ If your project already has `.claude/` with custom agents, commands, or `CLAUDE.
 KARIMO v7.0 uses a research-first workflow. Research is required before planning (unless you use `--skip-research`).
 
 ```
-/karimo-research "my-feature"    # Creates folder, runs research (~5 min)
-/karimo-plan --prd my-feature    # Uses research, creates PRD (~10 min)
+/karimo:research "my-feature"    # Creates folder, runs research (~5 min)
+/karimo:plan --prd my-feature    # Uses research, creates PRD (~10 min)
 ```
 
 ### 1. Start Claude Code
@@ -182,7 +182,7 @@ claude
 ### 2. Run Research (Required First Step)
 
 ```
-/karimo-research "user-profiles"
+/karimo:research "user-profiles"
 ```
 
 This creates the PRD folder and runs research:
@@ -214,12 +214,12 @@ Research output:
 ### 3. Run the Plan Command
 
 ```
-/karimo-plan --prd user-profiles
+/karimo:plan --prd user-profiles
 ```
 
 The `--prd` flag is **required** and must point to an existing research folder.
 
-**First-time setup:** If this is your first PRD, `/karimo-plan` detects missing configuration and guides you through inline setup:
+**First-time setup:** If this is your first PRD, `/karimo:plan` detects missing configuration and guides you through inline setup:
 
 1. Shows a brief explanation of why configuration matters
 2. Spawns an investigator agent to scan your codebase
@@ -274,16 +274,16 @@ I've embedded the mockup in the PRD.
 
 ```mermaid
 graph LR
-    A[/karimo-research] --> B[Research<br/>internal+external]
-    B --> C[/karimo-plan<br/>--prd slug]
+    A[/karimo:research] --> B[Research<br/>internal+external]
+    B --> C[/karimo:plan<br/>--prd slug]
     C --> D[Interview<br/>4 rounds]
     D --> E[Reviewer<br/>validates PRD]
     E --> F{User<br/>Approval?}
     F -->|Yes| G[PRD Saved<br/>status: ready]
     F -->|More Research| A
     F -->|Save Draft| H[Draft Saved]
-    G --> I[/karimo-run]
-    H --> J[/karimo-plan<br/>--resume]
+    G --> I[/karimo:run]
+    H --> J[/karimo:plan<br/>--resume]
     J --> D
 ```
 
@@ -292,7 +292,7 @@ graph LR
 After review, you'll see a summary with options:
 - **Approve** — Marks PRD as `ready` for execution
 - **Modify** — Make changes and re-run the reviewer
-- **Save as draft** — Come back later with `/karimo-plan --resume {slug}`
+- **Save as draft** — Come back later with `/karimo:plan --resume {slug}`
 
 ### 6. Check the Generated PRD
 
@@ -310,7 +310,7 @@ cat .karimo/prds/{slug}/tasks.yaml
 ├── prd.md              # Full PRD document
 ├── tasks.yaml          # Task definitions with dependencies
 ├── execution_plan.yaml # DAG for parallel execution
-├── status.json         # Execution state (created during /karimo-run)
+├── status.json         # Execution state (created during /karimo:run)
 └── metrics.json        # Execution metrics (created at PRD completion)
 ```
 
@@ -348,14 +348,14 @@ Research is now the **required first step** in KARIMO v7.0. It runs before plann
 For urgent hotfixes where research adds no value:
 
 ```
-/karimo-plan --prd my-feature --skip-research
+/karimo:plan --prd my-feature --skip-research
 ```
 
 This shows a warning but proceeds without research context.
 
 ### Research Focus Questions
 
-When you run `/karimo-research "feature-name"`, the researcher agent asks what to focus on:
+When you run `/karimo:research "feature-name"`, the researcher agent asks what to focus on:
 
 ```
 What would you like to research for this feature?
@@ -437,7 +437,7 @@ You'll see a summary like:
 After planning, you may want more research. Use the `--prd` flag to add to existing research:
 
 ```
-/karimo-research --prd user-profiles
+/karimo:research --prd user-profiles
 ```
 
 This adds to the existing research folder without starting over.
@@ -460,7 +460,7 @@ text: "Should this pattern apply to API routes too?"
 Then refine:
 
 ```
-/karimo-research --refine --prd user-profiles
+/karimo:research --refine --prd user-profiles
 ```
 
 The refiner agent addresses annotations and updates research.
@@ -472,7 +472,7 @@ The refiner agent addresses annotations and updates research.
 ### Run with Brief Review Loop
 
 ```
-/karimo-run --prd user-profiles
+/karimo:run --prd user-profiles
 ```
 
 KARIMO v7.0 uses a 4-phase execution model with a user approval loop before tasks execute:
@@ -514,7 +514,7 @@ Options:
   1. Approve — Execute tasks as-is
   2. Apply fixes — Apply recommended changes
   3. Modify — Adjust briefs/order manually
-  4. More research — Run /karimo-research --prd
+  4. More research — Run /karimo:research --prd
   5. Cancel — Exit without executing
 
 Your choice:
@@ -549,7 +549,7 @@ Wave 3: [3a] — Final task
 The PM Agent coordinates execution in real-time. Check status:
 
 ```
-/karimo-dashboard
+/karimo:dashboard
 ```
 
 Shows progress across all PRDs:
@@ -579,7 +579,7 @@ Agent-created PRs appear in your repository. Review and merge as normal.
 If you notice agent patterns worth capturing:
 
 ```
-/karimo-feedback
+/karimo:feedback
 
 > "Always use the existing Button component"
 ```
@@ -597,7 +597,7 @@ Configuration is stored in `.karimo/config.yaml` (single source of truth). Learn
 After running `install.sh`, configure your project:
 
 ```
-/karimo-configure
+/karimo:configure
 ```
 
 This auto-detects and writes to `.karimo/config.yaml`:
@@ -617,7 +617,7 @@ in isolation, but works once all wave tasks merge.
 To skip preview builds for KARIMO branches:
 
 ```
-/karimo-configure --cd
+/karimo:configure --cd
 ```
 
 This will detect your deployment provider and configure it to skip KARIMO task branches.
@@ -629,7 +629,7 @@ See [CI-CD.md](CI-CD.md) for details on KARIMO's CI/CD integration approach.
 After configuration, verify everything is valid:
 
 ```
-/karimo-doctor
+/karimo:doctor
 ```
 
 This checks for:
@@ -676,7 +676,7 @@ Should show KARIMO agents alongside any existing agents.
 
 KARIMO uses git state reconstruction. Run:
 ```bash
-/karimo-run --prd {slug}
+/karimo:run --prd {slug}
 ```
 
 This will reconcile status.json with git reality and resume from the correct point.
@@ -687,19 +687,19 @@ KARIMO installs zero review workflows by default. Choose your provider:
 
 **Option A: Greptile** ($30/month, best for high volume)
 ```
-/karimo-configure --greptile
+/karimo:configure --greptile
 ```
 Then add `GREPTILE_API_KEY` to your repository secrets.
 
 **Option B: Claude Code Review** ($15-25/PR, native integration)
 ```
-/karimo-configure --code-review
+/karimo:configure --code-review
 ```
 Then enable at `claude.ai/admin-settings/claude-code` and install Claude GitHub App.
 
 **Interactive choice:**
 ```
-/karimo-configure --review
+/karimo:configure --review
 ```
 
 ---
@@ -725,7 +725,7 @@ The KARIMO section uses HTML comment markers for clear boundaries:
 Benefits of marker-based format:
 - Clear visual boundaries for users
 - Programmatic detection for updates and uninstall
-- GitHub Configuration table auto-populated by `/karimo-configure`
+- GitHub Configuration table auto-populated by `/karimo:configure`
 
 All detailed configuration is stored in `.karimo/config.yaml` and learnings in `.karimo/learnings/`.
 
@@ -745,9 +745,9 @@ Or manually remove these files:
 
 ```bash
 rm -rf .karimo/
-rm .claude/agents/karimo-*.md
-rm .claude/commands/karimo-*.md
-rm .claude/skills/karimo-*.md
+rm .claude/agents/karimo/*.md
+rm .claude/commands/karimo/*.md
+rm .claude/skills/karimo/*.md
 rm .claude/KARIMO_RULES.md
 rm .github/workflows/karimo-*.yml
 ```
@@ -772,7 +772,7 @@ Automated code review (Greptile or Claude Code Review) is optional but highly re
 - **Greptile**: $30/month flat. Best for high PR volume (50+/month).
 - **Claude Code Review**: $15-25 per PR. Best for low-medium volume, native Claude integration.
 
-Run `/karimo-configure --review` to choose your provider.
+Run `/karimo:configure --review` to choose your provider.
 
 ### How does KARIMO handle task isolation?
 
@@ -783,7 +783,7 @@ KARIMO v4.0 uses Claude Code's native `isolation: worktree` feature. Claude Code
 This is expected. KARIMO task PRs contain partial code that won't build
 in isolation. The code works once all wave tasks merge to main.
 
-Run `/karimo-configure --cd` to configure your deployment provider to skip
+Run `/karimo:configure --cd` to configure your deployment provider to skip
 KARIMO task branches, or accept the noise (failures don't block merges).
 
 ---

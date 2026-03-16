@@ -296,7 +296,7 @@ cp "$MANIFEST" "$TARGET_DIR/.karimo/MANIFEST.json"
 
 # Copy issue template
 echo "Copying issue template..."
-cp "$KARIMO_ROOT/.github/ISSUE_TEMPLATE/karimo-task.yml" "$TARGET_DIR/.github/ISSUE_TEMPLATE/"
+cp "$KARIMO_ROOT/.github/ISSUE_TEMPLATE/karimo:task.yml" "$TARGET_DIR/.github/ISSUE_TEMPLATE/"
 
 # Create .gitkeep for prds directory
 touch "$TARGET_DIR/.karimo/prds/.gitkeep"
@@ -426,7 +426,7 @@ if [ "$CI_MODE" = false ]; then
         fi
     else
         echo -e "  ${YELLOW}Could not auto-detect project configuration${NC}"
-        echo -e "  ${YELLOW}Run /karimo-configure after installation to set up${NC}"
+        echo -e "  ${YELLOW}Run /karimo:configure after installation to set up${NC}"
     fi
 fi
 
@@ -478,7 +478,7 @@ This project uses [KARIMO](https://github.com/opensesh/KARIMO) for PRD-driven au
 
 ### Quick Reference
 
-- **Commands:** Type `/karimo-` to see all commands
+- **Commands:** Type `/karimo:` to see all commands
 - **Agent rules:** `.claude/KARIMO_RULES.md`
 - **Configuration:** `.karimo/config.yaml`
 - **Learnings:** `.karimo/learnings/`
@@ -491,7 +491,7 @@ This project uses [KARIMO](https://github.com/opensesh/KARIMO) for PRD-driven au
 | Owner | _pending_ |
 | Repository | _pending_ |
 
-_Run `/karimo-configure` to detect and populate these values._
+_Run `/karimo:configure` to detect and populate these values._
 <!-- KARIMO:END -->
 EOF
 
@@ -607,23 +607,23 @@ if [ "$CONFIG_AUTODETECTED" = true ]; then
     echo "    Runtime: ${DETECTED_RUNTIME}"
     echo "    Framework: ${DETECTED_FRAMEWORK}"
     echo "    Package manager: ${DETECTED_PKG_MANAGER}"
-    echo "    Run /karimo-configure to save to .karimo/config.yaml"
+    echo "    Run /karimo:configure to save to .karimo/config.yaml"
 else
     echo -e "  ${YELLOW}○${NC} Configuration pending"
-    echo "    Run /karimo-configure to create config"
+    echo "    Run /karimo:configure to create config"
 fi
 echo
 echo "Next steps:"
-echo "  1. Run '/karimo-doctor' to verify installation health"
+echo "  1. Run '/karimo:doctor' to verify installation health"
 if [ "$CONFIG_AUTODETECTED" = true ]; then
-    echo "  2. Run '/karimo-plan' to create your first PRD"
-    echo "  3. Run '/karimo-run --prd {slug}' to start execution"
+    echo "  2. Run '/karimo:plan' to create your first PRD"
+    echo "  3. Run '/karimo:run --prd {slug}' to start execution"
 else
-    echo "  2. Run '/karimo-configure' to complete configuration"
-    echo "  3. Run '/karimo-plan' to create your first PRD"
+    echo "  2. Run '/karimo:configure' to complete configuration"
+    echo "  3. Run '/karimo:plan' to create your first PRD"
 fi
-echo "  4. Run '/karimo-feedback' to capture learnings"
-echo "  5. Run '/karimo-status' to monitor progress"
+echo "  4. Run '/karimo:feedback' to capture learnings"
+echo "  5. Run '/karimo:status' to monitor progress"
 echo
 echo "For more information, see: https://github.com/opensesh/KARIMO"
 echo

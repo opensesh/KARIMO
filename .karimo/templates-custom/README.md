@@ -59,7 +59,7 @@ vim .karimo/templates-custom/PRD_TEMPLATE.md
 Create a new PRD to see your custom template in action:
 
 ```bash
-/karimo-plan
+/karimo:plan
 # Your custom PRD template will be used
 ```
 
@@ -91,7 +91,7 @@ cp .karimo/templates/PRD_TEMPLATE.md .karimo/templates-custom/PRD_TEMPLATE.md
 ```
 
 **Step 3: New PRDs use your template**
-All future PRDs created with `/karimo-plan` will include the Business Impact section.
+All future PRDs created with `/karimo:plan` will include the Business Impact section.
 
 ---
 
@@ -159,7 +159,7 @@ To stop using a custom template, simply delete it:
 rm .karimo/templates-custom/PRD_TEMPLATE.md
 
 # KARIMO will fall back to core template
-/karimo-plan  # Uses default PRD_TEMPLATE.md
+/karimo:plan  # Uses default PRD_TEMPLATE.md
 ```
 
 ---

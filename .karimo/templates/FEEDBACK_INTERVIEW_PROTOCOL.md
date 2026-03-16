@@ -2,7 +2,7 @@
 
 **Version:** 2.0
 **Purpose:** Conduct adaptive feedback interviews that identify problems and guide investigation or direct rule creation
-**Trigger:** `/karimo-feedback` command (complex path)
+**Trigger:** `/karimo:feedback` command (complex path)
 **Model:** Opus (recommended for adaptive questioning and nuanced problem scoping)
 **Output:** Investigation directives for feedback-auditor agent OR direct rule for `.karimo/learnings/{category}/`
 
@@ -10,7 +10,7 @@
 
 ## Overview
 
-The Feedback Interview is the complex path of `/karimo-feedback`. Unlike the PRD Interview (which captures what to build), the Feedback Interview captures what's broken about how KARIMO or Claude Code operates in this project.
+The Feedback Interview is the complex path of `/karimo:feedback`. Unlike the PRD Interview (which captures what to build), the Feedback Interview captures what's broken about how KARIMO or Claude Code operates in this project.
 
 ### Key Principle
 
@@ -296,7 +296,7 @@ After generating investigation directives:
 ### Interruption Handling
 
 - Claude Code maintains conversation context
-- Re-running `/karimo-feedback` should detect in-progress feedback
+- Re-running `/karimo:feedback` should detect in-progress feedback
 - Resume from where it left off
 
 ### Time Expectations
@@ -309,4 +309,4 @@ After generating investigation directives:
 
 ---
 
-*Part of the unified `/karimo-feedback` command — replaces legacy `/karimo-learn` workflow.*
+*Part of the unified `/karimo:feedback` command — replaces legacy `/karimo:learn` workflow.*

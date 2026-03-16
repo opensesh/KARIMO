@@ -46,7 +46,7 @@ After execution (PRD level):
 
 **Scope:** All future tasks across all PRDs. Learnings persist indefinitely.
 
-**Created by:** User via `/karimo-feedback` command (never automatic).
+**Created by:** User via `/karimo:feedback` command (never automatic).
 
 **Storage:**
 ```
@@ -76,7 +76,7 @@ After execution (PRD level):
 |--------|----------|-----------|
 | **Scope** | One PRD | All PRDs |
 | **Lifespan** | Temporary (PRD cycle) | Permanent |
-| **Created by** | Worker agents (automatic) | User via `/karimo-feedback` |
+| **Created by** | Worker agents (automatic) | User via `/karimo:feedback` |
 | **Purpose** | Task-to-task coordination | Prevent recurring mistakes |
 | **Storage** | `.karimo/prds/{slug}/findings.md` | `.karimo/learnings/` |
 
@@ -89,7 +89,7 @@ FINDINGS (pattern in 3+ PRDs)
     ↓
 PM Agent detects and flags in metrics.json
     ↓
-/karimo-feedback --from-metrics surfaces candidates
+/karimo:feedback --from-metrics surfaces candidates
     ↓
 User approves promotion
     ↓
@@ -102,12 +102,12 @@ This promotion is never automatic — user approval is required.
 
 ## Feedback Command Architecture
 
-The `/karimo-feedback` command is the sole mechanism for creating learnings. It does NOT create findings (those are automatic during execution).
+The `/karimo:feedback` command is the sole mechanism for creating learnings. It does NOT create findings (those are automatic during execution).
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
 │                  UNIFIED FEEDBACK COMMAND                            │
-│                   /karimo-feedback                                   │
+│                   /karimo:feedback                                   │
 ├─────────────────────────────────────────────────────────────────────┤
 │                                                                     │
 │   Initial Feedback → Complexity Detection                            │
@@ -146,7 +146,7 @@ The `/karimo-feedback` command is the sole mechanism for creating learnings. It 
 
 ## Complexity Detection
 
-The `/karimo-feedback` command auto-detects whether feedback needs quick capture or deep investigation.
+The `/karimo:feedback` command auto-detects whether feedback needs quick capture or deep investigation.
 
 ### Simple Signals (Quick Path - 70%)
 
@@ -193,7 +193,7 @@ Quick capture for well-defined feedback (70% of cases, < 5 min).
 ### Example Usage
 
 ```
-/karimo-feedback
+/karimo:feedback
 
 > "Never use inline styles — always use Tailwind classes"
 ```
@@ -250,7 +250,7 @@ Deep investigation for unclear or systemic issues (30% of cases, 10-20 min).
 ### Example Usage
 
 ```
-/karimo-feedback
+/karimo:feedback
 
 > "Tests failing on deploy but passing locally — investigate why"
 ```
@@ -300,7 +300,7 @@ After PRD execution completes, KARIMO generates `metrics.json` with auto-identif
 
 ```bash
 # After PRD completion
-/karimo-feedback --from-metrics {prd-slug}
+/karimo:feedback --from-metrics {prd-slug}
 ```
 
 **Process:**
@@ -378,7 +378,7 @@ _Description of this category_
 
 | Title | Severity | Added | Source |
 |-------|----------|-------|--------|
-| [Entry Title](entry-slug.md) | critical | 2026-03-12 | /karimo-feedback |
+| [Entry Title](entry-slug.md) | critical | 2026-03-12 | /karimo:feedback |
 
 ## Quick Reference
 
@@ -392,7 +392,7 @@ _Description of this category_
 **Category:** pattern | anti-pattern | project-note | execution-rule
 **Severity:** info | important | critical
 **Added:** {ISO date}
-**Source:** {/karimo-feedback | PRD-{slug} | manual}
+**Source:** {/karimo:feedback | PRD-{slug} | manual}
 
 ## Description
 {What this learning teaches}
@@ -491,16 +491,16 @@ This enables:
 ### Recommended Workflow
 
 **Daily:**
-- Use `/karimo-feedback` for immediate observations (simple path)
+- Use `/karimo:feedback` for immediate observations (simple path)
 - Quick capture as patterns emerge
 
 **After Each PRD:**
-- Run `/karimo-feedback --from-metrics {prd-slug}` for batch capture
+- Run `/karimo:feedback --from-metrics {prd-slug}` for batch capture
 - Review learning candidates from execution
 
 **Weekly/Bi-weekly:**
 - Review complex issues that accumulated
-- Use `/karimo-feedback` with complex path for systemic problems
+- Use `/karimo:feedback` with complex path for systemic problems
 - Periodic check of `.karimo/feedback/` for unresolved issues
 
 **Monthly:**
@@ -588,10 +588,10 @@ Even if you don't know the root cause, specific examples help me investigate.
 | Document | Purpose |
 |----------|---------|
 | [CONTEXT-ARCHITECTURE.md](CONTEXT-ARCHITECTURE.md) | L0/L1/L2 layering and learnings structure |
-| [COMMANDS.md](COMMANDS.md) | `/karimo-feedback` command reference |
+| [COMMANDS.md](COMMANDS.md) | `/karimo:feedback` command reference |
 | [ARCHITECTURE.md](ARCHITECTURE.md) | System design and folder structure |
 | [GETTING-STARTED.md](GETTING-STARTED.md) | Installation and first feedback capture |
 
 ---
 
-*This unified feedback system replaces the legacy two-scope model (/karimo-feedback + /karimo-learn). All learning capture now flows through `/karimo-feedback` with intelligent complexity detection.*
+*This unified feedback system replaces the legacy two-scope model (/karimo:feedback + /karimo-learn). All learning capture now flows through `/karimo:feedback` with intelligent complexity detection.*

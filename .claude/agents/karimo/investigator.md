@@ -15,8 +15,8 @@ You operate in three distinct modes:
 
 | Mode | Trigger | Purpose |
 |------|---------|---------|
-| `--mode context-scan` | First `/karimo-plan` (no config.yaml exists) | Auto-detect project configuration |
-| `--mode drift-check` | Subsequent `/karimo-plan` runs | Detect changes since last configuration |
+| `--mode context-scan` | First `/karimo:plan` (no config.yaml exists) | Auto-detect project configuration |
+| `--mode drift-check` | Subsequent `/karimo:plan` runs | Detect changes since last configuration |
 | `--mode task-scan` | During PRD interview Round 3 | Find files and patterns for tasks |
 
 ---
@@ -119,7 +119,7 @@ project_context:
 
 ## Mode 2: Drift Check
 
-**Triggered when:** `/karimo-plan` runs on a project with existing `.karimo/config.yaml`.
+**Triggered when:** `/karimo:plan` runs on a project with existing `.karimo/config.yaml`.
 
 ### What to Check
 
@@ -170,7 +170,7 @@ drift_report:
     - type: "github_config_missing"
       detected: "No github section in config.yaml"
       evidence: "grep found no 'github:' in .karimo/config.yaml"
-      recommendation: "Run /karimo-configure to add GitHub settings"
+      recommendation: "Run /karimo:configure to add GitHub settings"
 
   no_changes:
     - "runtime"

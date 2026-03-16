@@ -108,7 +108,7 @@ Co-Authored-By: Claude <noreply@anthropic.com>"
 | `firecrawl_map` | Find pages on documentation sites |
 | `firecrawl_extract` | Compare multiple libraries |
 
-See `.claude/skills/karimo-firecrawl-web-tools.md` for full reference.
+See `.claude/skills/karimo/firecrawl-web-tools.md` for full reference.
 
 **Fallback (if Firecrawl unavailable):**
 
@@ -247,7 +247,7 @@ When encountering relevant visual content during research (screenshots, diagrams
 1. **Capture the asset** using Firecrawl screenshot tools or WebFetch
 2. **Store with karimo_add_asset()** from karimo-bash-utilities skill:
    ```bash
-   source .claude/skills/karimo-bash-utilities.md
+   source .claude/skills/karimo/bash-utilities.md
    karimo_add_asset "$PRD_SLUG" "$IMAGE_URL" "research" "$DESCRIPTION" "karimo-researcher"
    ```
 
@@ -438,7 +438,7 @@ Embedded in `PRD_{slug}.md`:
 
 ### Phase 2 (External Research)
 
-- **Firecrawl** (Recommended) — See `.claude/skills/karimo-firecrawl-web-tools.md`
+- **Firecrawl** (Recommended) — See `.claude/skills/karimo/firecrawl-web-tools.md`
   - `firecrawl_scrape` — Read documentation pages
   - `firecrawl_search` — Web search for best practices
   - `firecrawl_map` — Find pages on documentation sites
@@ -499,7 +499,7 @@ Embedded in `PRD_{slug}.md`:
 ### General Research
 
 ```bash
-/karimo-research "React file upload patterns"
+/karimo:research "React file upload patterns"
 ```
 
 **Your Process:**
@@ -513,7 +513,7 @@ Embedded in `PRD_{slug}.md`:
 ### PRD-Scoped Research
 
 ```bash
-/karimo-research --prd user-profiles
+/karimo:research --prd user-profiles
 ```
 
 **Your Process:**
@@ -537,7 +537,7 @@ Embedded in `PRD_{slug}.md`:
 
 ## Related Files
 
-- Command: `.claude/commands/karimo-research.md`
+- Command: `.claude/commands/karimo/research.md`
 - Templates:
   - `.karimo/templates/GENERAL_RESEARCH_TEMPLATE.md`
   - `.karimo/templates/PRD_RESEARCH_SECTION_TEMPLATE.md`
@@ -545,9 +545,9 @@ Embedded in `PRD_{slug}.md`:
   - `.karimo/templates/EXTERNAL_FINDINGS_TEMPLATE.md`
   - `.karimo/templates/ANNOTATION_GUIDE.md`
 - Skills:
-  - `.claude/skills/karimo-research-methods.md` (internal research)
-  - `.claude/skills/karimo-external-research.md` (external research)
-  - `.claude/skills/karimo-firecrawl-web-tools.md` (Firecrawl reference)
+  - `.claude/skills/karimo/research-methods.md` (internal research)
+  - `.claude/skills/karimo/external-research.md` (external research)
+  - `.claude/skills/karimo/firecrawl-web-tools.md` (Firecrawl reference)
 - Related agents:
-  - `.claude/agents/karimo-refiner.md` (processes annotations)
-  - `.claude/agents/karimo-brief-writer.md` (inherits PRD research)
+  - `.claude/agents/karimo/refiner.md` (processes annotations)
+  - `.claude/agents/karimo/brief-writer.md` (inherits PRD research)

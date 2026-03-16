@@ -1,4 +1,4 @@
-# /karimo-feedback — Unified Feedback Command
+# /karimo:feedback — Unified Feedback Command
 
 Intelligent feedback capture with automatic complexity detection and adaptive investigation.
 
@@ -13,9 +13,9 @@ Unified command for capturing feedback about KARIMO or Claude Code operation. Au
 ## Usage
 
 ```bash
-/karimo-feedback                           # Interactive mode with auto-detection
-/karimo-feedback --from-metrics {prd-slug} # Batch mode from execution metrics
-/karimo-feedback --undo                    # Remove recent learnings
+/karimo:feedback                           # Interactive mode with auto-detection
+/karimo:feedback --from-metrics {prd-slug} # Batch mode from execution metrics
+/karimo:feedback --undo                    # Remove recent learnings
 ```
 
 ---
@@ -132,7 +132,7 @@ Reference existing components for class patterns.
 > **Category:** anti-pattern
 > **Severity:** important
 > **Added:** 2026-03-12
-> **Source:** /karimo-feedback
+> **Source:** /karimo:feedback
 >
 > ## Description
 > Never use inline styles. Always use Tailwind utility classes.
@@ -367,7 +367,7 @@ Preserved from previous version with no changes.
 ### Usage
 
 ```bash
-/karimo-feedback --from-metrics {prd-slug}
+/karimo:feedback --from-metrics {prd-slug}
 ```
 
 ### Behavior
@@ -470,7 +470,7 @@ Even if you don't know the root cause, specific examples help me investigate.
 Preserved from previous version with no changes.
 
 ```bash
-/karimo-feedback --undo
+/karimo:feedback --undo
 ```
 
 Shows recent learnings and allows removal:
@@ -508,7 +508,7 @@ Shows recent learnings and allows removal:
 
 **Simple path:** Direct rule generation (no protocol)
 **Complex path:** `.karimo/templates/FEEDBACK_INTERVIEW_PROTOCOL.md`
-**Feedback auditor:** `.claude/agents/karimo-feedback-auditor.md`
+**Feedback auditor:** `.claude/agents/karimo/feedback-auditor.md`
 **Feedback document template:** `.karimo/templates/FEEDBACK_DOCUMENT_TEMPLATE.md`
 
 ---
@@ -535,4 +535,4 @@ Shows recent learnings and allows removal:
 
 ---
 
-*This unified command replaces the legacy `/karimo-learn` workflow. All learning capture now flows through `/karimo-feedback` with intelligent complexity detection.*
+*This unified command replaces the legacy `/karimo-learn` workflow. All learning capture now flows through `/karimo:feedback` with intelligent complexity detection.*

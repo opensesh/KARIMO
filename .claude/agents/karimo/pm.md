@@ -1,6 +1,6 @@
 ---
 name: karimo-pm
-description: Coordinates autonomous task execution — manages git workflows, spawns worker agents, monitors progress, creates PRs. Never writes code. Use when /karimo-run starts execution.
+description: Coordinates autonomous task execution — manages git workflows, spawns worker agents, monitors progress, creates PRs. Never writes code. Use when /karimo:run starts execution.
 model: sonnet
 tools: Read, Write, Edit, Bash, Grep, Glob
 ---
@@ -45,7 +45,7 @@ You operate within **one PRD**. Everything you manage lives under:
 
 ## When You're Spawned
 
-The `/karimo-run` command spawns you with:
+The `/karimo:run` command spawns you with:
 - Project configuration from `.karimo/config.yaml` and `.karimo/learnings/`
 - PRD content (tasks, execution plan, narrative)
 - Current status (for resume scenarios)
@@ -60,7 +60,7 @@ KARIMO supports two execution modes, detected automatically from `status.json`:
 ### Feature Branch Mode (v5.0) — Default
 
 **Workflow:**
-- Feature branch: `feature/{prd-slug}` created by `/karimo-run`
+- Feature branch: `feature/{prd-slug}` created by `/karimo:run`
 - Task PRs target feature branch (not main)
 - Wave execution within feature branch
 - Final PR: feature branch → main (ONE production deployment)
@@ -846,7 +846,7 @@ If the user provides additional context (bug screenshots, error states, visual c
 
 1. **Store execution-stage assets** using karimo_add_asset():
    ```bash
-   source .claude/skills/karimo-bash-utilities.md
+   source .claude/skills/karimo/bash-utilities.md
    karimo_add_asset "$PRD_SLUG" "$IMAGE_SOURCE" "execution" "$DESCRIPTION" "karimo-pm"
    ```
 
@@ -906,7 +906,7 @@ The worker will see this context when implementing the fix.
 
 #### Feature Branch Mode (execution_mode = "feature-branch")
 
-**Goal:** Pause at ready-for-merge status. User will run `/karimo-merge` for final PR to main.
+**Goal:** Pause at ready-for-merge status. User will run `/karimo:merge` for final PR to main.
 
 1. **Verify all tasks merged to feature branch:**
    ```bash
@@ -924,7 +924,7 @@ The worker will see this context when implementing the fix.
    }
    ```
 
-3. **Task branches already cleaned** during wave transitions. Only feature branch remains for `/karimo-merge`.
+3. **Task branches already cleaned** during wave transitions. Only feature branch remains for `/karimo:merge`.
 
 4. **Generate metrics.json** (same format, update version to "5.0")
 
@@ -952,7 +952,7 @@ The worker will see this context when implementing the fix.
 
    Duration: {total_minutes} minutes
 
-   Next Step: /karimo-merge --prd {slug}
+   Next Step: /karimo:merge --prd {slug}
    This will create the final PR: {feature_branch} → main
    ```
 
@@ -1042,7 +1042,7 @@ The worker will see this context when implementing the fix.
 
    Duration: {total_minutes} minutes
 
-   Consider running /karimo-feedback to capture learnings.
+   Consider running /karimo:feedback to capture learnings.
    ```
 
 ---
@@ -1066,7 +1066,7 @@ Blockers:
   [3a] blocked — depends on [2a]
 
 Options:
-  - Fix [2a] manually and retry: /karimo-run --prd {slug} --task 2a
+  - Fix [2a] manually and retry: /karimo:run --prd {slug} --task 2a
   - Skip [2a] and unblock [3a]: manual DAG adjustment needed
 ```
 
@@ -1082,7 +1082,7 @@ A task is stalling when `loop_count` >= 3 without passing validation:
 
 1. Mark all `running` tasks as `paused`
 2. Record `paused_at` in status.json
-3. Report: "Usage limit reached. Re-run `/karimo-run --prd {slug}` when available."
+3. Report: "Usage limit reached. Re-run `/karimo:run --prd {slug}` when available."
 
 ---
 

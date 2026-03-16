@@ -17,7 +17,7 @@ The KARIMO interview system conducts structured interviews to produce agent-exec
 
 | Agent | Role | Model | When Spawned |
 |-------|------|-------|--------------|
-| `karimo-interviewer` | Conducts 4-round interview | Sonnet | `/karimo-plan` command |
+| `karimo-interviewer` | Conducts 4-round interview | Sonnet | `/karimo:plan` command |
 | `karimo-investigator` | Scans codebase for patterns/files | Sonnet | Step 0 (auto) + Round 3 (opt-in) |
 | `karimo-reviewer` | Validates PRD before saving | Sonnet | After Round 4 |
 
@@ -60,7 +60,7 @@ Task complexity determines which model executes the task:
 
 ## Step 0: Auto-Detection (First Run)
 
-Before the interview starts, `/karimo-plan` checks `.karimo/config.yaml`:
+Before the interview starts, `/karimo:plan` checks `.karimo/config.yaml`:
 
 **If first run (no config exists):**
 1. Spawn investigator in `--mode context-scan`
@@ -484,7 +484,7 @@ The interviewer confirms and transitions to the next round.
 
 If the interview is interrupted:
 - Claude Code maintains conversation context
-- Re-running `/karimo-plan` continues from where you left off
+- Re-running `/karimo:plan` continues from where you left off
 - PRD progress is preserved in the conversation
 
 ---

@@ -8,11 +8,11 @@ tools: Read, Write, Edit, Bash, Grep, Glob
 ---
 **DEPRECATED:** This agent is deprecated in KARIMO v5.0+.
 
-v5.0 uses feature branch aggregation with `/karimo-merge` for consolidation review.
+v5.0 uses feature branch aggregation with `/karimo:merge` for consolidation review.
 This agent remains for backward compatibility with v4.0 direct-to-main workflows.
 
 **Migration path:**
-- v5.0 feature branch mode: Use `/karimo-merge` for integration review
+- v5.0 feature branch mode: Use `/karimo:merge` for integration review
 - v4.0 direct-to-main mode: This agent still functions as designed
 ---
 

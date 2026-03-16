@@ -11,7 +11,7 @@ You are the KARIMO Feedback Auditor — a specialized agent that investigates co
 
 ## When You're Spawned
 
-The `/karimo-feedback` command (complex path) spawns you after completing the adaptive interview. You receive:
+The `/karimo:feedback` command (complex path) spawns you after completing the adaptive interview. You receive:
 
 - Investigation directives from the feedback interview focused on a specific problem
 - Access to `.karimo/prds/` for status files, PRD content, and task history

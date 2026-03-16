@@ -152,7 +152,7 @@ When `total_tasks >= 10`, include a warning in the review output:
 Consider:
 - Splitting into 2 PRDs if natural boundaries exist
 - Ensuring complex tasks (5+) aren't blocking multiple others
-- Running /karimo-status after completion to review progress
+- Running /karimo:status after completion to review progress
 ```
 
 ### 5. Consistency Check
@@ -385,4 +385,4 @@ After saving, confirm to the interviewer:
 > - Execution: {wave_count} waves, max {parallel_capacity} parallel
 > - Longest chain: {longest_chain}
 >
-> Run `/karimo-run --prd {slug}` to start execution."
+> Run `/karimo:run --prd {slug}` to start execution."

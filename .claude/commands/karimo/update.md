@@ -1,13 +1,13 @@
-# /karimo-update — Update Command
+# /karimo:update — Update Command
 
 Check for and apply KARIMO updates from GitHub releases.
 
 ## Usage
 
 ```
-/karimo-update              # Check for updates and install if available
-/karimo-update --check      # Only check for updates, don't install
-/karimo-update --force      # Update even if already on latest version
+/karimo:update              # Check for updates and install if available
+/karimo:update --check      # Only check for updates, don't install
+/karimo:update --force      # Update even if already on latest version
 ```
 
 ## Behavior
@@ -135,7 +135,7 @@ Updated to version: X.Y.Z
 Config migrated: vA.B → vX.Y (if applicable)
 
 Recommended next steps:
-  1. Run /karimo-doctor to verify the updated installation
+  1. Run /karimo:doctor to verify the updated installation
   2. Review changelog at https://github.com/opensesh/KARIMO/releases
   3. Check migration backups: ls .karimo/config.yaml.backup-*
   4. Commit: git add -A && git commit -m "chore: update KARIMO to X.Y.Z"
@@ -197,6 +197,6 @@ This runs non-interactively and auto-confirms the update.
 
 | Command | Purpose |
 |---------|---------|
-| `/karimo-doctor` | Verify installation health after update |
-| `/karimo-configure` | Reconfigure after major updates |
-| `/karimo-dashboard` | Check current execution state |
+| `/karimo:doctor` | Verify installation health after update |
+| `/karimo:configure` | Reconfigure after major updates |
+| `/karimo:dashboard` | Check current execution state |

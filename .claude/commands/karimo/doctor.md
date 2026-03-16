@@ -1,12 +1,12 @@
-# /karimo-doctor — Diagnostic Command
+# /karimo:doctor — Diagnostic Command
 
 Check the health of a KARIMO installation, identify issues, and provide actionable recommendations.
 
 ## Usage
 
 ```
-/karimo-doctor              # Full diagnostic with recommendations
-/karimo-doctor --test       # Quick pass/fail verification (replaces /karimo-test)
+/karimo:doctor              # Full diagnostic with recommendations
+/karimo:doctor --test       # Quick pass/fail verification (replaces /karimo-test)
 ```
 
 **This command is read-only and never modifies files.**
@@ -155,7 +155,7 @@ fi
 ```
 
 If Git version is < 2.5, show warning with upgrade recommendation:
-- `⚠️ Git 2.4.0 — Worktrees require Git 2.5+. Upgrade before running /karimo-run.`
+- `⚠️ Git 2.4.0 — Worktrees require Git 2.5+. Upgrade before running /karimo:run.`
 
 **Example output:**
 
@@ -171,7 +171,7 @@ Check 1: Environment
   ✅ GitHub CLI      Authenticated as @username
   ✅ Git             v2.43.0 (worktree support)
   ℹ️  Review         Not configured (optional for Phase 2)
-                     Run /karimo-configure --review to set up
+                     Run /karimo:configure --review to set up
 ```
 
 **Example output with Greptile:**
@@ -279,7 +279,7 @@ Check 1.5: GitHub Project Access
 
   ✅ KARIMO section present (with markers)
   ⚠️  GitHub Configuration has pending values
-      Run /karimo-configure to detect and populate
+      Run /karimo:configure to detect and populate
 ```
 
 **Example output (configuration missing):**
@@ -289,7 +289,7 @@ Check 1.5: GitHub Project Access
 ────────────────────────────────
 
   ❌ GitHub Configuration not found in CLAUDE.md
-      Run /karimo-configure to add GitHub settings
+      Run /karimo:configure to add GitHub settings
 ```
 
 **Example output (access denied):**
@@ -401,15 +401,15 @@ Scan for deprecated files that should be removed.
 # Check for deprecated command files
 DEPRECATED_FOUND=0
 
-[ -f ".claude/commands/karimo-cd-config.md" ] && DEPRECATED_FOUND=$((DEPRECATED_FOUND + 1))
-[ -f ".claude/commands/karimo-execute.md" ] && DEPRECATED_FOUND=$((DEPRECATED_FOUND + 1))
-[ -f ".claude/commands/karimo-orchestrate.md" ] && DEPRECATED_FOUND=$((DEPRECATED_FOUND + 1))
+[ -f ".claude/commands/karimo/cd-config.md" ] && DEPRECATED_FOUND=$((DEPRECATED_FOUND + 1))
+[ -f ".claude/commands/karimo/execute.md" ] && DEPRECATED_FOUND=$((DEPRECATED_FOUND + 1))
+[ -f ".claude/commands/karimo/orchestrate.md" ] && DEPRECATED_FOUND=$((DEPRECATED_FOUND + 1))
 ```
 
 **Deprecated command mapping:**
-- `karimo-cd-config.md` → Use `/karimo-configure --cd` instead
-- `karimo-execute.md` → Use `/karimo-run` instead
-- `karimo-orchestrate.md` → Use `/karimo-run` instead
+- `karimo-cd-config.md` → Use `/karimo:configure --cd` instead
+- `karimo-execute.md` → Use `/karimo:run` instead
+- `karimo-orchestrate.md` → Use `/karimo:run` instead
 
 **Example output (deprecated files found):**
 
@@ -423,12 +423,12 @@ Check 2.5: Deprecated Files
       • karimo-orchestrate.md
 
   Action:
-    These will be removed automatically on next /karimo-update
+    These will be removed automatically on next /karimo:update
 
   Manual removal:
-    rm -f .claude/commands/karimo-cd-config.md
-    rm -f .claude/commands/karimo-execute.md
-    rm -f .claude/commands/karimo-orchestrate.md
+    rm -f .claude/commands/karimo/cd-config.md
+    rm -f .claude/commands/karimo/execute.md
+    rm -f .claude/commands/karimo/orchestrate.md
 ```
 
 **Example output (no deprecated files):**
@@ -481,8 +481,8 @@ fi
 # Check rules file
 [ -f ".claude/KARIMO_RULES.md" ] && echo "✅ KARIMO_RULES.md" || echo "❌ KARIMO_RULES.md missing"
 
-# Check config file (created by /karimo-configure)
-[ -f ".karimo/config.yaml" ] && echo "✅ config.yaml" || echo "⚠️ config.yaml missing (run /karimo-configure)"
+# Check config file (created by /karimo:configure)
+[ -f ".karimo/config.yaml" ] && echo "✅ config.yaml" || echo "⚠️ config.yaml missing (run /karimo:configure)"
 ```
 
 **If no KARIMO section found:**
@@ -518,7 +518,7 @@ Check 3: Configuration Validation
       - build: _pending_
 
   Recommendation:
-    Run /karimo-configure to complete configuration
+    Run /karimo:configure to complete configuration
 ```
 
 **Step 3d: Drift detection**
@@ -552,7 +552,7 @@ Check 3: Configuration Validation
     - New lock file: bun.lockb appeared (not in config)
 
   Recommendation:
-    Run /karimo-configure to update configuration
+    Run /karimo:configure to update configuration
 ```
 
 **Example output (healthy):**
@@ -805,7 +805,7 @@ Check 5: Phase Assessment
 
   Phase Status:
     ✅ Phase 1    Configured (config + agents + commands)
-    ℹ️  Phase 2    No review provider (run /karimo-configure --review)
+    ℹ️  Phase 2    No review provider (run /karimo:configure --review)
     ✅ Phase 3    GitHub-native monitoring
 
   PRDs:
@@ -962,8 +962,8 @@ Check 6: Execution Health
   ✅ No status-PR mismatches
 
   Recovery:
-    /karimo-run --prd user-profiles
-    /karimo-run --prd token-studio
+    /karimo:run --prd user-profiles
+    /karimo:run --prd token-studio
 ```
 
 **Example output (healthy):**
@@ -1013,7 +1013,7 @@ Summary
   ❌ 0 errors
 
   Recommendations:
-    1. Run /karimo-configure to resolve _pending_ placeholders
+    1. Run /karimo:configure to resolve _pending_ placeholders
 ```
 
 **Recommendation mapping:**
@@ -1021,20 +1021,20 @@ Summary
 | Issue Type | Recommendation |
 |------------|----------------|
 | Version drift | Run `update.sh` from KARIMO source |
-| Missing KARIMO section | `/karimo-configure` |
-| Configuration drift | `/karimo-configure` |
-| Placeholder values | `/karimo-configure` |
-| Missing GitHub config | `/karimo-configure` |
+| Missing KARIMO section | `/karimo:configure` |
+| Configuration drift | `/karimo:configure` |
+| Placeholder values | `/karimo:configure` |
+| Missing GitHub config | `/karimo:configure` |
 | GitHub MCP not configured | Configure GitHub MCP server or switch to fast-track mode |
 | Project access denied | `gh auth refresh -s project` |
 | Missing project scope | `gh auth refresh -s project` |
 | Missing files | Re-run installer |
-| PRD creation | `/karimo-plan` |
-| Stale running tasks | Re-run `/karimo-run --prd {slug}` |
+| PRD creation | `/karimo:plan` |
+| Stale running tasks | Re-run `/karimo:run --prd {slug}` |
 | Orphaned worktrees | `git worktree remove <path>` |
-| Ghost branches | Re-run `/karimo-run --prd {slug}` |
-| Status-PR mismatch | Re-run `/karimo-run --prd {slug}` |
-| Pending cleanup | Re-run `/karimo-run --prd {slug}` |
+| Ghost branches | Re-run `/karimo:run --prd {slug}` |
+| Status-PR mismatch | Re-run `/karimo:run --prd {slug}` |
+| Pending cleanup | Re-run `/karimo:run --prd {slug}` |
 | Orphaned assets | Remove manually: `rm <filepath>` |
 | Broken asset references | Re-download asset or remove from manifest |
 | Asset size mismatch | Re-download asset |
@@ -1072,7 +1072,7 @@ for prd_dir in .karimo/prds/*/; do
   fi
 
   # Call karimo_validate_assets from bash utilities
-  source .claude/skills/karimo-bash-utilities.md
+  source .claude/skills/karimo/bash-utilities.md
   karimo_validate_assets "$prd_slug"
 done
 ```
@@ -1160,7 +1160,7 @@ If some files missing:
 ❌ Partial installation detected.
 
 Missing components:
-  - .claude/agents/karimo-pm.md
+  - .claude/agents/karimo/pm.md
   - .karimo/templates/TASK_SCHEMA.md
 
 Recommendation:
@@ -1269,7 +1269,7 @@ for prd_dir in .karimo/prds/*/; do
   manifest="${prd_dir}assets.json"
 
   if [ -f "$manifest" ]; then
-    source .claude/skills/karimo-bash-utilities.md
+    source .claude/skills/karimo/bash-utilities.md
     karimo_validate_assets "$prd_slug"
   fi
 done
@@ -1286,18 +1286,18 @@ done
 
 | Command | Purpose |
 |---------|---------|
-| `/karimo-configure` | Create or update project configuration |
-| `/karimo-plan` | Create PRD (configuration should be ready first) |
-| `/karimo-dashboard` | View execution progress and system health |
-| `/karimo-feedback` | Capture learnings |
+| `/karimo:configure` | Create or update project configuration |
+| `/karimo:plan` | Create PRD (configuration should be ready first) |
+| `/karimo:dashboard` | View execution progress and system health |
+| `/karimo:feedback` | Capture learnings |
 
 ---
 
 ## Migration from /karimo-test
 
-`/karimo-test` has been merged into `/karimo-doctor --test`.
+`/karimo-test` has been merged into `/karimo:doctor --test`.
 
 **Old:** `/karimo-test`
-**New:** `/karimo-doctor --test`
+**New:** `/karimo:doctor --test`
 
 The `--test` flag provides the same quick pass/fail verification as the former `/karimo-test` command.

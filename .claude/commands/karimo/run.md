@@ -1,11 +1,11 @@
-# /karimo-run — Execute PRD (Recommended)
+# /karimo:run — Execute PRD (Recommended)
 
 Execute an approved PRD using feature branch workflow (v7.0). This command generates briefs, auto-reviews them, allows user iteration, and then orchestrates execution.
 
 ## Usage
 
 ```bash
-/karimo-run --prd {slug} [--dry-run] [--skip-review] [--review-only] [--brief-only] [--resume] [--task {id}]
+/karimo:run --prd {slug} [--dry-run] [--skip-review] [--review-only] [--brief-only] [--resume] [--task {id}]
 ```
 
 ## Arguments
@@ -149,8 +149,8 @@ Your choice:
 - Loop back to Phase 2 (Auto-Review)
 
 **Option 4 — More research:**
-- Print: "Run `/karimo-research --prd {slug}` to add research context"
-- Note: "Resume with `/karimo-run --prd {slug} --resume` after research completes"
+- Print: "Run `/karimo:research --prd {slug}` to add research context"
+- Note: "Resume with `/karimo:run --prd {slug} --resume` after research completes"
 
 **Option 5 — Cancel:**
 - Exit without executing
@@ -182,7 +182,7 @@ After user approval:
 
 5. **Completion**
    - Set status to `ready-for-merge` when all tasks done
-   - Print: "Run `/karimo-merge --prd {slug}` to create final PR"
+   - Print: "Run `/karimo:merge --prd {slug}` to create final PR"
 
 ---
 
@@ -230,7 +230,7 @@ Choice [1/2]:
 Use `--skip-review` to bypass brief review entirely:
 
 ```bash
-/karimo-run --prd feature-name --skip-review
+/karimo:run --prd feature-name --skip-review
 ```
 
 Execution proceeds directly from Phase 1 to Phase 4.
@@ -247,7 +247,7 @@ Execution proceeds directly from Phase 1 to Phase 4.
 Use `--review-only` to stop after Phase 3:
 
 ```bash
-/karimo-run --prd feature-name --review-only
+/karimo:run --prd feature-name --review-only
 ```
 
 **Use case:**
@@ -264,7 +264,7 @@ After reviewing, run without `--review-only` to execute.
 Use `--brief-only` to stop after Phase 1:
 
 ```bash
-/karimo-run --prd feature-name --brief-only
+/karimo:run --prd feature-name --brief-only
 ```
 
 **Use case:**
@@ -278,19 +278,19 @@ Use `--brief-only` to stop after Phase 1:
 
 ```bash
 # List available PRDs
-/karimo-run
+/karimo:run
 
 # Execute specific PRD
-/karimo-run --prd user-profiles
+/karimo:run --prd user-profiles
 
 # Preview execution plan
-/karimo-run --prd user-profiles --dry-run
+/karimo:run --prd user-profiles --dry-run
 
 # Generate briefs only
-/karimo-run --prd user-profiles --brief-only
+/karimo:run --prd user-profiles --brief-only
 
 # Review but don't execute
-/karimo-run --prd user-profiles --review-only
+/karimo:run --prd user-profiles --review-only
 ```
 
 ---
@@ -301,7 +301,7 @@ When all tasks complete, the feature branch is ready for final review:
 
 ```bash
 # Create final PR to main
-/karimo-merge --prd user-profiles
+/karimo:merge --prd user-profiles
 ```
 
 ---
@@ -319,11 +319,11 @@ Possible causes:
   3. PRD was deleted or moved
 
 How to fix:
-  • List all PRDs: /karimo-dashboard
-  • Start new feature: /karimo-research "user-auth"
+  • List all PRDs: /karimo:dashboard
+  • Start new feature: /karimo:research "user-auth"
   • Check PRD folder: ls .karimo/prds/
 
-Need help? Run /karimo-help or check TROUBLESHOOTING.md
+Need help? Run /karimo:help or check TROUBLESHOOTING.md
 ```
 
 ---
@@ -341,7 +341,7 @@ Possible causes:
   3. PRD was modified after approval
 
 How to fix:
-  • Complete approval: /karimo-plan --prd user-auth
+  • Complete approval: /karimo:plan --prd user-auth
   • Check status: cat .karimo/prds/*_user-auth/status.json
   • View PRD: cat .karimo/prds/*_user-auth/PRD_user-auth.md
 
@@ -363,9 +363,9 @@ Possible causes:
   3. Previous execution failed mid-way
 
 How to fix:
-  • Check execution status: /karimo-dashboard --prd user-auth
-  • Resume execution: /karimo-run --prd user-auth --resume
-  • Start fresh (deletes branch): git branch -D feature/user-auth && /karimo-run --prd user-auth
+  • Check execution status: /karimo:dashboard --prd user-auth
+  • Resume execution: /karimo:run --prd user-auth --resume
+  • Start fresh (deletes branch): git branch -D feature/user-auth && /karimo:run --prd user-auth
 
 ⚠️  Warning: Deleting the branch will lose all existing task PRs
 ```
@@ -388,7 +388,7 @@ Possible causes:
 How to fix:
   • Check task definition: cat .karimo/prds/*_user-auth/tasks.yaml | grep -A 10 "T001"
   • View PRD: cat .karimo/prds/*_user-auth/PRD_user-auth.md
-  • Add research context: /karimo-research --prd user-auth
+  • Add research context: /karimo:research --prd user-auth
   • Check agent logs for specific error
 
 If error persists:
@@ -417,7 +417,7 @@ How to fix:
   • Or choose "Modify" for manual adjustment
 
 To skip review (not recommended):
-  /karimo-run --prd user-auth --skip-review
+  /karimo:run --prd user-auth --skip-review
 ```
 
 ---
@@ -436,7 +436,7 @@ Possible causes:
 
 How to fix:
   • View tasks file: cat .karimo/prds/*_user-auth/tasks.yaml
-  • Re-run interview: /karimo-plan --prd user-auth
+  • Re-run interview: /karimo:plan --prd user-auth
   • Or add tasks manually to tasks.yaml
 
 A PRD must have at least 1 task to execute.
@@ -462,7 +462,7 @@ How to fix:
   • Or stash changes: git stash
   • Or discard changes: git checkout -- . (caution!)
 
-Then retry: /karimo-run --prd user-auth
+Then retry: /karimo:run --prd user-auth
 ```
 
 **Not on main branch:**
@@ -476,7 +476,7 @@ Current branch: feature/other-feature
 How to fix:
   • Switch to main: git checkout main
   • Pull latest: git pull
-  • Then retry: /karimo-run --prd user-auth
+  • Then retry: /karimo:run --prd user-auth
 
 If you want to branch from non-main:
   1. Merge to main first
@@ -494,9 +494,9 @@ How to fix:
   2. Authenticate: gh auth login
   3. Verify: gh auth status
 
-Then retry: /karimo-run --prd user-auth
+Then retry: /karimo:run --prd user-auth
 
-Need help? Run /karimo-doctor
+Need help? Run /karimo:doctor
 ```
 
 ---
@@ -505,10 +505,10 @@ Need help? Run /karimo-doctor
 
 | Command | Purpose |
 |---------|---------|
-| `/karimo-research` | Run research before planning (required) |
-| `/karimo-plan` | Create PRD (before running) |
-| `/karimo-merge` | Create final PR to main (after running) |
-| `/karimo-dashboard` | Monitor execution progress |
+| `/karimo:research` | Run research before planning (required) |
+| `/karimo:plan` | Create PRD (before running) |
+| `/karimo:merge` | Create final PR to main (after running) |
+| `/karimo:dashboard` | Monitor execution progress |
 
 ---
 
@@ -526,11 +526,11 @@ This command (v7.0) implements the 4-phase execution model:
 - Wave-based parallelization with worktree isolation
 - User iteration loop before execution
 - Git state reconciliation for crash recovery
-- Task PRs target feature branch (consolidated with /karimo-merge)
+- Task PRs target feature branch (consolidated with /karimo:merge)
 
 **Legacy commands (deprecated):**
-- `/karimo-execute` → Use `/karimo-run` instead
-- `/karimo-orchestrate` → Use `/karimo-run` instead
+- `/karimo-execute` → Use `/karimo:run` instead
+- `/karimo-orchestrate` → Use `/karimo:run` instead
 
 ---
 

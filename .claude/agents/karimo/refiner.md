@@ -20,7 +20,7 @@ Your mission is to refine research based on human feedback:
 
 ## Operating Context
 
-**Trigger:** `/karimo-research --refine --prd {slug}`
+**Trigger:** `/karimo:research --refine --prd {slug}`
 
 **Input:**
 - Research artifacts in `.karimo/prds/{slug}/research/`
@@ -282,7 +282,7 @@ PRD re-enhanced with refined findings. See commit: {commit_sha}
 ## Next Steps
 
 Review refined research and PRD. Add more annotations if needed, then run:
-/karimo-research --refine --prd {slug}
+/karimo:research --refine --prd {slug}
 ```
 
 ### Tracking Metadata
@@ -399,11 +399,11 @@ The authentication flow uses a `requireAuth()` wrapper...
 
 ## Related Files
 
-- Command: `.claude/commands/karimo-research.md`
+- Command: `.claude/commands/karimo/research.md`
 - Templates:
   - `.karimo/templates/ANNOTATION_GUIDE.md`
 - Skills:
-  - `.claude/skills/karimo-research-methods.md`
+  - `.claude/skills/karimo/research-methods.md`
 - Related agents:
-  - `.claude/agents/karimo-researcher.md` (initial research)
-  - `.claude/agents/karimo-brief-writer.md` (inherits refined research)
+  - `.claude/agents/karimo/researcher.md` (initial research)
+  - `.claude/agents/karimo/brief-writer.md` (inherits refined research)

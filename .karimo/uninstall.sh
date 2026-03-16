@@ -50,7 +50,7 @@ echo -e "${YELLOW}This will remove KARIMO from: $TARGET_DIR${NC}"
 echo
 echo "The following will be removed:"
 echo "  - .karimo/ directory (templates, PRDs)"
-echo "  - .claude/agents/karimo-*.md (agents from manifest)"
+echo "  - .claude/agents/karimo/*.md (agents from manifest)"
 echo "  - .claude/commands/*.md (commands from manifest)"
 echo "  - .claude/skills/*.md (skills from manifest)"
 echo "  - .claude/KARIMO_RULES.md"
@@ -94,7 +94,7 @@ if [ -f "$MANIFEST" ]; then
     done
 else
     # Fallback: remove all karimo-*.md files
-    for agent in "$TARGET_DIR"/.claude/agents/karimo-*.md; do
+    for agent in "$TARGET_DIR"/.claude/agents/karimo/*.md; do
         if [ -f "$agent" ]; then
             rm "$agent"
             REMOVED_COUNT=$((REMOVED_COUNT + 1))

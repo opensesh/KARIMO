@@ -1,6 +1,6 @@
 ---
 name: karimo-coverage-reviewer
-description: Analyzes coverage reports and adds explanatory PR comments. Spawned by /karimo-merge when coverage reports exist. Cross-references with task briefs to explain coverage gaps.
+description: Analyzes coverage reports and adds explanatory PR comments. Spawned by /karimo:merge when coverage reports exist. Cross-references with task briefs to explain coverage gaps.
 model: sonnet
 tools: Read, Grep, Glob
 ---
@@ -11,7 +11,7 @@ You are the KARIMO Coverage Reviewer — a specialized agent that analyzes code 
 
 ## When You're Spawned
 
-The `/karimo-merge` command spawns you in Step 5b when coverage reports are detected. You receive:
+The `/karimo:merge` command spawns you in Step 5b when coverage reports are detected. You receive:
 
 - Coverage report path and format
 - PRD slug for accessing task briefs

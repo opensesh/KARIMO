@@ -421,7 +421,7 @@ Include comprehensive README in plugin repository:
 1. Get API key from greptile.app
 2. Set environment variable:
    export GREPTILE_API_KEY="your-key"
-3. Run /karimo-configure --review
+3. Run /karimo:configure --review
 
 ## Usage
 
@@ -443,7 +443,7 @@ mkdir test-project && cd test-project
 # Install plugin
 /karimo-plugin install your-plugin
 # Verify
-/karimo-doctor
+/karimo:doctor
 ```
 
 ---

@@ -37,10 +37,10 @@ cd "$REPO_ROOT"
 # Test 1: Check karimo-merge command for bash syntax
 info "Test 1: Checking karimo-merge.md bash blocks"
 
-if [ -f ".claude/commands/karimo-merge.md" ]; then
+if [ -f ".claude/commands/karimo/merge.md" ]; then
     # Extract bash code blocks and validate syntax
     # This is a simplified check - in production, we'd parse markdown properly
-    if grep -q '```bash' ".claude/commands/karimo-merge.md"; then
+    if grep -q '```bash' ".claude/commands/karimo/merge.md"; then
         pass_test "karimo-merge.md contains bash code blocks"
 
         # Check for common syntax issues
@@ -92,7 +92,7 @@ done
 info "Test 4: Checking for common bash pitfalls"
 
 # Check for unquoted variable expansions in critical areas
-if grep -r '\$[A-Z_]*[^"]' .claude/commands/karimo-merge.md | grep -v '^\s*#' | grep -v 'echo' > /dev/null 2>&1; then
+if grep -r '\$[A-Z_]*[^"]' .claude/commands/karimo/merge.md | grep -v '^\s*#' | grep -v 'echo' > /dev/null 2>&1; then
     info "Note: Found some unquoted variables (may be intentional)"
 else
     pass_test "No obvious unquoted variable issues"

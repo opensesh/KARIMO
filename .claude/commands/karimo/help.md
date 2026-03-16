@@ -1,15 +1,15 @@
-# /karimo-help — Help & Documentation Search
+# /karimo:help — Help & Documentation Search
 
 Get help with KARIMO commands or search documentation for specific topics.
 
 ## Usage
 
 ```
-/karimo-help                    # List all commands by category
-/karimo-help {query}            # Search documentation for query
-/karimo-help worktrees          # Search docs for "worktrees"
-/karimo-help waves              # Search docs for "waves"
-/karimo-help "error recovery"   # Search docs for phrase
+/karimo:help                    # List all commands by category
+/karimo:help {query}            # Search documentation for query
+/karimo:help worktrees          # Search docs for "worktrees"
+/karimo:help waves              # Search docs for "waves"
+/karimo:help "error recovery"   # Search docs for phrase
 ```
 
 ## Behavior
@@ -24,38 +24,38 @@ When called without arguments, display all commands organized by category:
 ╰──────────────────────────────────────────────────────────────╯
 
 Core Workflow:
-  /karimo-plan                    Create new PRD through interview
-  /karimo-run --prd {slug}        Execute PRD tasks (feature branch)
-  /karimo-dashboard               Check execution progress (all PRDs)
-  /karimo-dashboard --prd {slug}  Detailed status for specific PRD
-  /karimo-merge --prd {slug}      Create final PR to main
+  /karimo:plan                    Create new PRD through interview
+  /karimo:run --prd {slug}        Execute PRD tasks (feature branch)
+  /karimo:dashboard               Check execution progress (all PRDs)
+  /karimo:dashboard --prd {slug}  Detailed status for specific PRD
+  /karimo:merge --prd {slug}      Create final PR to main
 
 Configuration:
-  /karimo-configure               Project setup (basic mode, auto-detect)
-  /karimo-configure --advanced    Full 9-step configuration
-  /karimo-configure --preview     Preview config without saving
-  /karimo-configure --validate    Validate existing config
+  /karimo:configure               Project setup (basic mode, auto-detect)
+  /karimo:configure --advanced    Full 9-step configuration
+  /karimo:configure --preview     Preview config without saving
+  /karimo:configure --validate    Validate existing config
 
 Management:
-  /karimo-feedback                Capture learnings (auto-detection)
+  /karimo:feedback                Capture learnings (auto-detection)
 
 Diagnostics:
-  /karimo-doctor                  Health check (7 diagnostic categories)
-  /karimo-doctor --test           Quick installation smoke test
+  /karimo:doctor                  Health check (7 diagnostic categories)
+  /karimo:doctor --test           Quick installation smoke test
 
 Maintenance:
-  /karimo-update                  Update to latest KARIMO version
-  /karimo-configure --cd          Configure preview deployments
+  /karimo:update                  Update to latest KARIMO version
+  /karimo:configure --cd          Configure preview deployments
 
 Help:
-  /karimo-help                    This command
-  /karimo-help {query}            Search documentation
+  /karimo:help                    This command
+  /karimo:help {query}            Search documentation
 
 Advanced:
-  /karimo-research --prd {slug}   Add research to existing PRD
+  /karimo:research --prd {slug}   Add research to existing PRD
 
-Need more details? Run: /karimo-help {command-name}
-Example: /karimo-help plan
+Need more details? Run: /karimo:help {command-name}
+Example: /karimo:help plan
 
 Documentation: .karimo/docs/
 ```
@@ -107,7 +107,7 @@ Found {N} matches in documentation:
 📄 TROUBLESHOOTING.md:
    ### Wave 2 won't start despite Wave 1 complete
    Causes: PM agent hasn't detected Wave 1 completion
-   Solution: Re-trigger execution with /karimo-run --prd {slug}
+   Solution: Re-trigger execution with /karimo:run --prd {slug}
 
    → Full file: .karimo/docs/TROUBLESHOOTING.md (line 312)
 
@@ -117,8 +117,8 @@ Related topics you might find helpful:
   • Error recovery (TROUBLESHOOTING.md)
 
 Didn't find what you need? Try:
-  /karimo-help {different query}
-  /karimo-doctor (for diagnostics)
+  /karimo:help {different query}
+  /karimo:doctor (for diagnostics)
 ```
 
 **Step 3: Handle no results**
@@ -151,7 +151,7 @@ Available documentation:
   📄 CI-CD.md              Deployment integration
   📄 COMPOUND-LEARNING.md  Two-scope learning system
 
-Run: /karimo-help {term} to search any of these
+Run: /karimo:help {term} to search any of these
 ```
 
 ---
@@ -209,7 +209,7 @@ If query matches a command name (e.g., `plan`, `run`, `status`):
 
 ```bash
 # Read the command file directly
-Read tool: .claude/commands/karimo-{query}.md
+Read tool: .claude/commands/karimo/{query}.md
 # Display the Usage section
 ```
 
@@ -217,14 +217,14 @@ Example output:
 
 ```
 ╭──────────────────────────────────────────────────────────────╮
-│  Help: /karimo-plan                                           │
+│  Help: /karimo:plan                                           │
 ╰──────────────────────────────────────────────────────────────╯
 
 Create new PRD through structured interview.
 
 Usage:
-  /karimo-plan                    # Start new PRD
-  /karimo-plan --resume {slug}    # Resume draft PRD
+  /karimo:plan                    # Start new PRD
+  /karimo:plan --resume {slug}    # Resume draft PRD
 
 What it does:
   1. Runs investigator agent (if no config)
@@ -236,10 +236,10 @@ What it does:
 Time: ~10 minutes for first PRD
 
 Related commands:
-  /karimo-run       Execute approved PRD
-  /karimo-dashboard Check PRD execution state
+  /karimo:run       Execute approved PRD
+  /karimo:dashboard Check PRD execution state
 
-Full reference: .claude/commands/karimo-plan.md
+Full reference: .claude/commands/karimo/plan.md
 Documentation: .karimo/docs/GETTING-STARTED.md
 ```
 
@@ -250,14 +250,14 @@ Documentation: .karimo/docs/GETTING-STARTED.md
 ### Example 1: List all commands
 
 ```
-User: /karimo-help
+User: /karimo:help
 → Shows full command list by category
 ```
 
 ### Example 2: Search for "worktree"
 
 ```
-User: /karimo-help worktree
+User: /karimo:help worktree
 → Searches docs, finds:
   - GLOSSARY.md: Definition of worktree
   - ARCHITECTURE.md: Worktree isolation explained
@@ -267,16 +267,16 @@ User: /karimo-help worktree
 ### Example 3: Search for command
 
 ```
-User: /karimo-help dashboard
+User: /karimo:help dashboard
 → Recognizes command name
-→ Reads .claude/commands/karimo-dashboard.md
+→ Reads .claude/commands/karimo/dashboard.md
 → Shows usage, examples, and related commands
 ```
 
 ### Example 4: Multi-word query
 
 ```
-User: /karimo-help "automated review"
+User: /karimo:help "automated review"
 → Searches for exact phrase "automated review"
 → Finds matches in PHASES.md, DECISION_TREES.md
 ```
@@ -284,7 +284,7 @@ User: /karimo-help "automated review"
 ### Example 5: No results
 
 ```
-User: /karimo-help foobar
+User: /karimo:help foobar
 → No matches found
 → Shows list of available documentation
 → Suggests related terms
@@ -330,9 +330,9 @@ Available files:
 
 | Command | Purpose |
 |---------|---------|
-| `/karimo-doctor` | Diagnose installation and config issues |
-| `/karimo-doctor --test` | Verify KARIMO installation works |
-| `/karimo-dashboard` | Check PRD execution and view metrics |
+| `/karimo:doctor` | Diagnose installation and config issues |
+| `/karimo:doctor --test` | Verify KARIMO installation works |
+| `/karimo:dashboard` | Check PRD execution and view metrics |
 
 ---
 
@@ -375,8 +375,8 @@ Search for exact matches:
 - `"boundary violation"`
 
 ### Start broad, then narrow
-1. `/karimo-help errors` → See all error topics
-2. `/karimo-help worktree error` → Narrow to specific issue
+1. `/karimo:help errors` → See all error topics
+2. `/karimo:help worktree error` → Narrow to specific issue
 
 ---
 

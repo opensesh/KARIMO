@@ -8,23 +8,23 @@ This document provides an overview of all KARIMO skills for quick context scanni
 
 | Skill | Applies To | Purpose |
 |-------|------------|---------|
-| [karimo-bash-utilities](skills/karimo-bash-utilities.md) | All agents | Bash patterns for config, status, GitHub |
+| [karimo-bash-utilities](skills/karimo/bash-utilities.md) | All agents | Bash patterns for config, status, GitHub |
 
 ### Task Agent Standards
 
 | Skill | Applies To | Purpose |
 |-------|------------|---------|
-| [karimo-code-standards](skills/karimo-code-standards.md) | Implementer agents | Coding patterns and validation |
-| [karimo-testing-standards](skills/karimo-testing-standards.md) | Tester agents | Test patterns and coverage |
-| [karimo-doc-standards](skills/karimo-doc-standards.md) | Documenter agents | Documentation patterns |
+| [karimo-code-standards](skills/karimo/code-standards.md) | Implementer agents | Coding patterns and validation |
+| [karimo-testing-standards](skills/karimo/testing-standards.md) | Tester agents | Test patterns and coverage |
+| [karimo-doc-standards](skills/karimo/doc-standards.md) | Documenter agents | Documentation patterns |
 
 ### Research Skills
 
 | Skill | Applies To | Purpose |
 |-------|------------|---------|
-| [karimo-research-methods](skills/karimo-research-methods.md) | Researcher, Refiner | Internal codebase research (Phase 1) |
-| [karimo-external-research](skills/karimo-external-research.md) | Researcher, Refiner | External web research (Phase 2) |
-| [karimo-firecrawl-web-tools](skills/karimo-firecrawl-web-tools.md) | Researcher, Refiner | Firecrawl MCP tool reference |
+| [karimo-research-methods](skills/karimo/research-methods.md) | Researcher, Refiner | Internal codebase research (Phase 1) |
+| [karimo-external-research](skills/karimo/external-research.md) | Researcher, Refiner | External web research (Phase 2) |
+| [karimo-firecrawl-web-tools](skills/karimo/firecrawl-web-tools.md) | Researcher, Refiner | Firecrawl MCP tool reference |
 
 ---
 
@@ -54,4 +54,5 @@ This document provides an overview of all KARIMO skills for quick context scanni
 
 ---
 
-*For full skill definitions, see `.claude/skills/karimo-{name}.md`*
+*For full skill definitions, see `.claude/skills/karimo/*.md`*
+*Last updated: v7.11.0*

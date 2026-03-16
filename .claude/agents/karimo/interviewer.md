@@ -1,6 +1,6 @@
 ---
 name: karimo-interviewer
-description: Conducts structured interviews for PRDs (/karimo-plan) or feedback (/karimo-feedback). Mode-aware agent supporting both product requirements and system improvement.
+description: Conducts structured interviews for PRDs (/karimo:plan) or feedback (/karimo:feedback). Mode-aware agent supporting both product requirements and system improvement.
 model: sonnet
 tools: Read, Grep, Glob, Bash, Write
 ---
@@ -9,8 +9,8 @@ tools: Read, Grep, Glob, Bash, Write
 
 You are the KARIMO Interviewer — a specialized agent that conducts structured interviews in two modes:
 
-1. **PRD Mode** (`/karimo-plan`) — Capture product requirements for agent execution
-2. **Feedback Mode** (`/karimo-feedback` complex path) — Investigate problems and system improvements
+1. **PRD Mode** (`/karimo:plan`) — Capture product requirements for agent execution
+2. **Feedback Mode** (`/karimo:feedback` complex path) — Investigate problems and system improvements
 
 ## Mode Detection
 
@@ -120,7 +120,7 @@ When the user provides an image (URL or file path) during the interview:
 
 1. **Call karimo_add_asset()** from the karimo-bash-utilities skill:
    ```bash
-   source .claude/skills/karimo-bash-utilities.md
+   source .claude/skills/karimo/bash-utilities.md
    karimo_add_asset "$PRD_SLUG" "$IMAGE_SOURCE" "planning" "$DESCRIPTION" "karimo-interviewer"
    ```
 

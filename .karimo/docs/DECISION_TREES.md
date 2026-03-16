@@ -20,7 +20,7 @@ Visual guides to help you choose the right command, configuration, or workflow f
 ### Starting a new feature?
 
 ```
-→ /karimo-plan
+→ /karimo:plan
 ```
 
 **Creates a new PRD through structured interview.**
@@ -34,7 +34,7 @@ Visual guides to help you choose the right command, configuration, or workflow f
 ### PRD already exists and approved?
 
 ```
-→ /karimo-run --prd {slug}
+→ /karimo:run --prd {slug}
 ```
 
 **Executes tasks from an approved PRD using feature branch workflow (recommended).**
@@ -42,7 +42,7 @@ Visual guides to help you choose the right command, configuration, or workflow f
 - Creates feature branch
 - Wave-based parallel execution
 - PRs target feature branch
-- Merge to main via `/karimo-merge` when complete
+- Merge to main via `/karimo:merge` when complete
 
 ---
 
@@ -56,7 +56,7 @@ Visual guides to help you choose the right command, configuration, or workflow f
 
 **Then re-run:**
 ```
-→ /karimo-run --prd {slug}
+→ /karimo:run --prd {slug}
 ```
 
 Use cases:
@@ -73,7 +73,7 @@ Use cases:
 
 **Quick overview (all PRDs):**
 ```
-→ /karimo-dashboard
+→ /karimo:dashboard
 ```
 
 Shows:
@@ -84,7 +84,7 @@ Shows:
 
 **Detailed view (specific PRD):**
 ```
-→ /karimo-dashboard --prd {slug}
+→ /karimo:dashboard --prd {slug}
 ```
 
 Shows:
@@ -95,7 +95,7 @@ Shows:
 
 **Comprehensive metrics:**
 ```
-→ /karimo-dashboard
+→ /karimo:dashboard
 ```
 
 Shows:
@@ -111,7 +111,7 @@ Shows:
 ### Ready to merge feature to main?
 
 ```
-→ /karimo-merge --prd {slug}
+→ /karimo:merge --prd {slug}
 ```
 
 **Creates final PR from feature branch to main.**
@@ -127,7 +127,7 @@ Prerequisites:
 
 **Health check:**
 ```
-→ /karimo-doctor
+→ /karimo:doctor
 ```
 
 Runs 7 diagnostic categories:
@@ -141,7 +141,7 @@ Runs 7 diagnostic categories:
 
 **Installation verification:**
 ```
-→ /karimo-doctor --test
+→ /karimo:doctor --test
 ```
 
 End-to-end smoke test:
@@ -152,7 +152,7 @@ End-to-end smoke test:
 
 **Get help:**
 ```
-→ /karimo-help
+→ /karimo:help
 ```
 
 Lists all commands or searches docs for specific topics.
@@ -162,7 +162,7 @@ Lists all commands or searches docs for specific topics.
 ### Need to capture learnings?
 
 ```
-→ /karimo-feedback
+→ /karimo:feedback
 ```
 
 **Auto-detects simple vs. complex feedback:**
@@ -181,7 +181,7 @@ Use after:
 ### Need to update KARIMO?
 
 ```
-→ /karimo-update
+→ /karimo:update
 ```
 
 **Checks for and applies updates from GitHub.**
@@ -212,8 +212,8 @@ graph TD
     C -->|1-2 tasks,<br/>hotfix| E[Direct-to-Main]
     C -->|3+ tasks,<br/>new feature| D
 
-    D --> F[/karimo-run --prd {slug}]
-    E --> G[/karimo-run --prd {slug}]
+    D --> F[/karimo:run --prd {slug}]
+    E --> G[/karimo:run --prd {slug}]
 
     F --> H[Benefits:<br/>- Complete isolation<br/>- Parallel execution<br/>- Independent review<br/>- Easy rollback]
 
@@ -223,7 +223,7 @@ graph TD
     style E fill:#fff4e1
 ```
 
-### Use `/karimo-run` (Feature Branch) if:
+### Use `/karimo:run` (Feature Branch) if:
 
 ✅ Multiple developers on project
 ✅ Need code review before main
@@ -233,14 +233,14 @@ graph TD
 ✅ Want to test full feature before main merge
 
 **Workflow:**
-1. `/karimo-run --prd {slug}` creates `feature/{slug}`
+1. `/karimo:run --prd {slug}` creates `feature/{slug}`
 2. Tasks create PRs → feature branch
 3. Waves execute in parallel
-4. `/karimo-merge --prd {slug}` creates final PR → main
+4. `/karimo:merge --prd {slug}` creates final PR → main
 
 ---
 
-### Use `/karimo-run` (Direct-to-Main) if:
+### Use `/karimo:run` (Direct-to-Main) if:
 
 ✅ Solo developer
 ✅ Hotfix or urgent change
@@ -249,7 +249,7 @@ graph TD
 ✅ Comfortable with PRs directly to main
 
 **Workflow:**
-1. `/karimo-run --prd {slug}`
+1. `/karimo:run --prd {slug}`
 2. Tasks create PRs → main
 3. Waves execute (Wave 2 waits for Wave 1)
 4. PRs merge directly to main (no final merge step)
@@ -258,7 +258,7 @@ graph TD
 
 ### Recommendation
 
-**Default to `/karimo-run` for most cases.**
+**Default to `/karimo:run` for most cases.**
 
 The feature branch model provides better isolation, easier rollback, and cleaner separation of concerns. Only use direct-to-main for solo projects or small urgent changes.
 
@@ -302,7 +302,7 @@ graph TD
 
 **Setup:**
 ```bash
-/karimo-configure --advanced
+/karimo:configure --advanced
 # Select "Yes" for automated review
 # Choose "Greptile" as provider
 # Add GREPTILE_API_KEY to GitHub secrets
@@ -326,7 +326,7 @@ graph TD
 
 **Setup:**
 ```bash
-/karimo-configure --advanced
+/karimo:configure --advanced
 # Select "Yes" for automated review
 # Choose "Code Review" as provider
 ```
@@ -352,7 +352,7 @@ graph TD
 - Manual approval and merge
 - No revision loops
 
-**Note:** You can always add automated review later via `/karimo-configure --advanced`.
+**Note:** You can always add automated review later via `/karimo:configure --advanced`.
 
 ---
 
@@ -392,7 +392,7 @@ graph TD
 
 **Command:**
 ```bash
-/karimo-configure
+/karimo:configure
 ```
 
 **Questions (3 total):**
@@ -412,7 +412,7 @@ graph TD
 
 **Command:**
 ```bash
-/karimo-configure --advanced
+/karimo:configure --advanced
 ```
 
 **Questions (9 total):**
@@ -438,7 +438,7 @@ graph TD
 
 **Command:**
 ```bash
-/karimo-configure --preview
+/karimo:configure --preview
 ```
 
 **What it does:**
@@ -457,7 +457,7 @@ graph TD
 
 **Command:**
 ```bash
-/karimo-configure --validate
+/karimo:configure --validate
 ```
 
 **What it does:**
@@ -477,7 +477,7 @@ graph TD
 
 **Command:**
 ```bash
-/karimo-configure --auto
+/karimo:configure --auto
 ```
 
 **What it does:**
@@ -500,15 +500,15 @@ Most users don't invoke agents directly — PM Agent coordinates them. But under
 
 | Agent | Invoked By | Purpose |
 |-------|------------|---------|
-| **Interviewer** | `/karimo-plan` | Conducts PRD interview |
-| **Investigator** | `/karimo-configure` or `/karimo-plan` | Scans codebase for patterns |
-| **Reviewer** | `/karimo-plan` (Round 5) | Validates PRD, generates DAG |
-| **Brief Writer** | `/karimo-run` (Phase 1) | Generates task briefs |
-| **Brief Reviewer** | `/karimo-run` (before execution) | Pre-execution validation |
-| **Brief Corrector** | `/karimo-run` (after review) | Applies corrections from findings |
-| **PM Agent** | `/karimo-run` or `/karimo-run` | Coordinates task execution |
+| **Interviewer** | `/karimo:plan` | Conducts PRD interview |
+| **Investigator** | `/karimo:configure` or `/karimo:plan` | Scans codebase for patterns |
+| **Reviewer** | `/karimo:plan` (Round 5) | Validates PRD, generates DAG |
+| **Brief Writer** | `/karimo:run` (Phase 1) | Generates task briefs |
+| **Brief Reviewer** | `/karimo:run` (before execution) | Pre-execution validation |
+| **Brief Corrector** | `/karimo:run` (after review) | Applies corrections from findings |
+| **PM Agent** | `/karimo:run` or `/karimo:run` | Coordinates task execution |
 | **Review Architect** | PM Agent (on conflicts) | Resolves merge conflicts |
-| **Feedback Auditor** | `/karimo-feedback` (complex mode) | Investigates feedback issues |
+| **Feedback Auditor** | `/karimo:feedback` (complex mode) | Investigates feedback issues |
 
 ### Task Agents (PM Agent Selects)
 
@@ -537,7 +537,7 @@ graph TD
     A[Error Encountered] --> B{Quick Fix Available?}
 
     B -->|Yes| C[Check Common Errors<br/>in TROUBLESHOOTING.md]
-    B -->|No| D[Run /karimo-doctor]
+    B -->|No| D[Run /karimo:doctor]
 
     C --> E{Fixed?}
     E -->|Yes| F[Continue]
@@ -545,7 +545,7 @@ graph TD
 
     D --> G{Issues Found?}
     G -->|Yes| H[Apply Suggested Fixes]
-    G -->|No| I[Run /karimo-dashboard]
+    G -->|No| I[Run /karimo:dashboard]
 
     H --> J[Re-run Command]
 
@@ -574,12 +574,12 @@ graph TD
 
 1. **Run diagnostics:**
    ```bash
-   /karimo-doctor
+   /karimo:doctor
    ```
 
 2. **Check execution status:**
    ```bash
-   /karimo-dashboard --prd {slug}
+   /karimo:dashboard --prd {slug}
    ```
 
 3. **Review PRs for issues:**
@@ -602,8 +602,8 @@ graph TD
 6. **Report issue if unresolved:**
    ```bash
    # Gather context
-   /karimo-doctor > doctor-output.txt
-   /karimo-dashboard --prd {slug} > status-output.txt
+   /karimo:doctor > doctor-output.txt
+   /karimo:dashboard --prd {slug} > status-output.txt
 
    # Create GitHub issue with outputs
    ```
@@ -616,31 +616,31 @@ graph TD
 
 **Create and execute a feature:**
 ```bash
-/karimo-plan                      # Create PRD
-/karimo-run --prd my-feature      # Execute tasks
-/karimo-dashboard --prd my-feature   # Check progress
-/karimo-merge --prd my-feature    # Final PR to main
+/karimo:plan                      # Create PRD
+/karimo:run --prd my-feature      # Execute tasks
+/karimo:dashboard --prd my-feature   # Check progress
+/karimo:merge --prd my-feature    # Final PR to main
 ```
 
 **Diagnose issues:**
 ```bash
-/karimo-doctor                    # Health check
-/karimo-dashboard                    # Overview
-/karimo-dashboard                 # Detailed metrics
+/karimo:doctor                    # Health check
+/karimo:dashboard                    # Overview
+/karimo:dashboard                 # Detailed metrics
 ```
 
 **Configuration:**
 ```bash
-/karimo-configure                 # Basic mode (default)
-/karimo-configure --advanced      # Full control
-/karimo-configure --preview       # See detection
-/karimo-configure --validate      # Check drift
+/karimo:configure                 # Basic mode (default)
+/karimo:configure --advanced      # Full control
+/karimo:configure --preview       # See detection
+/karimo:configure --validate      # Check drift
 ```
 
 **Help and updates:**
 ```bash
-/karimo-help                      # Command list or doc search
-/karimo-update                    # Update KARIMO
+/karimo:help                      # Command list or doc search
+/karimo:update                    # Update KARIMO
 ```
 
 ---

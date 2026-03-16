@@ -34,7 +34,7 @@ If Vercel builds Task 1b before Task 1a merges, the build fails because `UserPro
 
 #### Option 1: Skip KARIMO Branches (Recommended)
 
-Run `/karimo-configure --cd` to auto-configure your deployment provider.
+Run `/karimo:configure --cd` to auto-configure your deployment provider.
 
 Or manually configure:
 
@@ -168,12 +168,12 @@ If you want previews to run but not block merges:
 
 ## Automated Code Review Integration (Optional)
 
-KARIMO installs zero review workflows by default. Choose your review provider with `/karimo-configure --review`:
+KARIMO installs zero review workflows by default. Choose your review provider with `/karimo:configure --review`:
 
 ### Option A: Greptile
 
 ```bash
-/karimo-configure --greptile
+/karimo:configure --greptile
 ```
 
 This installs `karimo-greptile-review.yml` and provides instructions for adding your `GREPTILE_API_KEY` secret.
@@ -188,7 +188,7 @@ When enabled:
 ### Option B: Claude Code Review
 
 ```bash
-/karimo-configure --code-review
+/karimo:configure --code-review
 ```
 
 This creates `REVIEW.md` with review guidelines and provides setup instructions.
@@ -329,7 +329,7 @@ jobs:
 
 ### "Preview builds failing on KARIMO PRs"
 
-This is expected for partial code. Run `/karimo-configure --cd` to skip previews.
+This is expected for partial code. Run `/karimo:configure --cd` to skip previews.
 
 ### "Previews still building after configuration"
 

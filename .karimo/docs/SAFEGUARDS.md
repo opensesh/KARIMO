@@ -323,8 +323,8 @@ if fingerprint matches any of last 5:
 ### Orphan Worktree Detection (v7.7.0)
 
 **Tools:**
-- `/karimo-doctor` (Check 6b: Worktree Health)
-- `/karimo-dashboard` (Critical Alerts: ORPHANED)
+- `/karimo:doctor` (Check 6b: Worktree Health)
+- `/karimo:dashboard` (Critical Alerts: ORPHANED)
 
 **Git-Native Detection (no jq required):**
 ```bash
@@ -345,7 +345,7 @@ done
 ```
 
 **Cleanup:**
-- `/karimo-doctor` offers automated cleanup with confirmation
+- `/karimo:doctor` offers automated cleanup with confirmation
 - Deletes orphaned branches (local + remote)
 - Prunes stale worktree references
 - No manifest synchronization required
@@ -525,10 +525,10 @@ commands:
 
 ### Teaching Agents Your Patterns
 
-Use `/karimo-feedback` to capture project-specific conventions:
+Use `/karimo:feedback` to capture project-specific conventions:
 
 ```
-/karimo-feedback
+/karimo:feedback
 
 > "Always use the existing Button component from src/components/ui/"
 ```
@@ -555,10 +555,10 @@ KARIMO supports two review providers — choose based on your workflow and budge
 
 ### Setup
 
-Run `/karimo-configure --review` to choose your provider interactively, or:
+Run `/karimo:configure --review` to choose your provider interactively, or:
 
-- `/karimo-configure --greptile` — Install Greptile workflow
-- `/karimo-configure --code-review` — Setup Claude Code Review
+- `/karimo:configure --greptile` — Install Greptile workflow
+- `/karimo:configure --code-review` — Setup Claude Code Review
 
 ---
 
@@ -639,7 +639,7 @@ PR Created → Code Review multi-agent fleet activates
 | 🟣 | Pre-existing | Bug in codebase, not from this PR |
 
 **Customization:**
-- `REVIEW.md` — Review-specific guidance (run `/karimo-configure --code-review` to create)
+- `REVIEW.md` — Review-specific guidance (run `/karimo:configure --code-review` to create)
 - `CLAUDE.md` — Shared project instructions
 
 ---
@@ -758,7 +758,7 @@ KARIMO uses PR labels for tracking and workflow integration.
 
 **Note:** Claude Code Review uses inline comments with severity markers (🔴, 🟡, 🟣) instead of labels. PM Agent reads these from PR review comments.
 
-To enable automated review, run `/karimo-configure --review` to choose your provider.
+To enable automated review, run `/karimo:configure --review` to choose your provider.
 
 ---
 

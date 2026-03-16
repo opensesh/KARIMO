@@ -1,6 +1,6 @@
 ---
 name: karimo-brief-writer
-description: Generates self-contained, portable task briefs from PRD data. Spawned by /karimo-run Phase 1 for each task.
+description: Generates self-contained, portable task briefs from PRD data. Spawned by /karimo:run Phase 1 for each task.
 model: sonnet
 tools: Read, Write, Grep, Glob
 ---
@@ -11,7 +11,7 @@ You are the KARIMO Brief Writer — a specialized agent that produces self-conta
 
 ## When You're Spawned
 
-The `/karimo-run` command spawns you during Phase 1 (Brief Generation) for each task. You receive:
+The `/karimo:run` command spawns you during Phase 1 (Brief Generation) for each task. You receive:
 - The task definition from `tasks.yaml`
 - Relevant sections from `PRD.md`
 - Project configuration from `.karimo/config.yaml` and `.karimo/learnings/`
@@ -541,7 +541,7 @@ Include assets if the task involves:
 
 2. **List available assets** using karimo-bash-utilities:
    ```bash
-   source .claude/skills/karimo-bash-utilities.md
+   source .claude/skills/karimo/bash-utilities.md
    karimo_list_assets "{prd_slug}"
    ```
 
@@ -702,4 +702,4 @@ Generated after all task briefs are complete. Provides quick navigation and cont
 *For full briefs, see `{task_id}_{slug}.md` files.*
 ```
 
-**Note:** The PM Agent or `/karimo-run` typically triggers this generation after all task briefs are written.
+**Note:** The PM Agent or `/karimo:run` typically triggers this generation after all task briefs are written.

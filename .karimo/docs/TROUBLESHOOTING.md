@@ -2,7 +2,7 @@
 
 Comprehensive solutions for common KARIMO issues across installation, configuration, execution, and review workflows.
 
-**Quick Diagnostics:** Run `/karimo-doctor` for automated health checks before manual troubleshooting.
+**Quick Diagnostics:** Run `/karimo:doctor` for automated health checks before manual troubleshooting.
 
 ---
 
@@ -24,7 +24,7 @@ Comprehensive solutions for common KARIMO issues across installation, configurat
 ### Commands not found after install
 
 **Symptoms:**
-- `/karimo-plan` or other commands show "command not found"
+- `/karimo:plan` or other commands show "command not found"
 - Commands don't appear in Claude Code autocomplete
 
 **Causes:**
@@ -63,7 +63,7 @@ Comprehensive solutions for common KARIMO issues across installation, configurat
 ### GitHub CLI not authenticated
 
 **Symptoms:**
-- `/karimo-run` fails with "gh auth required"
+- `/karimo:run` fails with "gh auth required"
 - PR creation errors: "authentication failed"
 
 **Causes:**
@@ -149,7 +149,7 @@ Comprehensive solutions for common KARIMO issues across installation, configurat
 
 ## Configuration Issues
 
-### Auto-detection failed during `/karimo-configure`
+### Auto-detection failed during `/karimo:configure`
 
 **Symptoms:**
 - Investigator agent can't detect runtime
@@ -165,7 +165,7 @@ Comprehensive solutions for common KARIMO issues across installation, configurat
 
 1. **Use Advanced Mode for manual config:**
    ```bash
-   /karimo-configure --advanced
+   /karimo:configure --advanced
    # Manually specify all settings
    ```
 
@@ -198,7 +198,7 @@ Comprehensive solutions for common KARIMO issues across installation, configurat
 
 4. **Preview config before saving:**
    ```bash
-   /karimo-configure --preview
+   /karimo:configure --preview
    # Review detected settings, then run full configure
    ```
 
@@ -207,7 +207,7 @@ Comprehensive solutions for common KARIMO issues across installation, configurat
 ### Config validation fails
 
 **Symptoms:**
-- `/karimo-configure --validate` reports drift
+- `/karimo:configure --validate` reports drift
 - Commands don't match current project state
 - Runtime mismatch between config and reality
 
@@ -220,13 +220,13 @@ Comprehensive solutions for common KARIMO issues across installation, configurat
 
 1. **Review drift report:**
    ```bash
-   /karimo-configure --validate
+   /karimo:configure --validate
    # Shows specific mismatches
    ```
 
 2. **Re-run configuration:**
    ```bash
-   /karimo-configure
+   /karimo:configure
    # Auto-detection will update to current state
    ```
 
@@ -294,7 +294,7 @@ Comprehensive solutions for common KARIMO issues across installation, configurat
 ### Pre-execution review failed
 
 **Symptoms:**
-- `/karimo-run` stops after brief review
+- `/karimo:run` stops after brief review
 - `findings.md` contains critical issues
 - Tasks can't proceed until corrected
 
@@ -313,7 +313,7 @@ Comprehensive solutions for common KARIMO issues across installation, configurat
 
 2. **Run review-only mode:**
    ```bash
-   /karimo-run --prd {slug} --review-only
+   /karimo:run --prd {slug} --review-only
    # See findings without starting execution
    ```
 
@@ -327,13 +327,13 @@ Comprehensive solutions for common KARIMO issues across installation, configurat
 4. **Re-run with corrections:**
    ```bash
    # After modifications, try again
-   /karimo-run --prd {slug}
+   /karimo:run --prd {slug}
    ```
 
 5. **Skip review (if confident):**
    ```bash
    # Use with caution
-   /karimo-run --prd {slug} --skip-review
+   /karimo:run --prd {slug} --skip-review
    ```
 
 ---
@@ -341,7 +341,7 @@ Comprehensive solutions for common KARIMO issues across installation, configurat
 ### Task stalled for 24+ hours
 
 **Symptoms:**
-- Task shows `stalled` status in `/karimo-dashboard`
+- Task shows `stalled` status in `/karimo:dashboard`
 - No PR activity or agent updates
 - Wave execution blocked waiting for task
 
@@ -355,7 +355,7 @@ Comprehensive solutions for common KARIMO issues across installation, configurat
 
 1. **Check task status details:**
    ```bash
-   /karimo-dashboard --prd {slug}
+   /karimo:dashboard --prd {slug}
    # Shows which task is stalled and why
    ```
 
@@ -379,7 +379,7 @@ Comprehensive solutions for common KARIMO issues across installation, configurat
 5. **Resume execution:**
    ```bash
    # After resolving blocker
-   /karimo-run --prd {slug}
+   /karimo:run --prd {slug}
    # PM agent will resume from checkpoint
    ```
 
@@ -390,7 +390,7 @@ Comprehensive solutions for common KARIMO issues across installation, configurat
 **Symptoms:**
 - All Wave 1 PRs merged
 - Wave 2 tasks still showing `queued`
-- No errors in `/karimo-dashboard`
+- No errors in `/karimo:dashboard`
 
 **Causes:**
 - PM agent hasn't detected Wave 1 completion
@@ -421,7 +421,7 @@ Comprehensive solutions for common KARIMO issues across installation, configurat
 
 3. **Re-trigger execution:**
    ```bash
-   /karimo-run --prd {slug}
+   /karimo:run --prd {slug}
    # PM agent will re-evaluate wave readiness
    ```
 
@@ -464,7 +464,7 @@ Comprehensive solutions for common KARIMO issues across installation, configurat
 3. **Edit PRD with correct path:**
    ```bash
    # Edit: .karimo/prds/{slug}/PRD_{slug}.md
-   # Correct file path, then re-run /karimo-run to regenerate briefs
+   # Correct file path, then re-run /karimo:run to regenerate briefs
    ```
 
 4. **Check wave ordering:**
@@ -504,7 +504,7 @@ Comprehensive solutions for common KARIMO issues across installation, configurat
 3. **Re-run reviewer:**
    ```bash
    # After modifying PRD
-   /karimo-plan  # Will re-run review phase
+   /karimo:plan  # Will re-run review phase
    ```
 
 ---
@@ -585,7 +585,7 @@ Comprehensive solutions for common KARIMO issues across installation, configurat
 
 3. **Update learnings:**
    ```bash
-   /karimo-feedback
+   /karimo:feedback
    # Document pattern to prevent future occurrences
    ```
 
@@ -674,7 +674,7 @@ Comprehensive solutions for common KARIMO issues across installation, configurat
 
 4. **Re-run task:**
    ```bash
-   /karimo-run --prd {slug}
+   /karimo:run --prd {slug}
    # PM agent will recreate worktree
    ```
 
@@ -782,7 +782,7 @@ Comprehensive solutions for common KARIMO issues across installation, configurat
 
 2. **Enable automated review:**
    ```bash
-   /karimo-configure --advanced
+   /karimo:configure --advanced
    # Enable Greptile or Code Review to speed up reviews
    ```
 
@@ -851,7 +851,7 @@ Comprehensive solutions for common KARIMO issues across installation, configurat
 
 ```bash
 # KARIMO automatically resumes from last successful task
-/karimo-run --prd {slug}
+/karimo:run --prd {slug}
 
 # PM agent will:
 # 1. Check status.json for completed tasks
@@ -914,7 +914,7 @@ Comprehensive solutions for common KARIMO issues across installation, configurat
 
 3. **Document in learnings:**
    ```bash
-   /karimo-feedback
+   /karimo:feedback
    # Capture why task needed rollback to prevent future issues
    ```
 
@@ -961,7 +961,7 @@ Comprehensive solutions for common KARIMO issues across installation, configurat
 
 ## Diagnostic Commands
 
-### `/karimo-doctor` — Automated Health Check
+### `/karimo:doctor` — Automated Health Check
 
 Runs 7 diagnostic categories:
 
@@ -995,13 +995,13 @@ Runs 7 diagnostic categories:
 
 **Usage:**
 ```bash
-/karimo-doctor
+/karimo:doctor
 # Runs all checks, reports issues with fix suggestions
 ```
 
 ---
 
-### `/karimo-doctor --test` — Installation Smoke Test
+### `/karimo:doctor --test` — Installation Smoke Test
 
 End-to-end verification:
 
@@ -1012,17 +1012,17 @@ End-to-end verification:
 
 **Usage:**
 ```bash
-/karimo-doctor --test
+/karimo:doctor --test
 # Exits with success/failure code
 ```
 
 ---
 
-### `/karimo-dashboard` — Execution Monitoring
+### `/karimo:dashboard` — Execution Monitoring
 
 **Quick overview (all PRDs):**
 ```bash
-/karimo-dashboard
+/karimo:dashboard
 # Shows:
 # - PRD name and status
 # - Total tasks / completed / failed
@@ -1032,7 +1032,7 @@ End-to-end verification:
 
 **Detailed view (specific PRD):**
 ```bash
-/karimo-dashboard --prd {slug}
+/karimo:dashboard --prd {slug}
 # Shows:
 # - Per-task status and complexity
 # - PR links
@@ -1043,7 +1043,7 @@ End-to-end verification:
 
 ---
 
-### `/karimo-dashboard` — Comprehensive Metrics
+### `/karimo:dashboard` — Comprehensive Metrics
 
 Shows:
 - Execution timeline
@@ -1055,7 +1055,7 @@ Shows:
 
 **Usage:**
 ```bash
-/karimo-dashboard
+/karimo:dashboard
 # Interactive metrics view
 ```
 
@@ -1078,10 +1078,10 @@ Possible causes:
 **Fix:**
 ```bash
 # List all PRDs
-/karimo-dashboard
+/karimo:dashboard
 
 # Create new PRD
-/karimo-plan
+/karimo:plan
 
 # Check PRD folder
 ls .karimo/prds/
@@ -1140,7 +1140,7 @@ Missing completions:
 **Fix:**
 ```bash
 # Check Wave 1 status
-/karimo-dashboard --prd {slug}
+/karimo:dashboard --prd {slug}
 
 # Complete or fix blocking tasks
 # Then Wave 2 will auto-start
@@ -1158,14 +1158,14 @@ Missing completions:
 
 2. **Run diagnostics:**
    ```bash
-   /karimo-doctor    # Health check
-   /karimo-doctor --test      # Smoke test
+   /karimo:doctor    # Health check
+   /karimo:doctor --test      # Smoke test
    ```
 
 3. **Review PRD status:**
    ```bash
-   /karimo-dashboard --prd {slug}
-   /karimo-dashboard
+   /karimo:dashboard --prd {slug}
+   /karimo:dashboard
    ```
 
 4. **Search for similar issues:**
@@ -1175,8 +1175,8 @@ Missing completions:
 5. **Report new issues:**
    ```bash
    # Include output from:
-   /karimo-doctor
-   /karimo-dashboard --prd {slug}
+   /karimo:doctor
+   /karimo:dashboard --prd {slug}
    cat .karimo/config.yaml
    git status
    ```
@@ -1187,10 +1187,10 @@ Missing completions:
 
 ```mermaid
 graph TD
-    A[Error Encountered] --> B{Run /karimo-doctor}
+    A[Error Encountered] --> B{Run /karimo:doctor}
     B --> C{Issues Found?}
     C -->|Yes| D[Apply Suggested Fixes]
-    C -->|No| E{Check /karimo-dashboard}
+    C -->|No| E{Check /karimo:dashboard}
     D --> F[Re-run Command]
     E --> G{Tasks Stalled?}
     G -->|Yes| H[Review PR Comments]

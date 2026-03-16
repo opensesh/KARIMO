@@ -280,7 +280,7 @@ Verify KARIMO configuration is present.
 check_config_exists() {
   if [ ! -f ".karimo/config.yaml" ]; then
     echo "❌ KARIMO configuration not found"
-    echo "Run /karimo-configure to set up the project"
+    echo "Run /karimo:configure to set up the project"
     return 1
   fi
   return 0
@@ -302,7 +302,7 @@ check_github_config() {
     echo "❌ GitHub configuration not found in .karimo/config.yaml"
     echo ""
     echo "GitHub Projects require owner configuration."
-    echo "Run /karimo-configure to set up GitHub settings."
+    echo "Run /karimo:configure to set up GitHub settings."
     return 1
   fi
   return 0

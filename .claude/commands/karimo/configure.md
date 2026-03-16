@@ -1,21 +1,21 @@
-# /karimo-configure — Configuration Command
+# /karimo:configure — Configuration Command
 
 Create or update KARIMO configuration in `.karimo/config.yaml`. Use this when you want to configure KARIMO separately from planning.
 
 ## Usage
 
 ```
-/karimo-configure              # Basic Mode (default): 3 questions, ~5 min
-/karimo-configure --advanced   # Advanced Mode: Full control, 9+ questions, ~15 min
-/karimo-configure --auto       # Auto Mode: Zero prompts, accepts all defaults, <1 min
-/karimo-configure --reset      # Start fresh, ignore existing config
-/karimo-configure --preview    # Preview auto-detected config without saving
-/karimo-configure --validate   # Validate existing config against current project
-/karimo-configure --greptile   # Install Greptile workflow only
-/karimo-configure --code-review  # Setup Claude Code Review (instructions only)
-/karimo-configure --review       # Choose between review providers (interactive)
-/karimo-configure --cd           # Configure CD provider to skip KARIMO branches
-/karimo-configure --check        # Show current configuration status
+/karimo:configure              # Basic Mode (default): 3 questions, ~5 min
+/karimo:configure --advanced   # Advanced Mode: Full control, 9+ questions, ~15 min
+/karimo:configure --auto       # Auto Mode: Zero prompts, accepts all defaults, <1 min
+/karimo:configure --reset      # Start fresh, ignore existing config
+/karimo:configure --preview    # Preview auto-detected config without saving
+/karimo:configure --validate   # Validate existing config against current project
+/karimo:configure --greptile   # Install Greptile workflow only
+/karimo:configure --code-review  # Setup Claude Code Review (instructions only)
+/karimo:configure --review       # Choose between review providers (interactive)
+/karimo:configure --cd           # Configure CD provider to skip KARIMO branches
+/karimo:configure --check        # Show current configuration status
 ```
 
 **Configuration Modes:**
@@ -222,10 +222,10 @@ Suggested Boundaries:
     - "tsconfig.json"
 
 To save this configuration, run:
-  /karimo-configure
+  /karimo:configure
 
 To customize settings, run:
-  /karimo-configure --advanced
+  /karimo:configure --advanced
 ```
 
 **Exit without saving.** The `--preview` flag is for inspection only.
@@ -243,7 +243,7 @@ if [ ! -f ".karimo/config.yaml" ]; then
     echo "❌ Error: No configuration found"
     echo ""
     echo "Create configuration first:"
-    echo "  /karimo-configure"
+    echo "  /karimo:configure"
     exit 1
 fi
 ```
@@ -284,7 +284,7 @@ Summary:
   • Last configured: 2026-01-15 (57 days ago)
 
 Recommended action:
-  Run /karimo-configure to update configuration
+  Run /karimo:configure to update configuration
 
 Specific fixes needed:
   1. Package manager changed from npm to pnpm
@@ -293,7 +293,7 @@ Specific fixes needed:
      → Update: commands.build: "pnpm build"
 
 Auto-fix available:
-  /karimo-configure
+  /karimo:configure
   → Will detect current state and update config
 ```
 
@@ -349,7 +349,7 @@ options:
 - Install workflow file
 
 **If Skip selected:**
-- Display message: "Skipped. Run `/karimo-configure --review` anytime to set up automated review."
+- Display message: "Skipped. Run `/karimo:configure --review` anytime to set up automated review."
 - Exit
 
 **Exit after selection.** The `--review` flag is a provider choice shortcut.
@@ -361,7 +361,7 @@ options:
 When the `--cd` flag is passed, skip the full configuration flow and configure CD provider directly:
 
 **Prerequisites:**
-- `.karimo/config.yaml` must exist. If not, show error: "Run /karimo-configure first to set up project configuration."
+- `.karimo/config.yaml` must exist. If not, show error: "Run /karimo:configure first to set up project configuration."
 
 **Step 1: Auto-detect CD provider**
 
@@ -510,7 +510,7 @@ No configuration needed if using default Fly.io setup.
 
 Display message:
 ```
-Skipped CD configuration. Run /karimo-configure --cd anytime to configure.
+Skipped CD configuration. Run /karimo:configure --cd anytime to configure.
 ```
 
 **Step 4: Update config.yaml with CD section**
@@ -561,7 +561,7 @@ Test by pushing:
 When the `--check` flag is passed, display current configuration without making changes:
 
 **Prerequisites:**
-- `.karimo/config.yaml` must exist. If not, show message: "No configuration found. Run /karimo-configure to set up."
+- `.karimo/config.yaml` must exist. If not, show message: "No configuration found. Run /karimo:configure to set up."
 
 **Display configuration summary:**
 
@@ -877,11 +877,11 @@ options:
 - Document in config.yaml: `review.enabled: false`
 
 **If "Greptile" selected:**
-- Run `/karimo-configure --greptile` flow (installs workflow)
+- Run `/karimo:configure --greptile` flow (installs workflow)
 - Document in config.yaml: `review.provider: "greptile"`
 
 **If "Code Review" selected:**
-- Run `/karimo-configure --code-review` flow (setup instructions)
+- Run `/karimo:configure --code-review` flow (setup instructions)
 - Document in config.yaml: `review.provider: "code-review"`
 
 ---
@@ -959,11 +959,11 @@ Boundaries:
   • Require review: package.json, config files
 
 Next steps:
-  1. Create your first PRD: /karimo-plan
+  1. Create your first PRD: /karimo:plan
   2. View configuration: cat .karimo/config.yaml
-  3. Modify settings: /karimo-configure --advanced
+  3. Modify settings: /karimo:configure --advanced
 
-Tip: Run /karimo-doctor to verify installation
+Tip: Run /karimo:doctor to verify installation
 ```
 
 **Exit after saving.** Basic Mode is complete.
@@ -1004,7 +1004,7 @@ Framework: Next.js 14
 Package manager: pnpm
 Review: Disabled
 
-All defaults applied. Run /karimo-configure to customize.
+All defaults applied. Run /karimo:configure to customize.
 ```
 
 **Exit after saving.** No user interaction.
@@ -1249,7 +1249,7 @@ Your selections:
   Pre-PR checks: build, typecheck, lint
     Commands that must pass before creating a PR
 
-These settings can be changed anytime by running /karimo-configure
+These settings can be changed anytime by running /karimo:configure
 ```
 
 ---
@@ -1292,7 +1292,7 @@ header: "Review"
 question: "Enable automated code review?"
 options:
   - label: "No (default)"
-    description: "Skip automated review. Can enable later with /karimo-configure --review."
+    description: "Skip automated review. Can enable later with /karimo:configure --review."
   - label: "Claude Code Review"
     description: "$15-25 per PR. Native Claude integration. Requires Teams/Enterprise."
   - label: "Greptile"
@@ -1354,7 +1354,7 @@ Your selections:
   Review provider: none | code-review | greptile
     Automated code review configuration
 
-These settings can be changed anytime by running /karimo-configure
+These settings can be changed anytime by running /karimo:configure
 ```
 
 ---
@@ -1397,7 +1397,7 @@ Detected: Vercel (vercel.json found)
 
 Options:
   1. Configure now — Skip preview builds for KARIMO branches
-  2. Skip for now — I'll handle this later with /karimo-configure --cd
+  2. Skip for now — I'll handle this later with /karimo:configure --cd
   3. Learn more — What does this mean?
 
 Your choice:
@@ -1412,7 +1412,7 @@ options:
   - label: "Configure now (Recommended)"
     description: "Add ignore rule for KARIMO branches. Prevents noise from partial code failures."
   - label: "Skip for now"
-    description: "Handle later with /karimo-configure --cd. Preview builds may fail on task PRs."
+    description: "Handle later with /karimo:configure --cd. Preview builds may fail on task PRs."
   - label: "Learn more"
     description: "Open CI-CD.md documentation for details."
 ```
@@ -1477,7 +1477,7 @@ cd:
   configured_at: "2026-03-11T10:30:00Z"
 ```
 
-Note in final summary: "CD integration: skipped (run /karimo-configure --cd later)"
+Note in final summary: "CD integration: skipped (run /karimo:configure --cd later)"
 
 **If "Learn more" selected:**
 
@@ -1571,7 +1571,7 @@ Write this configuration? [Y/n]
 
 ```yaml
 # KARIMO Configuration
-# Generated by /karimo-configure
+# Generated by /karimo:configure
 
 # Execution Mode: full | fast-track
 mode: full
@@ -1741,8 +1741,8 @@ On completion:
    - Repository: my-project
 
 Next steps:
-  • Run /karimo-plan to create your first PRD
-  • Run /karimo-doctor to verify installation health
+  • Run /karimo:plan to create your first PRD
+  • Run /karimo:doctor to verify installation health
 ```
 
 ---
@@ -1770,9 +1770,9 @@ Only write changes if at least one value modified.
 
 ---
 
-## Relationship to /karimo-plan
+## Relationship to /karimo:plan
 
-| Aspect | /karimo-configure | /karimo-plan |
+| Aspect | /karimo:configure | /karimo:plan |
 |--------|-------------------|--------------|
 | Purpose | Setup config only | Create PRD (config should exist) |
 | Output | .karimo/config.yaml | PRD + tasks.yaml + execution_plan.yaml |
@@ -1782,11 +1782,11 @@ Only write changes if at least one value modified.
 **Recommended workflow:**
 
 1. **Fresh install:** `install.sh` sets up minimal CLAUDE.md reference block
-2. **Configure:** Run `/karimo-configure` to create `.karimo/config.yaml`
-3. **Verify:** Run `/karimo-doctor` to check configuration health
-4. **Create PRDs:** Run `/karimo-plan` with configuration already in place
+2. **Configure:** Run `/karimo:configure` to create `.karimo/config.yaml`
+3. **Verify:** Run `/karimo:doctor` to check configuration health
+4. **Create PRDs:** Run `/karimo:plan` with configuration already in place
 
-**Note:** `/karimo-plan` checks for `.karimo/config.yaml`. If missing, it offers to run `/karimo-configure` first. The preferred path is to have configuration complete before planning.
+**Note:** `/karimo:plan` checks for `.karimo/config.yaml`. If missing, it offers to run `/karimo:configure` first. The preferred path is to have configuration complete before planning.
 
 ---
 
@@ -1794,6 +1794,6 @@ Only write changes if at least one value modified.
 
 | Command | Purpose |
 |---------|---------|
-| `/karimo-plan` | Create PRD (includes auto-detection) |
-| `/karimo-doctor` | Verify installation health |
-| `/karimo-dashboard` | View execution state |
+| `/karimo:plan` | Create PRD (includes auto-detection) |
+| `/karimo:doctor` | Verify installation health |
+| `/karimo:dashboard` | View execution state |
