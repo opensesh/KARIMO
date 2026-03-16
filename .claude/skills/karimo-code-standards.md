@@ -46,17 +46,9 @@ From CLAUDE.md Boundaries → Require Review:
 
 ## Commit Standards
 
-### Conventional Commits Format
+> **See [KARIMO_RULES.md](../.claude/KARIMO_RULES.md#3-commit-standards) for the authoritative commit format.**
 
-```
-<type>(<scope>): <description>
-
-[optional body explaining what and why]
-
-Co-Authored-By: Claude <noreply@anthropic.com>
-```
-
-### Commit Types
+### Quick Reference
 
 | Type | When to Use | Example |
 |------|-------------|---------|
@@ -67,13 +59,6 @@ Co-Authored-By: Claude <noreply@anthropic.com>
 | `test` | Adding or fixing tests | `test(profile): add avatar upload tests` |
 | `chore` | Maintenance, config changes | `chore(deps): update eslint config` |
 | `perf` | Performance improvements | `perf(query): add database index` |
-
-### Co-Authored-By Footer
-
-**ALWAYS include on every commit:**
-```
-Co-Authored-By: Claude <noreply@anthropic.com>
-```
 
 ### Commit Frequency
 
