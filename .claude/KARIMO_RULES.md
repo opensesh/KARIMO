@@ -204,7 +204,7 @@ After a PR is merged:
 
 ### 3. Continuous Improvement
 
-The human architect uses `/karimo-feedback` to capture learnings. These become rules that apply to future executions. Always check `.karimo/learnings.md` for project-specific guidance.
+The human architect uses `/karimo-feedback` to capture learnings. These become rules that apply to future executions. Always check `.karimo/learnings/` for project-specific guidance (patterns, anti-patterns, project-notes, execution-rules).
 
 ---
 

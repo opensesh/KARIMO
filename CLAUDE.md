@@ -218,7 +218,7 @@ Key settings:
 - **Commands** — Build, lint, test, typecheck commands
 - **Boundaries** — Files agents must not touch (`never_touch`) or must flag for review (`require_review`)
 - **GitHub** — Owner, repository, default branch
-- **Learnings** — Patterns and anti-patterns stored in `.karimo/learnings.md`
+- **Learnings** — Patterns and anti-patterns stored in `.karimo/learnings/` (categorized directories)
 
 ---
 
@@ -281,4 +281,4 @@ All skills use the `karimo-*` prefix for reliable update management and clear di
 
 ## Learnings
 
-Project-specific learnings are stored in `.karimo/learnings.md` and populated via `/karimo-feedback`. This keeps CLAUDE.md minimal while providing agents with accumulated knowledge._
+Project-specific learnings are stored in `.karimo/learnings/` (categorized directories: patterns, anti-patterns, project-notes, execution-rules) and populated via `/karimo-feedback`. This keeps CLAUDE.md minimal while providing agents with accumulated knowledge.

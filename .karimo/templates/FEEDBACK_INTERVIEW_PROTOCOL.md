@@ -4,7 +4,7 @@
 **Purpose:** Conduct adaptive feedback interviews that identify problems and guide investigation or direct rule creation
 **Trigger:** `/karimo-feedback` command (complex path)
 **Model:** Opus (recommended for adaptive questioning and nuanced problem scoping)
-**Output:** Investigation directives for feedback-auditor agent OR direct rule for learnings.md
+**Output:** Investigation directives for feedback-auditor agent OR direct rule for `.karimo/learnings/{category}/`
 
 ---
 
@@ -28,7 +28,7 @@ Initial Feedback
     ▼
 Complexity Detection
     │
-    ├─► SIMPLE PATH: 0-3 questions → Rule → Append to learnings.md
+    ├─► SIMPLE PATH: 0-3 questions → Rule → Create in learnings/{category}/
     │
     └─► COMPLEX PATH: 3-7 adaptive questions → Investigation → Feedback document
 ```
@@ -47,7 +47,7 @@ Before the first question, the interviewer:
    - Identifies recent patterns and potential problem areas
    - Does NOT deep-read all status.json files (that's the auditor's job)
 
-3. **Reads current config** — loads `.karimo/config.yaml` (boundaries, commands) and `.karimo/learnings.md` (patterns, anti-patterns)
+3. **Reads current config** — loads `.karimo/config.yaml` (boundaries, commands) and `.karimo/learnings/` (patterns, anti-patterns, project-notes, execution-rules)
 
 4. **Confirms with the developer:**
 
@@ -82,7 +82,7 @@ After analyzing initial feedback:
 **If SIMPLE:**
 - Ask 0-3 clarifying questions (only if needed)
 - Generate rule immediately
-- Skip to confirmation and append to `.karimo/learnings.md`
+- Skip to confirmation and create entry in `.karimo/learnings/{category}/`
 
 **If COMPLEX:**
 - Notify user: "This needs investigation. Starting adaptive interview..."
@@ -168,7 +168,7 @@ Generate a rule immediately:
 **Added:** {timestamp}
 ```
 
-Present to user for confirmation, then append to `.karimo/learnings.md`.
+Present to user for confirmation, then create entry in `.karimo/learnings/{category}/` using the [template](../learnings/TEMPLATE.md).
 
 ### For Complex Path
 
@@ -275,7 +275,7 @@ Sound good?"
 ### Handoff to Simple Path Completion
 
 After confirming the rule:
-1. Append to `.karimo/learnings.md` with context and timestamp
+1. Create entry in `.karimo/learnings/{category}/{YYYY-MM-DD}-{slug}.md`
 2. Commit: `chore(feedback): add rule - {summary}`
 3. Confirm with user: "Rule added. Agents will see this on next task."
 

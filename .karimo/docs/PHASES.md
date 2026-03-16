@@ -112,7 +112,7 @@ This is where everyone starts. Phase 1 provides everything needed to go from ide
 
 - **Compound Learning** (`/karimo-feedback`)
   - Capture patterns and anti-patterns
-  - Rules appended to `.karimo/learnings.md`
+  - Rules created in `.karimo/learnings/{category}/`
   - Future agents learn from feedback
 
 ### Prerequisites

@@ -7,6 +7,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [7.8.2] - 2026-03-16
+
+### Fixed
+
+- **Learnings directory migration completion** — Fixed incomplete migration from flat `.karimo/learnings.md` to categorized `.karimo/learnings/` directory structure. v7.3.0 introduced the categorized learnings system but left several files referencing the deprecated format.
+
+### Changed
+
+**Protocol Files (Critical)**
+- `FEEDBACK_INTERVIEW_PROTOCOL.md` — Updated 6 references from `.karimo/learnings.md` to `.karimo/learnings/{category}/`
+- `INTERVIEW_PROTOCOL.md` — Updated 3 references to use categorized directory structure
+
+**Agent & Skill Files**
+- `KARIMO_RULES.md` — Updated to reference `.karimo/learnings/` for project-specific guidance
+- `karimo-code-standards.md` — Updated to reference categorized learnings directory
+
+**Command Files**
+- `karimo-doctor.md` — Updated 6 references, changed file check to directory check
+- `karimo-plan.md` — Updated 2 references to use categorized learnings
+- `karimo-configure.md` — Updated to reference categorized directories
+
+**Documentation Files**
+- `CLAUDE.md` — Updated 2 references to describe categorized structure
+- `COMMANDS.md` — Updated 7 references throughout command documentation
+- `SAFEGUARDS.md` — Updated 3 references in security documentation
+- `PHASES.md`, `DECISION_TREES.md`, `GLOSSARY.md` — Updated file structure references
+- `FEEDBACK_DOCUMENT_TEMPLATE.md` — Updated configuration analysis reference
+
+### Removed
+
+- **Deprecated `.karimo/learnings.md`** — Removed flat file in favor of categorized directory structure at `.karimo/learnings/{patterns,anti-patterns,project-notes,execution-rules}/`
+
+---
+
 ## [7.8.1] - 2026-03-16
 
 ### Removed

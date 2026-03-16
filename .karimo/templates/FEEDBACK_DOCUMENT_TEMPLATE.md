@@ -50,7 +50,7 @@
 
 ### From Configuration
 
-{Analysis of config.yaml, learnings.md, KARIMO_RULES.md}
+{Analysis of config.yaml, learnings/, KARIMO_RULES.md}
 - Gaps in current rules
 - Conflicting guidance
 - Missing boundaries

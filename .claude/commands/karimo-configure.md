@@ -32,7 +32,7 @@ Create or update KARIMO configuration in `.karimo/config.yaml`. Use this when yo
 
 **`.karimo/config.yaml`** is the authoritative source for KARIMO configuration:
 - Agents read config.yaml for runtime, framework, commands, and boundaries
-- Learnings are stored separately in `.karimo/learnings.md`
+- Learnings are stored separately in `.karimo/learnings/` (categorized directories)
 - CLAUDE.md contains only a minimal reference block (~8 lines)
 
 ## Behavior

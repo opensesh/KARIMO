@@ -377,7 +377,7 @@ When `.karimo/config.yaml` exists:
      /karimo-research --prd {slug}
    ```
 
-**Note:** Other files (learnings.md, previous PRDs, templates) are loaded on-demand during later steps to keep startup fast.
+**Note:** Other files (learnings/, previous PRDs, templates) are loaded on-demand during later steps to keep startup fast.
 
 ### Step 2: Spawn Interviewer Agent
 
@@ -406,7 +406,7 @@ The interviewer conducts 4 rounds:
 ### Round 4 Preparation (Automatic)
 
 Before the interviewer begins Round 4 (Retrospective), load:
-- `.karimo/learnings.md` — If exists, contains accumulated patterns and anti-patterns
+- `.karimo/learnings/` — If exists, contains categorized patterns and anti-patterns
 - `.karimo/prds/*/PRD.md` — If previous PRDs exist, summarize key outcomes for retrospective questions
 
 If these files don't exist, the interviewer proceeds with first-PRD flow (no retrospective data).

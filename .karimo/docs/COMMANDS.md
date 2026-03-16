@@ -866,7 +866,7 @@ These files are **never modified** by updates:
 | File | Reason |
 |------|--------|
 | `.karimo/config.yaml` | Your project configuration |
-| `.karimo/learnings.md` | Your accumulated learnings |
+| `.karimo/learnings/` | Your accumulated learnings (categorized) |
 | `.karimo/prds/*` | Your PRD files |
 | `CLAUDE.md` | Your project instructions |
 
@@ -891,7 +891,7 @@ This update will:
 
 These files are preserved (never modified):
   • .karimo/config.yaml
-  • .karimo/learnings.md
+  • .karimo/learnings/
   • .karimo/prds/*
   • CLAUDE.md
 
@@ -939,7 +939,7 @@ Intelligent feedback capture with automatic complexity detection and adaptive in
 1. **Analyzes** feedback for clarity
 2. **Asks** 0-3 clarifying questions (if needed)
 3. **Generates** actionable rule immediately
-4. **Appends** to `.karimo/learnings.md`
+4. **Creates** entry in `.karimo/learnings/{category}/`
 
 **Complex Path (30% of cases, 10-20 min):**
 1. **Detects** investigation needed
@@ -973,7 +973,7 @@ Analyzes your feedback for signals:
 > "Never use inline styles — always use Tailwind classes"
 ```
 
-**Result:** Rule generated immediately and appended to `.karimo/learnings.md`:
+**Result:** Rule generated immediately and created in `.karimo/learnings/anti-patterns/`:
 
 ```markdown
 **Anti-pattern:** Never use inline styles. Always use Tailwind utility classes.
@@ -1034,7 +1034,7 @@ This reads `.karimo/prds/user-profiles/metrics.json` and presents each candidate
 ╰──────────────────────────────────────────────────────────────╯
 ```
 
-Approved rules are batch-appended to `.karimo/learnings.md`.
+Approved rules are batch-created in `.karimo/learnings/{category}/`.
 
 ---
 
@@ -1055,7 +1055,7 @@ Runs 8 diagnostic checks (read-only, never modifies files):
 1. **Version Status** — Check for KARIMO updates
 2. **Environment** — Claude Code, GitHub CLI, Git, Greptile
 3. **Installation** — All expected files present
-4. **Configuration** — CLAUDE.md has KARIMO section, config.yaml exists, learnings.md exists, no drift
+4. **Configuration** — CLAUDE.md has KARIMO section, config.yaml exists, learnings/ exists, no drift
 5. **Sanity** — Commands exist, boundary patterns match files
 6. **Execution Mode** — Validate execution mode configuration
 7. **Execution Health** — Detect stale tasks and orphaned worktrees
@@ -1088,7 +1088,7 @@ Check 3: Configuration
 
   ✅ CLAUDE.md         KARIMO section present
   ✅ config.yaml       Present and valid
-  ✅ learnings.md      Present
+  ✅ learnings/        Present (categorized)
   ✅ No drift          Config matches project state
 
 ...

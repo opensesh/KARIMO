@@ -60,7 +60,7 @@ Test 4: CLAUDE.md Integration
 ─────────────────────────────
 
   ✅ KARIMO section        Present in CLAUDE.md (with markers)
-  ✅ learnings.md          Present in .karimo/
+  ✅ learnings/            Present in .karimo/ (categorized directories)
   ✅ KARIMO_RULES.md       Present in .claude/
   ✅ prds/ directory       Exists
 
@@ -363,7 +363,7 @@ done
 **Other checks:**
 - `.claude/KARIMO_RULES.md` exists
 - `CLAUDE.md` contains KARIMO section (check for `<!-- KARIMO:START` markers, fall back to `## KARIMO`)
-- `.karimo/learnings.md` exists
+- `.karimo/learnings/` directory exists with category subdirectories
 - `.gitignore` contains `.worktrees/`
 
 **Example output:**
@@ -377,7 +377,7 @@ Check 2: Installation Integrity
   ✅ Commands        10/10 present (from manifest)
   ✅ Skills          5/5 present (from manifest)
   ✅ Rules           KARIMO_RULES.md present
-  ✅ Learnings       .karimo/learnings.md present
+  ✅ Learnings       .karimo/learnings/ present (categorized)
   ✅ Templates       9/9 present (from manifest)
   ✅ Workflows       5/5 present (1 required, 4 optional)
   ✅ CLAUDE.md       KARIMO section present (with markers)
@@ -475,8 +475,8 @@ fi
 **Step 3b: Check required config files exist**
 
 ```bash
-# Check learnings file
-[ -f ".karimo/learnings.md" ] && echo "✅ learnings.md" || echo "❌ learnings.md missing"
+# Check learnings directory
+[ -d ".karimo/learnings" ] && echo "✅ learnings/" || echo "❌ learnings/ missing"
 
 # Check rules file
 [ -f ".claude/KARIMO_RULES.md" ] && echo "✅ KARIMO_RULES.md" || echo "❌ KARIMO_RULES.md missing"
@@ -562,7 +562,7 @@ Check 3: Configuration Validation
 ──────────────────────────────────
 
   ✅ CLAUDE.md         KARIMO section present (with markers)
-  ✅ learnings.md      Present
+  ✅ learnings/        Present (categorized directories)
   ✅ KARIMO_RULES.md   Present
   ✅ config.yaml       Present, no placeholders
   ✅ No drift          Config matches project state
@@ -1230,7 +1230,7 @@ if [ -f ".claude/CLAUDE.md" ]; then CLAUDE_MD=".claude/CLAUDE.md"; elif [ -f ".c
 [ -n "$CLAUDE_MD" ] && { grep -q "<!-- KARIMO:START" "$CLAUDE_MD" || grep -q "## KARIMO" "$CLAUDE_MD"; }
 
 # 3b: Check required config files exist
-[ -f ".karimo/learnings.md" ]
+[ -d ".karimo/learnings" ]
 [ -f ".claude/KARIMO_RULES.md" ]
 [ -f ".karimo/config.yaml" ]
 

@@ -81,7 +81,7 @@ Before the first question, the interviewer:
 
 1. Load project configuration from `.karimo/config.yaml`
 2. **Load research context from `.karimo/prds/{slug}/research/findings.md`** (v7.0)
-3. Load `.karimo/learnings.md` for compound learning context
+3. Load `.karimo/learnings/` for compound learning context (patterns, anti-patterns, project-notes, execution-rules)
 4. Read previous PRDs from `.karimo/prds/` for retrospective context
 5. Read this protocol and the PRD template
 
@@ -342,7 +342,7 @@ Co-Authored-By: Claude <noreply@anthropic.com>"
 2. "Does any of this change how we should approach this feature?"
 3. "Are there new rules we should add — things you want agents to always do or never do?"
 
-### If .karimo/learnings.md Exists
+### If .karimo/learnings/ Has Entries
 
 1. Reference relevant learnings from the project's accumulated knowledge
 2. Apply applicable patterns and anti-patterns to task context
@@ -352,7 +352,7 @@ Co-Authored-By: Claude <noreply@anthropic.com>"
 
 - Adjusted estimates
 - Updated `agent_context` with retrospective patterns
-- Learnings to add to `.karimo/learnings.md`
+- Learnings to add to `.karimo/learnings/{category}/`
 
 ### Round Completion
 

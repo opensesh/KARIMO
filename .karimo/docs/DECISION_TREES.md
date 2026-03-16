@@ -193,7 +193,7 @@ Options:
 
 Preserves:
 - `.karimo/config.yaml`
-- `.karimo/learnings.md`
+- `.karimo/learnings/`
 - `.karimo/prds/*`
 - Custom content in `CLAUDE.md`
 

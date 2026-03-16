@@ -519,7 +519,7 @@ commands:
 ### What This Means
 
 - **KARIMO doesn't define quality** — your commands do
-- **Agents learn your patterns** — through `.karimo/learnings.md`
+- **Agents learn your patterns** — through `.karimo/learnings/` (categorized directories)
 - **Your CI stays authoritative** — GitHub Actions run your checks
 - **Pre-PR validation uses your tools** — no KARIMO-specific tooling
 
@@ -533,7 +533,7 @@ Use `/karimo-feedback` to capture project-specific conventions:
 > "Always use the existing Button component from src/components/ui/"
 ```
 
-This appends rules to `.karimo/learnings.md` that all future agents read.
+This creates entries in `.karimo/learnings/{category}/` that all future agents read.
 
 ---
 
@@ -833,7 +833,7 @@ Rollback events tracked in `status.json`:
 ### For Developers
 
 1. **Review boundaries** — Check `never_touch` and `require_review` before running agents
-2. **Audit learnings** — Review rules captured in `.karimo/learnings.md`
+2. **Audit learnings** — Review rules captured in `.karimo/learnings/`
 3. **Rotate tokens** — Set short expiration on GitHub tokens
 4. **Monitor PRs** — Review agent-created PRs before merge
 
