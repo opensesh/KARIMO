@@ -24,4 +24,4 @@ Execute an approved PRD using the 4-phase workflow: brief generation, auto-revie
 4. **Orchestrate**: Execute tasks in waves, create PRs
 
 ---
-*Full definition: `.claude/commands/karimo-run.md` (537 lines)*
+*Full definition: `.claude/commands/karimo/karimo-run.md` (537 lines)*

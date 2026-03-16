@@ -27,4 +27,4 @@ Consolidate feature branch changes and create final PR to main. Completes the wo
 4. Create PR to main with summary
 
 ---
-*Full definition: `.claude/commands/karimo-merge.md` (628 lines)*
+*Full definition: `.claude/commands/karimo/karimo-merge.md` (628 lines)*

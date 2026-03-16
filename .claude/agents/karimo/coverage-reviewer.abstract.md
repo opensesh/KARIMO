@@ -20,4 +20,4 @@ Analyzes coverage reports and adds explanatory PR comments. Cross-references gap
 Read, Grep, Glob
 
 ---
-*Full definition: `.claude/agents/karimo-coverage-reviewer.md` (240 lines)*
+*Full definition: `.claude/agents/karimo/coverage-reviewer.md` (240 lines)*

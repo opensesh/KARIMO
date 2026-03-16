@@ -21,6 +21,6 @@ Code-level integration and merge quality agent. Validates task PRs, resolves mer
 Read, Write, Edit, Bash, Grep, Glob
 
 ---
-*Full definition: `.claude/agents/karimo-review-architect.md` (462 lines)*
+*Full definition: `.claude/agents/karimo/review-architect.md` (462 lines)*
 
 **Note:** Deprecated in v5.0. Use /karimo-merge for feature branch workflows.

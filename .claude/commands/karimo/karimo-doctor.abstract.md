@@ -24,4 +24,4 @@ Check the health of a KARIMO installation, identify issues, and provide actionab
 8. **Asset Integrity**: Manifest vs disk verification
 
 ---
-*Full definition: `.claude/commands/karimo-doctor.md` (1309 lines)*
+*Full definition: `.claude/commands/karimo/karimo-doctor.md` (1309 lines)*

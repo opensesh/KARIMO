@@ -21,4 +21,4 @@ Creates and updates documentation for task outputs. Writes README updates, API d
 Read, Write, Edit, Bash, Glob, Grep
 
 ---
-*Full definition: `.claude/agents/karimo-documenter.md` (433 lines)*
+*Full definition: `.claude/agents/karimo/documenter.md` (433 lines)*

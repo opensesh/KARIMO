@@ -21,4 +21,4 @@ Start a structured interview to create a Product Requirements Document (PRD) tha
 4. PRD generation with tasks.yaml
 
 ---
-*Full definition: `.claude/commands/karimo-plan.md` (873 lines)*
+*Full definition: `.claude/commands/karimo/karimo-plan.md` (873 lines)*

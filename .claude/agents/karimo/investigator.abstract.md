@@ -21,4 +21,4 @@ Scans codebases to identify patterns, frameworks, and configuration for KARIMO s
 Read, Grep, Glob
 
 ---
-*Full definition: `.claude/agents/karimo-investigator.md` (240 lines)*
+*Full definition: `.claude/agents/karimo/investigator.md` (240 lines)*

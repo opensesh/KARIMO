@@ -24,4 +24,4 @@ Intelligent feedback capture with automatic complexity detection. Handles both s
 - Complex: Feedback document in `.karimo/feedback/{slug}.md`
 
 ---
-*Full definition: `.claude/commands/karimo-feedback.md` (538 lines)*
+*Full definition: `.claude/commands/karimo/karimo-feedback.md` (538 lines)*

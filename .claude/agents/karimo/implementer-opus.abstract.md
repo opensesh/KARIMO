@@ -21,4 +21,4 @@ Executes complex coding tasks requiring deep reasoning, multi-file coordination,
 Read, Write, Edit, Bash, Glob, Grep
 
 ---
-*Full definition: `.claude/agents/karimo-implementer-opus.md` (315 lines)*
+*Full definition: `.claude/agents/karimo/implementer-opus.md` (315 lines)*

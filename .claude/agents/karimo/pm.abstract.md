@@ -21,4 +21,4 @@ Coordinates autonomous task execution — manages git workflows, spawns worker a
 Read, Write, Edit, Bash, Grep, Glob
 
 ---
-*Full definition: `.claude/agents/karimo-pm.md` (830 lines)*
+*Full definition: `.claude/agents/karimo/pm.md` (830 lines)*

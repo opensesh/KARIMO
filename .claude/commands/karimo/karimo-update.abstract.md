@@ -23,4 +23,4 @@ Check for and apply KARIMO updates from GitHub releases.
 6. Run config migrations if needed
 
 ---
-*Full definition: `.claude/commands/karimo-update.md` (202 lines)*
+*Full definition: `.claude/commands/karimo/karimo-update.md` (202 lines)*

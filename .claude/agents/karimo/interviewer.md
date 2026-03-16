@@ -120,7 +120,7 @@ When the user provides an image (URL or file path) during the interview:
 
 1. **Call karimo_add_asset()** from the karimo-bash-utilities skill:
    ```bash
-   source .claude/skills/karimo-bash-utilities.md
+   source .claude/skills/karimo/bash-utilities.md
    karimo_add_asset "$PRD_SLUG" "$IMAGE_SOURCE" "planning" "$DESCRIPTION" "karimo-interviewer"
    ```
 

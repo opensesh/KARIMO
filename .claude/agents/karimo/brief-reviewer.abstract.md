@@ -21,4 +21,4 @@ Pre-execution validation agent that investigates PRD and task briefs against cod
 Read, Grep, Glob, Bash
 
 ---
-*Full definition: `.claude/agents/karimo-brief-reviewer.md` (280 lines)*
+*Full definition: `.claude/agents/karimo/brief-reviewer.md` (280 lines)*

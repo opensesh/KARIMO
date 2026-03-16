@@ -26,4 +26,4 @@ Create or update KARIMO configuration in `.karimo/config.yaml`. Auto-detects pro
 - GitHub repository settings
 
 ---
-*Full definition: `.claude/commands/karimo-configure.md` (1799 lines)*
+*Full definition: `.claude/commands/karimo/karimo-configure.md` (1799 lines)*

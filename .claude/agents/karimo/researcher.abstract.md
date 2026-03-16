@@ -21,4 +21,4 @@ Conducts two-phase research (internal codebase + external web) to gather impleme
 Read, Grep, Glob, Bash, WebSearch, WebFetch, Firecrawl MCP
 
 ---
-*Full definition: `.claude/agents/karimo-researcher.md` (380 lines)*
+*Full definition: `.claude/agents/karimo/researcher.md` (380 lines)*

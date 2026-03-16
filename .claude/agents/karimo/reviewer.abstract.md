@@ -21,4 +21,4 @@ Validates completed PRDs, checks task quality, generates dependency graphs, and 
 Read, Grep, Glob
 
 ---
-*Full definition: `.claude/agents/karimo-reviewer.md` (320 lines)*
+*Full definition: `.claude/agents/karimo/reviewer.md` (320 lines)*

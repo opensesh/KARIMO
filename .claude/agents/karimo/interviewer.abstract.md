@@ -21,4 +21,4 @@ Conducts structured interviews for PRDs or feedback. Mode-aware agent supporting
 Read, Grep, Glob
 
 ---
-*Full definition: `.claude/agents/karimo-interviewer.md` (650 lines)*
+*Full definition: `.claude/agents/karimo/interviewer.md` (650 lines)*

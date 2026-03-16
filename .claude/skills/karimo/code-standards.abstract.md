@@ -20,4 +20,4 @@ Coding patterns and guidelines for implementer agents. Ensures consistent code q
 Task agents follow these standards when writing production code.
 
 ---
-*Full definition: `.claude/skills/karimo-code-standards.md` (varies)*
+*Full definition: `.claude/skills/karimo/code-standards.md` (varies)*

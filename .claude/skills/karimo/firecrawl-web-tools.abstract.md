@@ -20,4 +20,4 @@ Web scraping, search, and browser automation via Firecrawl MCP server for extern
 Research agents use Firecrawl for documentation scraping and library evaluation.
 
 ---
-*Full definition: `.claude/skills/karimo-firecrawl-web-tools.md` (484 lines)*
+*Full definition: `.claude/skills/karimo/firecrawl-web-tools.md` (484 lines)*

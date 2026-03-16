@@ -20,4 +20,4 @@ Documentation patterns and guidelines for documenter agents. Ensures consistent 
 Documenter agents follow these standards when creating documentation.
 
 ---
-*Full definition: `.claude/skills/karimo-doc-standards.md` (464 lines)*
+*Full definition: `.claude/skills/karimo/doc-standards.md` (464 lines)*

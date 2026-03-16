@@ -25,4 +25,4 @@ Get help with KARIMO commands or search documentation for specific topics.
 Searches across all `.karimo/docs/*.md` files and command definitions.
 
 ---
-*Full definition: `.claude/commands/karimo-help.md` (383 lines)*
+*Full definition: `.claude/commands/karimo/karimo-help.md` (383 lines)*

@@ -26,4 +26,4 @@ Comprehensive CLI dashboard for KARIMO monitoring. Shows system health, executio
 5. **Recent Activity**: Event timeline
 
 ---
-*Full definition: `.claude/commands/karimo-dashboard.md` (1138 lines)*
+*Full definition: `.claude/commands/karimo/karimo-dashboard.md` (1138 lines)*

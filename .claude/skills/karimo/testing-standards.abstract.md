@@ -20,4 +20,4 @@ Testing patterns and protocols for tester agents. Ensures comprehensive test cov
 Tester agents follow these standards when writing tests.
 
 ---
-*Full definition: `.claude/skills/karimo-testing-standards.md` (439 lines)*
+*Full definition: `.claude/skills/karimo/testing-standards.md` (439 lines)*

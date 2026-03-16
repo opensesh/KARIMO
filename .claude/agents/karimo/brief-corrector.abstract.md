@@ -21,4 +21,4 @@ Correction agent that applies fixes to task briefs and PRD based on review findi
 Read, Edit, Write, Grep, Glob
 
 ---
-*Full definition: `.claude/agents/karimo-brief-corrector.md` (220 lines)*
+*Full definition: `.claude/agents/karimo/brief-corrector.md` (220 lines)*

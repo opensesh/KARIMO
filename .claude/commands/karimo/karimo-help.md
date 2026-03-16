@@ -209,7 +209,7 @@ If query matches a command name (e.g., `plan`, `run`, `status`):
 
 ```bash
 # Read the command file directly
-Read tool: .claude/commands/karimo-{query}.md
+Read tool: .claude/commands/karimo/karimo-{query}.md
 # Display the Usage section
 ```
 
@@ -239,7 +239,7 @@ Related commands:
   /karimo-run       Execute approved PRD
   /karimo-dashboard Check PRD execution state
 
-Full reference: .claude/commands/karimo-plan.md
+Full reference: .claude/commands/karimo/karimo-plan.md
 Documentation: .karimo/docs/GETTING-STARTED.md
 ```
 
@@ -269,7 +269,7 @@ User: /karimo-help worktree
 ```
 User: /karimo-help dashboard
 → Recognizes command name
-→ Reads .claude/commands/karimo-dashboard.md
+→ Reads .claude/commands/karimo/karimo-dashboard.md
 → Shows usage, examples, and related commands
 ```
 

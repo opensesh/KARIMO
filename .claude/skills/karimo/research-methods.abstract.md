@@ -20,4 +20,4 @@ Systematic methodologies for internal codebase research — discovering patterns
 Research agents follow these methods for internal codebase research (Phase 1).
 
 ---
-*Full definition: `.claude/skills/karimo-research-methods.md` (301 lines)*
+*Full definition: `.claude/skills/karimo/research-methods.md` (301 lines)*

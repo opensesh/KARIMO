@@ -235,7 +235,7 @@ Error boundaries handle errors in child components during rendering and lifecycl
 
 Firecrawl is the **recommended tool** for external research when available. It provides deep documentation scraping, library evaluation, and multi-page research capabilities.
 
-**Full Reference:** See `.claude/skills/karimo-firecrawl-web-tools.md` for:
+**Full Reference:** See `.claude/skills/karimo/firecrawl-web-tools.md` for:
 - Complete 12-tool decision tree
 - Escalation ladder (scrape → waitFor → map → browser → agent)
 - Detailed tool reference with JSON examples
@@ -277,7 +277,7 @@ If browser automation (Claude in Chrome or Firecrawl browser tools) is available
 - Extract code from live examples
 - Screenshot interesting patterns
 
-See `.claude/skills/karimo-firecrawl-web-tools.md` for browser tool details.
+See `.claude/skills/karimo/firecrawl-web-tools.md` for browser tool details.
 
 ## Source Attribution
 
@@ -414,7 +414,7 @@ Before finalizing external research:
 
 ## Related Files
 
-- Agent: `.claude/agents/karimo-researcher.md`
-- Skill: `.claude/skills/karimo-research-methods.md`
+- Agent: `.claude/agents/karimo/researcher.md`
+- Skill: `.claude/skills/karimo/research-methods.md`
 - Templates: `.karimo/templates/GENERAL_RESEARCH_TEMPLATE.md`
 - Guide: `.karimo/docs/RESEARCH.md`

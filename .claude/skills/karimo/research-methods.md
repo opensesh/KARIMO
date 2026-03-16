@@ -5,8 +5,8 @@
 This skill provides systematic methodologies for **internal (codebase) research** — discovering patterns, identifying gaps, and gathering implementation context from the existing codebase.
 
 **Scope:** Internal research only (Phase 1 of two-phase model)
-**External Research:** See `.claude/skills/karimo-external-research.md`
-**Firecrawl Tools:** See `.claude/skills/karimo-firecrawl-web-tools.md`
+**External Research:** See `.claude/skills/karimo/external-research.md`
+**Firecrawl Tools:** See `.claude/skills/karimo/firecrawl-web-tools.md`
 
 **Applies to:** karimo-researcher, karimo-refiner agents
 
@@ -166,8 +166,8 @@ This skill provides systematic methodologies for **internal (codebase) research*
 **Note:** External research is covered in Phase 2 of the two-phase model.
 
 **See:**
-- `.claude/skills/karimo-external-research.md` — External research strategies
-- `.claude/skills/karimo-firecrawl-web-tools.md` — Firecrawl tool reference
+- `.claude/skills/karimo/external-research.md` — External research strategies
+- `.claude/skills/karimo/firecrawl-web-tools.md` — Firecrawl tool reference
 
 **Output:** `research/external/findings.md` (consolidated output using `EXTERNAL_FINDINGS_TEMPLATE.md`)
 
@@ -290,10 +290,10 @@ Every finding should inform implementation:
 
 ## Related Files
 
-- Agent: `.claude/agents/karimo-researcher.md`
-- Agent: `.claude/agents/karimo-refiner.md`
-- Skill: `.claude/skills/karimo-external-research.md` (Phase 2)
-- Skill: `.claude/skills/karimo-firecrawl-web-tools.md` (Firecrawl reference)
+- Agent: `.claude/agents/karimo/researcher.md`
+- Agent: `.claude/agents/karimo/refiner.md`
+- Skill: `.claude/skills/karimo/external-research.md` (Phase 2)
+- Skill: `.claude/skills/karimo/firecrawl-web-tools.md` (Firecrawl reference)
 - Templates:
   - `.karimo/templates/INTERNAL_FINDINGS_TEMPLATE.md` (consolidated output)
   - `.karimo/templates/GENERAL_RESEARCH_TEMPLATE.md`

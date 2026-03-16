@@ -21,4 +21,4 @@ Generates self-contained, portable task briefs from PRD data. Creates comprehens
 Read, Write, Grep, Glob
 
 ---
-*Full definition: `.claude/agents/karimo-brief-writer.md` (480 lines)*
+*Full definition: `.claude/agents/karimo/brief-writer.md` (480 lines)*

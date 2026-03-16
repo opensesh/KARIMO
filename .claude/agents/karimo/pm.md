@@ -846,7 +846,7 @@ If the user provides additional context (bug screenshots, error states, visual c
 
 1. **Store execution-stage assets** using karimo_add_asset():
    ```bash
-   source .claude/skills/karimo-bash-utilities.md
+   source .claude/skills/karimo/bash-utilities.md
    karimo_add_asset "$PRD_SLUG" "$IMAGE_SOURCE" "execution" "$DESCRIPTION" "karimo-pm"
    ```
 

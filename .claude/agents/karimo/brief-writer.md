@@ -541,7 +541,7 @@ Include assets if the task involves:
 
 2. **List available assets** using karimo-bash-utilities:
    ```bash
-   source .claude/skills/karimo-bash-utilities.md
+   source .claude/skills/karimo/bash-utilities.md
    karimo_list_assets "{prd_slug}"
    ```
 

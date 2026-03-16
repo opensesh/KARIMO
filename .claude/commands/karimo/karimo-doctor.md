@@ -337,9 +337,9 @@ EXPECTED_TEMPLATES=$(manifest_count "templates")
 **Step 2c: Count actual files and compare**
 
 ```bash
-ACTUAL_AGENTS=$(ls .claude/agents/karimo-*.md 2>/dev/null | wc -l)
-ACTUAL_COMMANDS=$(ls .claude/commands/*.md 2>/dev/null | wc -l)
-ACTUAL_SKILLS=$(ls .claude/skills/*.md 2>/dev/null | wc -l)
+ACTUAL_AGENTS=$(ls .claude/agents/karimo/*.md 2>/dev/null | wc -l)
+ACTUAL_COMMANDS=$(ls .claude/commands/karimo/*.md 2>/dev/null | wc -l)
+ACTUAL_SKILLS=$(ls .claude/skills/karimo/*.md 2>/dev/null | wc -l)
 ACTUAL_TEMPLATES=$(ls .karimo/templates/*.md 2>/dev/null | wc -l)
 ```
 
@@ -401,9 +401,9 @@ Scan for deprecated files that should be removed.
 # Check for deprecated command files
 DEPRECATED_FOUND=0
 
-[ -f ".claude/commands/karimo-cd-config.md" ] && DEPRECATED_FOUND=$((DEPRECATED_FOUND + 1))
-[ -f ".claude/commands/karimo-execute.md" ] && DEPRECATED_FOUND=$((DEPRECATED_FOUND + 1))
-[ -f ".claude/commands/karimo-orchestrate.md" ] && DEPRECATED_FOUND=$((DEPRECATED_FOUND + 1))
+[ -f ".claude/commands/karimo/karimo-cd-config.md" ] && DEPRECATED_FOUND=$((DEPRECATED_FOUND + 1))
+[ -f ".claude/commands/karimo/karimo-execute.md" ] && DEPRECATED_FOUND=$((DEPRECATED_FOUND + 1))
+[ -f ".claude/commands/karimo/karimo-orchestrate.md" ] && DEPRECATED_FOUND=$((DEPRECATED_FOUND + 1))
 ```
 
 **Deprecated command mapping:**
@@ -426,9 +426,9 @@ Check 2.5: Deprecated Files
     These will be removed automatically on next /karimo-update
 
   Manual removal:
-    rm -f .claude/commands/karimo-cd-config.md
-    rm -f .claude/commands/karimo-execute.md
-    rm -f .claude/commands/karimo-orchestrate.md
+    rm -f .claude/commands/karimo/karimo-cd-config.md
+    rm -f .claude/commands/karimo/karimo-execute.md
+    rm -f .claude/commands/karimo/karimo-orchestrate.md
 ```
 
 **Example output (no deprecated files):**
@@ -1072,7 +1072,7 @@ for prd_dir in .karimo/prds/*/; do
   fi
 
   # Call karimo_validate_assets from bash utilities
-  source .claude/skills/karimo-bash-utilities.md
+  source .claude/skills/karimo/bash-utilities.md
   karimo_validate_assets "$prd_slug"
 done
 ```
@@ -1160,7 +1160,7 @@ If some files missing:
 ❌ Partial installation detected.
 
 Missing components:
-  - .claude/agents/karimo-pm.md
+  - .claude/agents/karimo/pm.md
   - .karimo/templates/TASK_SCHEMA.md
 
 Recommendation:
@@ -1214,9 +1214,9 @@ EXPECTED_SKILLS=$(manifest_count "skills")
 EXPECTED_TEMPLATES=$(manifest_count "templates")
 
 # Count actual files
-ACTUAL_AGENTS=$(ls .claude/agents/karimo-*.md 2>/dev/null | wc -l | tr -d ' ')
-ACTUAL_COMMANDS=$(ls .claude/commands/*.md 2>/dev/null | wc -l | tr -d ' ')
-ACTUAL_SKILLS=$(ls .claude/skills/*.md 2>/dev/null | wc -l | tr -d ' ')
+ACTUAL_AGENTS=$(ls .claude/agents/karimo/*.md 2>/dev/null | wc -l | tr -d ' ')
+ACTUAL_COMMANDS=$(ls .claude/commands/karimo/*.md 2>/dev/null | wc -l | tr -d ' ')
+ACTUAL_SKILLS=$(ls .claude/skills/karimo/*.md 2>/dev/null | wc -l | tr -d ' ')
 ACTUAL_TEMPLATES=$(ls .karimo/templates/*.md 2>/dev/null | wc -l | tr -d ' ')
 
 # Verify each file from manifest exists
@@ -1269,7 +1269,7 @@ for prd_dir in .karimo/prds/*/; do
   manifest="${prd_dir}assets.json"
 
   if [ -f "$manifest" ]; then
-    source .claude/skills/karimo-bash-utilities.md
+    source .claude/skills/karimo/bash-utilities.md
     karimo_validate_assets "$prd_slug"
   fi
 done

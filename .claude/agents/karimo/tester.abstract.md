@@ -21,4 +21,4 @@ Writes and maintains tests for KARIMO task outputs. Creates unit tests, integrat
 Read, Write, Edit, Bash, Glob, Grep
 
 ---
-*Full definition: `.claude/agents/karimo-tester.md` (365 lines)*
+*Full definition: `.claude/agents/karimo/tester.md` (365 lines)*

@@ -21,4 +21,4 @@ Executes coding tasks from KARIMO PRDs. Writes production code, follows existing
 Read, Write, Edit, Bash, Glob, Grep
 
 ---
-*Full definition: `.claude/agents/karimo-implementer.md` (315 lines)*
+*Full definition: `.claude/agents/karimo/implementer.md` (315 lines)*

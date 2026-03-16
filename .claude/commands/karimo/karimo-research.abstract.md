@@ -22,4 +22,4 @@ Conduct two-phase research (internal codebase + external web) to gather implemen
 4. Commit research findings
 
 ---
-*Full definition: `.claude/commands/karimo-research.md` (477 lines)*
+*Full definition: `.claude/commands/karimo/karimo-research.md` (477 lines)*

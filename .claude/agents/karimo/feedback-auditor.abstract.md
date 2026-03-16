@@ -21,4 +21,4 @@ Investigates complex feedback issues requiring evidence gathering. Focused inves
 Read, Grep, Glob, Bash
 
 ---
-*Full definition: `.claude/agents/karimo-feedback-auditor.md` (210 lines)*
+*Full definition: `.claude/agents/karimo/feedback-auditor.md` (210 lines)*

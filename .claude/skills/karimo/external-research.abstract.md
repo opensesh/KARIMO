@@ -20,4 +20,4 @@ Strategies for conducting external research using web search, documentation, and
 Research agents follow these strategies for external web research (Phase 2).
 
 ---
-*Full definition: `.claude/skills/karimo-external-research.md` (421 lines)*
+*Full definition: `.claude/skills/karimo/external-research.md` (421 lines)*

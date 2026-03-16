@@ -508,7 +508,7 @@ Shows recent learnings and allows removal:
 
 **Simple path:** Direct rule generation (no protocol)
 **Complex path:** `.karimo/templates/FEEDBACK_INTERVIEW_PROTOCOL.md`
-**Feedback auditor:** `.claude/agents/karimo-feedback-auditor.md`
+**Feedback auditor:** `.claude/agents/karimo/feedback-auditor.md`
 **Feedback document template:** `.karimo/templates/FEEDBACK_DOCUMENT_TEMPLATE.md`
 
 ---

@@ -20,4 +20,4 @@ Reusable bash patterns and helper functions for KARIMO agents. Avoids external d
 Agents source these patterns for consistent config access and status updates.
 
 ---
-*Full definition: `.claude/skills/karimo-bash-utilities.md` (488 lines)*
+*Full definition: `.claude/skills/karimo/bash-utilities.md` (488 lines)*

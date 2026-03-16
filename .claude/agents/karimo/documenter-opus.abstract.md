@@ -21,4 +21,4 @@ Creates complex documentation requiring deep technical analysis and multi-file c
 Read, Write, Edit, Bash, Glob, Grep
 
 ---
-*Full definition: `.claude/agents/karimo-documenter-opus.md` (444 lines)*
+*Full definition: `.claude/agents/karimo/documenter-opus.md` (444 lines)*

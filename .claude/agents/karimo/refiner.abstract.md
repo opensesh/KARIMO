@@ -21,4 +21,4 @@ Processes human annotations in research findings. Performs follow-up research on
 Read, Write, Grep, Glob, WebSearch, WebFetch, Firecrawl MCP
 
 ---
-*Full definition: `.claude/agents/karimo-refiner.md` (280 lines)*
+*Full definition: `.claude/agents/karimo/refiner.md` (280 lines)*

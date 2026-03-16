@@ -21,4 +21,4 @@ Writes tests for complex KARIMO tasks requiring deep coverage analysis and multi
 Read, Write, Edit, Bash, Glob, Grep
 
 ---
-*Full definition: `.claude/agents/karimo-tester-opus.md` (365 lines)*
+*Full definition: `.claude/agents/karimo/tester-opus.md` (365 lines)*
