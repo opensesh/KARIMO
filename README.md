@@ -8,7 +8,7 @@
 ```
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
-[![Version](https://img.shields.io/badge/version-v7.3.0-blue)]()
+[![Version](https://img.shields.io/badge/version-v7.8.0-blue)]()
 [![Claude Code](https://img.shields.io/badge/Claude%20Code-Framework_&_Plugin-blueviolet.svg)]()
 
 ---
@@ -84,6 +84,7 @@ Wave 3: [task-3a] ─────────── final task
 | **Orphan cleanup** | Git-native detection and removal of abandoned worktrees ([v7.7.0](#changelog)) |
 | **Incremental PRD commits** | PRD sections committed after each interview round for traceability ([v7.7.0](#changelog)) |
 | **Enhanced merge reports** | PR descriptions show markdown vs code breakdown for transparency ([v7.7.0](#changelog)) |
+| **Asset management** | Store and track visual context (mockups, screenshots, diagrams) throughout PRD lifecycle ([v7.8.0](#changelog)) |
 | **Model routing** | Sonnet for simple tasks, Opus for complex, auto-escalation on failures |
 | **18 agents** | 12 coordination + 6 task agents ([details](.karimo/docs/ARCHITECTURE.md#agents)) |
 | **Crash recovery** | Git state reconstruction via `/karimo-dashboard --reconcile` |
