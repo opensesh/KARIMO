@@ -92,12 +92,12 @@ Run seven diagnostic checks and display results with clear status indicators.
 
 ### Check 0: Version Status
 
-Check if the installed KARIMO version is current.
+Check if the installed KARIMO version is current by fetching the latest release from GitHub.
 
 **Steps:**
 1. Read `.karimo/VERSION` from the project root
-2. If `KARIMO_SOURCE_PATH` environment variable is set, read `VERSION` from source
-3. Compare installed version against source version
+2. Fetch latest version from GitHub releases API
+3. Compare installed version against latest release
 
 **Output:**
 
@@ -105,28 +105,39 @@ Check if the installed KARIMO version is current.
 Check 0: Version Status
 ───────────────────────
 
-  ✅ Version current    2.6.0
+  ✅ Version current    7.11.0
 
   Or if update available:
 
   ⚠️  Update available
-      Installed: 2.5.0
-      Available: 2.6.0
-      Run: bash $KARIMO_SOURCE_PATH/.karimo/update.sh .
+      Installed: 7.10.0
+      Available: 7.11.0
+      Run: .karimo/update.sh
 
-  Or if source path unknown:
+  Or if GitHub unreachable:
 
-  ℹ️  Version: 2.6.0 (source path unknown, cannot check for updates)
-      Set KARIMO_SOURCE_PATH to enable version checking
+  ℹ️  Version: 7.11.0 (could not check GitHub for updates)
 ```
 
 **Bash commands:**
 ```bash
 # Read installed version
-cat .karimo/VERSION 2>/dev/null
+INSTALLED=$(cat .karimo/VERSION 2>/dev/null | tr -d '[:space:]')
 
-# Read source version (if path known)
-cat "$KARIMO_SOURCE_PATH/.karimo/VERSION" 2>/dev/null
+# Fetch latest from GitHub
+LATEST=$(curl -sL "https://api.github.com/repos/opensesh/KARIMO/releases/latest" | grep '"tag_name"' | head -1 | sed 's/.*"v\([^"]*\)".*/\1/')
+
+# Compare
+if [ -z "$LATEST" ]; then
+    echo "ℹ️  Version: $INSTALLED (could not check GitHub for updates)"
+elif [ "$INSTALLED" = "$LATEST" ]; then
+    echo "✅ Version current    $INSTALLED"
+else
+    echo "⚠️  Update available"
+    echo "    Installed: $INSTALLED"
+    echo "    Available: $LATEST"
+    echo "    Run: .karimo/update.sh"
+fi
 ```
 
 ### Check 1: Environment
@@ -1175,7 +1186,7 @@ Recommendation:
 ```bash
 # Check 0: Version Status
 cat .karimo/VERSION 2>/dev/null
-cat "$KARIMO_SOURCE_PATH/.karimo/VERSION" 2>/dev/null
+curl -sL "https://api.github.com/repos/opensesh/KARIMO/releases/latest" | grep '"tag_name"'
 
 # Check 1: Environment
 which claude
