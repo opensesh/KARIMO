@@ -141,5 +141,4 @@ echo "✅ Branch verified: $EXPECTED_BRANCH"
 
 ---
 
-*Abstract: `{task_id}_{slug}.abstract.md` (L0 summary ~50 tokens)*
 *Full brief: this file*

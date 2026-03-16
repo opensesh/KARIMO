@@ -477,7 +477,7 @@ Fall back to:
 
 ## Related Files
 
-- Skill: `.claude/skills/karimo/karimo-external-research.md`
-- Skill: `.claude/skills/karimo/karimo-research-methods.md`
-- Agent: `.claude/agents/karimo/karimo-researcher.md`
+- Skill: `.claude/skills/karimo-external-research.md`
+- Skill: `.claude/skills/karimo-research-methods.md`
+- Agent: `.claude/agents/karimo-researcher.md`
 - Guide: `.karimo/docs/RESEARCH.md`

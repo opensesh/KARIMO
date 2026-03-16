@@ -399,11 +399,11 @@ The authentication flow uses a `requireAuth()` wrapper...
 
 ## Related Files
 
-- Command: `.claude/commands/karimo/karimo-research.md`
+- Command: `.claude/commands/karimo-research.md`
 - Templates:
   - `.karimo/templates/ANNOTATION_GUIDE.md`
 - Skills:
-  - `.claude/skills/karimo/karimo-research-methods.md`
+  - `.claude/skills/karimo-research-methods.md`
 - Related agents:
-  - `.claude/agents/karimo/karimo-researcher.md` (initial research)
-  - `.claude/agents/karimo/karimo-brief-writer.md` (inherits refined research)
+  - `.claude/agents/karimo-researcher.md` (initial research)
+  - `.claude/agents/karimo-brief-writer.md` (inherits refined research)

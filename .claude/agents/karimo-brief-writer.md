@@ -541,7 +541,7 @@ Include assets if the task involves:
 
 2. **List available assets** using karimo-bash-utilities:
    ```bash
-   source .claude/skills/karimo/karimo-bash-utilities.md
+   source .claude/skills/karimo-bash-utilities.md
    karimo_list_assets "{prd_slug}"
    ```
 
@@ -610,42 +610,11 @@ Create the `briefs/` directory if it doesn't exist.
 
 ## After Writing
 
-### Generate Brief Abstract (L0)
-
-After writing the full brief, generate a compact abstract file:
-
-**Save to:** `.karimo/prds/{slug}/briefs/{task_id}_{slug}.abstract.md`
-
-**Abstract Template (~50 tokens):**
-
-```markdown
-# Brief: {task_id} — {title}
-
-**Wave:** {N} | **Complexity:** {N}/10 | **Model:** {sonnet|opus}
-
-## Objective
-{1-2 sentence summary from Objective section}
-
-## Files
-| File | Action |
-|------|--------|
-| `{path}` | create |
-| `{path}` | modify |
-
-## Dependencies
-- Up: {upstream task_ids or "None"}
-- Down: {downstream task_ids or "None"}
-
----
-*Full: `{task_id}_{slug}.md`*
-```
-
 ### Report Success
 
 Report success to the caller:
 ```
 Brief created: .karimo/prds/{slug}/briefs/{task_id}_{slug}.md
-Abstract:      .karimo/prds/{slug}/briefs/{task_id}_{slug}.abstract.md
   - Objective: {first sentence of objective}
   - Files: {count} files to modify
   - Criteria: {count} success criteria
@@ -730,7 +699,6 @@ Generated after all task briefs are complete. Provides quick navigation and cont
 - [Tasks](../tasks.yaml)
 
 ---
-*For task abstracts, see `{task_id}_{slug}.abstract.md` files.*
 *For full briefs, see `{task_id}_{slug}.md` files.*
 ```
 

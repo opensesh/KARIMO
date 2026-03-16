@@ -154,18 +154,17 @@ Details: [PHASES.md](.karimo/docs/PHASES.md)
 
 ## Context Architecture
 
-KARIMO uses the [OpenViking Protocol](https://github.com/ArcadeAI/OpenViking) for efficient context management:
+KARIMO uses layered context management for efficient token usage:
 
 | Layer | Size | Purpose |
 |-------|------|---------|
-| **L0 Abstracts** | ~100 tokens | Single-item verification |
 | **L1 Overviews** | ~2K tokens | Discover all items in category |
 | **L2 Full Definitions** | Variable | Complete content for execution |
 
 **Key files:**
-- `.claude/agents.overview.md` — All agents at a glance (L1)
-- `.claude/agents/*.abstract.md` — Verify specific agent (L0)
-- `.claude/skills.overview.md` — All skills with agent mapping (L1)
+- `.claude/agents.overview.md` — All agents at a glance
+- `.claude/agents/karimo-*.md` — Full agent definitions
+- `.claude/skills.overview.md` — All skills with agent mapping
 - `.karimo/learnings/` — Categorized project learnings
 - `.karimo/findings/` — Cross-PRD pattern index
 

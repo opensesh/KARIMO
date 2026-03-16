@@ -1,6 +1,6 @@
-# KARIMO Commands Overview (L1)
+# KARIMO Commands Overview
 
-Quick reference for command selection. See `.abstract.md` files for L0 summaries, full `.md` files for L2 details.
+Quick reference for command selection.
 
 ---
 
@@ -8,10 +8,10 @@ Quick reference for command selection. See `.abstract.md` files for L0 summaries
 
 | Command | Purpose | Agents Invoked |
 |---------|---------|----------------|
-| **[/karimo-research](commands/karimo-research.abstract.md)** | Research (required first step) | researcher, refiner |
-| **[/karimo-plan](commands/karimo-plan.abstract.md)** | PRD interview | interviewer, investigator |
-| **[/karimo-run](commands/karimo-run.abstract.md)** | Execute PRD tasks | pm, brief-writer, task agents |
-| **[/karimo-merge](commands/karimo-merge.abstract.md)** | Final PR to main | coverage-reviewer |
+| **[/karimo-research](commands/karimo-research.md)** | Research (required first step) | researcher, refiner |
+| **[/karimo-plan](commands/karimo-plan.md)** | PRD interview | interviewer, investigator |
+| **[/karimo-run](commands/karimo-run.md)** | Execute PRD tasks | pm, brief-writer, task agents |
+| **[/karimo-merge](commands/karimo-merge.md)** | Final PR to main | coverage-reviewer |
 
 ---
 
@@ -19,7 +19,7 @@ Quick reference for command selection. See `.abstract.md` files for L0 summaries
 
 | Command | Purpose | Agents Invoked |
 |---------|---------|----------------|
-| **[/karimo-configure](commands/karimo-configure.abstract.md)** | Project configuration | investigator |
+| **[/karimo-configure](commands/karimo-configure.md)** | Project configuration | investigator |
 
 ---
 
@@ -27,8 +27,8 @@ Quick reference for command selection. See `.abstract.md` files for L0 summaries
 
 | Command | Purpose | Agents Invoked |
 |---------|---------|----------------|
-| **[/karimo-dashboard](commands/karimo-dashboard.abstract.md)** | Execution monitoring | None (read-only) |
-| **[/karimo-doctor](commands/karimo-doctor.abstract.md)** | Installation health check | None (read-only) |
+| **[/karimo-dashboard](commands/karimo-dashboard.md)** | Execution monitoring | None (read-only) |
+| **[/karimo-doctor](commands/karimo-doctor.md)** | Installation health check | None (read-only) |
 
 ---
 
@@ -36,7 +36,7 @@ Quick reference for command selection. See `.abstract.md` files for L0 summaries
 
 | Command | Purpose | Agents Invoked |
 |---------|---------|----------------|
-| **[/karimo-feedback](commands/karimo-feedback.abstract.md)** | Capture learnings | interviewer, feedback-auditor |
+| **[/karimo-feedback](commands/karimo-feedback.md)** | Capture learnings | interviewer, feedback-auditor |
 
 ---
 
@@ -44,8 +44,8 @@ Quick reference for command selection. See `.abstract.md` files for L0 summaries
 
 | Command | Purpose | Agents Invoked |
 |---------|---------|----------------|
-| **[/karimo-update](commands/karimo-update.abstract.md)** | Update KARIMO | None (runs script) |
-| **[/karimo-help](commands/karimo-help.abstract.md)** | Documentation search | None (read-only) |
+| **[/karimo-update](commands/karimo-update.md)** | Update KARIMO | None (runs script) |
+| **[/karimo-help](commands/karimo-help.md)** | Documentation search | None (read-only) |
 
 ---
 
@@ -66,26 +66,15 @@ Quick reference for command selection. See `.abstract.md` files for L0 summaries
 
 ---
 
-## Command Loading Protocol
-
-1. **Quick scan**: Read this file (L1) to identify relevant commands
-2. **Verify**: Read `.abstract.md` (L0) to confirm arguments and workflow
-3. **Execute**: Full command definition loaded on invocation
-
-**Token budget**: L1 (~300 tokens) + L0 (~150 tokens) = ~450 tokens for discovery
-
----
-
 ## File Locations
 
 ```
 .claude/commands/
-├── commands.overview.md            # This file (L1)
-├── karimo-{name}.abstract.md       # L0 abstracts (10 files)
-└── karimo-{name}.md                # L2 full definitions (10 files)
+├── commands.overview.md            # This file
+└── karimo-{name}.md                # Full definitions (10 files)
 ```
 
 ---
 
 *Total commands: 10*
-*Last updated: v7.8.0*
+*Last updated: v7.10.0*
