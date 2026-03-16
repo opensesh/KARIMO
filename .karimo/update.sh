@@ -131,7 +131,7 @@ manifest_get() {
 }
 
 # Remove files not in manifest (handles renames/deletions)
-# Works with flat structure (karimo-*.md files at root level)
+# Works with subfolder structure (karimo/*.md files)
 cleanup_stale_files() {
     local dir="$1"
     local manifest_key="$2"
@@ -141,18 +141,21 @@ cleanup_stale_files() {
     # Get list of files that SHOULD exist (from manifest)
     local expected_files=$(manifest_list "$manifest_key" "$manifest_file")
 
-    # Check each karimo-*.md file in directory (flat structure)
-    for file in "$dir"/karimo-*.md; do
-        [ -f "$file" ] || continue
-        local filename=$(basename "$file")
+    # Check each *.md file in karimo/ subfolder
+    if [ -d "$dir/karimo" ]; then
+        for file in "$dir/karimo"/*.md; do
+            [ -f "$file" ] || continue
+            local filename=$(basename "$file")
+            local rel_path="karimo/$filename"
 
-        # If not in manifest, remove it
-        if ! echo "$expected_files" | grep -qx "$filename"; then
-            echo "    Removing stale: $filename" >&2
-            rm "$file"
-            removed=$((removed + 1))
-        fi
-    done
+            # If not in manifest, remove it
+            if ! echo "$expected_files" | grep -qx "$rel_path"; then
+                echo "    Removing stale: $rel_path" >&2
+                rm "$file"
+                removed=$((removed + 1))
+            fi
+        done
+    fi
 
     echo $removed
 }
@@ -477,10 +480,10 @@ UPDATED_SKILLS=0
 UPDATED_TEMPLATES=0
 UPDATED_WORKFLOWS=0
 
-# Create directories if needed (flat structure)
-mkdir -p "$PROJECT_ROOT/.claude/agents"
-mkdir -p "$PROJECT_ROOT/.claude/commands"
-mkdir -p "$PROJECT_ROOT/.claude/skills"
+# Create directories if needed (subfolder structure)
+mkdir -p "$PROJECT_ROOT/.claude/agents/karimo"
+mkdir -p "$PROJECT_ROOT/.claude/commands/karimo"
+mkdir -p "$PROJECT_ROOT/.claude/skills/karimo"
 mkdir -p "$PROJECT_ROOT/.karimo/templates"
 mkdir -p "$PROJECT_ROOT/.karimo/learnings/patterns"
 mkdir -p "$PROJECT_ROOT/.karimo/learnings/anti-patterns"
@@ -549,75 +552,79 @@ for subdir in by-prd by-pattern; do
 done
 
 # ==============================================================================
-# MIGRATE OLD SUBFOLDER STRUCTURE TO FLAT STRUCTURE (v7.10.0+)
+# MIGRATE TO SUBFOLDER STRUCTURE (v7.11.0+)
 # ==============================================================================
-# If old subfolder files exist (karimo/*.md), move them to flat structure
-# This handles migration from v7.9.0 subfolder organization
+# Handles migration from:
+#   - v7.10.0 flat: karimo-pm.md → karimo/pm.md
+#   - v7.9.0 subfolder with prefix: karimo/karimo-pm.md → karimo/pm.md
 
-migrate_subfolder_to_flat() {
+migrate_to_subfolder() {
     local dir="$1"
     local migrated=0
 
-    # Check if karimo/ subfolder exists
+    # Migrate flat karimo-*.md files to karimo/ subfolder (v7.10.0 → v7.11.0)
+    for file in "$dir"/karimo-*.md; do
+        [ -f "$file" ] || continue
+        local filename=$(basename "$file")
+        local newname="${filename#karimo-}"  # Remove karimo- prefix
+        echo "    Migrating: $filename -> karimo/$newname" >&2
+        mv "$file" "$dir/karimo/$newname"
+        migrated=$((migrated + 1))
+    done
+
+    # Migrate karimo/karimo-*.md to karimo/*.md (v7.9.0 → v7.11.0)
     if [ -d "$dir/karimo" ]; then
-        for file in "$dir/karimo"/*.md; do
+        for file in "$dir/karimo"/karimo-*.md; do
             [ -f "$file" ] || continue
             local filename=$(basename "$file")
-            # Move to parent directory (flat structure)
-            if [ ! -f "$dir/$filename" ]; then
-                echo "    Migrating: karimo/$filename -> $filename" >&2
-                mv "$file" "$dir/$filename"
-                migrated=$((migrated + 1))
-            else
-                # File already exists at flat location, just remove subfolder copy
-                rm "$file"
-            fi
+            local newname="${filename#karimo-}"  # Remove karimo- prefix
+            echo "    Renaming: karimo/$filename -> karimo/$newname" >&2
+            mv "$file" "$dir/karimo/$newname"
+            migrated=$((migrated + 1))
         done
-
-        # Remove empty karimo/ directory
-        if [ -z "$(ls -A "$dir/karimo" 2>/dev/null)" ]; then
-            rmdir "$dir/karimo" 2>/dev/null || true
-        fi
     fi
 
     if [ $migrated -gt 0 ]; then
-        echo "    Migrated $migrated files from subfolder to flat structure" >&2
+        echo "    Migrated $migrated files to subfolder structure" >&2
     fi
 }
 
-echo "  Migrating from subfolder to flat structure if needed..."
-migrate_subfolder_to_flat "$PROJECT_ROOT/.claude/agents"
-migrate_subfolder_to_flat "$PROJECT_ROOT/.claude/commands"
-migrate_subfolder_to_flat "$PROJECT_ROOT/.claude/skills"
+echo "  Migrating to subfolder structure if needed..."
+migrate_to_subfolder "$PROJECT_ROOT/.claude/agents"
+migrate_to_subfolder "$PROJECT_ROOT/.claude/commands"
+migrate_to_subfolder "$PROJECT_ROOT/.claude/skills"
 
-# Update agents (flat structure)
+# Update agents (subfolder structure)
 echo "  Updating agents..."
 for agent in $(manifest_list "agents" "$MANIFEST"); do
     src="$KARIMO_SOURCE/.claude/agents/$agent"
     dst="$PROJECT_ROOT/.claude/agents/$agent"
     if [ -f "$src" ]; then
+        mkdir -p "$(dirname "$dst")"
         cp "$src" "$dst"
         UPDATED_AGENTS=$((UPDATED_AGENTS + 1))
     fi
 done
 
-# Update commands (flat structure)
+# Update commands (subfolder structure)
 echo "  Updating commands..."
 for cmd in $(manifest_list "commands" "$MANIFEST"); do
     src="$KARIMO_SOURCE/.claude/commands/$cmd"
     dst="$PROJECT_ROOT/.claude/commands/$cmd"
     if [ -f "$src" ]; then
+        mkdir -p "$(dirname "$dst")"
         cp "$src" "$dst"
         UPDATED_COMMANDS=$((UPDATED_COMMANDS + 1))
     fi
 done
 
-# Update skills (flat structure)
+# Update skills (subfolder structure)
 echo "  Updating skills..."
 for skill in $(manifest_list "skills" "$MANIFEST"); do
     src="$KARIMO_SOURCE/.claude/skills/$skill"
     dst="$PROJECT_ROOT/.claude/skills/$skill"
     if [ -f "$src" ]; then
+        mkdir -p "$(dirname "$dst")"
         cp "$src" "$dst"
         UPDATED_SKILLS=$((UPDATED_SKILLS + 1))
     fi
