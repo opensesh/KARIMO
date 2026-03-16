@@ -1,5 +1,5 @@
 {
-  "version": "7.9.0",
+  "version": "7.10.0",
   "deprecated": {
     "commands": ["karimo-modify.md", "karimo-finish.md", "karimo-overview.md", "karimo-learn.md", "karimo-cd-config.md", "karimo-execute.md", "karimo-orchestrate.md", "karimo-plugin.md", "karimo-test.md", "karimo-status.md"],
     "agents": [],
@@ -7,24 +7,24 @@
     "templates": []
   },
   "agents": [
-    "karimo/brief-corrector.md",
-    "karimo/brief-reviewer.md",
-    "karimo/brief-writer.md",
-    "karimo/coverage-reviewer.md",
-    "karimo/documenter.md",
-    "karimo/documenter-opus.md",
-    "karimo/implementer.md",
-    "karimo/implementer-opus.md",
-    "karimo/interviewer.md",
-    "karimo/investigator.md",
-    "karimo/feedback-auditor.md",
-    "karimo/pm.md",
-    "karimo/refiner.md",
-    "karimo/researcher.md",
-    "karimo/review-architect.md",
-    "karimo/reviewer.md",
-    "karimo/tester.md",
-    "karimo/tester-opus.md"
+    "karimo/karimo-brief-corrector.md",
+    "karimo/karimo-brief-reviewer.md",
+    "karimo/karimo-brief-writer.md",
+    "karimo/karimo-coverage-reviewer.md",
+    "karimo/karimo-documenter.md",
+    "karimo/karimo-documenter-opus.md",
+    "karimo/karimo-implementer.md",
+    "karimo/karimo-implementer-opus.md",
+    "karimo/karimo-interviewer.md",
+    "karimo/karimo-investigator.md",
+    "karimo/karimo-feedback-auditor.md",
+    "karimo/karimo-pm.md",
+    "karimo/karimo-refiner.md",
+    "karimo/karimo-researcher.md",
+    "karimo/karimo-review-architect.md",
+    "karimo/karimo-reviewer.md",
+    "karimo/karimo-tester.md",
+    "karimo/karimo-tester-opus.md"
   ],
   "commands": [
     "karimo/karimo-configure.md",
@@ -39,13 +39,13 @@
     "karimo/karimo-update.md"
   ],
   "skills": [
-    "karimo/bash-utilities.md",
-    "karimo/code-standards.md",
-    "karimo/doc-standards.md",
-    "karimo/external-research.md",
-    "karimo/firecrawl-web-tools.md",
-    "karimo/research-methods.md",
-    "karimo/testing-standards.md"
+    "karimo/karimo-bash-utilities.md",
+    "karimo/karimo-code-standards.md",
+    "karimo/karimo-doc-standards.md",
+    "karimo/karimo-external-research.md",
+    "karimo/karimo-firecrawl-web-tools.md",
+    "karimo/karimo-research-methods.md",
+    "karimo/karimo-testing-standards.md"
   ],
   "templates": [
     "ANNOTATION_GUIDE.md",

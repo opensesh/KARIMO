@@ -7,6 +7,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [7.10.0] - 2026-03-16
+
+### Changed
+
+- **Restored `karimo-` prefix on agent and skill filenames** — All agent and skill files now include the `karimo-` prefix for consistency with commands. This improves traceability and auditability when KARIMO agents are invoked.
+
+**Updated Naming:**
+
+| Component | Old (7.9.0) | New (7.10.0) |
+|-----------|-------------|--------------|
+| Agents | `karimo/pm.md` | `karimo/karimo-pm.md` |
+| Skills | `karimo/code-standards.md` | `karimo/karimo-code-standards.md` |
+| Commands | `karimo/karimo-plan.md` | `karimo/karimo-plan.md` (unchanged) |
+
+**Rationale:**
+- Double redundancy is intentional for clear identification
+- Agent invocations now clearly show "karimo-" in the name
+- Consistent naming across all KARIMO components (agents, commands, skills)
+- Better auditability for end-users tracking KARIMO operations
+
+### Fixed
+
+- **Internal cross-references** — Updated all path references in agent, skill, and overview files to use new `karimo-` prefixed filenames
+- **MANIFEST.json** — Updated to reflect new filenames
+
+---
+
 ## [7.9.0] - 2026-03-16
 
 ### Changed

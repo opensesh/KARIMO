@@ -1072,7 +1072,7 @@ for prd_dir in .karimo/prds/*/; do
   fi
 
   # Call karimo_validate_assets from bash utilities
-  source .claude/skills/karimo/bash-utilities.md
+  source .claude/skills/karimo/karimo-bash-utilities.md
   karimo_validate_assets "$prd_slug"
 done
 ```
@@ -1160,7 +1160,7 @@ If some files missing:
 ❌ Partial installation detected.
 
 Missing components:
-  - .claude/agents/karimo/pm.md
+  - .claude/agents/karimo/karimo-pm.md
   - .karimo/templates/TASK_SCHEMA.md
 
 Recommendation:
@@ -1269,7 +1269,7 @@ for prd_dir in .karimo/prds/*/; do
   manifest="${prd_dir}assets.json"
 
   if [ -f "$manifest" ]; then
-    source .claude/skills/karimo/bash-utilities.md
+    source .claude/skills/karimo/karimo-bash-utilities.md
     karimo_validate_assets "$prd_slug"
   fi
 done

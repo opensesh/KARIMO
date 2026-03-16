@@ -8,23 +8,23 @@ This document provides an L1 overview of all KARIMO skills for quick context sca
 
 | Skill | Applies To | Purpose |
 |-------|------------|---------|
-| [karimo-bash-utilities](skills/karimo/bash-utilities.abstract.md) | All agents | Bash patterns for config, status, GitHub |
+| [karimo-bash-utilities](skills/karimo/karimo-bash-utilities.abstract.md) | All agents | Bash patterns for config, status, GitHub |
 
 ### Task Agent Standards
 
 | Skill | Applies To | Purpose |
 |-------|------------|---------|
-| [karimo-code-standards](skills/karimo/code-standards.abstract.md) | Implementer agents | Coding patterns and validation |
-| [karimo-testing-standards](skills/karimo/testing-standards.abstract.md) | Tester agents | Test patterns and coverage |
-| [karimo-doc-standards](skills/karimo/doc-standards.abstract.md) | Documenter agents | Documentation patterns |
+| [karimo-code-standards](skills/karimo/karimo-code-standards.abstract.md) | Implementer agents | Coding patterns and validation |
+| [karimo-testing-standards](skills/karimo/karimo-testing-standards.abstract.md) | Tester agents | Test patterns and coverage |
+| [karimo-doc-standards](skills/karimo/karimo-doc-standards.abstract.md) | Documenter agents | Documentation patterns |
 
 ### Research Skills
 
 | Skill | Applies To | Purpose |
 |-------|------------|---------|
-| [karimo-research-methods](skills/karimo/research-methods.abstract.md) | Researcher, Refiner | Internal codebase research (Phase 1) |
-| [karimo-external-research](skills/karimo/external-research.abstract.md) | Researcher, Refiner | External web research (Phase 2) |
-| [karimo-firecrawl-web-tools](skills/karimo/firecrawl-web-tools.abstract.md) | Researcher, Refiner | Firecrawl MCP tool reference |
+| [karimo-research-methods](skills/karimo/karimo-research-methods.abstract.md) | Researcher, Refiner | Internal codebase research (Phase 1) |
+| [karimo-external-research](skills/karimo/karimo-external-research.abstract.md) | Researcher, Refiner | External web research (Phase 2) |
+| [karimo-firecrawl-web-tools](skills/karimo/karimo-firecrawl-web-tools.abstract.md) | Researcher, Refiner | Firecrawl MCP tool reference |
 
 ---
 
@@ -54,5 +54,5 @@ This document provides an L1 overview of all KARIMO skills for quick context sca
 
 ---
 
-*For full skill definitions, see `.claude/skills/karimo/{name}.md`*
-*For quick abstracts, see `.claude/skills/karimo/{name}.abstract.md`*
+*For full skill definitions, see `.claude/skills/karimo/karimo-{name}.md`*
+*For quick abstracts, see `.claude/skills/karimo/karimo-{name}.abstract.md`*
