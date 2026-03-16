@@ -240,10 +240,58 @@ grep -r "useState\|useContext\|useStore" src/
 - Exa: Semantic code search
 - Browser automation: Interactive docs exploration
 
+**Asset Capture:**
+
+When encountering relevant visual content during research (screenshots, diagrams, architecture images):
+
+1. **Capture the asset** using Firecrawl screenshot tools or WebFetch
+2. **Store with karimo_add_asset()** from karimo-bash-utilities skill:
+   ```bash
+   source .claude/skills/karimo-bash-utilities.md
+   karimo_add_asset "$PRD_SLUG" "$IMAGE_URL" "research" "$DESCRIPTION" "karimo-researcher"
+   ```
+
+3. **Parameters:**
+   - `$PRD_SLUG` - The current PRD slug (if research is PRD-specific) or research topic name
+   - `$IMAGE_URL` - URL to the image/screenshot
+   - `"research"` - Always use "research" stage for researcher-added assets
+   - `$DESCRIPTION` - Brief description (e.g., "API architecture diagram", "User flow example")
+   - `"karimo-researcher"` - Agent name (always this value)
+
+4. **Reference in findings** using returned markdown reference
+
+**What to capture:**
+- Architecture diagrams from documentation
+- UI patterns and examples
+- Flow charts and sequence diagrams
+- Code structure visualizations
+- API relationship diagrams
+- Error state screenshots
+
+**What NOT to capture:**
+- Generic stock photos
+- Decorative images
+- Screenshots of text that can be quoted
+- Copyrighted design mockups (link instead)
+
+**Example:**
+
+```
+During research on authentication flows, I found a helpful diagram showing OAuth2 flow:
+
+[Calls karimo_add_asset with URL to diagram]
+✓ Asset stored: research-oauth2-flow-20260315143022.png
+
+Referenced in external findings as:
+![OAuth2 Flow Diagram](./assets/research/research-oauth2-flow-20260315143022.png)
+Source: https://oauth.net/2/grant-types/authorization-code/
+```
+
 **Source Attribution:**
 - Always track sources in `research/external/sources.yaml`
 - Include URL, title, date accessed, relevance
 - Quote sparingly (copyright requirements: <15 words)
+- For captured assets, include original URL in assets.json metadata
 
 ## Output Formats
 
