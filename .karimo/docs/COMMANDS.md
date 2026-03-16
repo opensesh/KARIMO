@@ -1050,13 +1050,16 @@ Check the health of a KARIMO installation and detect configuration drift.
 
 ### What It Does
 
-Runs 5 diagnostic checks (read-only, never modifies files):
+Runs 8 diagnostic checks (read-only, never modifies files):
 
-1. **Environment** — Claude Code, GitHub CLI, Git, Greptile
-2. **Installation** — All expected files present
-3. **Configuration** — CLAUDE.md has KARIMO section, config.yaml exists, learnings.md exists, no drift
-4. **Sanity** — Commands exist, boundary patterns match files
-5. **Phase Assessment** — Current adoption phase and PRD status
+1. **Version Status** — Check for KARIMO updates
+2. **Environment** — Claude Code, GitHub CLI, Git, Greptile
+3. **Installation** — All expected files present
+4. **Configuration** — CLAUDE.md has KARIMO section, config.yaml exists, learnings.md exists, no drift
+5. **Sanity** — Commands exist, boundary patterns match files
+6. **Execution Mode** — Validate execution mode configuration
+7. **Execution Health** — Detect stale tasks and orphaned worktrees
+8. **Asset Integrity** — Validate asset manifests and file consistency
 
 Check 3 now includes **drift detection**:
 - Compares configured package manager in config.yaml vs actual lock files
@@ -1090,12 +1093,50 @@ Check 3: Configuration
 
 ...
 
+Check 8: Asset Integrity
+────────────────────────
+
+PRD: user-profiles
+  ✅ 5/5 assets validated
+
+PRD: token-studio
+  ✅ 3/3 assets validated
+  ⚠️  1 orphaned file: assets/planning/old-mockup.png
+
+Summary:
+  ✅ 8 assets validated across 2 PRDs
+  ⚠️  1 orphan (non-blocking)
+
 Summary
 ───────
 
-  ✅ All 5 checks passed
+  ✅ All 8 checks passed
 
   KARIMO installation is healthy.
+```
+
+**Check 8: Asset Integrity**
+
+Validates asset storage across all PRDs:
+- All manifest assets exist on disk
+- All disk assets are tracked in manifest
+- No orphaned or broken references
+- File sizes match manifest
+
+Example output:
+```
+Check 8: Asset Integrity
+────────────────────────
+
+PRD: user-profiles
+  ✅ 5/5 assets validated
+
+PRD: token-studio
+  ⚠️  1 orphaned file: assets/planning/old-mockup.png
+
+Summary:
+  ✅ 8 assets validated
+  ⚠️  1 orphan (non-blocking)
 ```
 
 **Recommendations mapping:**
@@ -1103,6 +1144,9 @@ Summary
 - Configuration drift → `/karimo-configure`
 - `_pending_` placeholders → `/karimo-configure`
 - Missing files → Re-run installer
+- Orphaned assets → Remove manually: `rm <filepath>`
+- Broken asset references → Re-download asset or remove from manifest
+- Asset size mismatch → Re-download asset
 
 ### When to Use
 
