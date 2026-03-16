@@ -103,9 +103,23 @@ cross_feature_blockers: [] # Features that must be merged to main before this PR
 
 ## 5. UX & Interaction Notes
 
-**Design references:** Links to Figma, existing pages to follow, component patterns.
+**Visual Assets:**
 
-> Images can be embedded using relative paths: `![Mockup](./assets/mockup.png)`
+> Images can be embedded using relative paths:
+> ![Mockup](./assets/planning/mockup-name.png)
+>
+> Assets are stored in `.karimo/prds/{slug}/assets/` organized by stage:
+> - `research/` - Screenshots and diagrams from research phase
+> - `planning/` - Mockups and designs provided during interview
+> - `execution/` - Bug screenshots or runtime context added during execution
+
+**User Experience:**
+{describe user flows, interactions, state transitions}
+
+**Visual Design:**
+{describe UI elements, layout, styling expectations}
+
+**Design references:** Links to Figma, existing pages to follow, component patterns.
 
 **Key screens & states:**
 
