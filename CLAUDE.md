@@ -126,6 +126,8 @@ KARIMO is an autonomous development **methodology** delivered via Claude Code co
 
 **Core philosophy:** You are the architect, agents are the builders, automated review is the inspector.
 
+**Asset Management:** Visual context (mockups, screenshots, diagrams) can be stored and tracked throughout the PRD lifecycle. Assets are organized by stage (research/planning/execution) and referenced in PRDs and task briefs. See [.karimo/docs/ASSETS.md](.karimo/docs/ASSETS.md) for details.
+
 ---
 
 ## Slash Commands
