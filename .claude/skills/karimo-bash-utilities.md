@@ -453,6 +453,513 @@ node -e "
 
 ---
 
+## Asset Management Operations
+
+KARIMO supports storing and tracking visual artifacts (images, screenshots, diagrams) throughout the PRD lifecycle. Assets are organized by stage (research/planning/execution) with lightweight metadata tracking.
+
+### karimo_add_asset()
+
+Download from URL or copy from local path, store in stage folder, update manifest.
+
+```bash
+# karimo_add_asset - Add an asset to a PRD with metadata tracking
+# Arguments:
+#   $1 = prd_slug
+#   $2 = source (URL or local file path)
+#   $3 = stage (research|planning|execution)
+#   $4 = description (human-readable)
+#   $5 = added_by (agent name, e.g., "karimo-researcher")
+# Returns: Markdown reference string
+karimo_add_asset() {
+  local prd_slug="$1"
+  local source="$2"
+  local stage="$3"
+  local description="$4"
+  local added_by="$5"
+
+  # Validate inputs
+  if [ -z "$prd_slug" ] || [ -z "$source" ] || [ -z "$stage" ] || [ -z "$description" ] || [ -z "$added_by" ]; then
+    echo "❌ Usage: karimo_add_asset <prd_slug> <source> <stage> <description> <added_by>"
+    return 1
+  fi
+
+  # Validate stage
+  if [[ ! "$stage" =~ ^(research|planning|execution)$ ]]; then
+    echo "❌ Invalid stage: $stage (must be research, planning, or execution)"
+    return 1
+  fi
+
+  # Find PRD folder
+  local prd_dir=$(ls -d .karimo/prds/*_${prd_slug} 2>/dev/null | head -1)
+  if [ -z "$prd_dir" ]; then
+    prd_dir=".karimo/prds/${prd_slug}"
+    if [ ! -d "$prd_dir" ]; then
+      echo "❌ PRD not found: $prd_slug"
+      return 1
+    fi
+  fi
+
+  # Create assets directory structure
+  local assets_dir="${prd_dir}/assets/${stage}"
+  mkdir -p "$assets_dir"
+
+  # Determine if source is URL or local path
+  local source_type="upload"
+  if [[ "$source" =~ ^https?:// ]]; then
+    source_type="url"
+  fi
+
+  # Extract file extension
+  local ext="${source##*.}"
+
+  # Validate file type
+  case "$ext" in
+    png|jpg|jpeg|gif|svg|pdf|mp4|PNG|JPG|JPEG|GIF|SVG|PDF|MP4)
+      ext=$(echo "$ext" | tr '[:upper:]' '[:lower:]')
+      ;;
+    *)
+      echo "⚠️  Unsupported file type: $ext"
+      echo "Supported types: png, jpg, jpeg, gif, svg, pdf, mp4"
+      return 1
+      ;;
+  esac
+
+  # Generate timestamped filename
+  local timestamp=$(date -u +"%Y%m%d%H%M%S")
+  local safe_description=$(echo "$description" | tr ' ' '-' | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9-]//g')
+  local filename="${stage}-${safe_description}-${timestamp}.${ext}"
+  local filepath="${assets_dir}/${filename}"
+
+  # Download or copy file
+  if [ "$source_type" = "url" ]; then
+    echo "Downloading asset from URL..."
+    # Try curl first, fallback to wget
+    if command -v curl >/dev/null 2>&1; then
+      if ! curl -sL "$source" -o "$filepath"; then
+        echo "❌ Download failed: $source"
+        return 1
+      fi
+    elif command -v wget >/dev/null 2>&1; then
+      if ! wget -q "$source" -O "$filepath"; then
+        echo "❌ Download failed: $source"
+        return 1
+      fi
+    else
+      echo "❌ Neither curl nor wget found. Install one to download assets."
+      return 1
+    fi
+  else
+    # Copy local file
+    if [ ! -f "$source" ]; then
+      echo "❌ File not found: $source"
+      return 1
+    fi
+    cp "$source" "$filepath"
+  fi
+
+  # Get file size (cross-platform)
+  local size
+  if stat -f%z "$filepath" >/dev/null 2>&1; then
+    size=$(stat -f%z "$filepath")  # macOS
+  else
+    size=$(stat -c%s "$filepath")  # Linux/WSL
+  fi
+
+  # Warn if file is large
+  if [ "$size" -gt 10485760 ]; then
+    local size_mb=$((size / 1048576))
+    echo "⚠️  Large file: ${size_mb} MB. Consider compression or external hosting."
+  fi
+
+  # Calculate SHA256 hash (cross-platform)
+  local hash
+  if command -v shasum >/dev/null 2>&1; then
+    hash=$(shasum -a 256 "$filepath" | awk '{print $1}')
+  elif command -v sha256sum >/dev/null 2>&1; then
+    hash=$(sha256sum "$filepath" | awk '{print $1}')
+  else
+    echo "⚠️  shasum/sha256sum not found. Skipping duplicate detection."
+    hash=""
+  fi
+
+  # Initialize or read manifest
+  local manifest="${prd_dir}/assets.json"
+  if [ ! -f "$manifest" ]; then
+    echo '{"version":"1.0","assets":[]}' > "$manifest"
+  fi
+
+  # Check for duplicate hash
+  if [ -n "$hash" ] && grep -q "\"sha256\": \"$hash\"" "$manifest" 2>/dev/null; then
+    echo "⚠️  Duplicate detected: This asset content already exists in the PRD"
+    local existing_file=$(grep -B5 "\"sha256\": \"$hash\"" "$manifest" | grep '"filename"' | head -1 | sed 's/.*: "//' | sed 's/".*//')
+    echo "   Existing: $existing_file"
+    echo "   New: $filename"
+    echo ""
+    read -p "Continue anyway? (y/n) " -n 1 -r
+    echo
+    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+      rm "$filepath"
+      return 1
+    fi
+  fi
+
+  # Generate asset ID
+  local asset_count=$(grep -c '"id":' "$manifest" 2>/dev/null || echo "0")
+  local asset_id=$(printf "asset-%03d" $((asset_count + 1)))
+
+  # Get MIME type
+  local mime_type
+  case "$ext" in
+    png) mime_type="image/png" ;;
+    jpg|jpeg) mime_type="image/jpeg" ;;
+    gif) mime_type="image/gif" ;;
+    svg) mime_type="image/svg+xml" ;;
+    pdf) mime_type="application/pdf" ;;
+    mp4) mime_type="video/mp4" ;;
+    *) mime_type="application/octet-stream" ;;
+  esac
+
+  # ISO timestamp for JSON
+  local iso_timestamp=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+
+  # Check Node.js availability for JSON operations
+  if ! command -v node >/dev/null 2>&1; then
+    echo "❌ Node.js not found. Required for JSON operations."
+    echo "Install Node.js: https://nodejs.org/"
+    rm "$filepath"
+    return 1
+  fi
+
+  # Update manifest using Node.js
+  node -e "
+    const fs = require('fs');
+    const manifest = JSON.parse(fs.readFileSync('${manifest}', 'utf8'));
+    manifest.assets.push({
+      id: '${asset_id}',
+      filename: '${filename}',
+      originalSource: '${source}',
+      sourceType: '${source_type}',
+      stage: '${stage}',
+      timestamp: '${iso_timestamp}',
+      addedBy: '${added_by}',
+      description: '${description}',
+      referencedIn: [],
+      size: ${size},
+      mimeType: '${mime_type}',
+      sha256: '${hash}'
+    });
+    fs.writeFileSync('${manifest}', JSON.stringify(manifest, null, 2));
+  "
+
+  # Generate markdown reference
+  local md_reference="![${description}](./assets/${stage}/${filename})"
+
+  echo "✅ Asset stored: ${filename}"
+  echo "   Stage: ${stage}"
+  echo "   Size: $((size / 1024)) KB"
+  echo "   Reference: ${md_reference}"
+  echo ""
+
+  # Return markdown reference for embedding
+  echo "$md_reference"
+}
+
+# Usage:
+# karimo_add_asset "user-profiles" "https://example.com/mockup.png" "planning" "Dashboard mockup" "karimo-interviewer"
+# karimo_add_asset "user-profiles" "/Users/me/Desktop/design.jpg" "planning" "Login screen" "karimo-interviewer"
+```
+
+### karimo_list_assets()
+
+Display all assets for a PRD with metadata.
+
+```bash
+# karimo_list_assets - List all assets for a PRD
+# Arguments:
+#   $1 = prd_slug
+#   $2 = stage (optional filter: research|planning|execution)
+# Returns: Formatted list of assets
+karimo_list_assets() {
+  local prd_slug="$1"
+  local stage_filter="${2:-}"
+
+  # Find PRD folder
+  local prd_dir=$(ls -d .karimo/prds/*_${prd_slug} 2>/dev/null | head -1)
+  if [ -z "$prd_dir" ]; then
+    prd_dir=".karimo/prds/${prd_slug}"
+    if [ ! -d "$prd_dir" ]; then
+      echo "❌ PRD not found: $prd_slug"
+      return 1
+    fi
+  fi
+
+  local manifest="${prd_dir}/assets.json"
+  if [ ! -f "$manifest" ]; then
+    echo "No assets found for PRD: $prd_slug"
+    return 0
+  fi
+
+  # Check Node.js availability
+  if ! command -v node >/dev/null 2>&1; then
+    echo "❌ Node.js not found. Required for JSON operations."
+    return 1
+  fi
+
+  # Use Node.js to format asset list
+  node -e "
+    const fs = require('fs');
+    const manifest = JSON.parse(fs.readFileSync('${manifest}', 'utf8'));
+    const assets = manifest.assets || [];
+    const stageFilter = '${stage_filter}';
+
+    if (assets.length === 0) {
+      console.log('No assets found for PRD: ${prd_slug}');
+      process.exit(0);
+    }
+
+    // Group by stage
+    const byStage = assets.reduce((acc, asset) => {
+      if (!stageFilter || asset.stage === stageFilter) {
+        if (!acc[asset.stage]) acc[asset.stage] = [];
+        acc[asset.stage].push(asset);
+      }
+      return acc;
+    }, {});
+
+    console.log('Assets for PRD: ${prd_slug}');
+    console.log('');
+
+    for (const [stage, stageAssets] of Object.entries(byStage)) {
+      console.log(\`\${stage.charAt(0).toUpperCase() + stage.slice(1)} (\${stageAssets.length} asset\${stageAssets.length !== 1 ? 's' : ''}):\`);
+      stageAssets.forEach(asset => {
+        const sizeMB = (asset.size / 1048576).toFixed(2);
+        const sizeKB = (asset.size / 1024).toFixed(0);
+        const sizeDisplay = asset.size > 1048576 ? \`\${sizeMB} MB\` : \`\${sizeKB} KB\`;
+        const sourceDisplay = asset.sourceType === 'url' ? asset.originalSource : \`\${asset.originalSource} (upload)\`;
+
+        console.log(\`  [\${asset.id}] \${asset.filename}\`);
+        console.log(\`        Source: \${sourceDisplay}\`);
+        console.log(\`        Added: \${asset.timestamp.replace('T', ' ').replace('Z', '')} by \${asset.addedBy}\`);
+        console.log(\`        Size: \${sizeDisplay}\`);
+        if (asset.referencedIn && asset.referencedIn.length > 0) {
+          console.log(\`        Referenced in: \${asset.referencedIn.join(', ')}\`);
+        }
+        console.log('');
+      });
+    }
+  "
+}
+
+# Usage:
+# karimo_list_assets "user-profiles"
+# karimo_list_assets "user-profiles" "planning"
+```
+
+### karimo_get_asset_reference()
+
+Generate markdown reference for an asset by ID or filename.
+
+```bash
+# karimo_get_asset_reference - Get markdown reference for an asset
+# Arguments:
+#   $1 = prd_slug
+#   $2 = identifier (asset ID like "asset-001" or filename)
+# Returns: Markdown reference string
+karimo_get_asset_reference() {
+  local prd_slug="$1"
+  local identifier="$2"
+
+  if [ -z "$prd_slug" ] || [ -z "$identifier" ]; then
+    echo "❌ Usage: karimo_get_asset_reference <prd_slug> <identifier>"
+    return 1
+  fi
+
+  # Find PRD folder
+  local prd_dir=$(ls -d .karimo/prds/*_${prd_slug} 2>/dev/null | head -1)
+  if [ -z "$prd_dir" ]; then
+    prd_dir=".karimo/prds/${prd_slug}"
+    if [ ! -d "$prd_dir" ]; then
+      echo "❌ PRD not found: $prd_slug"
+      return 1
+    fi
+  fi
+
+  local manifest="${prd_dir}/assets.json"
+  if [ ! -f "$manifest" ]; then
+    echo "❌ No assets manifest found for PRD: $prd_slug"
+    return 1
+  fi
+
+  # Check Node.js availability
+  if ! command -v node >/dev/null 2>&1; then
+    echo "❌ Node.js not found. Required for JSON operations."
+    return 1
+  fi
+
+  # Use Node.js to find asset and generate reference
+  node -e "
+    const fs = require('fs');
+    const manifest = JSON.parse(fs.readFileSync('${manifest}', 'utf8'));
+    const assets = manifest.assets || [];
+    const identifier = '${identifier}';
+
+    // Find by ID or filename
+    const asset = assets.find(a => a.id === identifier || a.filename === identifier);
+
+    if (!asset) {
+      console.error('❌ Asset not found: ${identifier}');
+      process.exit(1);
+    }
+
+    const reference = \`![\${asset.description}](./assets/\${asset.stage}/\${asset.filename})\`;
+    console.log(reference);
+  "
+}
+
+# Usage:
+# karimo_get_asset_reference "user-profiles" "asset-001"
+# karimo_get_asset_reference "user-profiles" "planning-mockup-20260315151500.png"
+```
+
+### karimo_validate_assets()
+
+Check asset integrity (files exist, manifest is valid).
+
+```bash
+# karimo_validate_assets - Validate asset integrity for a PRD
+# Arguments:
+#   $1 = prd_slug
+# Returns: Validation report with status
+karimo_validate_assets() {
+  local prd_slug="$1"
+
+  if [ -z "$prd_slug" ]; then
+    echo "❌ Usage: karimo_validate_assets <prd_slug>"
+    return 1
+  fi
+
+  # Find PRD folder
+  local prd_dir=$(ls -d .karimo/prds/*_${prd_slug} 2>/dev/null | head -1)
+  if [ -z "$prd_dir" ]; then
+    prd_dir=".karimo/prds/${prd_slug}"
+    if [ ! -d "$prd_dir" ]; then
+      echo "❌ PRD not found: $prd_slug"
+      return 1
+    fi
+  fi
+
+  local manifest="${prd_dir}/assets.json"
+  local assets_dir="${prd_dir}/assets"
+
+  # Check if manifest exists
+  if [ ! -f "$manifest" ]; then
+    echo "No assets manifest found for PRD: $prd_slug"
+    return 0
+  fi
+
+  # Check Node.js availability
+  if ! command -v node >/dev/null 2>&1; then
+    echo "❌ Node.js not found. Required for JSON operations."
+    return 1
+  fi
+
+  # Validate using Node.js
+  node -e "
+    const fs = require('fs');
+    const path = require('path');
+
+    const manifest = JSON.parse(fs.readFileSync('${manifest}', 'utf8'));
+    const assets = manifest.assets || [];
+    const assetsDir = '${assets_dir}';
+    const prdDir = '${prd_dir}';
+
+    let validCount = 0;
+    let brokenCount = 0;
+    let sizeMismatchCount = 0;
+    const brokenRefs = [];
+    const sizeMismatches = [];
+
+    // Validate manifest entries
+    assets.forEach(asset => {
+      const filepath = path.join(prdDir, 'assets', asset.stage, asset.filename);
+
+      if (!fs.existsSync(filepath)) {
+        brokenCount++;
+        brokenRefs.push(\`  ❌ \${asset.id}: \${asset.filename} (file missing from disk)\`);
+      } else {
+        const stats = fs.statSync(filepath);
+        if (stats.size !== asset.size) {
+          sizeMismatchCount++;
+          sizeMismatches.push(\`  ⚠️  \${asset.id}: Size mismatch (manifest: \${asset.size}, disk: \${stats.size})\`);
+        }
+        validCount++;
+      }
+    });
+
+    // Find orphaned files (on disk but not in manifest)
+    const orphanedFiles = [];
+    if (fs.existsSync(assetsDir)) {
+      const stages = ['research', 'planning', 'execution'];
+      stages.forEach(stage => {
+        const stageDir = path.join(assetsDir, stage);
+        if (fs.existsSync(stageDir)) {
+          const files = fs.readdirSync(stageDir);
+          files.forEach(file => {
+            const isTracked = assets.some(a => a.filename === file && a.stage === stage);
+            if (!isTracked) {
+              orphanedFiles.push(\`  ⚠️  \${stage}/\${file} (not in manifest)\`);
+            }
+          });
+        }
+      });
+    }
+
+    // Print report
+    console.log('Asset Integrity Validation');
+    console.log('──────────────────────────');
+    console.log('');
+    console.log(\`PRD: \${prd_slug}\`);
+    console.log(\`  ✅ \${validCount}/\${assets.length} assets validated\`);
+
+    if (brokenCount > 0) {
+      console.log('');
+      console.log('Broken references:');
+      brokenRefs.forEach(ref => console.log(ref));
+    }
+
+    if (sizeMismatchCount > 0) {
+      console.log('');
+      console.log('Size mismatches:');
+      sizeMismatches.forEach(mismatch => console.log(mismatch));
+    }
+
+    if (orphanedFiles.length > 0) {
+      console.log('');
+      console.log('Orphaned files:');
+      orphanedFiles.forEach(file => console.log(file));
+      console.log('');
+      console.log('Run: rm <filepath> to remove orphaned assets');
+    }
+
+    console.log('');
+
+    if (brokenCount === 0 && sizeMismatchCount === 0 && orphanedFiles.length === 0) {
+      console.log('✅ All assets valid');
+    } else {
+      console.log(\`⚠️  Issues found: \${brokenCount} broken, \${sizeMismatchCount} size mismatches, \${orphanedFiles.length} orphaned\`);
+    }
+
+    // Exit code reflects validation status
+    process.exit(brokenCount > 0 ? 1 : 0);
+  " "${prd_slug}"
+}
+
+# Usage:
+# karimo_validate_assets "user-profiles"
+```
+
+---
+
 ## Best Practices
 
 1. **Always set PRD_SLUG and STATUS_FILE** before using helpers:
