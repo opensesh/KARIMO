@@ -131,24 +131,33 @@ manifest_get() {
 }
 
 # Remove files not in manifest (handles renames/deletions)
+# Supports both flat files (*.md) and subfolder files (karimo/*.md)
 cleanup_stale_files() {
     local dir="$1"
     local manifest_key="$2"
     local manifest_file="$3"
-    local pattern="${4:-*.md}"  # Default to all .md files
+    local subdir="${4:-}"  # Optional subdirectory (e.g., "karimo")
     local removed=0
 
     # Get list of files that SHOULD exist (from manifest)
     local expected_files=$(manifest_list "$manifest_key" "$manifest_file")
 
-    # Check each file matching pattern in directory
-    for file in "$dir"/$pattern; do
+    # Determine search path
+    local search_dir="$dir"
+    [ -n "$subdir" ] && search_dir="$dir/$subdir"
+
+    # Check each .md file in directory
+    for file in "$search_dir"/*.md; do
         [ -f "$file" ] || continue
         local filename=$(basename "$file")
 
+        # Build relative path for comparison
+        local rel_path="$filename"
+        [ -n "$subdir" ] && rel_path="$subdir/$filename"
+
         # If not in manifest, remove it
-        if ! echo "$expected_files" | grep -qx "$filename"; then
-            echo "    Removing stale: $filename" >&2
+        if ! echo "$expected_files" | grep -qx "$rel_path"; then
+            echo "    Removing stale: $rel_path" >&2
             rm "$file"
             removed=$((removed + 1))
         fi
@@ -450,10 +459,10 @@ UPDATED_SKILLS=0
 UPDATED_TEMPLATES=0
 UPDATED_WORKFLOWS=0
 
-# Create directories if needed
-mkdir -p "$PROJECT_ROOT/.claude/agents"
-mkdir -p "$PROJECT_ROOT/.claude/commands"
-mkdir -p "$PROJECT_ROOT/.claude/skills"
+# Create directories if needed (including karimo subfolders)
+mkdir -p "$PROJECT_ROOT/.claude/agents/karimo"
+mkdir -p "$PROJECT_ROOT/.claude/commands/karimo"
+mkdir -p "$PROJECT_ROOT/.claude/skills/karimo"
 mkdir -p "$PROJECT_ROOT/.karimo/templates"
 mkdir -p "$PROJECT_ROOT/.karimo/learnings/patterns"
 mkdir -p "$PROJECT_ROOT/.karimo/learnings/anti-patterns"
@@ -521,39 +530,81 @@ for subdir in by-prd by-pattern; do
     fi
 done
 
-# Update agents
+# ==============================================================================
+# MIGRATE OLD FLAT STRUCTURE TO SUBFOLDER STRUCTURE
+# ==============================================================================
+# If old flat files exist (karimo-*.md at root level), remove them
+# The new files will be installed to karimo/ subfolder
+
+migrate_flat_to_subfolder() {
+    local dir="$1"
+    local pattern="$2"
+    local migrated=0
+
+    for file in "$dir"/$pattern; do
+        [ -f "$file" ] || continue
+        # Only remove if it's a karimo- prefixed file at root level (not in karimo/ subfolder)
+        local filename=$(basename "$file")
+        local dirname=$(dirname "$file")
+        if [[ "$filename" == karimo-* ]] && [[ "$dirname" != *"/karimo" ]]; then
+            echo "    Migrating: $filename (removing old flat location)" >&2
+            rm "$file"
+            migrated=$((migrated + 1))
+        fi
+    done
+
+    if [ $migrated -gt 0 ]; then
+        echo "    Migrated $migrated files from flat to subfolder structure" >&2
+    fi
+}
+
+echo "  Migrating to subfolder structure if needed..."
+migrate_flat_to_subfolder "$PROJECT_ROOT/.claude/agents" "karimo-*.md"
+migrate_flat_to_subfolder "$PROJECT_ROOT/.claude/commands" "karimo-*.md"
+migrate_flat_to_subfolder "$PROJECT_ROOT/.claude/skills" "karimo-*.md"
+
+# Update agents (preserves subfolder structure)
 echo "  Updating agents..."
 for agent in $(manifest_list "agents" "$MANIFEST"); do
-    if [ -f "$KARIMO_SOURCE/.claude/agents/$agent" ]; then
-        cp "$KARIMO_SOURCE/.claude/agents/$agent" "$PROJECT_ROOT/.claude/agents/"
+    src="$KARIMO_SOURCE/.claude/agents/$agent"
+    dst="$PROJECT_ROOT/.claude/agents/$agent"
+    if [ -f "$src" ]; then
+        mkdir -p "$(dirname "$dst")"
+        cp "$src" "$dst"
         UPDATED_AGENTS=$((UPDATED_AGENTS + 1))
     fi
 done
 
-# Update commands
+# Update commands (preserves subfolder structure)
 echo "  Updating commands..."
 for cmd in $(manifest_list "commands" "$MANIFEST"); do
-    if [ -f "$KARIMO_SOURCE/.claude/commands/$cmd" ]; then
-        cp "$KARIMO_SOURCE/.claude/commands/$cmd" "$PROJECT_ROOT/.claude/commands/"
+    src="$KARIMO_SOURCE/.claude/commands/$cmd"
+    dst="$PROJECT_ROOT/.claude/commands/$cmd"
+    if [ -f "$src" ]; then
+        mkdir -p "$(dirname "$dst")"
+        cp "$src" "$dst"
         UPDATED_COMMANDS=$((UPDATED_COMMANDS + 1))
     fi
 done
 
-# Update skills
+# Update skills (preserves subfolder structure)
 echo "  Updating skills..."
 for skill in $(manifest_list "skills" "$MANIFEST"); do
-    if [ -f "$KARIMO_SOURCE/.claude/skills/$skill" ]; then
-        cp "$KARIMO_SOURCE/.claude/skills/$skill" "$PROJECT_ROOT/.claude/skills/"
+    src="$KARIMO_SOURCE/.claude/skills/$skill"
+    dst="$PROJECT_ROOT/.claude/skills/$skill"
+    if [ -f "$src" ]; then
+        mkdir -p "$(dirname "$dst")"
+        cp "$src" "$dst"
         UPDATED_SKILLS=$((UPDATED_SKILLS + 1))
     fi
 done
 
-# Cleanup stale files (handles renames/deletions)
+# Cleanup stale files in karimo/ subfolders (handles renames/deletions)
 echo "  Cleaning up stale files..."
-CLEANED_AGENTS=$(cleanup_stale_files "$PROJECT_ROOT/.claude/agents" "agents" "$MANIFEST" "karimo-*.md")
-CLEANED_COMMANDS=$(cleanup_stale_files "$PROJECT_ROOT/.claude/commands" "commands" "$MANIFEST" "karimo-*.md")
-CLEANED_SKILLS=$(cleanup_stale_files "$PROJECT_ROOT/.claude/skills" "skills" "$MANIFEST" "karimo-*.md")
-CLEANED_TEMPLATES=$(cleanup_stale_files "$PROJECT_ROOT/.karimo/templates" "templates" "$MANIFEST" "*.md")
+CLEANED_AGENTS=$(cleanup_stale_files "$PROJECT_ROOT/.claude/agents" "agents" "$MANIFEST" "karimo")
+CLEANED_COMMANDS=$(cleanup_stale_files "$PROJECT_ROOT/.claude/commands" "commands" "$MANIFEST" "karimo")
+CLEANED_SKILLS=$(cleanup_stale_files "$PROJECT_ROOT/.claude/skills" "skills" "$MANIFEST" "karimo")
+CLEANED_TEMPLATES=$(cleanup_stale_files "$PROJECT_ROOT/.karimo/templates" "templates" "$MANIFEST" "")
 
 TOTAL_CLEANED=$((CLEANED_AGENTS + CLEANED_COMMANDS + CLEANED_SKILLS + CLEANED_TEMPLATES))
 if [ $TOTAL_CLEANED -gt 0 ]; then
