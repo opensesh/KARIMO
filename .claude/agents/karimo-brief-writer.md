@@ -24,7 +24,8 @@ Produce a **portable, self-contained brief** that:
 2. Includes all success criteria
 3. Contains all agent guidance
 4. Lists boundaries and rules
-5. Can be executed by any Claude agent without additional context
+5. Includes relevant visual references (mockups, diagrams, screenshots)
+6. Can be executed by any Claude agent without additional context
 
 ## Brief Structure
 
@@ -57,6 +58,26 @@ Generate a markdown file with this structure:
 what problem does it solve, who is the user}
 
 This task is part of **Wave {wave_number}** — {wave_context}.
+
+---
+
+## Visual References
+
+{Check for asset references in PRD. If task mentions UI/design/mockup/visual elements,
+include relevant assets from assets/planning/ or assets/research/ folders}
+
+{Use karimo_list_assets to find relevant assets and karimo_get_asset_reference to
+generate markdown references}
+
+{Example output:}
+
+![Dashboard Mockup](../assets/planning/planning-mockup-dashboard-20260315151500.png)
+*Dashboard design showing card-based layout with metrics at the top*
+
+![User Flow](../assets/research/research-user-flow-20260315143022.png)
+*User authentication flow from external research*
+
+{If no visual references are relevant to this task, omit this section entirely}
 
 ---
 
@@ -495,6 +516,83 @@ Don't assume the worker agent has context. If a file path, import, or pattern is
 ### Keep It Actionable
 
 Every section should guide the agent toward specific actions. Remove vague language.
+
+---
+
+## Asset Inclusion
+
+When generating task briefs, check for relevant visual assets (mockups, diagrams, screenshots) and include them in the "Visual References" section.
+
+### When to Include Assets
+
+Include assets if the task involves:
+- UI/UX implementation (needs mockups or design references)
+- Visual design or styling (needs design specifications)
+- User flows or interactions (needs flow diagrams)
+- Bug fixes with visual context (needs error screenshots)
+- API or architecture work (benefits from architecture diagrams)
+
+### How to Find Assets
+
+1. **Check if assets.json exists:**
+   ```bash
+   ls -la .karimo/prds/{slug}/assets.json
+   ```
+
+2. **List available assets** using karimo-bash-utilities:
+   ```bash
+   source .claude/skills/karimo-bash-utilities.md
+   karimo_list_assets "{prd_slug}"
+   ```
+
+3. **Filter by relevance:**
+   - Planning-stage assets: User-provided mockups and designs
+   - Research-stage assets: External research findings, diagrams
+   - Execution-stage assets: Bug screenshots, runtime context (rare in briefs)
+
+4. **Generate markdown references:**
+   ```bash
+   karimo_get_asset_reference "{prd_slug}" "{asset_id_or_filename}"
+   ```
+
+### Brief Section Format
+
+If relevant assets exist, add this section after "Context" and before "Requirements":
+
+```markdown
+## Visual References
+
+![Dashboard Mockup](../assets/planning/planning-mockup-dashboard-20260315151500.png)
+*Dashboard design showing card-based layout with metrics at the top*
+
+![User Flow](../assets/research/research-user-flow-20260315143022.png)
+*User authentication flow from external research*
+```
+
+**Important:**
+- Use relative paths: `../assets/{stage}/{filename}` (briefs are in `briefs/` subdirectory)
+- Add descriptive captions using italic text on the next line
+- Only include assets directly relevant to this specific task
+- If no relevant assets exist, **omit this section entirely**
+
+### Example Decision Process
+
+**Task 1a:** "Implement login form component"
+- Check assets.json
+- Found: `planning-login-screen-mockup.png`
+- Action: Include in Visual References section
+
+**Task 2b:** "Add unit tests for utils.ts"
+- Check assets.json
+- Found: Planning mockups for UI components
+- Action: No visual references needed (utility testing doesn't benefit from mockups)
+
+**Task 3a:** "Fix authentication bug"
+- Check assets.json
+- Found: `execution-error-screenshot.png` (bug report from user)
+- Action: Include in Visual References section
+
+---
 
 ## Output Location
 
