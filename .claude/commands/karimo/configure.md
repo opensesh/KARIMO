@@ -39,43 +39,142 @@ Create or update KARIMO configuration in `.karimo/config.yaml`. Use this when yo
 
 ### Quick Install: `--greptile` Flag
 
-When the `--greptile` flag is passed, skip the full configuration flow and install only the Greptile workflow:
+When the `--greptile` flag is passed, skip the full configuration flow and configure Greptile GitHub App integration:
+
+**Step 1: Display dashboard setup requirements**
+
+```
+╭──────────────────────────────────────────────────────────────╮
+│  Greptile Setup                                               │
+╰──────────────────────────────────────────────────────────────╯
+
+Greptile provides automated code review for KARIMO PRs.
+
+Step 1: Greptile Dashboard Setup (Required)
+──────────────────────────────────────────
+
+  1. Install Greptile GitHub App: https://app.greptile.com
+  2. Add your repository in Greptile dashboard
+  3. Wait for repository indexing (~1-2 hours for large repos)
+  4. Navigate to Code Review Agent section
+  5. Enable ALL these settings:
+     ✓ PR Summary
+     ✓ Confidence Score
+     ✓ Issue Tables
+     ✓ Diagram
+     ✓ Comments Outside Diff
+  6. Add Custom Context:
+     - Paste your project's coding standards
+     - Add design system guidelines
+     - Include any KARIMO learnings from .karimo/learnings/
+
+Have you completed the dashboard setup?
+```
+
+Use AskUserQuestion:
+
+```
+header: "Dashboard"
+question: "Have you completed Greptile dashboard setup (installed app, added repo, configured settings)?"
+options:
+  - label: "Yes, proceed with setup"
+    description: "Dashboard configured, ready to install config files and workflow"
+  - label: "Not yet, show me the steps"
+    description: "Display detailed setup instructions first"
+  - label: "Cancel"
+    description: "Exit without making changes"
+```
+
+**If "Not yet" selected:**
+
+Display detailed instructions with links, then re-prompt the question.
+
+**If "Cancel" selected:**
+
+Exit without changes.
+
+**Step 2: Install configuration files**
+
+```bash
+# Create .greptile directory
+mkdir -p .greptile
+
+# Copy config templates
+cp .karimo/templates/greptile/config.json .greptile/config.json
+cp .karimo/templates/greptile/rules.md .greptile/rules.md
+
+echo "✅ Created .greptile/config.json (review settings)"
+echo "✅ Created .greptile/rules.md (review rules)"
+```
+
+**Step 3: Install workflow**
 
 ```bash
 # Create workflows directory if needed
 mkdir -p .github/workflows
 
-# Check if greptile workflow template exists
-if [ -f ".karimo/workflow-templates/karimo-greptile-review.yml" ]; then
-    cp .karimo/workflow-templates/karimo-greptile-review.yml .github/workflows/
-    echo "✅ Installed karimo-greptile-review.yml"
-else
-    echo "❌ Greptile workflow template not found"
-    echo "   Expected at: .karimo/workflow-templates/karimo-greptile-review.yml"
-    exit 1
-fi
+# Install the trigger workflow
+cp .karimo/workflow-templates/karimo-greptile-trigger.yml .github/workflows/
+echo "✅ Created .github/workflows/karimo-greptile-trigger.yml"
 ```
 
-**Display instructions:**
+**Step 4: Ask for threshold configuration**
+
+Use AskUserQuestion:
+
+```
+header: "Threshold"
+question: "What confidence score should PRs meet before merging?"
+options:
+  - label: "5/5 (Recommended)"
+    description: "Highest quality standard. All issues must be addressed."
+  - label: "4/5"
+    description: "High quality. Minor issues may be acceptable."
+  - label: "3/5"
+    description: "Moderate quality. Suitable for rapid iteration."
+```
+
+**Step 5: Update config.yaml with review settings**
+
+```yaml
+# Add to .karimo/config.yaml
+review:
+  enabled: true
+  provider: greptile
+  threshold: 5  # or selected value
+  max_revision_loops: 3
+```
+
+**Step 6: Display completion summary**
 
 ```
 ╭──────────────────────────────────────────────────────────────╮
-│  Greptile Workflow Installed                                 │
+│  Greptile Configuration Complete                              │
 ╰──────────────────────────────────────────────────────────────╯
 
-✅ Copied karimo-greptile-review.yml to .github/workflows/
+✅ Configuration files installed:
+   - .greptile/config.json (review settings)
+   - .greptile/rules.md (review rules)
+   - .github/workflows/karimo-greptile-trigger.yml
 
-Next steps:
-  1. Add GREPTILE_API_KEY to your repository secrets
-     → Settings → Secrets and variables → Actions → New repository secret
-  2. Push changes to trigger workflow on PRs
+✅ Review settings added to .karimo/config.yaml:
+   - Provider: greptile
+   - Threshold: 5/5
+   - Max revision loops: 3
 
-Greptile provides automated code review for KARIMO task PRs:
-  • Score ≥ 3: PR passes review
-  • Score < 3: Triggers revision with model escalation
-  • After 3 failures: Requires human review
+How Greptile works with KARIMO:
+  1. PM Agent creates PR with 'karimo' label
+  2. Workflow triggers @greptileai comment
+  3. Greptile reviews PR (~3 minutes)
+  4. If score < threshold: PM spawns revision agent
+  5. Revision loop until score >= threshold or max loops
 
-Learn more: https://greptile.com
+To verify setup:
+  1. Create a test PR with the 'karimo' label
+  2. Wait for @greptileai to post a review (~3 minutes)
+  3. Check that confidence score appears
+
+Note: Greptile auto-reviews on every push after initial trigger.
 ```
 
 **Exit after installation.** The `--greptile` flag is a quick-install shortcut, not a configuration flow.
@@ -345,8 +444,8 @@ options:
 - Generate REVIEW.md if it doesn't exist
 
 **If Greptile selected:**
-- Run the `--greptile` flow above
-- Install workflow file
+- Run the `--greptile` flow above (includes dashboard verification, config files, threshold question)
+- Install workflow file and update config.yaml with review settings
 
 **If Skip selected:**
 - Display message: "Skipped. Run `/karimo:configure --review` anytime to set up automated review."
@@ -877,8 +976,15 @@ options:
 - Document in config.yaml: `review.enabled: false`
 
 **If "Greptile" selected:**
-- Run `/karimo:configure --greptile` flow (installs workflow)
-- Document in config.yaml: `review.provider: "greptile"`
+- Run `/karimo:configure --greptile` flow (dashboard verification, config files, threshold question, workflow)
+- Document in config.yaml:
+  ```yaml
+  review:
+    enabled: true
+    provider: greptile
+    threshold: 5  # user-selected value
+    max_revision_loops: 3
+  ```
 
 **If "Code Review" selected:**
 - Run `/karimo:configure --code-review` flow (setup instructions)
@@ -934,6 +1040,8 @@ execution:
 review:
   enabled: false
   provider: null
+  threshold: 5           # Target score (1-5), used when provider is greptile
+  max_revision_loops: 3  # Max attempts before human review
 
 cost_controls:
   enable_escalation: true
@@ -1324,18 +1432,31 @@ options:
 
 3. Update config.yaml with `review_provider: code-review`
 
-**If "Greptile" selected, install the Greptile workflow:**
+**If "Greptile" selected:**
 
-```bash
-# Copy workflow template to .github/workflows/
-mkdir -p .github/workflows
-cp .karimo/workflow-templates/karimo-greptile-review.yml .github/workflows/
+Run the full Greptile setup flow (same as `--greptile` flag):
 
-echo "✅ Installed karimo-greptile-review.yml"
-echo "   Configure GREPTILE_API_KEY secret in GitHub repository settings"
-```
-
-Update config.yaml with `review_provider: greptile`
+1. Dashboard verification prompt (user confirms Greptile app installed)
+2. Install config files:
+   ```bash
+   mkdir -p .greptile
+   cp .karimo/templates/greptile/config.json .greptile/config.json
+   cp .karimo/templates/greptile/rules.md .greptile/rules.md
+   ```
+3. Install workflow:
+   ```bash
+   mkdir -p .github/workflows
+   cp .karimo/workflow-templates/karimo-greptile-trigger.yml .github/workflows/
+   ```
+4. Ask threshold question (5/5 recommended, 4/5, or 3/5)
+5. Update config.yaml:
+   ```yaml
+   review:
+     enabled: true
+     provider: greptile
+     threshold: 5  # user-selected
+     max_revision_loops: 3
+   ```
 
 **Display confirmation after selection:**
 
