@@ -564,41 +564,74 @@ Run `/karimo:configure --review` to choose your provider interactively, or:
 
 ### Option A: Greptile
 
-**Score-based review with GitHub Actions.**
+**Score-based review via GitHub App with configurable threshold.**
 
 **Prerequisites:**
-- Greptile account ($30/month, 14-day trial)
-- `GREPTILE_API_KEY` in GitHub repository secrets
+- Greptile GitHub App installed: [app.greptile.com](https://app.greptile.com)
+- Repository added and indexed in Greptile dashboard
+- `.greptile/config.json` and `.greptile/rules.md` in repository
 
 **How it works:**
 ```
-PR Created → karimo-greptile-review.yml triggers
+PR Created with 'karimo' label
                     │
                     ▼
-            Greptile analyzes PR
+    karimo-greptile-trigger.yml fires
                     │
                     ▼
-            Posts review comment (score 0-5)
+    Posts @greptileai comment
+                    │
+                    ▼
+    Greptile GitHub App reviews PR
+                    │
+                    ▼
+    Posts review with confidence score (0-5)
                     │
             ┌───────┴───────┐
             │               │
-        Score ≥ 3      Score < 3
+    Score ≥ threshold  Score < threshold
             │               │
             ▼               ▼
-    Add label:        Add label:
-    greptile-passed   needs-revision
+    greptile-passed    needs-revision
             │               │
             ▼               ▼
-    Integration      Revision loop
-    checks run       (see below)
+    Continue           Revision loop
+                      (up to max_loops)
 ```
+
+**Configurable threshold (v7.12):**
+
+The threshold is configurable in `.karimo/config.yaml`:
+
+```yaml
+review:
+  enabled: true
+  provider: greptile
+  threshold: 5           # Target score (1-5), default: 5
+  max_revision_loops: 3  # Max attempts before human review
+```
+
+| Threshold | Quality Level | Recommended For |
+|-----------|--------------|-----------------|
+| 5/5 | Highest | Production, security-sensitive code |
+| 4/5 | High | Standard development |
+| 3/5 | Moderate | Rapid prototyping, non-critical features |
+
+**Dashboard configuration (required):**
+
+In addition to config files, configure Greptile in dashboard:
+
+1. Navigate to `app.greptile.com/review/github`
+2. Select repository → Code Review Agent section
+3. Enable: PR Summary, Confidence Score, Issue Tables, Diagram, Comments Outside Diff
+4. Add Custom Context with project-specific rules
 
 **Score interpretation:**
 
-| Score | Meaning | Action |
-|-------|---------|--------|
-| 3-5 | Passes | Proceed to integration |
-| 0-2 | Needs work | Enters revision loop |
+| Score | vs Threshold | Action |
+|-------|--------------|--------|
+| ≥ threshold | Pass | Proceed to merge |
+| < threshold | Fail | Enters revision loop |
 
 ---
 
@@ -648,19 +681,36 @@ PR Created → Code Review multi-agent fleet activates
 
 When review finds issues, KARIMO enters a revision loop:
 
+**Greptile Revision Flow (v7.12):**
+
+```bash
+# PM Agent polls for Greptile review after PR creation
+while [ "$score" -lt "$threshold" ] && [ "$loop_count" -lt "$max_loops" ]; do
+  1. Wait for Greptile review (~3 minutes)
+  2. Parse confidence score from review comment
+  3. Extract P1/P2/P3 findings from inline comments
+  4. If score < threshold:
+     - Add needs-revision label
+     - Spawn worker with findings context
+     - Worker pushes fixes
+     - Greptile auto-reviews on push
+     - Increment loop_count
+done
+```
+
 **Attempt 1:**
-1. PM Agent reads review feedback (score or findings)
-2. Re-spawns worker with feedback context
-3. Worker makes targeted fixes
+1. PM Agent reads review feedback (score and P1/P2/P3 findings)
+2. Re-spawns worker with prioritized feedback context
+3. Worker makes targeted fixes (P1 first, then P2)
 4. Updates PR with new commit
-5. Provider re-reviews automatically
+5. Greptile auto-reviews on push (synchronize event)
 
 **After First Failure:**
-- PM Agent escalates model (Sonnet → Opus) if issues are architectural
+- PM Agent escalates model (Sonnet → Opus) if P1 findings mention architecture
 - No human intervention required
 - Continues revision loop with upgraded model
 
-**After 3 Failed Attempts (Hard Gate):**
+**After max_revision_loops Failed Attempts (Hard Gate):**
 - Task status changes to `needs-human-review`
 - PR receives `blocked-needs-human` label
 - Task removed from active execution queue
@@ -670,21 +720,30 @@ When review finds issues, KARIMO enters a revision loop:
 
 | Provider | Trigger | Action |
 |----------|---------|--------|
-| Greptile | Score < 3 | Escalate to Opus |
+| Greptile | Score < threshold AND P1 mentions "architecture", "design", "pattern" | Escalate to Opus |
+| Greptile | Second failed attempt with Sonnet | Escalate to Opus |
+| Greptile | Simple bugs (P1 mentions "null", "import", "undefined") | Retry same model |
 | Code Review | 🔴 describes architectural issue | Escalate to Opus |
 | Code Review | 🔴 describes simple bug | Retry same model |
 
 ```
-Attempt 1 → Fail
+Attempt 1 → Score < threshold
     │
     ▼
-Escalate model (Sonnet → Opus) if architectural
+Check P1 findings for architectural keywords
+    │
+    ├── Architectural → Escalate to Opus
+    │
+    └── Simple bug → Retry same model
+            │
+            ▼
+Attempt 2 → Score < threshold
     │
     ▼
-Attempt 2 → Fail
+If still Sonnet, escalate to Opus
     │
     ▼
-Attempt 3 → Fail
+Attempt 3 → Score < threshold
     │
     ▼
 HARD GATE: needs-human-review
