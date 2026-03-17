@@ -276,12 +276,15 @@ for skill in $(manifest_list "skills"); do
 done
 echo "  Copied $SKILL_COUNT skills"
 
-# Copy templates from manifest
+# Copy templates from manifest (supports subfolders)
 echo "Copying templates..."
 TEMPLATE_COUNT=0
 for template in $(manifest_list "templates"); do
-    if [ -f "$KARIMO_ROOT/.karimo/templates/$template" ]; then
-        cp "$KARIMO_ROOT/.karimo/templates/$template" "$TARGET_DIR/.karimo/templates/"
+    src="$KARIMO_ROOT/.karimo/templates/$template"
+    dst="$TARGET_DIR/.karimo/templates/$template"
+    if [ -f "$src" ]; then
+        mkdir -p "$(dirname "$dst")"
+        cp "$src" "$dst"
         TEMPLATE_COUNT=$((TEMPLATE_COUNT + 1))
     else
         echo -e "  ${YELLOW}Warning: Template not found: $template${NC}"
@@ -294,9 +297,10 @@ echo "Setting version..."
 cp "$KARIMO_ROOT/.karimo/VERSION" "$TARGET_DIR/.karimo/VERSION"
 cp "$MANIFEST" "$TARGET_DIR/.karimo/MANIFEST.json"
 
-# Copy issue template
+# Copy issue template (read filename from manifest)
 echo "Copying issue template..."
-cp "$KARIMO_ROOT/.github/ISSUE_TEMPLATE/karimo:task.yml" "$TARGET_DIR/.github/ISSUE_TEMPLATE/"
+ISSUE_TEMPLATE=$(manifest_get "other.issue_template")
+cp "$KARIMO_ROOT/.github/ISSUE_TEMPLATE/$ISSUE_TEMPLATE" "$TARGET_DIR/.github/ISSUE_TEMPLATE/"
 
 # Create .gitkeep for prds directory
 touch "$TARGET_DIR/.karimo/prds/.gitkeep"
