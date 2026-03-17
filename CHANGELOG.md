@@ -42,7 +42,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `config.json`: Best-practice Greptile settings
   - `rules.md`: Default review rules for KARIMO PRs
 
-- **Review step in /karimo:merge** — Final PR to main now goes through Greptile review with revision loop before merge.
+- **Fully automatic review in /karimo:merge** — Final PR to main goes through automatic Greptile review cycle:
+  1. Triggers @greptileai if not already triggered
+  2. Waits for Greptile review
+  3. Parses score and P1/P2 findings
+  4. Spawns Review/Architect to fix issues automatically
+  5. Repeats until score >= threshold or max loops
+  6. The ONLY human touchpoint is reviewing the final PR
 
 ### Removed
 
