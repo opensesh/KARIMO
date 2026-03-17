@@ -20,11 +20,11 @@ Before installing KARIMO, ensure you have:
 
 | Tool | Purpose | Installation |
 |------|---------|--------------|
-| **Greptile** | Automated code review (Phase 2) | [greptile.com](https://greptile.com) |
+| **Greptile** | Automated code review (Phase 2) | [app.greptile.com](https://app.greptile.com) |
 | **Claude Code Review** | Automated code review (Phase 2) | Teams/Enterprise |
 
 Automated code review catches issues before human review and enables revision loops. Choose your provider:
-- **Greptile**: $30/month flat, best for high volume (50+ PRs/month)
+- **Greptile**: $30/month flat, GitHub App with configurable threshold. Best for high volume (50+ PRs/month)
 - **Claude Code Review**: $15-25 per PR, native Claude integration
 
 ---
@@ -686,10 +686,30 @@ This will reconcile status.json with git reality and resume from the correct poi
 KARIMO installs zero review workflows by default. Choose your provider:
 
 **Option A: Greptile** ($30/month, best for high volume)
+
+Greptile is a GitHub App that provides AI-powered code review with confidence scores.
+
+**Step 1: Dashboard Setup (Required First)**
+1. Install Greptile GitHub App: [app.greptile.com](https://app.greptile.com)
+2. Add your repository in Greptile dashboard
+3. Wait for repository indexing (~1-2 hours for large repos)
+4. Navigate to Code Review Agent section
+5. Enable: PR Summary, Confidence Score, Issue Tables, Diagram, Comments Outside Diff
+6. Add Custom Context with your project's coding standards
+
+**Step 2: Run Configure Command**
 ```
 /karimo:configure --greptile
 ```
-Then add `GREPTILE_API_KEY` to your repository secrets.
+
+This will:
+- Verify you've completed dashboard setup
+- Create `.greptile/config.json` and `.greptile/rules.md`
+- Install `karimo-greptile-trigger.yml` workflow
+- Ask for your target threshold (5/5 recommended)
+- Update `.karimo/config.yaml` with review settings
+
+**No API key required** — Greptile uses the GitHub App, not API calls.
 
 **Option B: Claude Code Review** ($15-25/PR, native integration)
 ```
