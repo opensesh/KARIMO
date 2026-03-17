@@ -457,7 +457,33 @@ When worker completes:
          "pr_number": 42,
          "pr_target": "feature/user-profiles",  // or "main" in direct-to-main mode
          "pr_labels": ["karimo", "wave-1"],
-         "completed_at": "ISO timestamp"
+         "completed_at": "ISO timestamp",
+         "review": {
+           "provider": "greptile",
+           "threshold": 5,
+           "scores": [],
+           "loop_count": 0,
+           "last_reviewed_at": null
+         }
+       }
+     }
+   }
+   ```
+
+   **After Greptile review, update status.json:**
+   ```json
+   {
+     "tasks": {
+       "1a": {
+         "review": {
+           "provider": "greptile",
+           "threshold": 5,
+           "scores": [3],  // Append each score
+           "loop_count": 1,
+           "last_reviewed_at": "ISO timestamp",
+           "last_score": 3,
+           "passed": false
+         }
        }
      }
    }
@@ -521,15 +547,131 @@ PM Agent detects which review provider is configured in `.karimo/config.yaml`:
 
 ##### Greptile Revision Loop
 
-**Only if `review_provider: greptile`** (workflow active):
+**Only if `review.provider: greptile`** in config.yaml.
 
-When PR receives `needs-revision` label (score < 3):
+After PR is created with `karimo` label, Greptile is triggered via workflow.
 
-1. Read Greptile feedback from PR comments
-2. Increment `loop_count` in status.json
-3. Re-spawn worker with feedback context
-4. Worker pushes fixes to same branch
-5. PR auto-updates, Greptile re-reviews
+**Step 1: Wait for Greptile review**
+
+Poll for Greptile review comment (contains confidence score):
+
+```bash
+# Read threshold from config.yaml (default: 5)
+threshold=$(grep -A 5 'review:' .karimo/config.yaml | grep 'threshold:' | awk '{print $2}')
+threshold=${threshold:-5}
+
+max_revision_loops=$(grep -A 5 'review:' .karimo/config.yaml | grep 'max_revision_loops:' | awk '{print $2}')
+max_revision_loops=${max_revision_loops:-3}
+
+echo "Waiting for Greptile review (threshold: ${threshold}/5)..."
+
+# Poll for review (max 10 minutes)
+review_found=false
+for i in {1..20}; do
+  comments=$(gh pr view $pr_number --json comments --jq '.comments[].body')
+
+  # Look for Greptile review comment with confidence score
+  if echo "$comments" | grep -qE 'confidence.*[0-5]/5|[0-5]/5.*confidence'; then
+    review_found=true
+    break
+  fi
+
+  echo "  Waiting for Greptile... (attempt $i/20)"
+  sleep 30
+done
+
+if [ "$review_found" = false ]; then
+  echo "⚠️  Greptile review not received within 10 minutes"
+  echo "   Proceeding without automated review"
+fi
+```
+
+**Step 2: Parse Greptile score and findings**
+
+```bash
+# Extract the most recent Greptile review comment
+greptile_review=$(gh pr view $pr_number --json comments --jq '
+  .comments | map(select(.body | test("confidence.*[0-5]/5|[0-5]/5.*confidence"))) | last | .body
+')
+
+# Parse confidence score (format: X/5 or confidence: X/5)
+score=$(echo "$greptile_review" | grep -oE '[0-5]/5' | head -1 | cut -d'/' -f1)
+score=${score:-0}
+
+echo "Greptile score: ${score}/5 (threshold: ${threshold}/5)"
+```
+
+**Step 3: Extract findings from inline comments**
+
+```bash
+# Get PR review comments (inline findings)
+findings=$(gh api repos/{owner}/{repo}/pulls/${pr_number}/comments --jq '
+  .[] | select(.body | test("P[123]:")) |
+  "- " + (.path // "general") + ":" + (.line // "N/A" | tostring) + " " + .body
+')
+
+# Categorize by priority (P1 = critical, P2 = important, P3 = minor)
+p1_findings=$(echo "$findings" | grep -E 'P1:' || true)
+p2_findings=$(echo "$findings" | grep -E 'P2:' || true)
+p3_findings=$(echo "$findings" | grep -E 'P3:' || true)
+```
+
+**Step 4: Decision tree**
+
+```bash
+if [ "$score" -ge "$threshold" ]; then
+  echo "✓ Greptile passed (${score}/5 >= ${threshold}/5)"
+  gh pr edit $pr_number --add-label "greptile-passed"
+  # Continue to merge
+else
+  echo "✗ Greptile needs revision (${score}/5 < ${threshold}/5)"
+  gh pr edit $pr_number --add-label "needs-revision"
+
+  # Check loop count
+  loop_count=$(get_task_loop_count "$task_id")
+
+  if [ "$loop_count" -ge "$max_revision_loops" ]; then
+    echo "❌ Max revision loops reached ($loop_count)"
+    mark_needs_human_review "$task_id"
+    gh pr edit $pr_number --add-label "blocked-needs-human"
+    continue  # Move to next task
+  fi
+
+  # Enter revision loop
+  increment_loop_count "$task_id"
+  # ... spawn revision worker (see below)
+fi
+```
+
+**Step 5: Spawn revision worker**
+
+When score < threshold:
+
+```
+Re-spawn worker with Greptile feedback context:
+
+> Greptile review found these issues (score: {score}/5, threshold: {threshold}/5):
+>
+> **P1 (Critical):**
+> {p1_findings}
+>
+> **P2 (Important):**
+> {p2_findings}
+>
+> Please fix these issues in priority order. P1 issues must be addressed.
+> P2 issues should be addressed if feasible. P3 issues are optional.
+>
+> After fixes, Greptile will auto-review on your next push.
+```
+
+**Model escalation triggers:**
+
+| Condition | Action |
+|-----------|--------|
+| P1 findings mention "architecture", "design", "pattern" | Escalate to Opus |
+| P1 findings mention "type system", "interface", "contract" | Escalate to Opus |
+| Second failed attempt with Sonnet | Escalate to Opus |
+| Simple bugs (P1 mentions "null", "undefined", "import") | Retry same model |
 
 **Model escalation:** If task was Sonnet and Greptile flags architectural issues, escalate to Opus for retry.
 
