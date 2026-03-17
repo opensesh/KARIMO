@@ -7,6 +7,49 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [7.12.0] - 2026-03-17
+
+### Fixed
+
+- **Greptile integration race condition** — Replaced API-based workflow with label-triggered @greptileai comment. The `karimo` label is now added by PM Agent after PR creation, then the workflow triggers Greptile review via comment.
+
+### Changed
+
+- **Greptile uses GitHub App, not API** — No more `GREPTILE_API_KEY` secret required. Greptile GitHub App handles reviews after @greptileai comment triggers.
+
+- **Configurable review threshold** — New `review.threshold` config option (default: 5/5). Users can set their target quality score instead of hardcoded 3/5.
+
+- **Improved Greptile setup flow** — `/karimo:configure --greptile` now:
+  1. Verifies dashboard setup before installation
+  2. Creates `.greptile/config.json` and `.greptile/rules.md` templates
+  3. Asks for target threshold (5/5 recommended)
+  4. Updates `config.yaml` with review settings
+
+### Added
+
+- **Greptile revision loop with score parsing** — PM Agent now polls for Greptile review, parses confidence score, extracts P1/P2/P3 findings, and spawns revision workers when score < threshold.
+
+- **Review configuration in config.yaml**:
+  ```yaml
+  review:
+    enabled: true
+    provider: greptile
+    threshold: 5           # Target score (1-5)
+    max_revision_loops: 3  # Max attempts before human review
+  ```
+
+- **Greptile templates** — New `.karimo/templates/greptile/` directory with:
+  - `config.json`: Best-practice Greptile settings
+  - `rules.md`: Default review rules for KARIMO PRs
+
+- **Review step in /karimo:merge** — Final PR to main now goes through Greptile review with revision loop before merge.
+
+### Removed
+
+- **karimo-greptile-review.yml** — Deprecated API-based workflow. Replaced by `karimo-greptile-trigger.yml` which uses comment-based triggering.
+
+---
+
 ## [7.11.0] - 2026-03-16
 
 ### Changed
