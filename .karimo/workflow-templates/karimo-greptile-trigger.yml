@@ -1,0 +1,98 @@
+# KARIMO Greptile Trigger
+#
+# Triggers Greptile GitHub App review via @greptileai comment when the
+# 'karimo' label is added to a PR. This solves the race condition where
+# the label is added after PR creation.
+#
+# Prerequisites:
+# 1. Greptile GitHub App installed: https://app.greptile.com
+# 2. Repository added and indexed in Greptile dashboard
+# 3. .greptile/config.json and .greptile/rules.md in repository
+#
+# After initial trigger, Greptile auto-reviews on push events (synchronize).
+
+name: KARIMO Greptile Trigger
+
+on:
+  pull_request:
+    types: [labeled]
+
+jobs:
+  # Skip workflow on KARIMO source repo - this workflow is for user projects
+  check-repo:
+    runs-on: ubuntu-latest
+    outputs:
+      is-source-repo: ${{ steps.check.outputs.is-source-repo }}
+    steps:
+      - name: Check if KARIMO source repo
+        id: check
+        run: |
+          if [[ "${{ github.repository }}" == "opensesh/KARIMO" ]]; then
+            echo "is-source-repo=true" >> $GITHUB_OUTPUT
+            echo "Skipping: This workflow is for user projects, not the KARIMO source repo"
+          else
+            echo "is-source-repo=false" >> $GITHUB_OUTPUT
+          fi
+
+  trigger-greptile:
+    needs: check-repo
+    if: |
+      needs.check-repo.outputs.is-source-repo != 'true' &&
+      github.event.label.name == 'karimo'
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    steps:
+      - name: Check if Greptile already reviewed
+        id: check-review
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.payload.pull_request.number
+            });
+
+            // Check if Greptile has already posted a review
+            const greptileReviewed = comments.some(c =>
+              c.body.includes('Greptile') &&
+              (c.body.includes('/5') || c.body.includes('confidence'))
+            );
+
+            if (greptileReviewed) {
+              console.log('Greptile has already reviewed this PR, skipping trigger');
+              return 'already-reviewed';
+            }
+
+            // Check if @greptileai comment already exists
+            const alreadyTriggered = comments.some(c =>
+              c.body.trim() === '@greptileai' &&
+              c.user.login === 'github-actions[bot]'
+            );
+
+            if (alreadyTriggered) {
+              console.log('@greptileai trigger comment already exists, skipping');
+              return 'already-triggered';
+            }
+
+            return 'needs-trigger';
+          result-encoding: string
+
+      - name: Trigger Greptile Review
+        if: steps.check-review.outputs.result == 'needs-trigger'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.payload.pull_request.number,
+              body: '@greptileai'
+            });
+            console.log('Triggered Greptile review via @greptileai comment');
+
+      - name: Log Skip Reason
+        if: steps.check-review.outputs.result != 'needs-trigger'
+        run: |
+          echo "Skipped Greptile trigger: ${{ steps.check-review.outputs.result }}"
