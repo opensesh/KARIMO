@@ -1,0 +1,30 @@
+{
+  "labels": ["karimo"],
+  "triggerOnUpdates": true,
+  "statusCheck": true,
+  "strictness": 2,
+  "commentTypes": ["logic", "syntax", "style"],
+  "fixWithAI": true,
+  "summarySection": {
+    "included": true,
+    "collapsible": false,
+    "defaultOpen": true
+  },
+  "confidenceScoreSection": {
+    "included": true,
+    "collapsible": false,
+    "defaultOpen": true
+  },
+  "issuesTableSection": {
+    "included": true,
+    "collapsible": false,
+    "defaultOpen": true
+  },
+  "diagramSection": {
+    "included": true,
+    "collapsible": true,
+    "defaultOpen": false
+  },
+  "commentsOutsideDiff": true,
+  "ignorePatterns": "node_modules/**\n*.lock\n.next/**\ndist/**\nbuild/**\ncoverage/**"
+}

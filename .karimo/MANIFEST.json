@@ -151,7 +151,9 @@
     "REVIEW_TEMPLATE.md",
     "STATUS_SCHEMA.md",
     "TASK_BRIEF_TEMPLATE.md",
-    "TASK_SCHEMA.md"
+    "TASK_SCHEMA.md",
+    "greptile/config.json",
+    "greptile/rules.md"
   ],
   "other": {
     "rules": "KARIMO_RULES.md",
