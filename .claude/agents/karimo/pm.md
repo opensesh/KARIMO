@@ -595,7 +595,7 @@ greptile_review=$(gh pr view $pr_number --json comments --jq '
 ')
 
 # Parse confidence score (format: X/5 or confidence: X/5)
-score=$(echo "$greptile_review" | grep -oE '[0-5]/5' | head -1 | cut -d'/' -f1)
+score=$(echo "$greptile_review" | grep -oE '[0-5]/5' | tail -1 | cut -d'/' -f1)
 score=${score:-0}
 
 echo "Greptile score: ${score}/5 (threshold: ${threshold}/5)"

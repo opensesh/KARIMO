@@ -689,6 +689,9 @@ KARIMO installs zero review workflows by default. Choose your provider:
 
 Greptile is a GitHub App that provides AI-powered code review with confidence scores.
 
+> **Important: No API key required.** Greptile uses a GitHub App, not API calls.
+> You do NOT need a `GREPTILE_API_KEY` secret. Just install the GitHub App.
+
 **Step 1: Dashboard Setup (Required First)**
 1. Install Greptile GitHub App: [app.greptile.com](https://app.greptile.com)
 2. Add your repository in Greptile dashboard
@@ -709,7 +712,21 @@ This will:
 - Ask for your target threshold (5/5 recommended)
 - Update `.karimo/config.yaml` with review settings
 
-**No API key required** — Greptile uses the GitHub App, not API calls.
+**How it works:**
+1. PM Agent creates PR with `karimo` label
+2. GitHub workflow posts `@greptileai` comment
+3. Greptile GitHub App detects the @mention and reviews
+4. Review appears as PR comment with confidence score
+5. Subsequent pushes automatically trigger re-review
+
+**Troubleshooting Greptile:**
+
+| Issue | Cause | Solution |
+|-------|-------|----------|
+| No review after 10 minutes | App not installed | Install at app.greptile.com |
+| "Repository not found" | Repo not indexed | Add repo in Greptile dashboard |
+| No confidence score | Wrong settings | Enable "Confidence Score" in dashboard |
+| Review not triggered | Missing @mention | Check workflow posted @greptileai comment |
 
 **Option B: Claude Code Review** ($15-25/PR, native integration)
 ```

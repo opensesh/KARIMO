@@ -419,11 +419,15 @@ echo "✓ Final PR created: #$pr_number"
 echo "   View: https://github.com/$OWNER/$REPO/pull/$pr_number"
 ```
 
-### 8b. Greptile Review Loop (Automatic)
+### 8b. Greptile Review (One Auto Loop, Then Human)
 
-**If `review.provider: greptile` in config.yaml, run fully automatic review cycle:**
+**If `review.provider: greptile` in config.yaml, run ONE automatic revision loop:**
 
-This runs immediately after PR creation. No user prompts — fully automatic until pass or max loops.
+This runs immediately after PR creation. The flow is:
+1. Trigger @greptileai
+2. Wait for score
+3. If < threshold: ONE automatic revision attempt
+4. After revision: if still < threshold → human review required (no more auto-loops)
 
 ```bash
 # Check if Greptile is configured
@@ -437,16 +441,13 @@ else
   threshold=$(grep -A 5 'review:' .karimo/config.yaml | grep 'threshold:' | awk '{print $2}')
   threshold=${threshold:-5}
 
-  max_loops=$(grep -A 5 'review:' .karimo/config.yaml | grep 'max_revision_loops:' | awk '{print $2}')
-  max_loops=${max_loops:-3}
-
-  echo "Starting Greptile review cycle..."
+  echo "Starting Greptile review..."
   echo "  Threshold: ${threshold}/5"
-  echo "  Max loops: ${max_loops}"
+  echo "  Mode: One automatic revision, then human review"
 fi
 ```
 
-**Step 1: Check for existing @greptileai trigger**
+**Step 1: Trigger @greptileai**
 
 ```bash
 # Check if @greptileai comment already exists
@@ -481,13 +482,28 @@ for i in {1..20}; do
 done
 
 if [ "$review_found" = false ]; then
-  echo "⚠️  Greptile review not received within 10 minutes"
-  echo "   Proceeding to human review without automated fixes"
+  echo ""
+  echo "╭────────────────────────────────────────────────╮"
+  echo "│  ⚠ Greptile Review Timeout                     │"
+  echo "╰────────────────────────────────────────────────╯"
+  echo ""
+  echo "Greptile review not received within 10 minutes."
+  echo "This may indicate:"
+  echo "  - Greptile GitHub App not installed on this repo"
+  echo "  - Repository not indexed in Greptile dashboard"
+  echo "  - Greptile service outage"
+  echo ""
+  echo "Troubleshooting:"
+  echo "  1. Check https://app.greptile.com for your repo"
+  echo "  2. Verify the Greptile GitHub App is installed"
+  echo "  3. Run /karimo:configure --greptile to reconfigure"
+  echo ""
+  echo "Proceeding to human review without Greptile score."
   # Continue to human review
 fi
 ```
 
-**Step 3: Parse score and findings**
+**Step 3: Parse initial score**
 
 ```bash
 # Extract the most recent Greptile review
@@ -495,27 +511,41 @@ greptile_review=$(gh pr view $pr_number --json comments --jq '
   .comments | map(select(.body | test("confidence.*[0-5]/5|[0-5]/5.*confidence"))) | last | .body
 ')
 
-# Parse confidence score
-score=$(echo "$greptile_review" | grep -oE '[0-5]/5' | head -1 | cut -d'/' -f1)
+# Parse confidence score (tail -1 to get most recent if multiple scores present)
+score=$(echo "$greptile_review" | grep -oE '[0-5]/5' | tail -1 | cut -d'/' -f1)
 score=${score:-0}
 
 echo "Greptile score: ${score}/5 (threshold: ${threshold}/5)"
 ```
 
-**Step 4: Automatic revision loop**
+**Step 4: First check — if passes, done**
 
 ```bash
-loop_count=0
-
-while [ "$score" -lt "$threshold" ] && [ "$loop_count" -lt "$max_loops" ]; do
-  loop_count=$((loop_count + 1))
-
+if [ "$score" -ge "$threshold" ]; then
   echo ""
   echo "╭────────────────────────────────────────────────╮"
-  echo "│  Revision Loop $loop_count/$max_loops                         │"
+  echo "│  ✓ Greptile Review Passed                      │"
   echo "╰────────────────────────────────────────────────╯"
+  echo "  Score: ${score}/5 (threshold: ${threshold}/5)"
+  echo ""
+  echo "PR is ready for human review."
+  # Continue to human review (PR ready to merge)
+fi
+```
 
-  # Extract P1/P2/P3 findings from inline review comments
+**Step 5: ONE automatic revision attempt (if score < threshold)**
+
+```bash
+if [ "$score" -lt "$threshold" ]; then
+  echo ""
+  echo "╭────────────────────────────────────────────────╮"
+  echo "│  Automatic Revision (1 of 1)                   │"
+  echo "╰────────────────────────────────────────────────╯"
+  echo ""
+  echo "Score ${score}/5 is below threshold ${threshold}/5."
+  echo "Starting ONE automatic revision attempt..."
+
+  # Extract P1/P2 findings from inline review comments
   findings=$(gh api repos/{owner}/{repo}/pulls/${pr_number}/comments --jq '
     .[] | select(.body | test("P[123]:")) |
     "- " + (.path // "general") + ":" + (.line // "N/A" | tostring) + " " + .body
@@ -524,6 +554,7 @@ while [ "$score" -lt "$threshold" ] && [ "$loop_count" -lt "$max_loops" ]; do
   p1_findings=$(echo "$findings" | grep -E 'P1:' || true)
   p2_findings=$(echo "$findings" | grep -E 'P2:' || true)
 
+  echo ""
   echo "Findings to address:"
   if [ -n "$p1_findings" ]; then
     echo "  P1 (Critical):"
@@ -552,49 +583,57 @@ while [ "$score" -lt "$threshold" ] && [ "$loop_count" -lt "$max_loops" ]; do
   echo "  ✓ Fixes pushed to $feature_branch"
 
   # Wait for Greptile to auto-review (triggered by push)
+  echo ""
   echo "Waiting for Greptile re-review..."
   sleep 30  # Give Greptile time to start
 
+  new_score=$score
   for i in {1..10}; do
     # Get latest Greptile comment (after our push)
     latest_review=$(gh pr view $pr_number --json comments --jq '
       .comments | map(select(.body | test("confidence.*[0-5]/5"))) | last | .body
     ')
 
-    new_score=$(echo "$latest_review" | grep -oE '[0-5]/5' | head -1 | cut -d'/' -f1)
+    check_score=$(echo "$latest_review" | grep -oE '[0-5]/5' | tail -1 | cut -d'/' -f1)
 
-    if [ "$new_score" != "$score" ]; then
-      score=$new_score
-      echo "  New score: ${score}/5"
+    if [ "$check_score" != "$score" ]; then
+      new_score=$check_score
+      echo "  New score: ${new_score}/5"
       break
     fi
 
+    echo "  Waiting for re-review... (attempt $i/10)"
     sleep 30
   done
-done
+fi
 ```
 
-**Step 5: Report result**
+**Step 6: Report result after revision**
 
 ```bash
 echo ""
-if [ "$score" -ge "$threshold" ]; then
+if [ "$new_score" -ge "$threshold" ]; then
   echo "╭────────────────────────────────────────────────╮"
-  echo "│  ✓ Greptile Review Passed                      │"
+  echo "│  ✓ Greptile Review Passed (After Revision)     │"
   echo "╰────────────────────────────────────────────────╯"
-  echo "  Score: ${score}/5 (threshold: ${threshold}/5)"
-  echo "  Loops: $loop_count"
+  echo "  Score: ${new_score}/5 (threshold: ${threshold}/5)"
   echo ""
   echo "PR is ready for human review."
 else
   echo "╭────────────────────────────────────────────────╮"
-  echo "│  ⚠ Max Revision Loops Reached                  │"
+  echo "│  Human Review Required                         │"
   echo "╰────────────────────────────────────────────────╯"
-  echo "  Score: ${score}/5 (threshold: ${threshold}/5)"
-  echo "  Loops: $loop_count (max: $max_loops)"
   echo ""
-  echo "Remaining issues require human attention."
-  echo "PR is ready for human review with known issues."
+  echo "  Score: ${new_score}/5 (threshold: ${threshold}/5)"
+  echo "  Automatic revision attempted but score still below threshold."
+  echo ""
+  echo "  Remaining findings require human attention."
+  echo "  Review the PR and address issues manually, or accept current score."
+  echo ""
+  echo "  Options:"
+  echo "    1. Review Greptile findings and fix manually"
+  echo "    2. Accept the current score and merge"
+  echo "    3. Close the PR and revisit the PRD"
 fi
 ```
 
@@ -607,7 +646,7 @@ fi
 
   Score: 5/5 ✓
   Threshold: 5/5
-  Revision loops: 2
+  Revision: 1 attempt (passed after revision)
 
   Automated fixes applied:
     - Removed unused import (UserProfile.tsx:12)
@@ -821,8 +860,8 @@ Recovery:
 - **Final PR recommended merge method:** Squash merge (consolidates all task commits into one)
 - **GitHub auto-delete:** Configure GitHub to auto-delete branches after merge
 - **CI/CD:** Final PR triggers production deployment (one deployment per PRD)
-- **Greptile review:** Fully automatic. If configured, KARIMO triggers @greptileai, parses findings, spawns Review/Architect to fix issues, and repeats until score >= threshold or max loops. No user prompts during revision.
-- **Human review:** The ONLY human touchpoint is reviewing and merging the final PR after all automated review passes
+- **Greptile review:** Semi-automatic. If configured, KARIMO triggers @greptileai, parses findings, and attempts ONE automatic revision. If still below threshold after revision, human review is required.
+- **Human review:** Required after (1) Greptile passes, (2) one revision attempt fails, or (3) Greptile times out
 - **Branch cleanup:** Task branches deleted after final PR merges
 
 ---

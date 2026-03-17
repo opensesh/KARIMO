@@ -87,7 +87,70 @@ options:
 
 **If "Not yet" selected:**
 
-Display detailed instructions with links, then re-prompt the question.
+Display detailed setup instructions:
+
+```
+╭──────────────────────────────────────────────────────────────╮
+│  Greptile Dashboard Setup Guide                               │
+╰──────────────────────────────────────────────────────────────╯
+
+Follow these steps to configure Greptile for your repository:
+
+STEP 1: Install Greptile GitHub App
+───────────────────────────────────
+  1. Go to https://app.greptile.com
+  2. Sign in with your GitHub account
+  3. Authorize the Greptile GitHub App when prompted
+  4. Grant access to your repository (or organization)
+
+STEP 2: Add Your Repository
+───────────────────────────
+  1. In the Greptile dashboard, click "Add Repository"
+  2. Select your repository from the list
+  3. Click "Index Repository"
+  4. Wait for indexing to complete (progress shown in dashboard)
+     - Small repos: ~5 minutes
+     - Large repos: ~1-2 hours
+
+STEP 3: Configure Code Review Agent
+───────────────────────────────────
+  1. Navigate to your repo in the Greptile dashboard
+  2. Go to Settings → Code Review Agent
+  3. Enable these settings (all required for KARIMO):
+
+     ✓ PR Summary           → Generates overview of changes
+     ✓ Confidence Score     → Required for KARIMO threshold
+     ✓ Issue Tables         → Organizes findings by severity
+     ✓ Diagram              → Visual representation of changes
+     ✓ Comments Outside Diff → Reviews non-changed context
+
+STEP 4: Add Custom Context (Recommended)
+────────────────────────────────────────
+  1. Still in Settings, scroll to "Custom Context"
+  2. Paste your project's coding standards:
+
+     Example content:
+     ───────────────
+     ## Coding Standards
+     - Use TypeScript strict mode
+     - Prefer functional components with hooks
+     - All API calls go through src/lib/api/
+     - Use the existing Button component from src/components/ui/
+
+  3. If you have .karimo/learnings/, paste relevant patterns
+
+STEP 5: Verify Setup
+────────────────────
+  1. Check that your repo shows "Indexed" status
+  2. Create a test PR with the 'karimo' label
+  3. Wait for @greptileai to post a review (~3 minutes)
+  4. Verify the confidence score appears (e.g., "4/5")
+
+Need help? https://docs.greptile.com/code-review
+
+```
+
+Then re-prompt the dashboard setup question.
 
 **If "Cancel" selected:**
 

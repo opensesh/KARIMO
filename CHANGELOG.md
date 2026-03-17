@@ -7,6 +7,46 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [7.12.1] - 2026-03-17
+
+### Fixed
+
+- **Score parsing in Greptile review** — Changed from `head -1` to `tail -1` when parsing confidence scores. Now correctly extracts the most recent score when Greptile comments contain multiple scores (e.g., "Previous: 2/5, Now: 4/5" now extracts `4` instead of `2`).
+
+- **Timeout notification with troubleshooting** — When Greptile review times out after 10 minutes, now shows helpful troubleshooting hints:
+  - Greptile GitHub App not installed
+  - Repository not indexed in dashboard
+  - Greptile service outage
+  - Link to reconfigure with `/karimo:configure --greptile`
+
+### Changed
+
+- **One auto loop, then human review** — `/karimo:merge` Greptile flow now uses a clearer model:
+  1. Trigger @greptileai and wait for score
+  2. If < threshold: ONE automatic revision attempt (Review/Architect fixes issues)
+  3. After revision: if still < threshold → human review required (no more auto-loops)
+
+  This replaces the previous "max 3 loops" model which could spin without human oversight.
+
+- **Clarified Greptile documentation** — Added prominent "No API key required" callouts to GETTING-STARTED.md. Greptile uses GitHub App, not API calls.
+
+### Added
+
+- **Dashboard setup guide in configure.md** — The "Not yet, show me the steps" option in `/karimo:configure --greptile` now displays detailed step-by-step instructions for Greptile dashboard setup, including:
+  - Installing GitHub App
+  - Adding repository
+  - Configuring Code Review Agent settings
+  - Adding custom context
+  - Verification steps
+
+- **Greptile troubleshooting table** — Added troubleshooting guide to GETTING-STARTED.md covering common issues:
+  - No review after 10 minutes
+  - Repository not found
+  - No confidence score
+  - Review not triggered
+
+---
+
 ## [7.12.0] - 2026-03-17
 
 ### Fixed
