@@ -89,7 +89,10 @@
       "karimo-research-methods.md",
       "karimo-testing-standards.md"
     ],
-    "templates": []
+    "templates": [],
+    "workflows": [
+      "karimo-greptile-review.yml"
+    ]
   },
   "agents": [
     "karimo/brief-corrector.md",
