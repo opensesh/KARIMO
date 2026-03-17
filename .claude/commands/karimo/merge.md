@@ -281,6 +281,95 @@ fi
 Note: No coverage report detected. Skipping coverage analysis.
 ```
 
+### 5c. Greptile Review (Conditional)
+
+**If `review.provider: greptile` in config.yaml, wait for and process Greptile review:**
+
+```bash
+# Check if Greptile is configured
+review_provider=$(grep -A 3 'review:' .karimo/config.yaml | grep 'provider:' | awk '{print $2}')
+
+if [ "$review_provider" = "greptile" ]; then
+  echo "Greptile review configured, waiting for final PR review..."
+
+  # Read threshold
+  threshold=$(grep -A 5 'review:' .karimo/config.yaml | grep 'threshold:' | awk '{print $2}')
+  threshold=${threshold:-5}
+
+  max_loops=$(grep -A 5 'review:' .karimo/config.yaml | grep 'max_revision_loops:' | awk '{print $2}')
+  max_loops=${max_loops:-3}
+
+  # Note: For feature branch merge, Greptile reviews the consolidated diff
+  # This is different from task PRs which are reviewed individually
+  echo "  Threshold: ${threshold}/5"
+  echo "  Max revision loops: ${max_loops}"
+fi
+```
+
+**After final PR is created, Greptile review flow:**
+
+1. **Trigger Greptile** — The `karimo` label on final PR triggers the workflow
+2. **Wait for review** — Poll for confidence score (same as task PRs)
+3. **If score < threshold:**
+   - Display findings to user
+   - Spawn Review/Architect agent to address issues
+   - Agent pushes fixes to feature branch
+   - Greptile auto-reviews on push
+   - Repeat until score >= threshold or max loops
+
+```
+╭──────────────────────────────────────────────────────────────╮
+│  Greptile Review: Final PR                                   │
+╰──────────────────────────────────────────────────────────────╯
+
+Waiting for Greptile review...
+
+  Score: 4/5 (threshold: 5/5)
+
+  Findings:
+    P1: Unused import in UserProfile.tsx:12
+    P2: Consider type narrowing in ProfileForm.tsx:45
+
+Options:
+  1. Auto-fix — Spawn Review/Architect to address findings
+  2. Proceed anyway — Merge with current score (not recommended)
+  3. Manual fix — Fix issues manually and re-trigger review
+
+Your choice:
+```
+
+**If "Auto-fix" selected:**
+
+```bash
+# Spawn karimo-review-architect agent to fix findings
+# Agent pushes to feature branch, Greptile auto-reviews
+
+loop_count=0
+while [ "$score" -lt "$threshold" ] && [ "$loop_count" -lt "$max_loops" ]; do
+  loop_count=$((loop_count + 1))
+  echo "Revision loop $loop_count/$max_loops..."
+
+  # Spawn Review/Architect with findings context
+  # Wait for push
+  # Wait for Greptile re-review
+  # Parse new score
+done
+
+if [ "$score" -ge "$threshold" ]; then
+  echo "✓ Greptile passed (${score}/5)"
+else
+  echo "⚠️  Max revision loops reached. Human review required."
+fi
+```
+
+**If no Greptile configured:**
+
+```
+Note: No automated review configured. Skipping Greptile review.
+```
+
+---
+
 ### 6. Integration Analysis
 
 **Detect potential integration issues:**
