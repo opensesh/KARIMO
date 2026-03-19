@@ -245,10 +245,9 @@ grep -r "useState\|useContext\|useStore" src/
 When encountering relevant visual content during research (screenshots, diagrams, architecture images):
 
 1. **Capture the asset** using Firecrawl screenshot tools or WebFetch
-2. **Store with karimo_add_asset()** from karimo-bash-utilities skill:
+2. **Store with the karimo-assets CLI:**
    ```bash
-   source .claude/skills/karimo/bash-utilities.md
-   karimo_add_asset "$PRD_SLUG" "$IMAGE_URL" "research" "$DESCRIPTION" "karimo-researcher"
+   node .karimo/scripts/karimo-assets.js add "$PRD_SLUG" "$IMAGE_URL" "research" "$DESCRIPTION" "karimo-researcher"
    ```
 
 3. **Parameters:**
@@ -258,7 +257,7 @@ When encountering relevant visual content during research (screenshots, diagrams
    - `$DESCRIPTION` - Brief description (e.g., "API architecture diagram", "User flow example")
    - `"karimo-researcher"` - Agent name (always this value)
 
-4. **Reference in findings** using returned markdown reference
+4. **Reference in findings** using the markdown reference output by the command
 
 **What to capture:**
 - Architecture diagrams from documentation
@@ -279,11 +278,16 @@ When encountering relevant visual content during research (screenshots, diagrams
 ```
 During research on authentication flows, I found a helpful diagram showing OAuth2 flow:
 
-[Calls karimo_add_asset with URL to diagram]
-✓ Asset stored: research-oauth2-flow-20260315143022.png
+$ node .karimo/scripts/karimo-assets.js add user-auth "https://oauth.net/diagram.png" research "OAuth2 flow diagram" "karimo-researcher"
+✅ Asset stored: research-oauth2-flow-20260315143022.png
+   Stage: research
+   Size: 45 KB
+   ID: asset-001
 
-Referenced in external findings as:
-![OAuth2 Flow Diagram](./assets/research/research-oauth2-flow-20260315143022.png)
+Markdown reference:
+![OAuth2 flow diagram](./assets/research/research-oauth2-flow-20260315143022.png)
+
+Referenced in external findings with the returned markdown reference.
 Source: https://oauth.net/2/grant-types/authorization-code/
 ```
 
