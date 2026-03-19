@@ -7,6 +7,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [7.16.0] - 2026-03-19
+
+### Added
+
+- **Node.js Asset Management CLI** — New standalone CLI script at `.karimo/scripts/karimo-assets.js` that replaces the non-functional bash functions. Features:
+  - `add` — Download from URL or copy local file, with SHA256 duplicate detection
+  - `list` — Show all assets for a PRD, optionally filtered by stage
+  - `reference` — Get markdown reference for embedding in PRDs
+  - `validate` — Check asset integrity (missing files, orphaned files, size mismatches)
+  - 10MB+ file size warning
+  - Supported types: png, jpg, jpeg, gif, svg, pdf, mp4
+  - No npm dependencies (uses native Node.js modules)
+
+- **Scripts directory support** — New `.karimo/scripts/` directory in MANIFEST.json with install/update handling
+
+### Fixed
+
+- **Asset management actually works now** — The previous implementation used bash functions in a markdown file that could never be sourced. This release provides a working asset system.
+
+### Changed
+
+- **Agent asset handling** — Updated researcher.md, interviewer.md, pm.md, and brief-writer.md to use the Node.js CLI instead of bash functions
+
+- **Doctor asset validation** — Updated `/karimo:doctor` to use Node.js CLI for Check 8 (Asset Integrity)
+
+### Documentation
+
+- **bash-utilities.md** — Rewritten asset section from function definitions to CLI usage documentation
+- **ASSETS.md** — Updated all examples and references to use the new CLI pattern
+
+---
+
 ## [7.15.0] - 2026-03-19
 
 ### Added
