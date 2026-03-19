@@ -1,6 +1,6 @@
 # KARIMO Architecture
 
-**Version:** 7.13.0
+**Version:** 7.15.0
 **Status:** Active
 
 ---

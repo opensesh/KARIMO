@@ -271,6 +271,7 @@ All skills use the `karimo-*` prefix for reliable update management and clear di
 | [ARCHITECTURE.md](.karimo/docs/ARCHITECTURE.md) | System design and integration |
 | [CI-CD.md](.karimo/docs/CI-CD.md) | CI/CD integration and preview deployments |
 | [COMMANDS.md](.karimo/docs/COMMANDS.md) | Slash command reference |
+| [COMMIT-STRATEGY.md](.karimo/docs/COMMIT-STRATEGY.md) | Atomic commit lifecycle and templates |
 | [COMPOUND-LEARNING.md](.karimo/docs/COMPOUND-LEARNING.md) | Two-scope learning system |
 | [DASHBOARD.md](.karimo/docs/DASHBOARD.md) | Dashboard spec (Phase 3) |
 | [GETTING-STARTED.md](.karimo/docs/GETTING-STARTED.md) | Installation walkthrough |

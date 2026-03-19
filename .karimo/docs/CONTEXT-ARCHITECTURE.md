@@ -1,6 +1,6 @@
 # KARIMO Context Architecture
 
-**Version:** 7.3.0
+**Version:** 7.15.0
 **Protocol:** OpenViking-inspired L0/L1/L2 Layering
 
 ---
