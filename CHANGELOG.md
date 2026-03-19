@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [7.14.0] - 2026-03-19
+
+### Added
+
+- **`karimo-greptile-rules-writer` agent** — Generates project-specific Greptile review rules by analyzing:
+  - `.karimo/config.yaml` (project settings, boundaries)
+  - `CLAUDE.md` (coding standards, forbidden elements)
+  - `.karimo/learnings/` (patterns and anti-patterns)
+  - Sample components and API routes from codebase
+
+  Produces rich `.greptile/rules.md` with CORRECT/WRONG code examples instead of generic template copy.
+
+### Changed
+
+- **`/karimo:configure --greptile` spawns rules writer** — Step 2 now spawns the `karimo-greptile-rules-writer` agent instead of copying the static template. This ensures Greptile has project-specific context for effective code review from day one.
+
+---
+
 ## [7.13.1] - 2026-03-19
 
 ### Fixed
