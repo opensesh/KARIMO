@@ -624,7 +624,9 @@ In addition to config files, configure Greptile in dashboard:
 1. Navigate to `app.greptile.com/review/github`
 2. Select repository → Code Review Agent section
 3. Enable: PR Summary, Confidence Score, Issue Tables, Diagram, Comments Outside Diff
-4. Add Custom Context with project-specific rules
+4. Link Custom Context → Add Context → File → `.greptile/rules.md`
+
+**Note:** KARIMO auto-generates `.greptile/rules.md` with project-specific rules. You just need to link it in the dashboard so Greptile uses it during reviews.
 
 **Score interpretation:**
 

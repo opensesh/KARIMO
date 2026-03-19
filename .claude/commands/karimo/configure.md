@@ -63,10 +63,9 @@ Step 1: Greptile Dashboard Setup (Required)
      ✓ Issue Tables
      ✓ Diagram
      ✓ Comments Outside Diff
-  6. Add Custom Context:
-     - Paste your project's coding standards
-     - Add design system guidelines
-     - Include any KARIMO learnings from .karimo/learnings/
+  6. Custom Context (we'll handle this automatically):
+     - KARIMO will generate .greptile/rules.md with project-specific context
+     - After setup, you'll need to link this file in Greptile dashboard
 
 Have you completed the dashboard setup?
 ```
@@ -124,20 +123,19 @@ STEP 3: Configure Code Review Agent
      ✓ Diagram              → Visual representation of changes
      ✓ Comments Outside Diff → Reviews non-changed context
 
-STEP 4: Add Custom Context (Recommended)
-────────────────────────────────────────
-  1. Still in Settings, scroll to "Custom Context"
-  2. Paste your project's coding standards:
+STEP 4: Link Custom Context (After KARIMO Setup)
+────────────────────────────────────────────────
+  KARIMO auto-generates .greptile/rules.md with project-specific context.
+  After running /karimo:configure --greptile, link this file in Greptile:
 
-     Example content:
-     ───────────────
-     ## Coding Standards
-     - Use TypeScript strict mode
-     - Prefer functional components with hooks
-     - All API calls go through src/lib/api/
-     - Use the existing Button component from src/components/ui/
+  1. In Greptile dashboard, go to Code Review Agent → Custom Context
+  2. Click "+ Add Context"
+  3. Set Context Type: "File"
+  4. Set File Path: .greptile/rules.md
+  5. Leave Scope as "all" (or customize if needed)
+  6. Click "Save"
 
-  3. If you have .karimo/learnings/, paste relevant patterns
+  This tells Greptile to use your auto-generated project rules for reviews.
 
 STEP 5: Verify Setup
 ────────────────────
@@ -244,7 +242,7 @@ review:
 
 ✅ Configuration files installed:
    - .greptile/config.json (review settings)
-   - .greptile/rules.md (review rules)
+   - .greptile/rules.md (project-specific review rules)
    - .github/workflows/karimo-greptile-trigger.yml
 
 ✅ Review settings added to .karimo/config.yaml:
@@ -252,10 +250,23 @@ review:
    - Threshold: 5/5
    - Max revision loops: 3
 
+⚠️  IMPORTANT: Link rules.md in Greptile Dashboard
+───────────────────────────────────────────────────
+   Greptile needs to know about your rules file:
+
+   1. Go to app.greptile.com → Code Review Agent → Custom Context
+   2. Click "+ Add Context"
+   3. Context Type: File
+   4. File Path: .greptile/rules.md
+   5. Click "Save"
+
+   This tells Greptile to use your project-specific rules for reviews.
+   You can edit .greptile/rules.md anytime — changes apply immediately.
+
 How Greptile works with KARIMO:
   1. PM Agent creates PR with 'karimo' label
   2. Workflow triggers @greptileai comment
-  3. Greptile reviews PR (~3 minutes)
+  3. Greptile reviews PR using your rules.md (~3 minutes)
   4. If score < threshold: PM spawns revision agent
   5. Revision loop until score >= threshold or max loops
 

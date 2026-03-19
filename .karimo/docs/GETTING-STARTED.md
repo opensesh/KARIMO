@@ -698,7 +698,6 @@ Greptile is a GitHub App that provides AI-powered code review with confidence sc
 3. Wait for repository indexing (~1-2 hours for large repos)
 4. Navigate to Code Review Agent section
 5. Enable: PR Summary, Confidence Score, Issue Tables, Diagram, Comments Outside Diff
-6. Add Custom Context with your project's coding standards
 
 **Step 2: Run Configure Command**
 ```
@@ -714,6 +713,18 @@ This will:
 - Update `.karimo/config.yaml` with review settings
 
 The rules generator analyzes your project to create review rules with CORRECT/WRONG code examples specific to your codebase.
+
+**Step 3: Link Rules in Greptile Dashboard**
+
+After KARIMO generates `.greptile/rules.md`, tell Greptile to use it:
+
+1. Go to [app.greptile.com](https://app.greptile.com) → Code Review Agent → **Custom Context**
+2. Click **"+ Add Context"**
+3. Set **Context Type**: File
+4. Set **File Path**: `.greptile/rules.md`
+5. Click **Save**
+
+This links your auto-generated project rules to Greptile. Changes to `rules.md` apply immediately — no need to re-link.
 
 **How it works:**
 1. PM Agent creates PR with `karimo` label

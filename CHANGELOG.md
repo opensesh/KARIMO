@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [7.14.3] - 2026-03-19
+
+### Changed
+
+- **Greptile dashboard linking guidance** — Updated `/karimo:configure --greptile` to clarify that KARIMO auto-generates `.greptile/rules.md` and users need to link it in Greptile's Custom Context dashboard. The completion summary now includes step-by-step instructions for linking the file.
+
+### Documentation
+
+- **GETTING-STARTED.md** — Added Step 3 explaining how to link `.greptile/rules.md` in Greptile dashboard after running configure
+- **SAFEGUARDS.md** — Updated dashboard configuration steps to reference linking the auto-generated rules file
+- **configure.md** — Replaced manual "Add Custom Context" instructions with guidance about the auto-generated rules and linking process
+
+---
+
 ## [7.14.2] - 2026-03-19
 
 ### Fixed
