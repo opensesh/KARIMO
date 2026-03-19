@@ -1107,9 +1107,8 @@ for prd_dir in .karimo/prds/*/; do
     continue  # No assets for this PRD
   fi
 
-  # Call karimo_validate_assets from bash utilities
-  source .claude/skills/karimo/bash-utilities.md
-  karimo_validate_assets "$prd_slug"
+  # Validate assets using Node.js CLI
+  node .karimo/scripts/karimo-assets.js validate "$prd_slug"
 done
 ```
 
@@ -1305,8 +1304,7 @@ for prd_dir in .karimo/prds/*/; do
   manifest="${prd_dir}assets.json"
 
   if [ -f "$manifest" ]; then
-    source .claude/skills/karimo/bash-utilities.md
-    karimo_validate_assets "$prd_slug"
+    node .karimo/scripts/karimo-assets.js validate "$prd_slug"
   fi
 done
 ```
