@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [7.14.2] - 2026-03-19
+
+### Fixed
+
+- **Greptile templates in manifest** — Moved `greptile/config.json` and `greptile/rules.md` from "templates" to new "greptile_source" section. These are source files for `/karimo:configure --greptile`, not templates installed to target projects. Fixes false positive in `/karimo:doctor` reporting missing templates.
+
+---
+
 ## [7.14.1] - 2026-03-19
 
 ### Added
