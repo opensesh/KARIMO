@@ -409,7 +409,7 @@ fi
 # ==============================================================================
 
 echo "This update will:"
-echo "  • Replace KARIMO commands, agents, skills, and templates"
+echo "  • Replace KARIMO commands, agents, skills, templates, and scripts"
 echo "  • Update GitHub workflow files (existing ones only)"
 echo ""
 echo "These files are ${GREEN}preserved${NC} (never modified):"
@@ -478,6 +478,7 @@ UPDATED_AGENTS=0
 UPDATED_COMMANDS=0
 UPDATED_SKILLS=0
 UPDATED_TEMPLATES=0
+UPDATED_SCRIPTS=0
 UPDATED_WORKFLOWS=0
 
 # Create directories if needed (subfolder structure)
@@ -485,6 +486,7 @@ mkdir -p "$PROJECT_ROOT/.claude/agents/karimo"
 mkdir -p "$PROJECT_ROOT/.claude/commands/karimo"
 mkdir -p "$PROJECT_ROOT/.claude/skills/karimo"
 mkdir -p "$PROJECT_ROOT/.karimo/templates"
+mkdir -p "$PROJECT_ROOT/.karimo/scripts"
 mkdir -p "$PROJECT_ROOT/.karimo/learnings/patterns"
 mkdir -p "$PROJECT_ROOT/.karimo/learnings/anti-patterns"
 mkdir -p "$PROJECT_ROOT/.karimo/learnings/project-notes"
@@ -652,6 +654,15 @@ for template in $(manifest_list "templates" "$MANIFEST"); do
     if [ -f "$KARIMO_SOURCE/.karimo/templates/$template" ]; then
         cp "$KARIMO_SOURCE/.karimo/templates/$template" "$PROJECT_ROOT/.karimo/templates/"
         UPDATED_TEMPLATES=$((UPDATED_TEMPLATES + 1))
+    fi
+done
+
+# Update scripts
+echo "  Updating scripts..."
+for script in $(manifest_list "scripts" "$MANIFEST"); do
+    if [ -f "$KARIMO_SOURCE/.karimo/scripts/$script" ]; then
+        cp "$KARIMO_SOURCE/.karimo/scripts/$script" "$PROJECT_ROOT/.karimo/scripts/"
+        UPDATED_SCRIPTS=$((UPDATED_SCRIPTS + 1))
     fi
 done
 
@@ -873,7 +884,7 @@ attempt_git_commit() {
 
     # Count updated components for commit message
     local updated_count=0
-    updated_count=$((UPDATED_AGENTS + UPDATED_COMMANDS + UPDATED_SKILLS + UPDATED_TEMPLATES + UPDATED_WORKFLOWS))
+    updated_count=$((UPDATED_AGENTS + UPDATED_COMMANDS + UPDATED_SKILLS + UPDATED_TEMPLATES + UPDATED_SCRIPTS + UPDATED_WORKFLOWS))
 
     # Build commit message
     local commit_message="chore(karimo): update to v${LATEST_VERSION}
@@ -885,6 +896,7 @@ Updated components:
 - ${UPDATED_COMMANDS} commands
 - ${UPDATED_SKILLS} skills
 - ${UPDATED_TEMPLATES} templates
+- ${UPDATED_SCRIPTS} scripts
 - ${UPDATED_WORKFLOWS} workflows
 - KARIMO_RULES.md
 - VERSION, MANIFEST.json
@@ -901,6 +913,7 @@ Co-Authored-By: KARIMO Update Script <noreply@opensession.co>"
         .claude/skills/ \
         .claude/KARIMO_RULES.md \
         .karimo/templates/ \
+        .karimo/scripts/ \
         .karimo/VERSION \
         .karimo/MANIFEST.json \
         .karimo/update.sh \
@@ -936,6 +949,7 @@ echo "  • $UPDATED_AGENTS agents"
 echo "  • $UPDATED_COMMANDS commands"
 echo "  • $UPDATED_SKILLS skills"
 echo "  • $UPDATED_TEMPLATES templates"
+echo "  • $UPDATED_SCRIPTS scripts"
 echo "  • $UPDATED_WORKFLOWS workflows"
 echo "  • KARIMO_RULES.md"
 echo "  • VERSION, MANIFEST.json"
