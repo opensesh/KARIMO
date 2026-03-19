@@ -707,10 +707,13 @@ Greptile is a GitHub App that provides AI-powered code review with confidence sc
 
 This will:
 - Verify you've completed dashboard setup
-- Create `.greptile/config.json` and `.greptile/rules.md`
+- Create `.greptile/config.json`
+- **Generate project-specific `.greptile/rules.md`** by analyzing your codebase, CLAUDE.md, and learnings
 - Install `karimo-greptile-trigger.yml` workflow
 - Ask for your target threshold (5/5 recommended)
 - Update `.karimo/config.yaml` with review settings
+
+The rules generator analyzes your project to create review rules with CORRECT/WRONG code examples specific to your codebase.
 
 **How it works:**
 1. PM Agent creates PR with `karimo` label

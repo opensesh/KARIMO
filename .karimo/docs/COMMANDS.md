@@ -793,7 +793,7 @@ Create or update configuration in `.karimo/config.yaml` (single source of truth)
 | Flag | Description |
 |------|-------------|
 | `--reset` | Start fresh, ignore existing config |
-| `--greptile` | Install Greptile workflow only |
+| `--greptile` | Setup Greptile: generate project-specific rules and install workflow |
 | `--code-review` | Setup Claude Code Review (instructions only) |
 | `--review` | Choose between review providers (interactive) |
 | `--cd` | Configure CD provider to skip KARIMO branches |
