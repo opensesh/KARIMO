@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [7.14.1] - 2026-03-19
+
+### Added
+
+- **Generic rules detection** — `update.sh` and `/karimo:doctor` now detect when `.greptile/rules.md` contains the generic template and prompt users to run `/karimo:configure --greptile` to generate project-specific rules.
+
+- **Template marker** — The generic `rules.md` template now includes a `GENERIC_TEMPLATE` marker for reliable detection.
+
+---
+
 ## [7.14.0] - 2026-03-19
 
 ### Added
