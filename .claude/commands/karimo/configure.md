@@ -162,12 +162,39 @@ Exit without changes.
 # Create .greptile directory
 mkdir -p .greptile
 
-# Copy config templates
+# Copy config.json template
 cp .karimo/templates/greptile/config.json .greptile/config.json
-cp .karimo/templates/greptile/rules.md .greptile/rules.md
-
 echo "✅ Created .greptile/config.json (review settings)"
-echo "✅ Created .greptile/rules.md (review rules)"
+```
+
+**Step 2b: Generate project-specific rules**
+
+Spawn the `karimo-greptile-rules-writer` agent to generate rich, project-specific review rules:
+
+```
+Use Task tool to spawn karimo-greptile-rules-writer agent:
+
+Prompt: "Generate .greptile/rules.md for this project by analyzing:
+- .karimo/config.yaml (project settings, boundaries)
+- CLAUDE.md (coding standards, forbidden elements)
+- .karimo/learnings/ (patterns and anti-patterns)
+- docs/*.md (existing documentation)
+- Codebase patterns (sample components, API routes)
+
+Write comprehensive rules with code examples showing CORRECT and WRONG patterns."
+```
+
+The agent will:
+1. Read project configuration and documentation
+2. Analyze codebase patterns from sample files
+3. Generate `.greptile/rules.md` with project-specific rules
+4. Return a summary of sections created
+
+```
+✅ Generated .greptile/rules.md (project-specific review rules)
+   - {N} critical review rules with code examples
+   - {N} forbidden elements
+   - {N} high-risk files flagged
 ```
 
 **Step 3: Install workflow**
@@ -1504,15 +1531,16 @@ Run the full Greptile setup flow (same as `--greptile` flag):
    ```bash
    mkdir -p .greptile
    cp .karimo/templates/greptile/config.json .greptile/config.json
-   cp .karimo/templates/greptile/rules.md .greptile/rules.md
    ```
-3. Install workflow:
+3. Spawn `karimo-greptile-rules-writer` agent to generate project-specific rules
+   (writes `.greptile/rules.md` with code examples from codebase analysis)
+4. Install workflow:
    ```bash
    mkdir -p .github/workflows
    cp .karimo/workflow-templates/karimo-greptile-trigger.yml .github/workflows/
    ```
-4. Ask threshold question (5/5 recommended, 4/5, or 3/5)
-5. Update config.yaml:
+5. Ask threshold question (5/5 recommended, 4/5, or 3/5)
+6. Update config.yaml:
    ```yaml
    review:
      enabled: true
