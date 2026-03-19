@@ -457,505 +457,241 @@ node -e "
 
 KARIMO supports storing and tracking visual artifacts (images, screenshots, diagrams) throughout the PRD lifecycle. Assets are organized by stage (research/planning/execution) with lightweight metadata tracking.
 
-### karimo_add_asset()
+**Asset management uses a standalone Node.js CLI script** located at `.karimo/scripts/karimo-assets.js`. This approach was chosen because:
+
+1. Bash functions in markdown files cannot be sourced (triple-backtick code blocks)
+2. Each Bash tool invocation is isolated (sourced functions wouldn't persist)
+3. Node.js is required anyway for JSON manifest operations
+4. Single source of truth (not duplicated across documentation)
+
+### CLI Reference
+
+```bash
+node .karimo/scripts/karimo-assets.js <command> [arguments]
+```
+
+---
+
+### add — Add an Asset
 
 Download from URL or copy from local path, store in stage folder, update manifest.
 
 ```bash
-# karimo_add_asset - Add an asset to a PRD with metadata tracking
-# Arguments:
-#   $1 = prd_slug
-#   $2 = source (URL or local file path)
-#   $3 = stage (research|planning|execution)
-#   $4 = description (human-readable)
-#   $5 = added_by (agent name, e.g., "karimo-researcher")
-# Returns: Markdown reference string
-karimo_add_asset() {
-  local prd_slug="$1"
-  local source="$2"
-  local stage="$3"
-  local description="$4"
-  local added_by="$5"
-
-  # Validate inputs
-  if [ -z "$prd_slug" ] || [ -z "$source" ] || [ -z "$stage" ] || [ -z "$description" ] || [ -z "$added_by" ]; then
-    echo "❌ Usage: karimo_add_asset <prd_slug> <source> <stage> <description> <added_by>"
-    return 1
-  fi
-
-  # Validate stage
-  if [[ ! "$stage" =~ ^(research|planning|execution)$ ]]; then
-    echo "❌ Invalid stage: $stage (must be research, planning, or execution)"
-    return 1
-  fi
-
-  # Find PRD folder
-  local prd_dir=$(ls -d .karimo/prds/*_${prd_slug} 2>/dev/null | head -1)
-  if [ -z "$prd_dir" ]; then
-    prd_dir=".karimo/prds/${prd_slug}"
-    if [ ! -d "$prd_dir" ]; then
-      echo "❌ PRD not found: $prd_slug"
-      return 1
-    fi
-  fi
-
-  # Create assets directory structure
-  local assets_dir="${prd_dir}/assets/${stage}"
-  mkdir -p "$assets_dir"
-
-  # Determine if source is URL or local path
-  local source_type="upload"
-  if [[ "$source" =~ ^https?:// ]]; then
-    source_type="url"
-  fi
-
-  # Extract file extension
-  local ext="${source##*.}"
-
-  # Validate file type
-  case "$ext" in
-    png|jpg|jpeg|gif|svg|pdf|mp4|PNG|JPG|JPEG|GIF|SVG|PDF|MP4)
-      ext=$(echo "$ext" | tr '[:upper:]' '[:lower:]')
-      ;;
-    *)
-      echo "⚠️  Unsupported file type: $ext"
-      echo "Supported types: png, jpg, jpeg, gif, svg, pdf, mp4"
-      return 1
-      ;;
-  esac
-
-  # Generate timestamped filename
-  local timestamp=$(date -u +"%Y%m%d%H%M%S")
-  local safe_description=$(echo "$description" | tr ' ' '-' | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9-]//g')
-  local filename="${stage}-${safe_description}-${timestamp}.${ext}"
-  local filepath="${assets_dir}/${filename}"
-
-  # Download or copy file
-  if [ "$source_type" = "url" ]; then
-    echo "Downloading asset from URL..."
-    # Try curl first, fallback to wget
-    if command -v curl >/dev/null 2>&1; then
-      if ! curl -sL "$source" -o "$filepath"; then
-        echo "❌ Download failed: $source"
-        return 1
-      fi
-    elif command -v wget >/dev/null 2>&1; then
-      if ! wget -q "$source" -O "$filepath"; then
-        echo "❌ Download failed: $source"
-        return 1
-      fi
-    else
-      echo "❌ Neither curl nor wget found. Install one to download assets."
-      return 1
-    fi
-  else
-    # Copy local file
-    if [ ! -f "$source" ]; then
-      echo "❌ File not found: $source"
-      return 1
-    fi
-    cp "$source" "$filepath"
-  fi
-
-  # Get file size (cross-platform)
-  local size
-  if stat -f%z "$filepath" >/dev/null 2>&1; then
-    size=$(stat -f%z "$filepath")  # macOS
-  else
-    size=$(stat -c%s "$filepath")  # Linux/WSL
-  fi
-
-  # Warn if file is large
-  if [ "$size" -gt 10485760 ]; then
-    local size_mb=$((size / 1048576))
-    echo "⚠️  Large file: ${size_mb} MB. Consider compression or external hosting."
-  fi
-
-  # Calculate SHA256 hash (cross-platform)
-  local hash
-  if command -v shasum >/dev/null 2>&1; then
-    hash=$(shasum -a 256 "$filepath" | awk '{print $1}')
-  elif command -v sha256sum >/dev/null 2>&1; then
-    hash=$(sha256sum "$filepath" | awk '{print $1}')
-  else
-    echo "⚠️  shasum/sha256sum not found. Skipping duplicate detection."
-    hash=""
-  fi
-
-  # Initialize or read manifest
-  local manifest="${prd_dir}/assets.json"
-  if [ ! -f "$manifest" ]; then
-    echo '{"version":"1.0","assets":[]}' > "$manifest"
-  fi
-
-  # Check for duplicate hash
-  if [ -n "$hash" ] && grep -q "\"sha256\": \"$hash\"" "$manifest" 2>/dev/null; then
-    echo "⚠️  Duplicate detected: This asset content already exists in the PRD"
-    local existing_file=$(grep -B5 "\"sha256\": \"$hash\"" "$manifest" | grep '"filename"' | head -1 | sed 's/.*: "//' | sed 's/".*//')
-    echo "   Existing: $existing_file"
-    echo "   New: $filename"
-    echo ""
-    read -p "Continue anyway? (y/n) " -n 1 -r
-    echo
-    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-      rm "$filepath"
-      return 1
-    fi
-  fi
-
-  # Generate asset ID
-  local asset_count=$(grep -c '"id":' "$manifest" 2>/dev/null || echo "0")
-  local asset_id=$(printf "asset-%03d" $((asset_count + 1)))
-
-  # Get MIME type
-  local mime_type
-  case "$ext" in
-    png) mime_type="image/png" ;;
-    jpg|jpeg) mime_type="image/jpeg" ;;
-    gif) mime_type="image/gif" ;;
-    svg) mime_type="image/svg+xml" ;;
-    pdf) mime_type="application/pdf" ;;
-    mp4) mime_type="video/mp4" ;;
-    *) mime_type="application/octet-stream" ;;
-  esac
-
-  # ISO timestamp for JSON
-  local iso_timestamp=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
-
-  # Check Node.js availability for JSON operations
-  if ! command -v node >/dev/null 2>&1; then
-    echo "❌ Node.js not found. Required for JSON operations."
-    echo "Install Node.js: https://nodejs.org/"
-    rm "$filepath"
-    return 1
-  fi
-
-  # Update manifest using Node.js
-  node -e "
-    const fs = require('fs');
-    const manifest = JSON.parse(fs.readFileSync('${manifest}', 'utf8'));
-    manifest.assets.push({
-      id: '${asset_id}',
-      filename: '${filename}',
-      originalSource: '${source}',
-      sourceType: '${source_type}',
-      stage: '${stage}',
-      timestamp: '${iso_timestamp}',
-      addedBy: '${added_by}',
-      description: '${description}',
-      referencedIn: [],
-      size: ${size},
-      mimeType: '${mime_type}',
-      sha256: '${hash}'
-    });
-    fs.writeFileSync('${manifest}', JSON.stringify(manifest, null, 2));
-  "
-
-  # Generate markdown reference
-  local md_reference="![${description}](./assets/${stage}/${filename})"
-
-  echo "✅ Asset stored: ${filename}"
-  echo "   Stage: ${stage}"
-  echo "   Size: $((size / 1024)) KB"
-  echo "   Reference: ${md_reference}"
-  echo ""
-
-  # Return markdown reference for embedding
-  echo "$md_reference"
-}
-
-# Usage:
-# karimo_add_asset "user-profiles" "https://example.com/mockup.png" "planning" "Dashboard mockup" "karimo-interviewer"
-# karimo_add_asset "user-profiles" "/Users/me/Desktop/design.jpg" "planning" "Login screen" "karimo-interviewer"
+node .karimo/scripts/karimo-assets.js add <prd-slug> <source> <stage> <description> <added-by>
 ```
 
-### karimo_list_assets()
+**Parameters:**
+
+| Parameter | Description |
+|-----------|-------------|
+| `prd-slug` | PRD identifier (e.g., "user-profiles") |
+| `source` | URL or local file path to the asset |
+| `stage` | Lifecycle stage: `research`, `planning`, or `execution` |
+| `description` | Human-readable description for the asset |
+| `added-by` | Agent or user name who added the asset |
+
+**Example:**
+
+```bash
+# Add from URL
+node .karimo/scripts/karimo-assets.js add user-profiles \
+  "https://example.com/mockup.png" \
+  planning \
+  "Dashboard mockup" \
+  "karimo-interviewer"
+
+# Add from local file
+node .karimo/scripts/karimo-assets.js add user-profiles \
+  "/Users/me/Desktop/design.jpg" \
+  planning \
+  "Login screen design" \
+  "karimo-interviewer"
+```
+
+**Output:**
+
+```
+✅ Asset stored: planning-dashboard-mockup-20260315151500.png
+   Stage: planning
+   Size: 128 KB
+   ID: asset-001
+
+Markdown reference:
+![Dashboard mockup](./assets/planning/planning-dashboard-mockup-20260315151500.png)
+```
+
+**Features:**
+
+- Downloads from URL or copies local files
+- Generates timestamped filenames: `{stage}-{description}-{timestamp}.{ext}`
+- SHA256 duplicate detection (warns if same content already exists)
+- 10MB+ file size warning
+- Supported types: png, jpg, jpeg, gif, svg, pdf, mp4
+- Returns markdown reference for embedding in PRDs
+
+---
+
+### list — List Assets
 
 Display all assets for a PRD with metadata.
 
 ```bash
-# karimo_list_assets - List all assets for a PRD
-# Arguments:
-#   $1 = prd_slug
-#   $2 = stage (optional filter: research|planning|execution)
-# Returns: Formatted list of assets
-karimo_list_assets() {
-  local prd_slug="$1"
-  local stage_filter="${2:-}"
-
-  # Find PRD folder
-  local prd_dir=$(ls -d .karimo/prds/*_${prd_slug} 2>/dev/null | head -1)
-  if [ -z "$prd_dir" ]; then
-    prd_dir=".karimo/prds/${prd_slug}"
-    if [ ! -d "$prd_dir" ]; then
-      echo "❌ PRD not found: $prd_slug"
-      return 1
-    fi
-  fi
-
-  local manifest="${prd_dir}/assets.json"
-  if [ ! -f "$manifest" ]; then
-    echo "No assets found for PRD: $prd_slug"
-    return 0
-  fi
-
-  # Check Node.js availability
-  if ! command -v node >/dev/null 2>&1; then
-    echo "❌ Node.js not found. Required for JSON operations."
-    return 1
-  fi
-
-  # Use Node.js to format asset list
-  node -e "
-    const fs = require('fs');
-    const manifest = JSON.parse(fs.readFileSync('${manifest}', 'utf8'));
-    const assets = manifest.assets || [];
-    const stageFilter = '${stage_filter}';
-
-    if (assets.length === 0) {
-      console.log('No assets found for PRD: ${prd_slug}');
-      process.exit(0);
-    }
-
-    // Group by stage
-    const byStage = assets.reduce((acc, asset) => {
-      if (!stageFilter || asset.stage === stageFilter) {
-        if (!acc[asset.stage]) acc[asset.stage] = [];
-        acc[asset.stage].push(asset);
-      }
-      return acc;
-    }, {});
-
-    console.log('Assets for PRD: ${prd_slug}');
-    console.log('');
-
-    for (const [stage, stageAssets] of Object.entries(byStage)) {
-      console.log(\`\${stage.charAt(0).toUpperCase() + stage.slice(1)} (\${stageAssets.length} asset\${stageAssets.length !== 1 ? 's' : ''}):\`);
-      stageAssets.forEach(asset => {
-        const sizeMB = (asset.size / 1048576).toFixed(2);
-        const sizeKB = (asset.size / 1024).toFixed(0);
-        const sizeDisplay = asset.size > 1048576 ? \`\${sizeMB} MB\` : \`\${sizeKB} KB\`;
-        const sourceDisplay = asset.sourceType === 'url' ? asset.originalSource : \`\${asset.originalSource} (upload)\`;
-
-        console.log(\`  [\${asset.id}] \${asset.filename}\`);
-        console.log(\`        Source: \${sourceDisplay}\`);
-        console.log(\`        Added: \${asset.timestamp.replace('T', ' ').replace('Z', '')} by \${asset.addedBy}\`);
-        console.log(\`        Size: \${sizeDisplay}\`);
-        if (asset.referencedIn && asset.referencedIn.length > 0) {
-          console.log(\`        Referenced in: \${asset.referencedIn.join(', ')}\`);
-        }
-        console.log('');
-      });
-    }
-  "
-}
-
-# Usage:
-# karimo_list_assets "user-profiles"
-# karimo_list_assets "user-profiles" "planning"
+node .karimo/scripts/karimo-assets.js list <prd-slug> [stage]
 ```
 
-### karimo_get_asset_reference()
+**Parameters:**
+
+| Parameter | Description |
+|-----------|-------------|
+| `prd-slug` | PRD identifier |
+| `stage` | Optional filter: `research`, `planning`, or `execution` |
+
+**Example:**
+
+```bash
+# List all assets
+node .karimo/scripts/karimo-assets.js list user-profiles
+
+# List only planning assets
+node .karimo/scripts/karimo-assets.js list user-profiles planning
+```
+
+**Output:**
+
+```
+Assets for PRD: user-profiles
+
+Planning (2 assets):
+  [asset-001] planning-dashboard-mockup-20260315151500.png
+        Source: https://example.com/mockup.png
+        Added: 2026-03-15 15:15:00 by karimo-interviewer
+        Size: 128 KB
+
+  [asset-002] planning-login-screen-20260315160000.png
+        Source: /Users/me/Desktop/design.jpg (upload)
+        Added: 2026-03-15 16:00:00 by karimo-interviewer
+        Size: 85 KB
+
+Research (1 asset):
+  [asset-003] research-oauth2-flow-20260315143022.png
+        Source: https://oauth.net/diagram.png
+        Added: 2026-03-15 14:30:22 by karimo-researcher
+        Size: 45 KB
+```
+
+---
+
+### reference — Get Markdown Reference
 
 Generate markdown reference for an asset by ID or filename.
 
 ```bash
-# karimo_get_asset_reference - Get markdown reference for an asset
-# Arguments:
-#   $1 = prd_slug
-#   $2 = identifier (asset ID like "asset-001" or filename)
-# Returns: Markdown reference string
-karimo_get_asset_reference() {
-  local prd_slug="$1"
-  local identifier="$2"
-
-  if [ -z "$prd_slug" ] || [ -z "$identifier" ]; then
-    echo "❌ Usage: karimo_get_asset_reference <prd_slug> <identifier>"
-    return 1
-  fi
-
-  # Find PRD folder
-  local prd_dir=$(ls -d .karimo/prds/*_${prd_slug} 2>/dev/null | head -1)
-  if [ -z "$prd_dir" ]; then
-    prd_dir=".karimo/prds/${prd_slug}"
-    if [ ! -d "$prd_dir" ]; then
-      echo "❌ PRD not found: $prd_slug"
-      return 1
-    fi
-  fi
-
-  local manifest="${prd_dir}/assets.json"
-  if [ ! -f "$manifest" ]; then
-    echo "❌ No assets manifest found for PRD: $prd_slug"
-    return 1
-  fi
-
-  # Check Node.js availability
-  if ! command -v node >/dev/null 2>&1; then
-    echo "❌ Node.js not found. Required for JSON operations."
-    return 1
-  fi
-
-  # Use Node.js to find asset and generate reference
-  node -e "
-    const fs = require('fs');
-    const manifest = JSON.parse(fs.readFileSync('${manifest}', 'utf8'));
-    const assets = manifest.assets || [];
-    const identifier = '${identifier}';
-
-    // Find by ID or filename
-    const asset = assets.find(a => a.id === identifier || a.filename === identifier);
-
-    if (!asset) {
-      console.error('❌ Asset not found: ${identifier}');
-      process.exit(1);
-    }
-
-    const reference = \`![\${asset.description}](./assets/\${asset.stage}/\${asset.filename})\`;
-    console.log(reference);
-  "
-}
-
-# Usage:
-# karimo_get_asset_reference "user-profiles" "asset-001"
-# karimo_get_asset_reference "user-profiles" "planning-mockup-20260315151500.png"
+node .karimo/scripts/karimo-assets.js reference <prd-slug> <identifier>
 ```
 
-### karimo_validate_assets()
+**Parameters:**
 
-Check asset integrity (files exist, manifest is valid).
+| Parameter | Description |
+|-----------|-------------|
+| `prd-slug` | PRD identifier |
+| `identifier` | Asset ID (e.g., "asset-001") or filename |
+
+**Example:**
 
 ```bash
-# karimo_validate_assets - Validate asset integrity for a PRD
-# Arguments:
-#   $1 = prd_slug
-# Returns: Validation report with status
-karimo_validate_assets() {
-  local prd_slug="$1"
+# By ID
+node .karimo/scripts/karimo-assets.js reference user-profiles asset-001
 
-  if [ -z "$prd_slug" ]; then
-    echo "❌ Usage: karimo_validate_assets <prd_slug>"
-    return 1
-  fi
+# By filename
+node .karimo/scripts/karimo-assets.js reference user-profiles planning-mockup-20260315151500.png
+```
 
-  # Find PRD folder
-  local prd_dir=$(ls -d .karimo/prds/*_${prd_slug} 2>/dev/null | head -1)
-  if [ -z "$prd_dir" ]; then
-    prd_dir=".karimo/prds/${prd_slug}"
-    if [ ! -d "$prd_dir" ]; then
-      echo "❌ PRD not found: $prd_slug"
-      return 1
-    fi
-  fi
+**Output:**
 
-  local manifest="${prd_dir}/assets.json"
-  local assets_dir="${prd_dir}/assets"
+```
+![Dashboard mockup](./assets/planning/planning-dashboard-mockup-20260315151500.png)
+```
 
-  # Check if manifest exists
-  if [ ! -f "$manifest" ]; then
-    echo "No assets manifest found for PRD: $prd_slug"
-    return 0
-  fi
+---
 
-  # Check Node.js availability
-  if ! command -v node >/dev/null 2>&1; then
-    echo "❌ Node.js not found. Required for JSON operations."
-    return 1
-  fi
+### validate — Check Asset Integrity
 
-  # Validate using Node.js
-  node -e "
-    const fs = require('fs');
-    const path = require('path');
+Check that all assets in the manifest exist on disk and vice versa.
 
-    const manifest = JSON.parse(fs.readFileSync('${manifest}', 'utf8'));
-    const assets = manifest.assets || [];
-    const assetsDir = '${assets_dir}';
-    const prdDir = '${prd_dir}';
+```bash
+node .karimo/scripts/karimo-assets.js validate <prd-slug>
+```
 
-    let validCount = 0;
-    let brokenCount = 0;
-    let sizeMismatchCount = 0;
-    const brokenRefs = [];
-    const sizeMismatches = [];
+**Example:**
 
-    // Validate manifest entries
-    assets.forEach(asset => {
-      const filepath = path.join(prdDir, 'assets', asset.stage, asset.filename);
+```bash
+node .karimo/scripts/karimo-assets.js validate user-profiles
+```
 
-      if (!fs.existsSync(filepath)) {
-        brokenCount++;
-        brokenRefs.push(\`  ❌ \${asset.id}: \${asset.filename} (file missing from disk)\`);
-      } else {
-        const stats = fs.statSync(filepath);
-        if (stats.size !== asset.size) {
-          sizeMismatchCount++;
-          sizeMismatches.push(\`  ⚠️  \${asset.id}: Size mismatch (manifest: \${asset.size}, disk: \${stats.size})\`);
-        }
-        validCount++;
-      }
-    });
+**Output (healthy):**
 
-    // Find orphaned files (on disk but not in manifest)
-    const orphanedFiles = [];
-    if (fs.existsSync(assetsDir)) {
-      const stages = ['research', 'planning', 'execution'];
-      stages.forEach(stage => {
-        const stageDir = path.join(assetsDir, stage);
-        if (fs.existsSync(stageDir)) {
-          const files = fs.readdirSync(stageDir);
-          files.forEach(file => {
-            const isTracked = assets.some(a => a.filename === file && a.stage === stage);
-            if (!isTracked) {
-              orphanedFiles.push(\`  ⚠️  \${stage}/\${file} (not in manifest)\`);
-            }
-          });
-        }
-      });
-    }
+```
+Asset Integrity Validation
+──────────────────────────
 
-    // Print report
-    console.log('Asset Integrity Validation');
-    console.log('──────────────────────────');
-    console.log('');
-    console.log(\`PRD: \${prd_slug}\`);
-    console.log(\`  ✅ \${validCount}/\${assets.length} assets validated\`);
+PRD: user-profiles
+  ✅ 3/3 assets validated
 
-    if (brokenCount > 0) {
-      console.log('');
-      console.log('Broken references:');
-      brokenRefs.forEach(ref => console.log(ref));
-    }
+✅ All assets valid
+```
 
-    if (sizeMismatchCount > 0) {
-      console.log('');
-      console.log('Size mismatches:');
-      sizeMismatches.forEach(mismatch => console.log(mismatch));
-    }
+**Output (issues found):**
 
-    if (orphanedFiles.length > 0) {
-      console.log('');
-      console.log('Orphaned files:');
-      orphanedFiles.forEach(file => console.log(file));
-      console.log('');
-      console.log('Run: rm <filepath> to remove orphaned assets');
-    }
+```
+Asset Integrity Validation
+──────────────────────────
 
-    console.log('');
+PRD: user-profiles
+  ✅ 2/3 assets validated
 
-    if (brokenCount === 0 && sizeMismatchCount === 0 && orphanedFiles.length === 0) {
-      console.log('✅ All assets valid');
-    } else {
-      console.log(\`⚠️  Issues found: \${brokenCount} broken, \${sizeMismatchCount} size mismatches, \${orphanedFiles.length} orphaned\`);
-    }
+Broken references:
+  ❌ asset-003: research-oauth2-flow-20260315143022.png (file missing from disk)
 
-    // Exit code reflects validation status
-    process.exit(brokenCount > 0 ? 1 : 0);
-  " "${prd_slug}"
-}
+Orphaned files:
+  ⚠️  planning/old-mockup.png (not in manifest)
 
-# Usage:
-# karimo_validate_assets "user-profiles"
+Run: rm <filepath> to remove orphaned assets
+
+⚠️  Issues found: 1 broken, 0 size mismatches, 1 orphaned
+```
+
+---
+
+### Agent Usage
+
+Each agent uses assets at specific stages:
+
+| Agent | Stage | Example |
+|-------|-------|---------|
+| karimo-researcher | `research` | Architecture diagrams, documentation screenshots |
+| karimo-interviewer | `planning` | User-provided mockups, design files |
+| karimo-pm | `execution` | Bug screenshots, error states |
+
+**Agent invocation pattern:**
+
+```bash
+node .karimo/scripts/karimo-assets.js add "$PRD_SLUG" "$IMAGE_SOURCE" "$STAGE" "$DESCRIPTION" "$AGENT_NAME"
+```
+
+---
+
+### Storage Structure
+
+```
+.karimo/prds/{slug}/
+├── assets/
+│   ├── research/       # Researcher-added assets
+│   │   └── research-{desc}-{timestamp}.{ext}
+│   ├── planning/       # Interviewer-added assets
+│   │   └── planning-{desc}-{timestamp}.{ext}
+│   └── execution/      # PM-added assets (runtime context)
+│       └── execution-{desc}-{timestamp}.{ext}
+└── assets.json         # Manifest with metadata
 ```
 
 ---
