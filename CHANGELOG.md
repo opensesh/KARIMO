@@ -7,6 +7,55 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [7.13.0] - 2026-03-18
+
+### Added
+
+- **`/karimo:greptile-review` standalone command** — Owns the entire Greptile review loop. Can be invoked independently on any PR or called by `/karimo:merge`. Features:
+  - Triggers @greptileai and polls for review
+  - Parses score and extracts P1/P2/P3 findings from inline comments
+  - Loops until threshold met (max 3 loops with circuit breaker)
+  - Returns structured exit codes (0=passed, 1=error, 2=needs-human)
+
+- **`karimo-greptile-remediator` agent** — Purpose-built agent for batch fixing Greptile findings:
+  - Processes findings by priority (P1 → P2 → P3)
+  - Groups fixes by file for efficiency
+  - Creates single atomic commit with finding summary
+  - Supports model escalation (Sonnet → Opus)
+
+- **Greptile findings template** — `GREPTILE_FINDINGS_TEMPLATE.md` provides structured schema for passing findings to the remediator agent
+
+- **Greptile review tracking in status.json** — New `greptile_review` object tracks final PR review state:
+  - `status`: in-progress, passed, failed, error
+  - `scores`: array of scores from each loop
+  - `loop_count`, `current_model`, timestamps
+
+- **Worktree cleanup verification** — `/karimo:merge` now verifies all worktrees cleaned up before final PR:
+  - Belt-and-suspenders check catches cleanup failures from wave transitions
+  - Cleans up stale worktrees and remote branches if found
+  - Ensures only feature branch exists at merge time
+
+### Changed
+
+- **`/karimo:merge` delegates to `/karimo:greptile-review`** — Section 8b now calls the standalone command instead of inline pseudocode. Benefits:
+  - Session independence (review can be resumed if session ends)
+  - Standalone usage (can run on any PR)
+  - Clear ownership (one command owns the flow)
+
+- **Greptile runs BEFORE CI validation** — Reordered to avoid wasted compute when code needs revision
+
+- **3-loop circuit breaker** — Replaces "one auto loop, then human" with up to 3 automatic attempts with model escalation
+
+### Fixed
+
+- **Greptile trigger no longer depends on agent session continuity** — The standalone command can be resumed or re-invoked if the session ends
+
+- **Findings are fixed in batch** — Single atomic commit per loop instead of multi-round trickling
+
+- **Model escalation triggers** — Clear criteria for when to escalate to Opus (architectural findings, repeated failures)
+
+---
+
 ## [7.12.1] - 2026-03-17
 
 ### Fixed

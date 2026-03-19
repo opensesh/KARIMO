@@ -1,5 +1,5 @@
 {
-  "version": "7.12.1",
+  "version": "7.13.0",
   "deprecated": {
     "commands": [
       "karimo-modify.md",
@@ -101,6 +101,7 @@
     "karimo/coverage-reviewer.md",
     "karimo/documenter.md",
     "karimo/documenter-opus.md",
+    "karimo/greptile-remediator.md",
     "karimo/implementer.md",
     "karimo/implementer-opus.md",
     "karimo/interviewer.md",
@@ -119,6 +120,7 @@
     "karimo/dashboard.md",
     "karimo/doctor.md",
     "karimo/feedback.md",
+    "karimo/greptile-review.md",
     "karimo/help.md",
     "karimo/merge.md",
     "karimo/plan.md",
@@ -145,6 +147,7 @@
     "FEEDBACK_INTERVIEW_PROTOCOL.md",
     "FINDINGS_TEMPLATE.md",
     "GENERAL_RESEARCH_TEMPLATE.md",
+    "GREPTILE_FINDINGS_TEMPLATE.md",
     "INTERNAL_FINDINGS_TEMPLATE.md",
     "INTERVIEW_PROTOCOL.md",
     "METRICS_SCHEMA.md",

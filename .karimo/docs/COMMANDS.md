@@ -34,6 +34,7 @@ Reference for all KARIMO slash commands available in Claude Code.
 
 | Command | Purpose |
 |---------|---------|
+| `/karimo:greptile-review --pr {number}` | Standalone Greptile review loop |
 | `/karimo:help` | Help and documentation search |
 
 ---
@@ -694,6 +695,83 @@ This breakdown helps:
 | Git history | Clean (1 feature commit) | Verbose (15+ task commits) |
 | Review consolidation | Single comprehensive review | Scattered across task PRs |
 | Rollback | Single revert | Multiple reverts needed |
+
+---
+
+## /karimo:greptile-review
+
+Execute the full Greptile review cycle on a PR, looping until score meets threshold or circuit breaker triggers.
+
+### Usage
+
+```bash
+# Standard usage (reads config from config.yaml)
+/karimo:greptile-review --pr 123
+
+# Override threshold and max loops
+/karimo:greptile-review --pr 123 --threshold 4 --max-loops 2
+```
+
+### What It Does
+
+1. **Trigger** — Posts @greptileai comment if not already triggered
+2. **Poll** — Waits for Greptile review (10 min timeout)
+3. **Parse** — Extracts score and P1/P2/P3 findings
+4. **Remediate** — Spawns `karimo-greptile-remediator` to fix findings
+5. **Loop** — Repeats until score >= threshold (max 3 loops)
+6. **Report** — Returns exit code for calling command
+
+### Arguments
+
+| Flag | Required | Description |
+|------|----------|-------------|
+| `--pr {number}` | Yes | PR number to review |
+| `--threshold {1-5}` | No | Target score (default: from config.yaml or 5) |
+| `--max-loops {1-5}` | No | Maximum attempts (default: from config.yaml or 3) |
+
+### Exit Codes
+
+| Code | Meaning | Action |
+|------|---------|--------|
+| `0` | Passed | PR ready for merge |
+| `1` | Transient error | Retry later |
+| `2` | Needs human | Max loops exceeded |
+
+### Model Escalation
+
+The remediator agent automatically escalates from Sonnet to Opus when:
+
+- P1 findings mention "architecture", "design", "pattern"
+- P1 findings mention "type system", "interface", "contract"
+- Second failed attempt with Sonnet
+
+### Standalone vs Integration
+
+**Standalone:** Run on any PR to get Greptile fixes:
+```bash
+/karimo:greptile-review --pr 456
+```
+
+**Integration:** Called by `/karimo:merge` after PR creation:
+```bash
+# In /karimo:merge Section 8b:
+/karimo:greptile-review --pr $pr_number --internal
+```
+
+### When to Use
+
+| Scenario | Recommended |
+|----------|-------------|
+| After `/karimo:merge` | Automatic (built-in) |
+| On any PR needing review | Manual invocation |
+| Re-running failed review | Manual with `--pr` |
+| Testing review flow | Manual with overrides |
+
+### Prerequisites
+
+- Greptile configured: `review.provider: greptile` in config.yaml
+- Greptile GitHub App installed on repository
+- Repository indexed in Greptile dashboard
 
 ---
 

@@ -258,6 +258,55 @@ Each PRD folder contains a `status.json` file that tracks execution state. This 
 | `merged_at` | ISO datetime | When PR was merged |
 | `error` | string | Error message (if failed) |
 
+### Greptile Review Fields (Final PR)
+
+For tracking the final PR's Greptile review cycle (v7.13.0+):
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `greptile_review` | object | Greptile review tracking for final PR |
+| `greptile_review.pr_number` | number | Final PR number |
+| `greptile_review.status` | string | Review status (see values below) |
+| `greptile_review.scores` | number[] | Array of scores from each review loop |
+| `greptile_review.loop_count` | number | Current loop iteration (1-3) |
+| `greptile_review.max_loops` | number | Maximum loops allowed (default: 3) |
+| `greptile_review.threshold` | number | Target score (default: 5) |
+| `greptile_review.current_model` | string | Model used for remediation ("sonnet" or "opus") |
+| `greptile_review.started_at` | ISO datetime | When review started |
+| `greptile_review.completed_at` | ISO datetime | When review completed |
+| `greptile_review.passed` | boolean | Whether review passed (score >= threshold) |
+
+### Greptile Review Status Values
+
+| Status | Meaning |
+|--------|---------|
+| `not-started` | Greptile review not yet triggered |
+| `in-progress` | Review loop active |
+| `passed` | Score met threshold |
+| `failed` | Max loops exceeded, needs human review |
+| `error` | Transient error (timeout, API failure) |
+
+### Greptile Review Example
+
+```json
+{
+  "prd_slug": "user-profiles",
+  "status": "merging",
+  "greptile_review": {
+    "pr_number": 127,
+    "status": "passed",
+    "scores": [3, 4, 5],
+    "loop_count": 3,
+    "max_loops": 3,
+    "threshold": 5,
+    "current_model": "opus",
+    "started_at": "2026-03-18T10:00:00Z",
+    "completed_at": "2026-03-18T10:45:00Z",
+    "passed": true
+  }
+}
+```
+
 ### Task Status Values
 
 | Status | Meaning |
