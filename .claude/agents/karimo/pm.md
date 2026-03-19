@@ -926,13 +926,28 @@ When all tasks in a wave have merged PRs:
      - Architectural decisions for next wave
      - Known issues or TODOs
 
-4. **Verify target branch is stable:**
+4. **Commit wave state to feature branch:**
+   ```bash
+   git checkout $base_branch
+   git pull origin $base_branch
+   git add .karimo/prds/${prd_number}_${prd_slug}/status.json
+   git add .karimo/prds/${prd_number}_${prd_slug}/findings.md
+   git commit -m "chore(karimo): complete wave ${wave} for ${prd_slug}
+
+   Tasks merged: ${task_ids}
+   Findings: ${finding_count} discoveries
+
+   Co-Authored-By: Claude <noreply@anthropic.com>"
+   git push origin $base_branch
+   ```
+
+6. **Verify target branch is stable:**
    ```bash
    git checkout $base_branch && git pull origin $base_branch
    # Run validation commands from config.yaml
    ```
 
-5. **Run post-wave hook:**
+7. **Run post-wave hook:**
    ```bash
    export WAVE="{wave}"
    export PRD_SLUG="{prd_slug}"
@@ -946,7 +961,7 @@ When all tasks in a wave have merged PRs:
    # Continue even if hook fails (typically for cleanup/notifications)
    ```
 
-6. **Clean up merged task branches and worktrees:**
+8. **Clean up merged task branches and worktrees:**
 
    For each task that merged in this wave, immediately clean up:
 
@@ -976,7 +991,7 @@ When all tasks in a wave have merged PRs:
 
    Task branches use `worktree/` prefix (e.g., `worktree/user-profiles-1a`) for visual distinction in GitHub UI. Only the feature branch remains after cleanup.
 
-7. **Proceed to next wave**
+9. **Proceed to next wave**
 
 ---
 
@@ -1070,7 +1085,23 @@ The worker will see this context when implementing the fix.
 
 4. **Generate metrics.json** (same format, update version to "5.0")
 
-5. **Cross-PRD Pattern Detection:**
+5. **Commit finalization state to feature branch:**
+   ```bash
+   git checkout $base_branch
+   git pull origin $base_branch
+   git add .karimo/prds/${prd_number}_${prd_slug}/status.json
+   git add .karimo/prds/${prd_number}_${prd_slug}/metrics.json
+   git add .karimo/prds/${prd_number}_${prd_slug}/findings.md
+   git commit -m "chore(karimo): complete execution for ${prd_slug}
+
+   Tasks: ${done}/${total} complete
+   Duration: ${duration} minutes
+
+   Co-Authored-By: Claude <noreply@anthropic.com>"
+   git push origin $base_branch
+   ```
+
+6. **Cross-PRD Pattern Detection:**
    - Read `findings.md` from this PRD
    - Scan `.karimo/findings/by-pattern/` for existing patterns
    - For each finding:
@@ -1079,7 +1110,7 @@ The worker will see this context when implementing the fix.
      - If PRD-specific → add to `by-prd/{prd-slug}.md`
    - Update `.karimo/findings/index.md` if patterns promoted
 
-6. **Post completion summary:**
+7. **Post completion summary:**
    ```
    All Tasks Complete: {prd_slug}
 

@@ -96,6 +96,16 @@ KARIMO v7.0 introduces a 4-phase execution model with user iteration:
    - Categorize: Critical, Warning, Observation
    - Include suggested fixes
 
+4. **Commit Review Findings**
+   ```bash
+   git add .karimo/prds/{NNN}_{slug}/recommendations.md
+   git commit -m "docs(karimo): brief review findings for {slug}
+
+   Critical: {n} | Warnings: {n} | Observations: {n}
+
+   Co-Authored-By: Claude <noreply@anthropic.com>"
+   ```
+
 ---
 
 ## Phase 3: User Iterate
@@ -140,7 +150,15 @@ Your choice:
 
 **Option 2 — Apply fixes:**
 - Spawn `karimo-brief-corrector` to apply fixes
-- Commit corrections
+- Commit corrections:
+  ```bash
+  git add .karimo/prds/{NNN}_{slug}/briefs/ .karimo/prds/{NNN}_{slug}/tasks.yaml
+  git commit -m "docs(karimo): apply brief corrections for {slug}
+
+  Applied {n} critical fixes from review.
+
+  Co-Authored-By: Claude <noreply@anthropic.com>"
+  ```
 - Proceed to Phase 4 (Orchestrate)
 
 **Option 3 — Modify:**
