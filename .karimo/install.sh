@@ -334,7 +334,7 @@ if [ "$CI_MODE" = false ]; then
         DETECTED_PKG_MANAGER="pnpm"
     elif [ -f "$TARGET_DIR/yarn.lock" ]; then
         DETECTED_PKG_MANAGER="yarn"
-    elif [ -f "$TARGET_DIR/bun.lockb" ]; then
+    elif [ -f "$TARGET_DIR/bun.lock" ] || [ -f "$TARGET_DIR/bun.lockb" ]; then
         DETECTED_PKG_MANAGER="bun"
     elif [ -f "$TARGET_DIR/package-lock.json" ]; then
         DETECTED_PKG_MANAGER="npm"
@@ -352,7 +352,7 @@ if [ "$CI_MODE" = false ]; then
 
     # Detect runtime
     if [ -f "$TARGET_DIR/package.json" ]; then
-        if [ -f "$TARGET_DIR/bun.lockb" ]; then
+        if [ -f "$TARGET_DIR/bun.lock" ] || [ -f "$TARGET_DIR/bun.lockb" ]; then
             DETECTED_RUNTIME="Bun"
         elif [ -f "$TARGET_DIR/deno.json" ] || [ -f "$TARGET_DIR/deno.jsonc" ]; then
             DETECTED_RUNTIME="Deno"

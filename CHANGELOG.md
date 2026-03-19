@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [7.13.1] - 2026-03-19
+
+### Fixed
+
+- **Bun lockfile detection** — `install.sh` now detects both `bun.lock` (Bun 1.0+) and legacy `bun.lockb` formats. Previously only detected the old binary format, causing package manager misdetection on newer Bun projects.
+
+- **Greptile setup on update** — `update.sh` now automatically sets up Greptile when `review_provider: greptile` is configured:
+  - Creates `.greptile/` directory if missing
+  - Installs `config.json` and `rules.md` from templates
+  - Installs `karimo-greptile-review.yml` workflow
+  - Migrates old `greptile.json` (root) to new `.greptile/config.json` structure
+
+- **Greptile workflow installation** — The Greptile trigger workflow is now installed automatically when Greptile is the configured review provider, instead of requiring manual setup or only updating existing workflows.
+
+---
+
 ## [7.13.0] - 2026-03-18
 
 ### Added

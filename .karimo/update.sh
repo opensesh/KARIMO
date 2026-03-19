@@ -661,6 +661,70 @@ if [ -f "$KARIMO_SOURCE/.claude/KARIMO_RULES.md" ]; then
     cp "$KARIMO_SOURCE/.claude/KARIMO_RULES.md" "$PROJECT_ROOT/.claude/KARIMO_RULES.md"
 fi
 
+# ==============================================================================
+# GREPTILE SETUP (when review_provider: greptile is configured)
+# ==============================================================================
+
+setup_greptile() {
+    local config_file="$PROJECT_ROOT/.karimo/config.yaml"
+
+    # Check if config exists and has greptile as review provider
+    if [ ! -f "$config_file" ]; then
+        return 0
+    fi
+
+    # Check for review_provider: greptile (handles both old and new config formats)
+    if ! grep -qE "review_provider:\s*greptile|provider:\s*greptile" "$config_file"; then
+        return 0
+    fi
+
+    echo "  Setting up Greptile integration..."
+
+    # Step 1: Migrate old greptile.json to new .greptile/ structure
+    if [ -f "$PROJECT_ROOT/greptile.json" ] && [ ! -f "$PROJECT_ROOT/.greptile/config.json" ]; then
+        echo "    Migrating greptile.json to .greptile/config.json..."
+        mkdir -p "$PROJECT_ROOT/.greptile"
+        mv "$PROJECT_ROOT/greptile.json" "$PROJECT_ROOT/.greptile/config.json"
+    fi
+
+    # Step 2: Create .greptile directory if missing
+    if [ ! -d "$PROJECT_ROOT/.greptile" ]; then
+        mkdir -p "$PROJECT_ROOT/.greptile"
+    fi
+
+    # Step 3: Install config.json if missing
+    if [ ! -f "$PROJECT_ROOT/.greptile/config.json" ]; then
+        if [ -f "$KARIMO_SOURCE/.karimo/templates/greptile/config.json" ]; then
+            echo "    Installing .greptile/config.json..."
+            cp "$KARIMO_SOURCE/.karimo/templates/greptile/config.json" "$PROJECT_ROOT/.greptile/"
+        fi
+    fi
+
+    # Step 4: Install rules.md if missing
+    if [ ! -f "$PROJECT_ROOT/.greptile/rules.md" ]; then
+        if [ -f "$KARIMO_SOURCE/.karimo/templates/greptile/rules.md" ]; then
+            echo "    Installing .greptile/rules.md..."
+            cp "$KARIMO_SOURCE/.karimo/templates/greptile/rules.md" "$PROJECT_ROOT/.greptile/"
+        fi
+    fi
+
+    # Step 5: Install workflow if missing
+    local workflow_src="$KARIMO_SOURCE/.karimo/workflow-templates/karimo-greptile-trigger.yml"
+    local workflow_dst="$PROJECT_ROOT/.github/workflows/karimo-greptile-review.yml"
+
+    if [ -f "$workflow_src" ] && [ ! -f "$workflow_dst" ]; then
+        echo "    Installing karimo-greptile-review.yml workflow..."
+        mkdir -p "$PROJECT_ROOT/.github/workflows"
+        cp "$workflow_src" "$workflow_dst"
+        UPDATED_WORKFLOWS=$((UPDATED_WORKFLOWS + 1))
+    fi
+
+    echo "    Greptile integration configured"
+}
+
+# Run Greptile setup if configured
+setup_greptile
+
 # Update optional workflows if already installed (from .github/workflows/)
 # Note: karimo-ci.yml is a source repo workflow only (validates MANIFEST.json)
 # It should NOT be copied to target projects
