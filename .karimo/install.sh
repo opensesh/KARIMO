@@ -179,6 +179,7 @@ if [ -d "$TARGET_DIR/.karimo" ] && [ -d "$TARGET_DIR/.claude/commands" ]; then
         CMD_CNT=$(manifest_count "commands")
         SKILL_CNT=$(manifest_count "skills")
         TMPL_CNT=$(manifest_count "templates")
+        SCRIPT_CNT=$(manifest_count "scripts")
 
         echo -e "${YELLOW}KARIMO is already installed.${NC}"
         echo ""
@@ -190,6 +191,7 @@ if [ -d "$TARGET_DIR/.karimo" ] && [ -d "$TARGET_DIR/.claude/commands" ]; then
         echo "  • ${CMD_CNT} commands"
         echo "  • ${SKILL_CNT} skills"
         echo "  • ${TMPL_CNT} templates"
+        echo "  • ${SCRIPT_CNT} scripts"
         echo "  • KARIMO_RULES.md"
         echo "  • CLAUDE.md (KARIMO section)"
         echo ""
@@ -219,6 +221,7 @@ mkdir -p "$TARGET_DIR/.claude/agents/karimo"
 mkdir -p "$TARGET_DIR/.claude/commands/karimo"
 mkdir -p "$TARGET_DIR/.claude/skills/karimo"
 mkdir -p "$TARGET_DIR/.karimo/templates"
+mkdir -p "$TARGET_DIR/.karimo/scripts"
 mkdir -p "$TARGET_DIR/.karimo/prds"
 mkdir -p "$TARGET_DIR/.karimo/findings/by-prd"
 mkdir -p "$TARGET_DIR/.karimo/findings/by-pattern"
@@ -291,6 +294,22 @@ for template in $(manifest_list "templates"); do
     fi
 done
 echo "  Copied $TEMPLATE_COUNT templates"
+
+# Copy scripts from manifest
+echo "Copying scripts..."
+SCRIPT_COUNT=0
+for script in $(manifest_list "scripts"); do
+    src="$KARIMO_ROOT/.karimo/scripts/$script"
+    dst="$TARGET_DIR/.karimo/scripts/$script"
+    if [ -f "$src" ]; then
+        mkdir -p "$(dirname "$dst")"
+        cp "$src" "$dst"
+        SCRIPT_COUNT=$((SCRIPT_COUNT + 1))
+    else
+        echo -e "  ${YELLOW}Warning: Script not found: $script${NC}"
+    fi
+done
+echo "  Copied $SCRIPT_COUNT scripts"
 
 # Copy version tracking and manifest
 echo "Setting version..."
@@ -587,6 +606,7 @@ MANIFEST_AGENTS=$(manifest_count "agents")
 MANIFEST_COMMANDS=$(manifest_count "commands")
 MANIFEST_SKILLS=$(manifest_count "skills")
 MANIFEST_TEMPLATES=$(manifest_count "templates")
+MANIFEST_SCRIPTS=$(manifest_count "scripts")
 
 echo
 echo -e "${GREEN}╭──────────────────────────────────────────────────────────────╮${NC}"
@@ -599,6 +619,7 @@ echo "  .claude/commands/karimo/  $MANIFEST_COMMANDS slash commands (/karimo:*)"
 echo "  .claude/skills/karimo/    $MANIFEST_SKILLS skill definitions"
 echo "  .claude/KARIMO_RULES.md   Agent behavior rules"
 echo "  .karimo/templates/        $MANIFEST_TEMPLATES templates"
+echo "  .karimo/scripts/          $MANIFEST_SCRIPTS CLI scripts"
 echo "  .karimo/VERSION           Version tracking"
 echo "  .karimo/MANIFEST.json     File inventory"
 echo "  .github/ISSUE_TEMPLATE/   1 issue template"
