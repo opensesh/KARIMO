@@ -7,6 +7,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [7.15.0] - 2026-03-19
+
+### Added
+
+- **Atomic commit strategy documentation** — New `COMMIT-STRATEGY.md` in `.karimo/docs/` explaining the two-phase commit lifecycle:
+  - **Phase A (Pre-Orchestration):** Commits to main for research, PRD, briefs, review findings, and corrections
+  - **Phase B (Orchestration):** Commits to feature branch via worktrees with "grow and collapse" pattern
+  - Visual Mermaid diagram showing complete git flow
+  - Commit message templates for all stages
+  - Anti-patterns to avoid
+
+### Changed
+
+- **`/karimo:run` Phase 2 commit** — Added commit checkpoint for `recommendations.md` after brief-reviewer generates review findings. Previously uncommitted until corrections phase.
+
+- **`/karimo:run` Phase 3 Option 2 commit** — Explicitly formatted commit block for corrections after brief-corrector applies fixes.
+
+- **PM agent wave completion commits** — Added state file commits to feature branch after each wave completes:
+  - Commits `status.json` + `findings.md` with wave summary
+  - Ensures crash recovery can resume from last committed wave
+
+- **PM agent finalization commit** — Added finalization commit before `/karimo:merge`:
+  - Commits `status.json` + `metrics.json` + `findings.md`
+  - Documents task completion count and duration
+
+### Documentation
+
+- **COMMIT-STRATEGY.md** — Comprehensive guide to atomic commits including:
+  - Who commits where (command/agent → target branch mapping)
+  - Feature branch lifecycle from creation to final merge
+  - Crash recovery implications
+
+---
+
 ## [7.14.3] - 2026-03-19
 
 ### Changed
