@@ -160,6 +160,9 @@
     "TASK_BRIEF_TEMPLATE.md",
     "TASK_SCHEMA.md"
   ],
+  "scripts": [
+    "karimo-assets.js"
+  ],
   "greptile_source": [
     "greptile/config.json",
     "greptile/rules.md"
