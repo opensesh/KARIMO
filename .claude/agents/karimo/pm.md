@@ -1001,10 +1001,9 @@ If the user provides additional context (bug screenshots, error states, visual c
 
 **Asset Handling:**
 
-1. **Store execution-stage assets** using karimo_add_asset():
+1. **Store execution-stage assets** using the karimo-assets CLI:
    ```bash
-   source .claude/skills/karimo/bash-utilities.md
-   karimo_add_asset "$PRD_SLUG" "$IMAGE_SOURCE" "execution" "$DESCRIPTION" "karimo-pm"
+   node .karimo/scripts/karimo-assets.js add "$PRD_SLUG" "$IMAGE_SOURCE" "execution" "$DESCRIPTION" "karimo-pm"
    ```
 
 2. **Parameters:**
@@ -1030,8 +1029,14 @@ User: Here's a screenshot of the error state I'm seeing:
       /Users/me/Desktop/error-screenshot.png
 
 PM:
-[Calls karimo_add_asset]
-✓ Asset stored: execution-error-state-20260315163000.png
+$ node .karimo/scripts/karimo-assets.js add user-profiles "/Users/me/Desktop/error-screenshot.png" execution "Error state screenshot" "karimo-pm"
+✅ Asset stored: execution-error-state-20260315163000.png
+   Stage: execution
+   Size: 85 KB
+   ID: asset-001
+
+Markdown reference:
+![Error state screenshot](./assets/execution/execution-error-state-20260315163000.png)
 
 I've added this to the task brief for task 2a (error handling).
 The worker will see this context when implementing the fix.
