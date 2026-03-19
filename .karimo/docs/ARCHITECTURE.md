@@ -1,6 +1,6 @@
 # KARIMO Architecture
 
-**Version:** 7.3.0
+**Version:** 7.13.0
 **Status:** Active
 
 ---
@@ -221,7 +221,7 @@ When you run `bash KARIMO/.karimo/install.sh /path/to/project`, files are copied
 ```
 Target Project/
 ├── .claude/
-│   ├── agents/                      # 18 agents from manifest
+│   ├── agents/                      # 19 agents from manifest
 │   │   ├── karimo-interviewer.md    # PRD interview conductor
 │   │   ├── karimo-investigator.md   # Codebase pattern scanner
 │   │   ├── karimo-researcher.md     # Research conductor (internal + external)
@@ -232,6 +232,7 @@ Target Project/
 │   │   ├── karimo-brief-corrector.md # Brief correction agent
 │   │   ├── karimo-pm.md             # Task coordination (never writes code)
 │   │   ├── karimo-review-architect.md # Code-level integration
+│   │   ├── karimo-greptile-remediator.md # Batch fixes Greptile findings (v7.13)
 │   │   ├── karimo-feedback-auditor.md # Feedback investigation agent
 │   │   ├── karimo-coverage-reviewer.md # Coverage analysis for PRs
 │   │   ├── karimo-implementer.md    # Task agent: coding (Sonnet)
@@ -240,11 +241,12 @@ Target Project/
 │   │   ├── karimo-tester-opus.md    # Task agent: tests (Opus)
 │   │   ├── karimo-documenter.md     # Task agent: docs (Sonnet)
 │   │   └── karimo-documenter-opus.md # Task agent: docs (Opus)
-│   ├── commands/                    # 10 commands from manifest
+│   ├── commands/                    # 11 commands from manifest
 │   │   ├── karimo-configure.md      # /karimo:configure
 │   │   ├── karimo-dashboard.md      # /karimo:dashboard (includes status)
 │   │   ├── karimo-doctor.md         # /karimo:doctor (includes --test)
 │   │   ├── karimo-feedback.md       # /karimo:feedback (unified with complexity detection)
+│   │   ├── karimo-greptile-review.md # /karimo:greptile-review (standalone Greptile loop, v7.13)
 │   │   ├── karimo-help.md           # /karimo:help
 │   │   ├── karimo-merge.md          # /karimo:merge (final PR to main)
 │   │   ├── karimo-plan.md           # /karimo:plan (with interactive review)

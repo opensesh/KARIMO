@@ -681,22 +681,34 @@ PR Created → Code Review multi-agent fleet activates
 
 When review finds issues, KARIMO enters a revision loop:
 
-**Greptile Revision Flow (v7.12):**
+**Greptile Revision Flow (v7.13):**
+
+KARIMO v7.13 introduces `/karimo:greptile-review`, a standalone command that owns the entire Greptile loop. This command is:
+- Called automatically by `/karimo:merge` when Greptile is configured
+- Can be run manually on any PR: `/karimo:greptile-review --pr 123`
 
 ```bash
-# PM Agent polls for Greptile review after PR creation
+# /karimo:greptile-review handles the full loop
 while [ "$score" -lt "$threshold" ] && [ "$loop_count" -lt "$max_loops" ]; do
-  1. Wait for Greptile review (~3 minutes)
-  2. Parse confidence score from review comment
-  3. Extract P1/P2/P3 findings from inline comments
-  4. If score < threshold:
-     - Add needs-revision label
-     - Spawn worker with findings context
-     - Worker pushes fixes
+  1. Trigger @greptileai (if not already triggered)
+  2. Wait for Greptile review (~3-10 minutes)
+  3. Parse confidence score from review comment
+  4. Extract P1/P2/P3 findings from inline comments
+  5. If score < threshold:
+     - Spawn karimo-greptile-remediator agent
+     - Agent fixes ALL findings in batch commit
+     - Push to PR branch
      - Greptile auto-reviews on push
      - Increment loop_count
+     - Escalate model if needed (Sonnet → Opus)
 done
 ```
+
+**Benefits of standalone command:**
+- Session independence (can be resumed if session ends)
+- Batch fixes (single commit per loop, not multi-round trickling)
+- Clear model escalation triggers
+- Can be run on any PR, not just final merge PRs
 
 **Attempt 1:**
 1. PM Agent reads review feedback (score and P1/P2/P3 findings)
