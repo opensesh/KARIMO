@@ -761,6 +761,13 @@ REVIEW_PROVIDER=$(grep "^review_provider:" .karimo/config.yaml 2>/dev/null | awk
 if [ "$REVIEW_PROVIDER" = "greptile" ]; then
   [ -f ".github/workflows/karimo-greptile-review.yml" ] || echo "⚠️ Workflow missing"
   [ -n "$GREPTILE_API_KEY" ] || echo "⚠️ API key not set"
+
+  # Check for rules.md and whether it's project-specific
+  if [ ! -f ".greptile/rules.md" ]; then
+    echo "⚠️ Rules missing — Run /karimo:configure --greptile to generate"
+  elif grep -q "GENERIC_TEMPLATE" ".greptile/rules.md" 2>/dev/null; then
+    echo "⚠️ Rules generic — Run /karimo:configure --greptile to generate project-specific rules"
+  fi
 fi
 
 # Check for REVIEW.md if provider is code-review
@@ -773,7 +780,7 @@ fi
 - Count PRDs in `.karimo/prds/`
 - Summarize statuses: draft, ready, approved, active, complete
 
-**Example output (Greptile):**
+**Example output (Greptile - fully configured):**
 
 ```
 Check 5: Phase Assessment
@@ -781,7 +788,7 @@ Check 5: Phase Assessment
 
   Phase Status:
     ✅ Phase 1    Configured (config + agents + commands)
-    ✅ Phase 2    Greptile (workflow + API key)
+    ✅ Phase 2    Greptile (workflow + rules + API key)
     ✅ Phase 3    GitHub-native monitoring
 
   PRDs:
@@ -789,6 +796,23 @@ Check 5: Phase Assessment
       ✓ user-profiles     complete
       ⋯ token-studio      active (4/8 tasks)
       ○ auth-refactor     ready (for execution)
+```
+
+**Example output (Greptile - missing project-specific rules):**
+
+```
+Check 5: Phase Assessment
+─────────────────────────
+
+  Phase Status:
+    ✅ Phase 1    Configured (config + agents + commands)
+    ⚠️  Phase 2    Greptile (workflow installed)
+                  Rules generic — Run /karimo:configure --greptile to generate
+    ✅ Phase 3    GitHub-native monitoring
+
+  PRDs:
+    Total: 1
+      ○ user-profiles     ready (for execution)
 ```
 
 **Example output (Code Review):**
@@ -1049,6 +1073,7 @@ Summary
 | Orphaned assets | Remove manually: `rm <filepath>` |
 | Broken asset references | Re-download asset or remove from manifest |
 | Asset size mismatch | Re-download asset |
+| Greptile rules missing/generic | `/karimo:configure --greptile` |
 
 Or if all checks pass:
 

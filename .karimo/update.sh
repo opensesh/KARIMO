@@ -700,12 +700,18 @@ setup_greptile() {
         fi
     fi
 
-    # Step 4: Install rules.md if missing
+    # Step 4: Check rules.md status
     if [ ! -f "$PROJECT_ROOT/.greptile/rules.md" ]; then
-        if [ -f "$KARIMO_SOURCE/.karimo/templates/greptile/rules.md" ]; then
-            echo "    Installing .greptile/rules.md..."
-            cp "$KARIMO_SOURCE/.karimo/templates/greptile/rules.md" "$PROJECT_ROOT/.greptile/"
-        fi
+        echo ""
+        echo "    ⚠️  .greptile/rules.md missing"
+        echo "       Run /karimo:configure --greptile to generate project-specific rules"
+        echo ""
+    elif grep -q "GENERIC_TEMPLATE" "$PROJECT_ROOT/.greptile/rules.md" 2>/dev/null; then
+        # Detect generic template (contains placeholder text)
+        echo ""
+        echo "    ⚠️  .greptile/rules.md contains generic template"
+        echo "       Run /karimo:configure --greptile to generate project-specific rules"
+        echo ""
     fi
 
     # Step 5: Install workflow if missing

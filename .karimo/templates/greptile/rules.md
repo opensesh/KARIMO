@@ -1,5 +1,8 @@
 # KARIMO Code Review Rules
 
+<!-- GENERIC_TEMPLATE: Add your project-specific rules below -->
+<!-- Run /karimo:configure --greptile to generate project-specific rules -->
+
 ## Required Checks
 
 - All imports must be used (no dead imports)
