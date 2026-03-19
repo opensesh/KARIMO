@@ -179,34 +179,38 @@ I've added this to task 2a's brief.
 
 ---
 
-## Bash Utilities Reference
+## CLI Reference
 
-All asset operations are handled by bash functions in the `karimo-bash-utilities` skill.
+All asset operations use the Node.js CLI script at `.karimo/scripts/karimo-assets.js`.
 
-### karimo_add_asset()
+```bash
+node .karimo/scripts/karimo-assets.js <command> [arguments]
+```
+
+### add — Add an Asset
 
 Download from URL or copy from local path, store with metadata.
 
-**Signature:**
+**Usage:**
 ```bash
-karimo_add_asset <prd_slug> <source> <stage> <description> <added_by>
+node .karimo/scripts/karimo-assets.js add <prd-slug> <source> <stage> <description> <added-by>
 ```
 
 **Parameters:**
-- `prd_slug` — PRD identifier (e.g., "user-profiles")
-- `source` — URL (https://...) or local file path (/Users/...)
-- `stage` — research | planning | execution
-- `description` — Brief description (e.g., "Dashboard mockup")
-- `added_by` — Agent name (e.g., "karimo-interviewer")
 
-**Returns:** Markdown reference string
+| Parameter | Description |
+|-----------|-------------|
+| `prd-slug` | PRD identifier (e.g., "user-profiles") |
+| `source` | URL or local file path to the asset |
+| `stage` | Lifecycle stage: `research`, `planning`, or `execution` |
+| `description` | Human-readable description for the asset |
+| `added-by` | Agent or user name who added the asset |
 
 **Example:**
 ```bash
-source .claude/skills/karimo/bash-utilities.md
-karimo_add_asset "user-profiles" \
+node .karimo/scripts/karimo-assets.js add user-profiles \
   "https://example.com/mockup.png" \
-  "planning" \
+  planning \
   "Dashboard mockup" \
   "karimo-interviewer"
 
@@ -214,25 +218,28 @@ karimo_add_asset "user-profiles" \
 # ✅ Asset stored: planning-dashboard-mockup-20260315151500.png
 #    Stage: planning
 #    Size: 128 KB
-#    Reference: ![Dashboard mockup](./assets/planning/planning-dashboard-mockup-20260315151500.png)
+#    ID: asset-001
+#
+# Markdown reference:
+# ![Dashboard mockup](./assets/planning/planning-dashboard-mockup-20260315151500.png)
 ```
 
-### karimo_list_assets()
+### list — List Assets
 
 Display all assets for a PRD with metadata.
 
-**Signature:**
+**Usage:**
 ```bash
-karimo_list_assets <prd_slug> [stage]
+node .karimo/scripts/karimo-assets.js list <prd-slug> [stage]
 ```
 
 **Parameters:**
-- `prd_slug` — PRD identifier
+- `prd-slug` — PRD identifier
 - `stage` — Optional filter (research | planning | execution)
 
 **Example:**
 ```bash
-karimo_list_assets "user-profiles"
+node .karimo/scripts/karimo-assets.js list user-profiles
 
 # Output:
 # Assets for PRD: user-profiles
@@ -250,36 +257,34 @@ karimo_list_assets "user-profiles"
 #         Size: 128 KB
 ```
 
-### karimo_get_asset_reference()
+### reference — Get Markdown Reference
 
 Generate markdown reference for an asset by ID or filename.
 
-**Signature:**
+**Usage:**
 ```bash
-karimo_get_asset_reference <prd_slug> <identifier>
+node .karimo/scripts/karimo-assets.js reference <prd-slug> <identifier>
 ```
 
 **Parameters:**
-- `prd_slug` — PRD identifier
+- `prd-slug` — PRD identifier
 - `identifier` — Asset ID (e.g., "asset-001") or filename
-
-**Returns:** Markdown reference string
 
 **Example:**
 ```bash
-karimo_get_asset_reference "user-profiles" "asset-001"
+node .karimo/scripts/karimo-assets.js reference user-profiles asset-001
 
 # Output:
 # ![User flow mockup from product team](./assets/research/research-user-flow-20260315143022.png)
 ```
 
-### karimo_validate_assets()
+### validate — Check Asset Integrity
 
-Check asset integrity (files exist, manifest is valid).
+Verify files exist on disk and manifest is consistent.
 
-**Signature:**
+**Usage:**
 ```bash
-karimo_validate_assets <prd_slug>
+node .karimo/scripts/karimo-assets.js validate <prd-slug>
 ```
 
 **Checks:**
@@ -291,7 +296,7 @@ karimo_validate_assets <prd_slug>
 
 **Example:**
 ```bash
-karimo_validate_assets "user-profiles"
+node .karimo/scripts/karimo-assets.js validate user-profiles
 
 # Output:
 # Asset Integrity Validation
@@ -311,7 +316,7 @@ karimo_validate_assets "user-profiles"
 
 During `/karimo:plan` interview, when user provides images:
 
-1. Agent calls `karimo_add_asset()` with stage="planning"
+1. Agent calls `node .karimo/scripts/karimo-assets.js add` with stage="planning"
 2. Returns markdown reference for PRD embedding
 3. Confirms storage to user
 
@@ -320,7 +325,9 @@ During `/karimo:plan` interview, when user provides images:
 User: Here's the mockup: https://example.com/design.png
 
 Interviewer:
-✓ Image stored: planning-mockup-20260315151500.png
+$ node .karimo/scripts/karimo-assets.js add my-feature "https://example.com/design.png" planning "Design mockup" "karimo-interviewer"
+✅ Asset stored: planning-mockup-20260315151500.png
+
 I've embedded the mockup in the PRD under "Visual Design".
 ```
 
@@ -328,14 +335,15 @@ I've embedded the mockup in the PRD under "Visual Design".
 
 During `/karimo:research`, when encountering relevant images:
 
-1. Uses Firecrawl screenshot tools or WebFetch
-2. Calls `karimo_add_asset()` with stage="research"
+1. Uses Firecrawl screenshot tools or WebFetch to get image URL
+2. Calls `node .karimo/scripts/karimo-assets.js add` with stage="research"
 3. References in `research/external/findings.md`
 
 **Automatic capture:**
 ```
 Researcher found OAuth2 diagram during documentation scraping:
-✓ Asset stored: research-oauth2-flow-20260315143022.png
+$ node .karimo/scripts/karimo-assets.js add auth-flow "https://oauth.net/diagram.png" research "OAuth2 flow diagram" "karimo-researcher"
+✅ Asset stored: research-oauth2-flow-20260315143022.png
 
 Referenced in findings with source attribution.
 ```
@@ -344,7 +352,7 @@ Referenced in findings with source attribution.
 
 During `/karimo:run`, if user provides additional context:
 
-1. Calls `karimo_add_asset()` with stage="execution"
+1. Calls `node .karimo/scripts/karimo-assets.js add` with stage="execution"
 2. Updates relevant task brief or creates findings file
 3. Notifies active workers via PR comments
 
@@ -353,7 +361,9 @@ During `/karimo:run`, if user provides additional context:
 User: Screenshot of bug: /Users/me/Desktop/error.png
 
 PM:
-✓ Asset stored: execution-bug-screenshot-20260315163000.png
+$ node .karimo/scripts/karimo-assets.js add my-feature "/Users/me/Desktop/error.png" execution "Bug screenshot" "karimo-pm"
+✅ Asset stored: execution-bug-screenshot-20260315163000.png
+
 Added to task 2a brief under "Additional Context".
 ```
 
@@ -362,7 +372,7 @@ Added to task 2a brief under "Additional Context".
 When generating task briefs:
 
 1. Checks for asset references in PRD
-2. Uses `karimo_list_assets()` to find relevant assets
+2. Uses `node .karimo/scripts/karimo-assets.js list` to find relevant assets
 3. Includes "Visual References" section if task mentions UI/design
 4. Uses relative paths from briefs/ subdirectory
 
@@ -434,7 +444,7 @@ Summary:
 **Resolution:**
 1. Re-download asset:
    ```bash
-   karimo_add_asset "{prd_slug}" "{original_source}" "{stage}" "{description}" "manual"
+   node .karimo/scripts/karimo-assets.js add "{prd_slug}" "{original_source}" "{stage}" "{description}" "manual"
    ```
 2. Or remove from manifest:
    ```bash
@@ -551,7 +561,7 @@ Source: https://oauth.net/2/grant-types/authorization-code/
 **Resolution:**
 ```bash
 # Option 1: Re-download from original source
-karimo_add_asset "{prd_slug}" "{original_source}" "{stage}" "{description}" "manual"
+node .karimo/scripts/karimo-assets.js add "{prd_slug}" "{original_source}" "{stage}" "{description}" "manual"
 
 # Option 2: Edit assets.json and remove broken entry
 ```
@@ -563,12 +573,12 @@ karimo_add_asset "{prd_slug}" "{original_source}" "{stage}" "{description}" "man
 1. **File size detection:**
    - macOS: `stat -f%z`
    - Linux: `stat -c%s`
-   - **Solution:** Bash utilities handle both automatically
+   - **Solution:** Node.js CLI handles both automatically
 
 2. **Hash command:**
    - macOS/Linux: `shasum -a 256`
    - Some Linux: `sha256sum`
-   - **Solution:** Bash utilities detect and use available command
+   - **Solution:** Node.js CLI uses native crypto module (no shell dependency)
 
 3. **Path separators:**
    - Use forward slashes `/` (works on all platforms including WSL)
@@ -620,7 +630,7 @@ User: Error screenshot: /Users/me/Desktop/auth-error.png
 
 **Research stage:**
 ```bash
-karimo_add_asset "dashboard" \
+node .karimo/scripts/karimo-assets.js add "dashboard" \
   "https://docs.example.com/architecture.svg" \
   "research" \
   "System architecture" \
@@ -629,7 +639,7 @@ karimo_add_asset "dashboard" \
 
 **Planning stage:**
 ```bash
-karimo_add_asset "dashboard" \
+node .karimo/scripts/karimo-assets.js add "dashboard" \
   "https://figma.com/mockup.png" \
   "planning" \
   "Dashboard mockup" \
@@ -638,7 +648,7 @@ karimo_add_asset "dashboard" \
 
 **Execution stage:**
 ```bash
-karimo_add_asset "dashboard" \
+node .karimo/scripts/karimo-assets.js add "dashboard" \
   "/Users/dev/Desktop/bug-screenshot.png" \
   "execution" \
   "Rendering bug" \
@@ -660,4 +670,4 @@ karimo_add_asset "dashboard" \
 
 ---
 
-*For implementation details, see the bash utilities in `.claude/skills/karimo/bash-utilities.md`*
+*For implementation details, see the Node.js CLI script at `.karimo/scripts/karimo-assets.js` and usage documentation in `.claude/skills/karimo/bash-utilities.md`*
