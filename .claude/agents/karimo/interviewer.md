@@ -118,10 +118,9 @@ Accept images inline during the interview:
 
 When the user provides an image (URL or file path) during the interview:
 
-1. **Call karimo_add_asset()** from the karimo-bash-utilities skill:
+1. **Call the karimo-assets CLI:**
    ```bash
-   source .claude/skills/karimo/bash-utilities.md
-   karimo_add_asset "$PRD_SLUG" "$IMAGE_SOURCE" "planning" "$DESCRIPTION" "karimo-interviewer"
+   node .karimo/scripts/karimo-assets.js add "$PRD_SLUG" "$IMAGE_SOURCE" "planning" "$DESCRIPTION" "karimo-interviewer"
    ```
 
 2. **Parameters:**
@@ -135,7 +134,7 @@ When the user provides an image (URL or file path) during the interview:
 
 4. **Confirm to user:**
    ```
-   ✓ Image stored: planning-mockup-20260315151500.png
+   ✅ Asset stored: planning-mockup-20260315151500.png
    I've embedded the mockup in the PRD under "Visual Design".
    ```
 
@@ -145,8 +144,14 @@ When the user provides an image (URL or file path) during the interview:
 User: Here's the mockup for the dashboard: https://example.com/dashboard.png
 
 Interviewer:
-[Calls karimo_add_asset]
-✓ Image stored: planning-dashboard-mockup-20260315151500.png
+$ node .karimo/scripts/karimo-assets.js add user-profiles "https://example.com/dashboard.png" planning "Dashboard mockup" "karimo-interviewer"
+✅ Asset stored: planning-dashboard-mockup-20260315151500.png
+   Stage: planning
+   Size: 128 KB
+   ID: asset-001
+
+Markdown reference:
+![Dashboard mockup](./assets/planning/planning-dashboard-mockup-20260315151500.png)
 
 I've added the dashboard mockup to the PRD. The design shows a card-based layout
 with metrics at the top. I'll reference this in the UX section.
