@@ -158,7 +158,9 @@
     "REVIEW_TEMPLATE.md",
     "STATUS_SCHEMA.md",
     "TASK_BRIEF_TEMPLATE.md",
-    "TASK_SCHEMA.md",
+    "TASK_SCHEMA.md"
+  ],
+  "greptile_source": [
     "greptile/config.json",
     "greptile/rules.md"
   ],
