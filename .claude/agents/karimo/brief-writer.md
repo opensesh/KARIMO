@@ -66,7 +66,8 @@ This task is part of **Wave {wave_number}** — {wave_context}.
 {Check for asset references in PRD. If task mentions UI/design/mockup/visual elements,
 include relevant assets from assets/planning/ or assets/research/ folders}
 
-{Use karimo_list_assets to find relevant assets and karimo_get_asset_reference to
+{Use `node .karimo/scripts/karimo-assets.js list {prd_slug}` to find relevant assets
+and `node .karimo/scripts/karimo-assets.js reference {prd_slug} {identifier}` to
 generate markdown references}
 
 {Example output:}
@@ -539,10 +540,9 @@ Include assets if the task involves:
    ls -la .karimo/prds/{slug}/assets.json
    ```
 
-2. **List available assets** using karimo-bash-utilities:
+2. **List available assets** using the karimo-assets CLI:
    ```bash
-   source .claude/skills/karimo/bash-utilities.md
-   karimo_list_assets "{prd_slug}"
+   node .karimo/scripts/karimo-assets.js list "{prd_slug}"
    ```
 
 3. **Filter by relevance:**
@@ -552,7 +552,7 @@ Include assets if the task involves:
 
 4. **Generate markdown references:**
    ```bash
-   karimo_get_asset_reference "{prd_slug}" "{asset_id_or_filename}"
+   node .karimo/scripts/karimo-assets.js reference "{prd_slug}" "{asset_id_or_filename}"
    ```
 
 ### Brief Section Format
