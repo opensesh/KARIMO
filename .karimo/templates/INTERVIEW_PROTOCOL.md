@@ -207,6 +207,21 @@ Co-Authored-By: Claude <noreply@anthropic.com>"
 5. After stated requirements: "Are there requirements you're assuming that we haven't said out loud?"
 6. "What should the agent definitely NOT do? What's off-limits for this feature?"
 
+### Visual Assets Prompt
+
+After capturing requirements, prompt for visual references:
+
+> "Do you have any mockups, wireframes, or design references?
+>
+> If yes, drag them into: `.karimo/prds/{slug}/assets/`
+>
+> Say 'done' when ready, or 'skip' to continue."
+
+If user adds files:
+1. Run `node .karimo/scripts/karimo-assets.js import {slug}`
+2. Review imported assets and their auto-generated names
+3. Embed references in PRD Section 5 (UX & Interaction Notes)
+
 ### Conditional Follow-Ups
 
 | Trigger | Follow-Up |
@@ -451,21 +466,47 @@ Co-Authored-By: Claude <noreply@anthropic.com>"
 │   ├── 1a_feature-slug.md
 │   ├── 1b_feature-slug.md
 │   └── ...
-└── assets/             # Images from interview
-    ├── mockup.png
-    └── flow.png
+├── assets/             # Flat folder for images (no subfolders)
+│   ├── mockup-20260319220000.png
+│   └── flow-20260319220001.png
+└── assets.json         # Asset metadata manifest
 ```
 
 ---
 
 ## Image Handling
 
-Images can be attached during the interview:
+Images can be added during the interview:
 - Screenshots of UI mockups
 - Figma exports
 - Diagrams or flowcharts
 
-Images are stored in `.karimo/prds/{slug}/assets/` and referenced using relative paths in the PRD: `./assets/mockup.png`
+**Manual Import Workflow:**
+
+1. User drags files into `.karimo/prds/{slug}/assets/`
+2. Agent runs `node .karimo/scripts/karimo-assets.js import {slug}`
+3. Files are renamed with timestamps and added to manifest
+4. Markdown references are generated for PRD embedding
+
+**Example:**
+```
+User: I added some mockups to the assets folder.
+
+Agent:
+$ node .karimo/scripts/karimo-assets.js import user-profiles
+
+✅ Imported: dashboard-mockup-20260319220000.png
+   Was: Dashboard Mockup Final.png
+
+Markdown references:
+![dashboard-mockup](./assets/dashboard-mockup-20260319220000.png)
+
+I've embedded this mockup in the UX section.
+```
+
+**Anytime Import:** User can add more images at any point. The import command is idempotent — it only processes new files.
+
+Images are stored in `.karimo/prds/{slug}/assets/` (flat folder) and referenced using relative paths in the PRD: `./assets/filename.png`
 
 ---
 
