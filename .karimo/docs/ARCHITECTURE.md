@@ -1055,22 +1055,22 @@ Assets are **never loaded into agent context**. Instead:
 ### Memory Efficiency
 
 Large files are handled via streaming downloads:
-- `curl` writes directly to disk (no in-memory buffering)
-- `shasum` reads files in chunks (system-level, no bash memory use)
+- Node.js https/http modules stream directly to disk (no in-memory buffering)
+- Native crypto module computes SHA256 hashes efficiently
 - File size warnings shown for files >10MB
 - Assets processed sequentially (one at a time)
 
-**Memory footprint:** <50MB per asset operation (bash + curl + Node.js JSON updates)
+**Memory footprint:** <50MB per asset operation (Node.js process + file I/O)
 
 ### Cross-Platform Compatibility
 
-Bash utilities handle platform differences:
-- **Download:** curl (macOS/Linux/WSL) or wget fallback
-- **File size:** `stat -f%z` (macOS) vs `stat -c%s` (Linux)
-- **Hashing:** `shasum` (universal) vs `sha256sum` (Linux-only fallback)
+The Node.js CLI (`.karimo/scripts/karimo-assets.js`) handles platform differences:
+- **Download:** Native Node.js https/http modules (no external dependencies)
+- **File size:** `fs.statSync()` (universal across platforms)
+- **Hashing:** `crypto.createHash()` (native Node.js, no shell commands)
 - **Paths:** Forward slashes work on all platforms including WSL
 
-**Tested environments:** macOS, Ubuntu 20.04+, WSL2, Alpine Linux
+**Tested environments:** macOS, Ubuntu 20.04+, WSL2, Alpine Linux (requires Node.js 14+)
 
 See [ASSETS.md](./ASSETS.md) for complete guide.
 

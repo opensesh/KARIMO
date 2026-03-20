@@ -8,7 +8,7 @@ This document provides an overview of all KARIMO skills for quick context scanni
 
 | Skill | Applies To | Purpose |
 |-------|------------|---------|
-| [karimo-bash-utilities](skills/karimo/bash-utilities.md) | All agents | Bash patterns for config, status, GitHub |
+| [karimo-bash-utilities](skills/karimo/bash-utilities.md) | All agents | Bash patterns for config, status, GitHub, asset CLI |
 
 ### Task Agent Standards
 
@@ -55,4 +55,4 @@ This document provides an overview of all KARIMO skills for quick context scanni
 ---
 
 *For full skill definitions, see `.claude/skills/karimo/*.md`*
-*Last updated: v7.11.0*
+*Last updated: v7.16.0*
