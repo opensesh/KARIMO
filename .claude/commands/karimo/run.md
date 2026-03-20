@@ -185,7 +185,7 @@ After user approval:
    - Update `status.json` with `execution_mode: "feature-branch"`
 
 2. **Execute Tasks in Waves**
-   - Spawn `karimo-pm` agent
+   - Spawn `karimo-pm` agent (orchestrator)
    - Execute Wave 1 tasks in parallel (worktree isolation)
    - Wait for Wave 1 to complete
    - Execute Wave 2, etc.
@@ -194,13 +194,42 @@ After user approval:
    - Task PRs target feature branch (not main)
    - Labels: `karimo`, `karimo-{slug}`, `wave-{n}`, `complexity-{n}`
 
-4. **Validate Integration**
-   - Run build/lint/test after each wave
-   - Flag issues for human review
+4. **Review Coordination** (Phase 2 adoption)
+   - PM spawns `karimo-pm-reviewer` per task PR
+   - PM-Reviewer handles Greptile/Code Review loops
+   - PM-Reviewer spawns revision workers as needed
+   - PM-Reviewer returns verdict (pass/fail/escalate)
 
-5. **Completion**
-   - Set status to `ready-for-merge` when all tasks done
+5. **Finalization**
+   - PM spawns `karimo-pm-finalizer` after all waves complete
+   - PM-Finalizer handles cleanup, metrics, cross-PRD patterns
+   - Set status to `ready-for-merge` when done
    - Print: "Run `/karimo:merge --prd {slug}` to create final PR"
+
+### Agent Topology (v7.19)
+
+Phase 4 uses a 3-agent architecture for maintainability:
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  karimo-pm (Orchestrator)                                    │
+│    • Wave execution loop                                     │
+│    • Spawns worker agents                                    │
+│    • Creates task PRs                                        │
+│    • Delegates to specialized agents                         │
+└─────────────────────────────────────────────────────────────┘
+              │                              │
+              │ per task PR                  │ once after all waves
+              ↓                              ↓
+┌─────────────────────────────┐   ┌─────────────────────────────┐
+│  karimo-pm-reviewer          │   │  karimo-pm-finalizer         │
+│    • Review loops            │   │    • Cleanup (branches)       │
+│    • Model escalation        │   │    • Metrics generation       │
+│    • Revision workers        │   │    • Cross-PRD patterns       │
+└─────────────────────────────┘   └─────────────────────────────┘
+```
+
+This decomposition keeps each agent focused (~500 lines) while maintaining clear handoff contracts.
 
 ---
 
