@@ -430,7 +430,12 @@ function getReference(prdSlug, identifier) {
     process.exit(1);
   }
 
-  const reference = `![${asset.description}](./assets/${asset.stage}/${asset.filename})`;
+  // Handle both staged and flat folder structures
+  const assetPath = asset.stage === 'imported'
+    ? `./assets/${asset.filename}`
+    : `./assets/${asset.stage}/${asset.filename}`;
+
+  const reference = `![${asset.description}](${assetPath})`;
   console.log(reference);
 }
 
@@ -469,7 +474,10 @@ function validateAssets(prdSlug) {
 
   // Validate manifest entries
   for (const asset of assets) {
-    const filepath = path.join(prdDir, 'assets', asset.stage, asset.filename);
+    // Handle both staged and flat folder structures
+    const filepath = asset.stage === 'imported'
+      ? path.join(prdDir, 'assets', asset.filename)
+      : path.join(prdDir, 'assets', asset.stage, asset.filename);
 
     if (!fs.existsSync(filepath)) {
       brokenCount++;
@@ -487,6 +495,7 @@ function validateAssets(prdSlug) {
   // Find orphaned files (on disk but not in manifest)
   const orphanedFiles = [];
   if (fs.existsSync(assetsDir)) {
+    // Check staged folders
     const stages = ['research', 'planning', 'execution'];
     for (const stage of stages) {
       const stageDir = path.join(assetsDir, stage);
@@ -498,6 +507,19 @@ function validateAssets(prdSlug) {
             orphanedFiles.push(`  \u26a0\ufe0f  ${stage}/${file} (not in manifest)`);
           }
         }
+      }
+    }
+
+    // Check flat assets folder (for imported assets)
+    const flatFiles = fs.readdirSync(assetsDir).filter(file => {
+      const fullPath = path.join(assetsDir, file);
+      return fs.statSync(fullPath).isFile();
+    });
+    for (const file of flatFiles) {
+      // Check if tracked as imported asset
+      const isTracked = assets.some(a => a.filename === file && a.stage === 'imported');
+      if (!isTracked) {
+        orphanedFiles.push(`  \u26a0\ufe0f  ${file} (not in manifest - run 'import' to add)`);
       }
     }
   }
@@ -548,6 +570,247 @@ function validateAssets(prdSlug) {
 }
 
 /**
+ * Auto-generate description from filename
+ * Strips common prefixes, dates, timestamps, and normalizes to kebab-case
+ */
+function autoDescriptionFromFilename(filename, fallbackIndex) {
+  // Get basename without extension
+  const ext = path.extname(filename);
+  let name = path.basename(filename, ext);
+
+  // Strip common prefixes (case-insensitive)
+  const prefixes = [
+    /^screenshot\s*/i,
+    /^screen\s*shot\s*/i,
+    /^img_/i,
+    /^image\s*/i,
+    /^untitled\s*/i,
+    /^photo\s*/i,
+    /^picture\s*/i,
+    /^clip\s*/i,
+  ];
+
+  for (const prefix of prefixes) {
+    name = name.replace(prefix, '');
+  }
+
+  // Strip date patterns
+  const datePatterns = [
+    /\d{4}-\d{2}-\d{2}/g,                    // 2026-03-19
+    /\d{4}\.\d{2}\.\d{2}/g,                  // 2026.03.19
+    /\d{2}-\d{2}-\d{4}/g,                    // 03-19-2026
+    /\d{2}\.\d{2}\.\d{4}/g,                  // 03.19.2026
+    /at\s+\d{1,2}\.\d{2}\.\d{2}\s*(AM|PM)?/gi, // at 10.30.45 AM
+    /at\s+\d{1,2}:\d{2}:\d{2}\s*(AM|PM)?/gi, // at 10:30:45 AM
+    /\d{1,2}\.\d{2}\.\d{2}\s*(AM|PM)?/gi,    // 10.30.45 AM
+    /\d{8,14}/g,                              // 20260319, 20260319103045
+  ];
+
+  for (const pattern of datePatterns) {
+    name = name.replace(pattern, '');
+  }
+
+  // Strip leading numbers with separators: "001-", "1_", "01."
+  name = name.replace(/^\d+[-_.\s]+/, '');
+
+  // Strip trailing numbers/versions: "-v2", "_final", "-copy"
+  name = name.replace(/[-_\s]+(v\d+|final|copy|new|\d+)$/i, '');
+
+  // Convert spaces, underscores to hyphens
+  name = name.replace(/[\s_]+/g, '-');
+
+  // Remove non-alphanumeric except hyphens
+  name = name.replace(/[^a-zA-Z0-9-]/g, '');
+
+  // Collapse multiple hyphens
+  name = name.replace(/-+/g, '-');
+
+  // Remove leading/trailing hyphens
+  name = name.replace(/^-+|-+$/g, '');
+
+  // Lowercase
+  name = name.toLowerCase();
+
+  // Limit length
+  name = name.substring(0, 50);
+
+  // Fallback if nothing left
+  if (!name || name.length < 2) {
+    name = `asset-${String(fallbackIndex).padStart(3, '0')}`;
+  }
+
+  return name;
+}
+
+/**
+ * Import untracked files from assets folder
+ */
+function importAssets(prdSlug, options = {}) {
+  if (!prdSlug) {
+    console.error('Usage: node karimo-assets.js import <prd-slug> [--dry-run]');
+    process.exit(1);
+  }
+
+  const dryRun = options.dryRun || false;
+
+  // Find PRD directory
+  const prdDir = findPrdDir(prdSlug);
+  if (!prdDir) {
+    console.error(`PRD not found: ${prdSlug}`);
+    process.exit(1);
+  }
+
+  // Assets are in flat folder (no stage subdirectories for manual import)
+  const assetsDir = path.join(prdDir, 'assets');
+
+  if (!fs.existsSync(assetsDir)) {
+    console.log(`Assets folder not found: ${assetsDir}`);
+    console.log(`\nCreate it with: mkdir -p ${assetsDir}`);
+    process.exit(0);
+  }
+
+  // Read manifest
+  const manifestPath = path.join(prdDir, 'assets.json');
+  const manifest = readManifest(manifestPath);
+
+  // Get all files in assets folder (flat, no recursion into subdirs)
+  const filesInDir = fs.readdirSync(assetsDir).filter(file => {
+    const fullPath = path.join(assetsDir, file);
+    // Only files, not directories
+    if (!fs.statSync(fullPath).isFile()) return false;
+    // Only supported extensions
+    const ext = getExtension(file);
+    return SUPPORTED_EXTENSIONS.includes(ext);
+  });
+
+  // Get already tracked filenames (check both flat and staged paths)
+  const trackedFiles = new Set();
+  const trackedHashes = new Map(); // hash -> asset
+
+  for (const asset of manifest.assets) {
+    // Track the filename regardless of path structure
+    trackedFiles.add(asset.filename);
+    trackedHashes.set(asset.sha256, asset);
+  }
+
+  // Find untracked files
+  const untrackedFiles = filesInDir.filter(file => !trackedFiles.has(file));
+
+  if (untrackedFiles.length === 0) {
+    console.log(`Scanning ${assetsDir}...\n`);
+    console.log('No new files to import. All assets are already tracked.');
+    return;
+  }
+
+  console.log(`Scanning ${assetsDir}...\n`);
+
+  if (dryRun) {
+    console.log('DRY RUN MODE - No changes will be made.\n');
+  }
+
+  const imported = [];
+  const skipped = [];
+  let assetIndex = manifest.assets.length + 1;
+
+  for (const file of untrackedFiles) {
+    const originalPath = path.join(assetsDir, file);
+    const ext = getExtension(file);
+
+    // Calculate hash
+    const hash = calculateHash(originalPath);
+
+    // Check for duplicate content
+    if (trackedHashes.has(hash)) {
+      const existing = trackedHashes.get(hash);
+      skipped.push({ file, reason: `duplicate of ${existing.filename}` });
+      continue;
+    }
+
+    // Generate description from filename
+    const description = autoDescriptionFromFilename(file, assetIndex);
+
+    // Generate new timestamped filename
+    const timestamp = getFilenameTimestamp();
+    const newFilename = `${description}-${timestamp}.${ext}`;
+    const newPath = path.join(assetsDir, newFilename);
+
+    // Get file stats
+    const stats = fs.statSync(originalPath);
+    const size = stats.size;
+
+    if (!dryRun) {
+      // Rename file
+      fs.renameSync(originalPath, newPath);
+
+      // Add to manifest
+      const assetId = `asset-${String(manifest.assets.length + 1).padStart(3, '0')}`;
+      const newAsset = {
+        id: assetId,
+        filename: newFilename,
+        originalSource: file, // Original filename before import
+        sourceType: 'import',
+        stage: 'imported', // Mark as imported (no specific stage)
+        timestamp: getIsoTimestamp(),
+        addedBy: 'manual-import',
+        description: description.replace(/-/g, ' '), // Convert back to readable
+        referencedIn: [],
+        size: size,
+        mimeType: MIME_TYPES[ext] || 'application/octet-stream',
+        sha256: hash
+      };
+
+      manifest.assets.push(newAsset);
+      trackedHashes.set(hash, newAsset);
+    }
+
+    imported.push({
+      original: file,
+      newName: newFilename,
+      description: description.replace(/-/g, ' '),
+      size: size
+    });
+
+    assetIndex++;
+  }
+
+  // Write manifest
+  if (!dryRun && imported.length > 0) {
+    writeManifest(manifestPath, manifest);
+  }
+
+  // Output results
+  for (const item of imported) {
+    if (dryRun) {
+      console.log(`Would import: ${item.newName}`);
+      console.log(`   Was: ${item.original}`);
+      console.log(`   Description: ${item.description}`);
+      console.log('');
+    } else {
+      console.log(`\u2705 Imported: ${item.newName}`);
+      console.log(`   Was: ${item.original}`);
+      console.log('');
+    }
+  }
+
+  for (const item of skipped) {
+    console.log(`\u26a0\ufe0f  Skipped: ${item.file} (${item.reason})`);
+  }
+
+  if (imported.length > 0) {
+    console.log('\nMarkdown references:');
+    for (const item of imported) {
+      const mdRef = `![${item.description}](./assets/${item.newName})`;
+      console.log(mdRef);
+    }
+  }
+
+  console.log(`\n${dryRun ? 'Would import' : 'Imported'}: ${imported.length} file(s)`);
+  if (skipped.length > 0) {
+    console.log(`Skipped: ${skipped.length} file(s)`);
+  }
+}
+
+/**
  * Show help
  */
 function showHelp() {
@@ -570,6 +833,23 @@ Commands:
       Example:
         node .karimo/scripts/karimo-assets.js add user-profiles \\
           "https://example.com/mockup.png" planning "Dashboard mockup" "karimo-interviewer"
+
+  import <prd-slug> [--dry-run]
+      Import untracked files from the assets folder
+
+      Scans the assets folder for files not in assets.json, auto-generates
+      descriptions from filenames, renames with timestamps, and adds to manifest.
+      Safe to run multiple times (idempotent).
+
+      Arguments:
+        prd-slug     PRD identifier (e.g., "user-profiles")
+
+      Options:
+        --dry-run    Show what would be renamed without changing anything
+
+      Example:
+        node .karimo/scripts/karimo-assets.js import user-profiles
+        node .karimo/scripts/karimo-assets.js import user-profiles --dry-run
 
   list <prd-slug> [stage]
       List all assets for a PRD, optionally filtered by stage
@@ -615,6 +895,9 @@ async function main() {
   switch (command) {
     case 'add':
       await addAsset(args[1], args[2], args[3], args[4], args[5]);
+      break;
+    case 'import':
+      importAssets(args[1], { dryRun: args.includes('--dry-run') });
       break;
     case 'list':
       listAssets(args[1], args[2]);
