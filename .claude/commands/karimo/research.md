@@ -46,6 +46,7 @@ When invoked with a bare feature name (no `--prd` flag), this is the **first ste
    - Create research subfolder structure:
      ```
      .karimo/prds/{slug}/
+     ├── assets/                    # Flat folder for screenshots/mockups
      ├── research/
      │   ├── internal/
      │   │   ├── patterns.md        # Evidence
@@ -64,7 +65,22 @@ When invoked with a bare feature name (no `--prd` flag), this is the **first ste
      └── status.json                # Initial status
      ```
 
-3. **Feature Name Resolution**
+3. **Asset Preparation Prompt**
+
+   Before beginning research, ask the user:
+
+   > "Do you have any reference screenshots, diagrams, or mockups for this feature?
+   >
+   > If yes, drag them into: `.karimo/prds/{slug}/assets/`
+   >
+   > Reply 'done' when ready, or 'skip' to continue without."
+
+   If user adds files:
+   1. Run `node .karimo/scripts/karimo-assets.js import {slug}`
+   2. Review imported assets and their auto-generated names
+   3. Reference them in `research/findings.md` with clear descriptions
+
+4. **Feature Name Resolution**
    - If invoked with argument (`/karimo:research "embedding engine"`):
      - Use argument directly as feature description
      - Derive slug: "embedding-engine"
@@ -87,7 +103,7 @@ When invoked with a bare feature name (no `--prd` flag), this is the **first ste
    - Performance considerations (for data-heavy, real-time features)
    - Error handling patterns (for user-facing features)
 
-4. **Research Execution (Two-Phase)**
+5. **Research Execution (Two-Phase)**
    - Spawn `karimo-researcher` agent:
      ```
      @karimo-researcher.md --mode feature-init
@@ -108,11 +124,11 @@ When invoked with a bare feature name (no `--prd` flag), this is the **first ste
    - Output: `research/external/findings.md`
    - **Commit after Phase 2**
 
-5. **Generate Summary**
+6. **Generate Summary**
    - Compile combined summary into `research/summary.md`
    - **Commit after summary**
 
-6. **Commit Workflow (3 commits per session)**
+7. **Commit Workflow (3 commits per session)**
    ```bash
    # Commit 1: Internal research
    git commit -m "docs(karimo): internal research for {slug}
@@ -134,7 +150,7 @@ When invoked with a bare feature name (no `--prd` flag), this is the **first ste
    Co-Authored-By: Claude <noreply@anthropic.com>"
    ```
 
-7. **Completion Output**
+8. **Completion Output**
    ```
    ╭──────────────────────────────────────────────────────╮
    │  Research Complete: {slug}                           │
@@ -321,6 +337,9 @@ Before execution, checks for PRD research:
 
 ```
 .karimo/prds/{slug}/
+├── assets/                       # Flat folder for screenshots/mockups
+│   └── *.png, *.jpg, ...        # Renamed with timestamps after import
+├── assets.json                   # Asset metadata manifest
 ├── research/
 │   ├── internal/
 │   │   ├── patterns.md           # Evidence: pattern details
@@ -350,6 +369,9 @@ Before execution, checks for PRD research:
 ```
 .karimo/prds/{NNN}_{slug}/
 ├── PRD_{slug}.md                      # Enhanced with research
+├── assets/                            # Flat folder for screenshots/mockups
+│   └── *.png, *.jpg, ...             # User-added assets (renamed after import)
+├── assets.json                        # Asset metadata manifest
 ├── research/
 │   ├── imported/                      # Imported from general research
 │   │   ├── {topic}-001.md
