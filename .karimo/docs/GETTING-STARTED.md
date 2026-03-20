@@ -67,6 +67,7 @@ This installs:
 - Skills to `.claude/skills/`
 - Agent rules to `.claude/KARIMO_RULES.md`
 - Templates to `.karimo/templates/`
+- Scripts to `.karimo/scripts/` (asset management CLI)
 - Learnings template to `.karimo/learnings/`
 - Marker-delimited KARIMO section appended to `CLAUDE.md` (~20 lines)
 
@@ -149,7 +150,7 @@ If your project already has `.claude/` with custom agents, commands, or `CLAUDE.
 - 14 slash commands (prefixed `karimo-*`)
 - 6 KARIMO skills (prefixed `karimo-*`)
 - `.claude/KARIMO_RULES.md`
-- `.karimo/` directory with templates, manifest, and learnings
+- `.karimo/` directory with templates, scripts, manifest, and learnings
 - Marker-delimited KARIMO section appended to `CLAUDE.md` (~20 lines)
 
 **Optional (installed via `/karimo:configure --greptile`):**
