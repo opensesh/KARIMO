@@ -7,6 +7,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [7.17.0] - 2026-03-19
+
+### Added
+
+- **Manual Asset Import Workflow** — New `import` command in the asset management CLI that allows users to drag screenshots/mockups into the PRD assets folder and have them automatically processed:
+  - Auto-generates descriptions from filenames (strips "Screenshot", dates, timestamps)
+  - Renames files with timestamps for uniqueness
+  - Tracks in `assets.json` manifest
+  - Outputs markdown references for embedding
+  - Idempotent: safe to run multiple times (only processes new files)
+  - `--dry-run` option to preview changes
+
+- **Asset Preparation Prompt** — Research and planning workflows now prompt users for visual assets before beginning:
+  - Prompts user to drag files into `.karimo/prds/{slug}/assets/`
+  - Runs `import` command after user confirms
+  - References imported assets in findings/PRD
+
+### Changed
+
+- **Flat folder structure for manual imports** — User-provided assets go to flat `assets/` folder (not stage-based subfolders). URL-based imports continue to use staged folders.
+
+- **Updated agent workflows** — Researcher, interviewer, and PM agents updated to support the new manual import workflow alongside URL-based imports
+
+### Documentation
+
+- **ASSETS.md** — Comprehensive update documenting both manual import and URL-based workflows, with updated examples
+- **INTERVIEW_PROTOCOL.md** — Added visual assets prompt to Round 2 (Requirements)
+- **research.md** — Added asset preparation step with import command
+
+---
+
 ## [7.16.0] - 2026-03-19
 
 ### Added
