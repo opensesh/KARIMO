@@ -152,9 +152,9 @@ Tasks and PRDs progress through defined lifecycle states:
 ### Components
 ```
 .claude/
-├── agents/             # 15 agent definitions (.md files)
-├── commands/           # 14 slash commands (.md files)
-├── skills/             # 4 skill definitions (.md files)
+├── agents/             # 20 agent definitions (.md files)
+├── commands/           # 11 slash commands (.md files)
+├── skills/             # 7 skill definitions (.md files)
 └── KARIMO_RULES.md     # Agent behavior rules (boundaries, execution model)
 ```
 

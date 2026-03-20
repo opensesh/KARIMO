@@ -253,10 +253,11 @@ Target Project/
 │   │   ├── karimo-research.md       # /karimo:research (required first step)
 │   │   ├── karimo-run.md            # /karimo:run (brief gen + execution)
 │   │   └── karimo-update.md         # /karimo:update
-│   ├── skills/                      # 6 skills from manifest
-│   │   ├── karimo-bash-utilities.md       # Bash utilities
+│   ├── skills/                      # 7 skills from manifest
+│   │   ├── karimo-bash-utilities.md       # Bash utilities + asset CLI docs
 │   │   ├── karimo-research-methods.md     # Research methodology
 │   │   ├── karimo-external-research.md    # External research patterns
+│   │   ├── karimo-firecrawl-web-tools.md  # Firecrawl MCP reference
 │   │   ├── karimo-code-standards.md       # Task agent skill
 │   │   ├── karimo-testing-standards.md    # Task agent skill
 │   │   └── karimo-doc-standards.md        # Task agent skill
