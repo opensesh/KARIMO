@@ -108,11 +108,11 @@ The `agents.overview.md` provides:
 ```markdown
 # KARIMO Agents Overview
 
-Quick reference for all 17 KARIMO agents.
+Quick reference for all 20 KARIMO agents.
 
 ## Agent Categories
 
-### Coordination Agents (11)
+### Coordination Agents (14)
 | Agent | Model | Purpose |
 |-------|-------|---------|
 | karimo-pm | sonnet | Task orchestration, never writes code |
