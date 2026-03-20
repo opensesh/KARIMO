@@ -240,24 +240,64 @@ grep -r "useState\|useContext\|useStore" src/
 - Exa: Semantic code search
 - Browser automation: Interactive docs exploration
 
-**Asset Capture:**
+**Manual Asset Import (User-Provided Screenshots):**
 
-When encountering relevant visual content during research (screenshots, diagrams, architecture images):
+Before beginning research, prompt the user for visual assets:
 
-1. **Capture the asset** using Firecrawl screenshot tools or WebFetch
-2. **Store with the karimo-assets CLI:**
+> "Do you have any reference screenshots, diagrams, or mockups for this feature?
+>
+> If yes, drag them into: `.karimo/prds/{slug}/assets/`
+>
+> Reply 'done' when ready, or 'skip' to continue without."
+
+If user adds files:
+1. **Run the import command:**
+   ```bash
+   node .karimo/scripts/karimo-assets.js import {slug}
+   ```
+
+2. **Review imported assets** and their auto-generated names
+
+3. **Reference in findings** using the markdown references output by the command
+
+**Example:**
+
+```
+Scanning .karimo/prds/user-auth/assets/...
+
+✅ Imported: login-mockup-20260319220000.png
+   Was: Screenshot 2026-03-19 at 10.30.45 AM.png
+
+✅ Imported: dashboard-wireframe-20260319220001.png
+   Was: dashboard wireframe.png
+
+Markdown references:
+![login-mockup](./assets/login-mockup-20260319220000.png)
+![dashboard-wireframe](./assets/dashboard-wireframe-20260319220001.png)
+```
+
+**Anytime Import:**
+User can add more screenshots at any point and say "I added more screenshots" — re-run the import command (idempotent, only processes new files).
+
+---
+
+**URL-Based Asset Capture (During Research):**
+
+When encountering relevant visual content during research (screenshots, diagrams, architecture images) from URLs:
+
+1. **Store with the karimo-assets CLI:**
    ```bash
    node .karimo/scripts/karimo-assets.js add "$PRD_SLUG" "$IMAGE_URL" "research" "$DESCRIPTION" "karimo-researcher"
    ```
 
-3. **Parameters:**
+2. **Parameters:**
    - `$PRD_SLUG` - The current PRD slug (if research is PRD-specific) or research topic name
    - `$IMAGE_URL` - URL to the image/screenshot
    - `"research"` - Always use "research" stage for researcher-added assets
    - `$DESCRIPTION` - Brief description (e.g., "API architecture diagram", "User flow example")
    - `"karimo-researcher"` - Agent name (always this value)
 
-4. **Reference in findings** using the markdown reference output by the command
+3. **Reference in findings** using the markdown reference output by the command
 
 **What to capture:**
 - Architecture diagrams from documentation
@@ -272,24 +312,6 @@ When encountering relevant visual content during research (screenshots, diagrams
 - Decorative images
 - Screenshots of text that can be quoted
 - Copyrighted design mockups (link instead)
-
-**Example:**
-
-```
-During research on authentication flows, I found a helpful diagram showing OAuth2 flow:
-
-$ node .karimo/scripts/karimo-assets.js add user-auth "https://oauth.net/diagram.png" research "OAuth2 flow diagram" "karimo-researcher"
-✅ Asset stored: research-oauth2-flow-20260315143022.png
-   Stage: research
-   Size: 45 KB
-   ID: asset-001
-
-Markdown reference:
-![OAuth2 flow diagram](./assets/research/research-oauth2-flow-20260315143022.png)
-
-Referenced in external findings with the returned markdown reference.
-Source: https://oauth.net/2/grant-types/authorization-code/
-```
 
 **Source Attribution:**
 - Always track sources in `research/external/sources.yaml`
