@@ -238,11 +238,11 @@ When you run `install.sh`, these files are added:
 
 | Location | Contents |
 |----------|----------|
-| `.claude/agents/` | **20** agent definitions (14 coordination + 6 task agents) |
+| `.claude/agents/` | **22** agent definitions (16 coordination + 6 task agents) |
 | `.claude/commands/` | **11** slash commands |
 | `.claude/skills/` | **7** skills (1 bash + 3 research + 3 task agent skills) |
 | `.claude/KARIMO_RULES.md` | Agent behavior rules |
-| `.karimo/templates/` | **20** templates |
+| `.karimo/templates/` | **18** templates |
 | `.karimo/scripts/` | **1** CLI script (asset management) |
 
 **Optional:** Run `/karimo:configure --review` to choose and configure your automated code review provider (Greptile or Claude Code Review).

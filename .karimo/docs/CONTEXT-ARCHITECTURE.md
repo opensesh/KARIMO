@@ -1,6 +1,6 @@
 # KARIMO Context Architecture
 
-**Version:** 7.15.0
+**Version:** 7.19.0
 **Protocol:** OpenViking-inspired L0/L1/L2 Layering
 
 ---
@@ -34,7 +34,7 @@ The "L" stands for **Level of Detail**, not query order:
 
 ```
 Traditional Approach:
-Load all 20 agents = ~50K tokens upfront
+Load all 22 agents = ~55K tokens upfront
 
 OpenViking Approach:
 1. Query agents.overview.md (L1) = ~2K tokens    ← "What agents exist?"
@@ -66,7 +66,7 @@ Total: ~5K tokens vs 50K = 90% reduction
 │   ├── karimo-pm.abstract.md     # L0: Quick summary (~100 tokens)
 │   ├── karimo-implementer.md
 │   ├── karimo-implementer.abstract.md
-│   └── ... (20 agents, each with .abstract.md)
+│   └── ... (22 agents, each with .abstract.md)
 │
 ├── skills/
 │   ├── karimo-code-standards.md
@@ -108,7 +108,7 @@ The `agents.overview.md` provides:
 ```markdown
 # KARIMO Agents Overview
 
-Quick reference for all 20 KARIMO agents.
+Quick reference for all 22 KARIMO agents.
 
 ## Agent Categories
 

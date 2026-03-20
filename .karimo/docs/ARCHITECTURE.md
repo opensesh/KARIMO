@@ -1,6 +1,6 @@
 # KARIMO Architecture
 
-**Version:** 7.15.0
+**Version:** 7.19.0
 **Status:** Active
 
 ---
@@ -221,7 +221,7 @@ When you run `bash KARIMO/.karimo/install.sh /path/to/project`, files are copied
 ```
 Target Project/
 ├── .claude/
-│   ├── agents/                      # 20 agents from manifest
+│   ├── agents/                      # 22 agents from manifest
 │   │   ├── karimo-interviewer.md    # PRD interview conductor
 │   │   ├── karimo-investigator.md   # Codebase pattern scanner
 │   │   ├── karimo-researcher.md     # Research conductor (internal + external)
@@ -230,7 +230,9 @@ Target Project/
 │   │   ├── karimo-brief-writer.md   # Task brief generator
 │   │   ├── karimo-brief-reviewer.md # Pre-execution validation
 │   │   ├── karimo-brief-corrector.md # Brief correction agent
-│   │   ├── karimo-pm.md             # Task coordination (never writes code)
+│   │   ├── karimo-pm.md             # Task coordination (orchestrator, never writes code)
+│   │   ├── karimo-pm-reviewer.md    # Review coordination agent
+│   │   ├── karimo-pm-finalizer.md   # Cleanup and finalization agent
 │   │   ├── karimo-review-architect.md # Code-level integration
 │   │   ├── karimo-greptile-remediator.md # Batch fixes Greptile findings (v7.13)
 │   │   ├── karimo-feedback-auditor.md # Feedback investigation agent
@@ -266,7 +268,7 @@ Target Project/
 ├── .karimo/
 │   ├── MANIFEST.json                # Single source of truth
 │   ├── VERSION                      # Version tracking
-│   ├── templates/                   # 15 templates from manifest
+│   ├── templates/                   # 18 templates from manifest
 │   │   ├── PRD_TEMPLATE.md
 │   │   ├── INTERVIEW_PROTOCOL.md
 │   │   ├── TASK_SCHEMA.md
@@ -743,8 +745,13 @@ This is the primary human oversight touchpoint — check it each morning or afte
 | **Brief Writer** | Generates task briefs | Sonnet | No |
 | **Brief Reviewer** | Pre-execution validation of briefs (v5.1) | Sonnet | No (findings doc only) |
 | **Brief Corrector** | Applies corrections from review findings (v5.1) | Sonnet | No (modifies briefs/PRD) |
-| **PM Agent** | Coordinates task execution | Sonnet | No |
+| **PM Agent** | Coordinates wave execution, spawns workers | Sonnet | No |
+| **PM-Reviewer** | Review loops, model escalation | Sonnet | No |
+| **PM-Finalizer** | Cleanup, metrics, cross-PRD patterns | Sonnet | No |
 | **Review/Architect** | Code-level integration and merge quality | Sonnet | Conflict resolution only |
+| **Coverage Reviewer** | Analyzes coverage reports for PRs | Sonnet | No |
+| **Greptile Remediator** | Batch fixes Greptile findings | Sonnet | No (applies fixes) |
+| **Greptile Rules Writer** | Generates project-specific Greptile rules | Sonnet | No (creates rules.md) |
 | **Feedback Auditor** | Investigates complex feedback issues | Sonnet | No |
 
 #### Task Agents
@@ -760,7 +767,7 @@ KARIMO uses a dual-model system for task agents. Each agent type has a Sonnet va
 | **Documenter** | 1-2 | Standard documentation | Sonnet | Yes (docs) |
 | **Documenter (Opus)** | 3+ | Complex documentation | Opus | Yes (docs) |
 
-The PM Agent coordinates but never writes code. Task agents are spawned by PM to execute work in isolated worktrees.
+The PM Agent coordinates but never writes code. It operates as a 3-agent topology: PM (orchestration), PM-Reviewer (review loops), and PM-Finalizer (cleanup). Task agents are spawned by PM to execute work in isolated worktrees.
 
 **Agent Coordination Flow:**
 

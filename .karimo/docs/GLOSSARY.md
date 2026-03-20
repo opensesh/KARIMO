@@ -50,9 +50,9 @@ Issue or concern discovered during pre-execution review (brief-reviewer agent). 
 
 ---
 
-## Agents (15 Total)
+## Agents (22 Total)
 
-### Coordination Agents (9)
+### Coordination Agents (16)
 
 #### karimo-interviewer
 Conducts structured PRD interviews using a question-driven workflow. Gathers requirements, acceptance criteria, technical constraints, and user stories.
@@ -152,7 +152,7 @@ Tasks and PRDs progress through defined lifecycle states:
 ### Components
 ```
 .claude/
-├── agents/             # 20 agent definitions (.md files)
+├── agents/             # 22 agent definitions (.md files)
 ├── commands/           # 11 slash commands (.md files)
 ├── skills/             # 7 skill definitions (.md files)
 └── KARIMO_RULES.md     # Agent behavior rules (boundaries, execution model)
