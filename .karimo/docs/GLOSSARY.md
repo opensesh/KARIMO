@@ -169,7 +169,6 @@ Tasks and PRDs progress through defined lifecycle states:
 ├── DAG_TEMPLATE.md               # Visual DAG format
 ├── LEARN_INTERVIEW_TEMPLATE.md   # Feedback interview
 ├── FINDINGS_TEMPLATE.md          # Review findings format
-├── TASK_BRIEF_TEMPLATE.md        # Portable task brief
 ├── METRICS_TEMPLATE.md           # Analytics structure
 ├── FEEDBACK_TEMPLATE.md          # Feedback document
 └── REVIEW_TEMPLATE.md            # Code review format

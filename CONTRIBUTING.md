@@ -105,7 +105,6 @@ Templates live in `.karimo/templates/`:
 | `DEPENDENCIES_TEMPLATE.md` | Runtime dependency tracking |
 | `FEEDBACK_INTERVIEW_PROTOCOL.md` | Feedback interview flow (adaptive) |
 | `FEEDBACK_DOCUMENT_TEMPLATE.md` | Feedback investigation artifacts |
-| `TASK_BRIEF_TEMPLATE.md` | Self-contained task briefs |
 
 When updating templates, ensure backward compatibility with existing PRDs.
 

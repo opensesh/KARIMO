@@ -36,7 +36,7 @@ KARIMO uses `.karimo/MANIFEST.json` as the single source of truth for installed 
   "agents": ["karimo-brief-writer.md", "karimo-pm.md", ...],
   "commands": ["karimo-configure.md", "karimo-run.md", ...],
   "skills": ["karimo-code-standards.md", ...],
-  "templates": ["PRD_TEMPLATE.md", "TASK_BRIEF_TEMPLATE.md", ...],
+  "templates": ["PRD_TEMPLATE.md", "TASK_SCHEMA.md", ...],
   "other": {
     "rules": "KARIMO_RULES.md",
     "issue_template": "karimo-task.yml"
@@ -274,8 +274,7 @@ Target Project/
 │   │   ├── DEPENDENCIES_TEMPLATE.md
 │   │   ├── EXECUTION_PLAN_SCHEMA.md
 │   │   ├── FEEDBACK_INTERVIEW_PROTOCOL.md   # Adaptive feedback interviews
-│   │   ├── FEEDBACK_DOCUMENT_TEMPLATE.md    # Feedback investigation artifacts
-│   │   └── TASK_BRIEF_TEMPLATE.md
+│   │   └── FEEDBACK_DOCUMENT_TEMPLATE.md    # Feedback investigation artifacts
 │   ├── prds/                        # Created PRDs stored here
 │   ├── feedback/                    # Feedback investigation documents (complex path)
 │   ├── learnings/                   # Categorized learnings (patterns, anti-patterns, etc.)

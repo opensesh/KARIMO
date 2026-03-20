@@ -22,7 +22,6 @@ You can override any of these core templates:
 | `PRD_TEMPLATE.md` | PRD structure | Changes PRD format for all new PRDs |
 | `INTERVIEW_PROTOCOL.md` | Interview questions | Customizes interview flow and questions |
 | `TASK_SCHEMA.md` | Task YAML structure | Changes task definition format |
-| `TASK_BRIEF_TEMPLATE.md` | Task brief format | Customizes what agents see in briefs |
 | `STATUS_SCHEMA.md` | Execution tracking | Changes status.json structure |
 | `EXECUTION_PLAN_SCHEMA.md` | Wave planning | Customizes execution plan format |
 | `DEPENDENCIES_TEMPLATE.md` | Dependency graph | Changes dependency visualization |
