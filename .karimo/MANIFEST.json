@@ -89,7 +89,10 @@
       "karimo-research-methods.md",
       "karimo-testing-standards.md"
     ],
-    "templates": [],
+    "templates": [
+      "GREPTILE_FINDINGS_TEMPLATE.md",
+      "TASK_BRIEF_TEMPLATE.md"
+    ],
     "workflows": [
       "karimo-greptile-review.yml"
     ]
@@ -109,6 +112,8 @@
     "karimo/investigator.md",
     "karimo/feedback-auditor.md",
     "karimo/pm.md",
+    "karimo/pm-reviewer.md",
+    "karimo/pm-finalizer.md",
     "karimo/refiner.md",
     "karimo/researcher.md",
     "karimo/review-architect.md",
@@ -148,7 +153,6 @@
     "FEEDBACK_INTERVIEW_PROTOCOL.md",
     "FINDINGS_TEMPLATE.md",
     "GENERAL_RESEARCH_TEMPLATE.md",
-    "GREPTILE_FINDINGS_TEMPLATE.md",
     "INTERNAL_FINDINGS_TEMPLATE.md",
     "INTERVIEW_PROTOCOL.md",
     "METRICS_SCHEMA.md",
@@ -157,7 +161,6 @@
     "PRE_EXECUTION_REVIEW_TEMPLATE.md",
     "REVIEW_TEMPLATE.md",
     "STATUS_SCHEMA.md",
-    "TASK_BRIEF_TEMPLATE.md",
     "TASK_SCHEMA.md"
   ],
   "scripts": [
