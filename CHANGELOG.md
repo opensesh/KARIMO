@@ -7,6 +7,42 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [7.19.0] - 2026-03-20
+
+### Added
+
+- **PM Agent Decomposition** — Split the monolithic PM agent (1,450 lines) into 3 focused agents for improved maintainability:
+  - `karimo-pm.md` (~566 lines) — Wave orchestration, worker spawning, PR creation
+  - `karimo-pm-reviewer.md` (~536 lines) — Review loops, model escalation, semantic loop detection
+  - `karimo-pm-finalizer.md` (~478 lines) — Cleanup, metrics generation, cross-PRD pattern detection
+
+- **Agent Handoff Contracts** — Clear YAML-based input/output contracts between PM agents:
+  - PM → PM-Reviewer: task_id, pr_number, review_config, task_metadata
+  - PM-Reviewer → PM: verdict (pass/fail/escalate), revisions_used, escalated_model
+  - PM → PM-Finalizer: prd_slug, execution_mode, tasks_completed, metrics
+  - PM-Finalizer → PM: finalization_result, cleanup_summary
+
+- **3-Agent Topology Documentation** — Updated `/karimo:run` Phase 4 with visual diagram of agent architecture
+
+### Removed
+
+- **Unused Templates** — Deleted templates with zero codebase references:
+  - `GREPTILE_FINDINGS_TEMPLATE.md` — Never used by any agent
+  - `TASK_BRIEF_TEMPLATE.md` — Superseded by inline format in brief-writer
+
+### Changed
+
+- **MANIFEST.json** — Updated to reflect agent count (20 → 22) and template count (20 → 18)
+- **Documentation cleanup** — Removed references to deleted templates from ARCHITECTURE.md, GLOSSARY.md, CONTRIBUTING.md, and templates-custom/README.md
+
+### Technical
+
+- Total agent count: 22 (was 20)
+- Total template count: 18 (was 20)
+- PM agent line reduction: 1,450 → 566 lines (~61% reduction)
+
+---
+
 ## [7.18.0] - 2026-03-19
 
 ### Added
