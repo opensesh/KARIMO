@@ -86,7 +86,7 @@ Wave 3: [task-3a] ─────────── final task
 | **Enhanced merge reports** | PR descriptions show markdown vs code breakdown for transparency ([v7.7.0](#changelog)) |
 | **Asset management** | Store and track visual context (mockups, screenshots, diagrams) throughout PRD lifecycle ([v7.8.0](#changelog)) |
 | **Model routing** | Sonnet for simple tasks, Opus for complex, auto-escalation on failures |
-| **19 agents** | 13 coordination + 6 task agents ([details](.karimo/docs/ARCHITECTURE.md#agents)) |
+| **20 agents** | 14 coordination + 6 task agents ([details](.karimo/docs/ARCHITECTURE.md#agents)) |
 | **Crash recovery** | Git state reconstruction via `/karimo:dashboard --reconcile` |
 
 ---

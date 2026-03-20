@@ -238,7 +238,7 @@ When you run `install.sh`, these files are added:
 
 | Location | Contents |
 |----------|----------|
-| `.claude/agents/` | **18** agent definitions (12 coordination + 6 task agents) |
+| `.claude/agents/` | **20** agent definitions (14 coordination + 6 task agents) |
 | `.claude/commands/` | **10** slash commands |
 | `.claude/skills/` | **6** skills (1 bash + 2 research + 3 task agent skills) |
 | `.claude/KARIMO_RULES.md` | Agent behavior rules |

@@ -146,9 +146,9 @@ If your project already has `.claude/` with custom agents, commands, or `CLAUDE.
 - Your existing `CLAUDE.md` content
 
 **What gets added (from MANIFEST.json):**
-- 17 KARIMO agents (prefixed `karimo-*`)
-- 14 slash commands (prefixed `karimo-*`)
-- 6 KARIMO skills (prefixed `karimo-*`)
+- 20 KARIMO agents (prefixed `karimo-*`)
+- 11 slash commands (prefixed `karimo-*`)
+- 7 KARIMO skills (prefixed `karimo-*`)
 - `.claude/KARIMO_RULES.md`
 - `.karimo/` directory with templates, scripts, manifest, and learnings
 - Marker-delimited KARIMO section appended to `CLAUDE.md` (~20 lines)

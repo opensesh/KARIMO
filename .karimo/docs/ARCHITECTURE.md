@@ -221,7 +221,7 @@ When you run `bash KARIMO/.karimo/install.sh /path/to/project`, files are copied
 ```
 Target Project/
 ├── .claude/
-│   ├── agents/                      # 19 agents from manifest
+│   ├── agents/                      # 20 agents from manifest
 │   │   ├── karimo-interviewer.md    # PRD interview conductor
 │   │   ├── karimo-investigator.md   # Codebase pattern scanner
 │   │   ├── karimo-researcher.md     # Research conductor (internal + external)
