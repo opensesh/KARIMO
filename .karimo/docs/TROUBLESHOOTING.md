@@ -872,6 +872,56 @@ Comprehensive solutions for common KARIMO issues across installation, configurat
 
 ---
 
+### Concurrent Session Branch Drift
+
+**Symptoms:**
+- PM commits land on wrong branch
+- Cleanup reports branch mismatches
+- "BRANCH GUARD: Recovery needed" messages in output
+- Worktree branches not being cleaned up properly
+
+**Causes:**
+- Running multiple Claude Code sessions simultaneously
+- Manual `git checkout` during KARIMO execution
+- IDE or other tools switching branches in background
+
+**Recovery:**
+
+1. **Check current branch:**
+   ```bash
+   git branch --show-current
+   # Should match feature/{prd-slug} during execution
+   ```
+
+2. **If on wrong branch, recover:**
+   ```bash
+   git checkout feature/{prd-slug}
+   git pull origin feature/{prd-slug}
+   ```
+
+3. **Check for stale worktree branches:**
+   ```bash
+   # List any remaining worktree branches
+   git branch --list 'worktree/*'
+   git branch --list 'worktree-agent-*'
+
+   # If found, delete them
+   git branch -D worktree/{prd-slug}-{task-id}
+   git push origin --delete worktree/{prd-slug}-{task-id}
+   ```
+
+4. **Resume execution:**
+   ```bash
+   /karimo:run --prd {slug}
+   ```
+
+**Prevention:**
+- One KARIMO execution per repository at a time
+- Use separate clones for manual work during execution
+- Wait for wave transitions if manual work is needed
+
+---
+
 ### How do I roll back a task?
 
 **Symptoms:**

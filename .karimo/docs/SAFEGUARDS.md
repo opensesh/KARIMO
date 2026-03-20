@@ -365,6 +365,38 @@ done
 - Crash recovery via git history
 - Dashboard shows accurate state from git log
 
+### Concurrent Session Safety (v7.18.0)
+
+Running multiple Claude Code sessions with git operations in the same repository during KARIMO execution can cause branch drift. The PM agent includes branch guards that detect and recover from this, but best practice is one KARIMO execution per repository at a time.
+
+**Branch Guards:**
+
+The PM agent uses `ensure_branch()` guards at 5 critical locations:
+1. **Pre-wave loop** — Before each wave starts
+2. **Pre-spawn** — Before spawning each worker
+3. **Wave commit** — Before committing wave state
+4. **Wave validation** — Before running validation
+5. **Finalization** — Before final commit
+
+If a branch mismatch is detected:
+1. Guard attempts recovery via `git checkout`
+2. If recovery succeeds, execution continues
+3. If recovery fails, operation halts with clear error message
+4. User must manually resolve and re-run
+
+**If concurrent work is required:**
+- Use separate clones for manual work
+- Or wait for wave transitions (natural pause points)
+- Never checkout branches while KARIMO is executing
+
+**Worktree Cleanup (v7.18.0):**
+
+Cleanup now uses discovery-based branch detection instead of assumed patterns:
+- Detects KARIMO-pattern branches: `worktree/{prd-slug}-{task-id}`
+- Detects Claude Code internal branches: `worktree-agent-{hash}`
+- Reports cleanup actions explicitly instead of silently swallowing errors
+- Both local and remote branches are cleaned
+
 ---
 
 ## Pre-PR Validation

@@ -7,6 +7,42 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [7.18.0] - 2026-03-19
+
+### Added
+
+- **PM Agent Branch Guards** — Defensive guards to prevent commits landing on wrong branches during parallel task execution:
+  - `ensure_branch()` function verifies branch identity before critical operations
+  - Guards at 5 critical locations: pre-wave loop, pre-spawn, wave commit, wave validation, finalization
+  - Automatic recovery attempt via `git checkout` if mismatch detected
+  - Clear error messages when recovery fails
+
+- **Concurrent Session Documentation** — New sections in SAFEGUARDS.md and TROUBLESHOOTING.md covering:
+  - Branch drift risks from concurrent Claude Code sessions
+  - Recovery procedures for branch mismatches
+  - Best practices for repository-level isolation
+
+### Fixed
+
+- **Discovery-Based Worktree Cleanup** — Cleanup now handles both naming conventions instead of assuming patterns:
+  - Detects KARIMO-pattern branches: `worktree/{prd-slug}-{task-id}`
+  - Detects Claude Code internal branches: `worktree-agent-{hash}`
+  - Both local and remote branches cleaned up
+  - PM agent wave cleanup updated (Step 3e.8)
+  - Merge command cleanup updated (Section 4b and post-merge)
+
+- **Explicit Error Reporting** — Cleanup failures now reported explicitly instead of silently swallowed:
+  - Removed blanket `|| true` error suppression
+  - Cleanup errors counted and reported at end
+  - Clear indication of which operations succeeded/failed
+
+### Documentation
+
+- **SAFEGUARDS.md** — Added "Concurrent Session Safety" section with branch guard details
+- **TROUBLESHOOTING.md** — Added "Concurrent Session Branch Drift" recovery guide
+
+---
+
 ## [7.17.0] - 2026-03-19
 
 ### Added

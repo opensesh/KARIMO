@@ -140,16 +140,19 @@ git diff main..."$feature_branch" --name-status | while read status file; do
 done
 ```
 
-### 4b. Worktree Cleanup Verification (Belt-and-Suspenders)
+### 4b. Worktree Cleanup Verification (Discovery-Based)
 
-**Verify all worktrees cleaned up from wave transitions:**
+**Verify all worktrees cleaned up from wave transitions. Uses discovery-based detection to handle both KARIMO naming (`worktree/{prd-slug}-{task-id}`) and Claude Code internal naming (`worktree-agent-{hash}`):**
 
 ```bash
 # Extract PRD slug from feature branch
 # Branch naming: feature/{prd-slug}
 prd_slug=$(echo "$feature_branch" | sed 's|^feature/||')
+cleanup_errors=0
 
-# Check for stale worktrees
+echo "Running pre-merge worktree cleanup verification..."
+
+# Phase 1: Check for stale worktree directories
 if [ -d ".worktrees/${prd_slug}" ]; then
   stale_count=$(find ".worktrees/${prd_slug}" -type d -mindepth 1 2>/dev/null | wc -l | tr -d ' ')
 
@@ -161,25 +164,70 @@ if [ -d ".worktrees/${prd_slug}" ]; then
     for wt in .worktrees/${prd_slug}/*; do
       if [ -d "$wt" ]; then
         wt_name=$(basename "$wt")
-        git worktree remove "$wt" 2>/dev/null && echo "   Removed: $wt_name" || true
+        if git worktree remove "$wt" 2>/dev/null; then
+          echo "   Removed worktree: $wt_name"
+        else
+          echo "   ERROR: Failed to remove worktree: $wt_name"
+          cleanup_errors=$((cleanup_errors + 1))
+        fi
       fi
     done
-
-    # Also clean up any remote branches that should be gone
-    for task_id in $(jq -r '.tasks | keys[]' ".karimo/prds/${prd_slug}/status.json" 2>/dev/null); do
-      branch="worktree/${prd_slug}-${task_id}"
-      git push origin --delete "$branch" 2>/dev/null && echo "   Deleted remote: $branch" || true
-    done
-
-    git worktree prune
-    echo "   ✓ Worktree cleanup complete"
-    echo ""
   else
-    echo "✓ No stale worktrees (cleanup successful during wave transitions)"
+    echo "✓ No stale worktrees in .worktrees/${prd_slug}/"
   fi
 else
   echo "✓ No worktree directory found (cleanup already complete)"
 fi
+
+# Phase 2: Discovery-based branch cleanup
+echo "Running discovery audit for stale branches..."
+
+# Find KARIMO-pattern stale branches (local)
+for branch in $(git branch --list "worktree/${prd_slug}-*" 2>/dev/null | sed 's/^[* ]*//' || true); do
+  if git branch -D "$branch" 2>/dev/null; then
+    echo "   Deleted stale local: $branch"
+  else
+    echo "   WARN: Could not delete local: $branch"
+  fi
+done
+
+# Find Claude Code internal pattern branches (local)
+for branch in $(git branch --list 'worktree-agent-*' 2>/dev/null | sed 's/^[* ]*//' || true); do
+  if git branch -D "$branch" 2>/dev/null; then
+    echo "   Deleted stale local: $branch"
+  fi
+done
+
+# Remote cleanup for KARIMO pattern
+for branch in $(git ls-remote --heads origin 2>/dev/null | \
+    grep -E "worktree/${prd_slug}-" | \
+    awk -F'refs/heads/' '{print $2}' || true); do
+  if git push origin --delete "$branch" 2>/dev/null; then
+    echo "   Deleted stale remote: $branch"
+  else
+    echo "   WARN: Could not delete remote: $branch"
+  fi
+done
+
+# Remote cleanup for Claude Code internal pattern
+for branch in $(git ls-remote --heads origin 2>/dev/null | \
+    grep -E "worktree-agent-" | \
+    awk -F'refs/heads/' '{print $2}' || true); do
+  if git push origin --delete "$branch" 2>/dev/null; then
+    echo "   Deleted stale remote: $branch"
+  fi
+done
+
+# Prune stale worktree references
+git worktree prune
+echo "   Pruned stale worktree references"
+
+if [ "$cleanup_errors" -gt 0 ]; then
+  echo "⚠️  $cleanup_errors cleanup errors occurred"
+else
+  echo "✓ Pre-merge cleanup complete"
+fi
+echo ""
 ```
 
 **Why this step:**
@@ -647,29 +695,74 @@ fi
 timestamp=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 # ... update status.json ...
 
-# Delete any remaining worktree branches (safety net)
-# New naming: worktree/{prd-slug}-{task-id}
-for task_id in $(jq -r '.tasks | keys[]' .karimo/prds/{NNN}_{slug}/status.json); do
+echo "Running post-merge cleanup (discovery-based)..."
+cleanup_errors=0
+
+# Phase 1: Delete known task branches from status.json
+for task_id in $(jq -r '.tasks | keys[]' .karimo/prds/{NNN}_{slug}/status.json 2>/dev/null || true); do
   branch="worktree/${prd_slug}-${task_id}"
-  git push origin --delete "$branch" 2>/dev/null || true
+  if git push origin --delete "$branch" 2>/dev/null; then
+    echo "  Deleted remote: $branch"
+  fi
+  if git branch -D "$branch" 2>/dev/null; then
+    echo "  Deleted local: $branch"
+  fi
 done
 
-# Also clean up any legacy worktree-agent-* branches (Claude Code internal)
-git ls-remote --heads origin 2>/dev/null | grep -E "worktree[-/]" | \
-  awk -F'/' '{print $NF}' | while read branch; do
-    git push origin --delete "$branch" 2>/dev/null || true
-  done
+# Phase 2: Discovery-based cleanup for KARIMO-pattern branches
+for branch in $(git branch --list "worktree/${prd_slug}-*" 2>/dev/null | sed 's/^[* ]*//' || true); do
+  if git branch -D "$branch" 2>/dev/null; then
+    echo "  Deleted stale local: $branch"
+  fi
+done
 
-# Clean up remaining worktrees
+for branch in $(git ls-remote --heads origin 2>/dev/null | \
+    grep -E "worktree/${prd_slug}-" | \
+    awk -F'refs/heads/' '{print $2}' || true); do
+  if git push origin --delete "$branch" 2>/dev/null; then
+    echo "  Deleted stale remote: $branch"
+  fi
+done
+
+# Phase 3: Discovery-based cleanup for Claude Code internal pattern
+for branch in $(git branch --list 'worktree-agent-*' 2>/dev/null | sed 's/^[* ]*//' || true); do
+  if git branch -D "$branch" 2>/dev/null; then
+    echo "  Deleted stale local: $branch"
+  fi
+done
+
+for branch in $(git ls-remote --heads origin 2>/dev/null | \
+    grep -E "worktree-agent-" | \
+    awk -F'refs/heads/' '{print $2}' || true); do
+  if git push origin --delete "$branch" 2>/dev/null; then
+    echo "  Deleted stale remote: $branch"
+  fi
+done
+
+# Phase 4: Clean up remaining worktree directories
 if [ -d ".worktrees/${prd_slug}" ]; then
   for wt in .worktrees/${prd_slug}/*; do
-    git worktree remove "$wt" 2>/dev/null || true
+    if [ -d "$wt" ]; then
+      if git worktree remove "$wt" 2>/dev/null; then
+        echo "  Removed worktree: $(basename "$wt")"
+      else
+        echo "  ERROR: Failed to remove worktree: $(basename "$wt")"
+        cleanup_errors=$((cleanup_errors + 1))
+      fi
+    fi
   done
   rmdir ".worktrees/${prd_slug}" 2>/dev/null || true
 fi
 
+# Prune and report
 git worktree prune
-echo "✓ Post-merge cleanup complete"
+echo "  Pruned stale worktree references"
+
+if [ "$cleanup_errors" -gt 0 ]; then
+  echo "⚠️  Post-merge cleanup completed with $cleanup_errors errors"
+else
+  echo "✓ Post-merge cleanup complete"
+fi
 ```
 
 **Present completion summary:**

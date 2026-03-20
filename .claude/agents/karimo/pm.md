@@ -244,6 +244,45 @@ Wait for human confirmation before proceeding.
 
 ---
 
+### Branch Guard Function (Safety Net)
+
+Before any critical operation (wave launch, spawn, commit, validation), verify branch identity. This prevents commits landing on wrong branches during concurrent session interference.
+
+```bash
+ensure_branch() {
+  local expected="$1"
+  local context="$2"
+  local current=$(git branch --show-current)
+
+  if [ "$current" != "$expected" ]; then
+    echo "BRANCH GUARD: Recovery needed at $context"
+    echo "  Expected: $expected | Current: $current"
+    if git checkout "$expected" 2>/dev/null; then
+      echo "  Recovered: Now on $expected"
+      git pull origin "$expected" --ff-only 2>/dev/null || true
+    else
+      echo "  Recovery FAILED. Manual intervention required."
+      return 1
+    fi
+  fi
+  return 0
+}
+```
+
+**Invocation points:**
+- Before each wave starts (pre-wave loop)
+- Before spawning each worker (pre-spawn)
+- Before committing wave state
+- Before running validation
+- Before finalization commit
+
+**Failure behavior:**
+- If recovery fails, halt the current operation
+- Report the mismatch to the user
+- Do NOT proceed with commits or merges
+
+---
+
 ### Step 2: State Reconciliation (Resume Scenarios)
 
 **If `status.json` shows prior execution (status != "ready"), derive truth from git:**
@@ -338,6 +377,13 @@ Execute tasks wave by wave. Within a wave, tasks run in parallel. Between waves,
 WHILE waves remain:
   current_wave = next wave with unfinished tasks
 
+  # BRANCH GUARD: Verify we're on the correct base branch before wave
+  ensure_branch "$base_branch" "pre-wave-$current_wave" || {
+    echo "ERROR: Cannot start wave $current_wave - branch recovery failed"
+    echo "Manual intervention required: checkout $base_branch and re-run"
+    exit 1
+  }
+
   # Run pre-wave hook
   run_hook pre-wave (export WAVE, PRD_SLUG, TASK_IDS for wave, etc.)
   if exit_code == 2: abort wave
@@ -370,7 +416,17 @@ Workers use Claude Code's native `isolation: worktree`. The PM specifies the bra
 
 **Before spawning worker:**
 
-1. **Run pre-task hook:**
+1. **Branch guard (verify base branch identity):**
+   ```bash
+   # Verify we're on the correct base branch before spawning
+   ensure_branch "$base_branch" "pre-spawn-${task_id}" || {
+     echo "ERROR: Cannot spawn task $task_id - branch recovery failed"
+     mark_task_failed "$task_id" "Branch guard failure"
+     continue  # Skip to next task
+   }
+   ```
+
+2. **Run pre-task hook:**
    ```bash
    export TASK_ID="{task_id}"
    export PRD_SLUG="{prd_slug}"
@@ -928,6 +984,13 @@ When all tasks in a wave have merged PRs:
 
 4. **Commit wave state to feature branch:**
    ```bash
+   # BRANCH GUARD: Verify branch identity before committing wave state
+   ensure_branch "$base_branch" "wave-${wave}-commit" || {
+     echo "ERROR: Cannot commit wave ${wave} state - branch recovery failed"
+     echo "Manual intervention required"
+     exit 1
+   }
+
    git checkout $base_branch
    git pull origin $base_branch
    git add .karimo/prds/${prd_number}_${prd_slug}/status.json
@@ -939,6 +1002,16 @@ When all tasks in a wave have merged PRs:
 
    Co-Authored-By: Claude <noreply@anthropic.com>"
    git push origin $base_branch
+   ```
+
+5. **Branch guard and validation:**
+   ```bash
+   # BRANCH GUARD: Verify branch identity before validation
+   ensure_branch "$base_branch" "wave-${wave}-validation" || {
+     echo "ERROR: Cannot validate wave ${wave} - branch recovery failed"
+     echo "Manual intervention required"
+     exit 1
+   }
    ```
 
 6. **Verify target branch is stable:**
@@ -961,32 +1034,79 @@ When all tasks in a wave have merged PRs:
    # Continue even if hook fails (typically for cleanup/notifications)
    ```
 
-8. **Clean up merged task branches and worktrees:**
+8. **Clean up merged task branches and worktrees (discovery-based):**
 
-   For each task that merged in this wave, immediately clean up:
+   For each task that merged in this wave, immediately clean up. Uses discovery-based detection to handle both KARIMO naming (`worktree/{prd-slug}-{task-id}`) and Claude Code internal naming (`worktree-agent-{hash}`).
 
    ```bash
+   echo "Cleaning up wave ${wave} branches and worktrees..."
+   cleanup_errors=0
+
+   # Phase 1: Clean known task branches
    for task_id in wave_tasks; do
      branch="worktree/${prd_slug}-${task_id}"
      worktree_path=".worktrees/${prd_slug}/${task_id}"
 
      # Delete remote branch (PR merged, branch no longer needed)
-     git push origin --delete "$branch" 2>/dev/null && \
-       echo "  Deleted remote: $branch" || true
+     if git push origin --delete "$branch" 2>/dev/null; then
+       echo "  Deleted remote: $branch"
+     else
+       echo "  WARN: Could not delete remote: $branch (may not exist)"
+     fi
 
      # Delete local branch
-     git branch -D "$branch" 2>/dev/null || true
+     if git branch -D "$branch" 2>/dev/null; then
+       echo "  Deleted local: $branch"
+     else
+       echo "  WARN: Could not delete local: $branch (may not exist)"
+     fi
 
      # Remove worktree if exists
      if [ -d "$worktree_path" ]; then
-       git worktree remove "$worktree_path" 2>/dev/null || true
+       if git worktree remove "$worktree_path" 2>/dev/null; then
+         echo "  Removed worktree: $worktree_path"
+       else
+         echo "  ERROR: Failed to remove worktree: $worktree_path"
+         cleanup_errors=$((cleanup_errors + 1))
+       fi
      fi
+   done
 
-     echo "  Cleaned up task $task_id"
+   # Phase 2: Discovery audit for stale branches (belt-and-suspenders)
+   echo "Running discovery audit for stale branches..."
+
+   # Find KARIMO-pattern stale branches
+   for branch in $(git branch --list "worktree/${prd_slug}-*" 2>/dev/null | sed 's/^[* ]*//' || true); do
+     if git branch -D "$branch" 2>/dev/null; then
+       echo "  Deleted stale local: $branch"
+     fi
+   done
+
+   # Find Claude Code internal pattern branches
+   for branch in $(git branch --list 'worktree-agent-*' 2>/dev/null | sed 's/^[* ]*//' || true); do
+     if git branch -D "$branch" 2>/dev/null; then
+       echo "  Deleted stale local: $branch"
+     fi
+   done
+
+   # Remote cleanup for both patterns
+   for branch in $(git ls-remote --heads origin 2>/dev/null | \
+       grep -E "(worktree/${prd_slug}-|worktree-agent-)" | \
+       awk -F'refs/heads/' '{print $2}' || true); do
+     if git push origin --delete "$branch" 2>/dev/null; then
+       echo "  Deleted stale remote: $branch"
+     fi
    done
 
    # Prune stale worktree references
    git worktree prune
+   echo "  Pruned stale worktree references"
+
+   if [ "$cleanup_errors" -gt 0 ]; then
+     echo "  WARNING: $cleanup_errors cleanup errors occurred"
+   else
+     echo "  ✓ Wave ${wave} cleanup complete"
+   fi
    ```
 
    Task branches use `worktree/` prefix (e.g., `worktree/user-profiles-1a`) for visual distinction in GitHub UI. Only the feature branch remains after cleanup.
@@ -1092,6 +1212,13 @@ The worker will see this context when implementing the fix.
 
 5. **Commit finalization state to feature branch:**
    ```bash
+   # BRANCH GUARD: Verify branch identity before finalization commit
+   ensure_branch "$base_branch" "finalization-commit" || {
+     echo "ERROR: Cannot commit finalization state - branch recovery failed"
+     echo "Manual intervention required"
+     exit 1
+   }
+
    git checkout $base_branch
    git pull origin $base_branch
    git add .karimo/prds/${prd_number}_${prd_slug}/status.json
