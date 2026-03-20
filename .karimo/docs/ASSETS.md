@@ -44,48 +44,73 @@ KARIMO's asset management system enables you to capture and reference visual con
 
 ## Quick Start
 
-### Adding Assets During Planning
+### Manual Import (Recommended)
 
-When running `/karimo:plan`, provide image URLs or file paths:
+The primary workflow for user-provided screenshots and mockups:
 
+**Step 1: Prompt User**
+
+During research or planning interview:
 ```
-User: Here's the dashboard mockup: https://example.com/dashboard.png
+Do you have any screenshots or mockups to add?
+If yes, please drag them into:
+  .karimo/prds/{slug}/assets/
 
-Interviewer:
-✓ Image stored: planning-dashboard-mockup-20260315151500.png
-I've embedded the mockup in the PRD.
+Let me know when you're done, or say 'skip' to continue without.
 ```
 
-The interviewer agent automatically:
-1. Downloads or copies the file
-2. Stores in `assets/planning/` with timestamped filename
-3. Updates `assets.json` metadata
-4. Inserts markdown reference in PRD
+**Step 2: Scan & Rename**
 
-### Adding Assets During Research
+After user confirms, agent runs:
+```bash
+node .karimo/scripts/karimo-assets.js import {prd-slug}
+```
 
-When running `/karimo:research`, the researcher agent captures relevant visuals:
+This command:
+1. Scans `assets/` for files NOT in `assets.json`
+2. Auto-generates description from filename
+3. Renames: `Screenshot 2026-03-19.png` → `{description}-{timestamp}.png`
+4. Adds to `assets.json` manifest
+5. Returns markdown references for embedding
+
+**Example Output:**
+```
+Scanning .karimo/prds/user-auth/assets/...
+
+✅ Imported: login-mockup-20260319220000.png
+   Was: Screenshot 2026-03-19 at 10.30.45 AM.png
+
+✅ Imported: dashboard-wireframe-20260319220001.png
+   Was: dashboard wireframe.png
+
+⚠️  Skipped: logo.png (already tracked)
+
+Markdown references:
+![login-mockup](./assets/login-mockup-20260319220000.png)
+![dashboard-wireframe](./assets/dashboard-wireframe-20260319220001.png)
+```
+
+**Step 3: Reference in Findings/PRD**
+
+Agent embeds the markdown references with clear descriptions so future agents understand what each screenshot shows.
+
+**Anytime Import:** User can add more screenshots at any point and say "I added more screenshots" — agent re-runs import (idempotent, only processes new files).
+
+---
+
+### URL-Based Import
+
+For images from URLs during research or interviews:
 
 ```bash
-# Researcher encounters OAuth2 flow diagram during documentation scraping
-# Automatically downloads and stores:
-✓ Asset stored: research-oauth2-flow-20260315143022.png
-
-# References in findings:
-![OAuth2 Flow](./assets/research/research-oauth2-flow-20260315143022.png)
+node .karimo/scripts/karimo-assets.js add "{prd-slug}" "{image-url}" "{stage}" "{description}" "{added-by}"
 ```
 
-### Adding Assets During Execution
-
-The PM agent can store bug screenshots or runtime context:
-
-```
-User: Here's a screenshot of the error: /Users/me/Desktop/error.png
-
-PM:
-✓ Asset stored: execution-error-state-20260315163000.png
-I've added this to task 2a's brief.
-```
+The agent automatically:
+1. Downloads the file from URL
+2. Stores in `assets/{stage}/` with timestamped filename
+3. Updates `assets.json` metadata
+4. Returns markdown reference for embedding
 
 ---
 
@@ -93,16 +118,29 @@ I've added this to task 2a's brief.
 
 ### Folder Organization
 
+There are two folder structures depending on how assets are added:
+
+**Manual Import (Flat Structure):**
+```
+.karimo/prds/{prd-slug}/
+├── assets/                                 # Flat folder (no subfolders)
+│   ├── login-mockup-20260319220000.png    # Auto-renamed from user file
+│   ├── dashboard-wireframe-20260319220001.png
+│   └── *.png, *.jpg, ...
+├── assets.json                             # Metadata manifest
+└── PRD_my-feature.md                      # PRD with asset references
+```
+
+**URL-Based Import (Staged Structure):**
 ```
 .karimo/prds/{prd-slug}/
 ├── assets/
-│   ├── research/                           # Research-phase assets
+│   ├── research/                           # Research-phase assets (from URLs)
 │   │   ├── research-user-flow-20260315143022.png
 │   │   └── research-api-diagram-20260315144500.svg
-│   ├── planning/                           # Planning/interview assets
-│   │   ├── planning-mockup-20260315151500.png
-│   │   └── planning-figma-export-20260315152200.jpg
-│   └── execution/                          # Execution-phase assets
+│   ├── planning/                           # Planning/interview assets (from URLs)
+│   │   └── planning-mockup-20260315151500.png
+│   └── execution/                          # Execution-phase assets (from URLs)
 │       └── execution-bug-screenshot-20260315163000.png
 ├── assets.json                             # Metadata manifest
 └── PRD_my-feature.md                      # PRD with asset references
@@ -110,16 +148,21 @@ I've added this to task 2a's brief.
 
 ### Filename Convention
 
-**Pattern:** `{stage}-{description}-{timestamp}.{ext}`
+**Manual Import Pattern:** `{description}-{timestamp}.{ext}`
 
-**Examples:**
+Examples:
+- `login-mockup-20260319220000.png`
+- `dashboard-wireframe-20260319220001.png`
+
+**URL Import Pattern:** `{stage}-{description}-{timestamp}.{ext}`
+
+Examples:
 - `research-authentication-flow-20260315143022.png`
 - `planning-mockup-dashboard-20260315151500.jpg`
 - `execution-error-state-20260315163000.png`
 
 **Benefits:**
 - Human-readable without metadata lookup
-- Stage prefix enables quick visual scanning
 - Description provides context at a glance
 - Timestamp ensures uniqueness and chronological ordering
 
@@ -187,7 +230,62 @@ All asset operations use the Node.js CLI script at `.karimo/scripts/karimo-asset
 node .karimo/scripts/karimo-assets.js <command> [arguments]
 ```
 
-### add — Add an Asset
+### import — Import Untracked Files (Recommended)
+
+Scan the assets folder for files not in `assets.json`, auto-rename, and add to manifest.
+
+**Usage:**
+```bash
+node .karimo/scripts/karimo-assets.js import <prd-slug> [--dry-run]
+```
+
+**Parameters:**
+
+| Parameter | Description |
+|-----------|-------------|
+| `prd-slug` | PRD identifier (e.g., "user-profiles") |
+| `--dry-run` | Show what would be renamed without changing anything |
+
+**Example:**
+```bash
+node .karimo/scripts/karimo-assets.js import user-profiles
+
+# Output:
+# Scanning .karimo/prds/user-profiles/assets/...
+#
+# ✅ Imported: login-mockup-20260319220000.png
+#    Was: Screenshot 2026-03-19 at 10.30.45 AM.png
+#
+# ✅ Imported: dashboard-wireframe-20260319220001.png
+#    Was: dashboard wireframe.png
+#
+# ⚠️  Skipped: logo.png (already tracked)
+#
+# Markdown references:
+# ![login-mockup](./assets/login-mockup-20260319220000.png)
+# ![dashboard-wireframe](./assets/dashboard-wireframe-20260319220001.png)
+#
+# Imported: 2 file(s)
+# Skipped: 1 file(s)
+```
+
+**Auto-Description Logic:**
+
+The import command auto-generates descriptions from filenames:
+1. Strips common prefixes: "Screenshot ", "Screen Shot ", "IMG_", "Image ", "Untitled"
+2. Strips date patterns: "2026-03-19", "at 10.30.45 AM", timestamps
+3. Strips leading numbers: "001-", "1_"
+4. Converts spaces/underscores to kebab-case
+5. Fallback if nothing left: `asset-{N}`
+
+**Examples:**
+- `Screenshot 2026-03-19 at 10.30.45 AM.png` → `asset-001-20260319220000.png`
+- `login-mockup.png` → `login-mockup-20260319220000.png`
+- `Dashboard Wireframe Final v2.png` → `dashboard-wireframe-final-20260319220001.png`
+
+---
+
+### add — Add an Asset (URL-Based)
 
 Download from URL or copy from local path, store with metadata.
 
@@ -314,13 +412,25 @@ node .karimo/scripts/karimo-assets.js validate user-profiles
 
 ### Interviewer Agent (Planning Stage)
 
-During `/karimo:plan` interview, when user provides images:
+During `/karimo:plan` interview, the interviewer prompts for visual assets:
 
-1. Agent calls `node .karimo/scripts/karimo-assets.js add` with stage="planning"
-2. Returns markdown reference for PRD embedding
-3. Confirms storage to user
+**Manual Import (Recommended):**
+```
+Interviewer: Do you have any mockups or wireframes?
+If yes, drag them into: .karimo/prds/{slug}/assets/
+Say 'done' when ready, or 'skip' to continue.
 
-**User interaction:**
+User: Done, I added some mockups.
+
+Interviewer:
+$ node .karimo/scripts/karimo-assets.js import my-feature
+✅ Imported: dashboard-mockup-20260319220000.png
+   Was: Dashboard Mockup Final.png
+
+I've embedded the mockup in the PRD under "Visual Design".
+```
+
+**URL-Based (For Direct URLs):**
 ```
 User: Here's the mockup: https://example.com/design.png
 
@@ -333,13 +443,24 @@ I've embedded the mockup in the PRD under "Visual Design".
 
 ### Researcher Agent (Research Stage)
 
-During `/karimo:research`, when encountering relevant images:
+During `/karimo:research`, the researcher prompts for assets before beginning:
 
-1. Uses Firecrawl screenshot tools or WebFetch to get image URL
-2. Calls `node .karimo/scripts/karimo-assets.js add` with stage="research"
-3. References in `research/external/findings.md`
+**Manual Import:**
+```
+Researcher: Do you have reference screenshots or diagrams?
+If yes, drag them into: .karimo/prds/{slug}/assets/
 
-**Automatic capture:**
+User: Done.
+
+Researcher:
+$ node .karimo/scripts/karimo-assets.js import my-feature
+✅ Imported: architecture-diagram-20260319220000.png
+   Was: system-arch.png
+
+Referenced in findings with description.
+```
+
+**URL-Based (For Research Findings):**
 ```
 Researcher found OAuth2 diagram during documentation scraping:
 $ node .karimo/scripts/karimo-assets.js add auth-flow "https://oauth.net/diagram.png" research "OAuth2 flow diagram" "karimo-researcher"
@@ -352,17 +473,13 @@ Referenced in findings with source attribution.
 
 During `/karimo:run`, if user provides additional context:
 
-1. Calls `node .karimo/scripts/karimo-assets.js add` with stage="execution"
-2. Updates relevant task brief or creates findings file
-3. Notifies active workers via PR comments
-
-**Runtime context:**
 ```
-User: Screenshot of bug: /Users/me/Desktop/error.png
+User: I added a bug screenshot to the assets folder.
 
 PM:
-$ node .karimo/scripts/karimo-assets.js add my-feature "/Users/me/Desktop/error.png" execution "Bug screenshot" "karimo-pm"
-✅ Asset stored: execution-bug-screenshot-20260315163000.png
+$ node .karimo/scripts/karimo-assets.js import my-feature
+✅ Imported: error-state-20260319220000.png
+   Was: bug-screenshot.png
 
 Added to task 2a brief under "Additional Context".
 ```
@@ -376,7 +493,15 @@ When generating task briefs:
 3. Includes "Visual References" section if task mentions UI/design
 4. Uses relative paths from briefs/ subdirectory
 
-**Brief section:**
+**Brief section (flat structure):**
+```markdown
+## Visual References
+
+![Dashboard Mockup](../assets/dashboard-mockup-20260319220000.png)
+*Dashboard design showing card-based layout with metrics at the top*
+```
+
+**Brief section (staged structure):**
 ```markdown
 ## Visual References
 
@@ -588,23 +713,33 @@ node .karimo/scripts/karimo-assets.js add "{prd_slug}" "{original_source}" "{sta
 
 ## Examples
 
-### Complete Workflow Example
+### Complete Workflow Example (Manual Import)
 
 ```bash
 # 1. Run research
 /karimo:research "authentication-flow"
 
-# Researcher captures OAuth2 diagram:
-# ✓ Asset stored: research-oauth2-flow-20260315143022.png
+# Researcher prompts for assets:
+Agent: "Do you have reference screenshots?"
+
+# User drags files to .karimo/prds/authentication-flow/assets/
+User: Done, I added some reference diagrams.
+
+# Agent imports:
+$ node .karimo/scripts/karimo-assets.js import authentication-flow
+✅ Imported: oauth-flow-diagram-20260319220000.png
+   Was: OAuth2 Flow.png
 
 # 2. Create PRD
 /karimo:plan --prd authentication-flow
 
-# During interview, user provides mockup:
-User: Login screen: https://example.com/login-mockup.png
+# During interview, user adds more files:
+User: I added mockups to the assets folder.
 
-# Interviewer stores asset:
-# ✓ Asset stored: planning-login-screen-20260315151500.png
+# Agent imports:
+$ node .karimo/scripts/karimo-assets.js import authentication-flow
+✅ Imported: login-screen-mockup-20260319220100.png
+   Was: login mockup v2.png
 
 # 3. Execute tasks
 /karimo:run --prd authentication-flow
@@ -613,10 +748,12 @@ User: Login screen: https://example.com/login-mockup.png
 # Workers see mockups during implementation
 
 # 4. Bug reported during execution
-User: Error screenshot: /Users/me/Desktop/auth-error.png
+User: I added a bug screenshot to assets.
 
-# PM stores execution asset:
-# ✓ Asset stored: execution-auth-error-20260315163000.png
+# PM imports:
+$ node .karimo/scripts/karimo-assets.js import authentication-flow
+✅ Imported: error-state-20260319220200.png
+   Was: auth-error.png
 
 # 5. Validate integrity
 /karimo:doctor
@@ -626,7 +763,19 @@ User: Error screenshot: /Users/me/Desktop/auth-error.png
 #   ✅ 3/3 assets validated
 ```
 
-### Multi-Stage Asset Example
+**Result:**
+```
+.karimo/prds/authentication-flow/
+├── assets/
+│   ├── oauth-flow-diagram-20260319220000.png
+│   ├── login-screen-mockup-20260319220100.png
+│   └── error-state-20260319220200.png
+└── assets.json (3 entries)
+```
+
+### URL-Based Import Example
+
+For assets from URLs (e.g., during research or when user provides URLs):
 
 **Research stage:**
 ```bash
@@ -646,26 +795,15 @@ node .karimo/scripts/karimo-assets.js add "dashboard" \
   "karimo-interviewer"
 ```
 
-**Execution stage:**
-```bash
-node .karimo/scripts/karimo-assets.js add "dashboard" \
-  "/Users/dev/Desktop/bug-screenshot.png" \
-  "execution" \
-  "Rendering bug" \
-  "karimo-pm"
-```
-
 **Result:**
 ```
 .karimo/prds/dashboard/
 ├── assets/
 │   ├── research/
 │   │   └── research-system-architecture-20260315143022.svg
-│   ├── planning/
-│   │   └── planning-dashboard-mockup-20260315151500.png
-│   └── execution/
-│       └── execution-rendering-bug-20260315163000.png
-└── assets.json (3 entries)
+│   └── planning/
+│       └── planning-dashboard-mockup-20260315151500.png
+└── assets.json (2 entries)
 ```
 
 ---
