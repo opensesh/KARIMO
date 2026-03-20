@@ -108,69 +108,89 @@ Simple path does NOT spawn auditor — it generates rules directly.
 
 ## Image Handling
 
-Accept images inline during the interview:
-- Screenshots of UI mockups
-- Figma references
-- Error states or existing UI
-- Design files or visual specifications
+Accept images during the interview. There are two approaches:
 
-**Implementation:**
+### Manual Import (Recommended for User Screenshots)
 
-When the user provides an image (URL or file path) during the interview:
+During Round 2, prompt for visual references:
 
-1. **Call the karimo-assets CLI:**
+> "Do you have any mockups, wireframes, or design references?
+>
+> If yes, drag them into: `.karimo/prds/{slug}/assets/`
+>
+> Say 'done' when ready, or 'skip' to continue."
+
+If user adds files:
+
+1. **Run the import command:**
    ```bash
-   node .karimo/scripts/karimo-assets.js add "$PRD_SLUG" "$IMAGE_SOURCE" "planning" "$DESCRIPTION" "karimo-interviewer"
+   node .karimo/scripts/karimo-assets.js import {slug}
    ```
 
-2. **Parameters:**
-   - `$PRD_SLUG` - The current PRD slug
-   - `$IMAGE_SOURCE` - URL (e.g., `https://example.com/mockup.png`) or local path (e.g., `/Users/me/Desktop/design.jpg`)
-   - `"planning"` - Always use "planning" stage for interviewer-added assets
-   - `$DESCRIPTION` - Brief description provided by user or inferred from context (e.g., "Dashboard mockup", "Login screen design")
-   - `"karimo-interviewer"` - Agent name (always this value)
+2. **Review imported assets** — Files are renamed with timestamps and tracked in manifest
 
-3. **Insert returned markdown reference** into the appropriate section of the PRD
-
-4. **Confirm to user:**
-   ```
-   ✅ Asset stored: planning-mockup-20260315151500.png
-   I've embedded the mockup in the PRD under "Visual Design".
-   ```
+3. **Embed markdown references** in the appropriate section of the PRD (Section 5: UX Notes)
 
 **Example interaction:**
 
 ```
-User: Here's the mockup for the dashboard: https://example.com/dashboard.png
+User: I added some mockups to the assets folder.
 
 Interviewer:
-$ node .karimo/scripts/karimo-assets.js add user-profiles "https://example.com/dashboard.png" planning "Dashboard mockup" "karimo-interviewer"
-✅ Asset stored: planning-dashboard-mockup-20260315151500.png
-   Stage: planning
-   Size: 128 KB
-   ID: asset-001
+$ node .karimo/scripts/karimo-assets.js import user-profiles
 
-Markdown reference:
-![Dashboard mockup](./assets/planning/planning-dashboard-mockup-20260315151500.png)
+✅ Imported: dashboard-mockup-20260319220000.png
+   Was: Dashboard Mockup Final.png
 
-I've added the dashboard mockup to the PRD. The design shows a card-based layout
-with metrics at the top. I'll reference this in the UX section.
+✅ Imported: login-screen-20260319220001.png
+   Was: login screen v2.png
+
+Markdown references:
+![dashboard-mockup](./assets/dashboard-mockup-20260319220000.png)
+![login-screen](./assets/login-screen-20260319220001.png)
+
+I've embedded these mockups in the UX section.
 
 Continuing with Round 2...
 ```
 
-**Error handling:**
+**Anytime Import:** User can say "I added more screenshots" at any point — re-run the import command (idempotent, only processes new files).
+
+---
+
+### URL-Based Import (For URLs)
+
+When the user provides a URL directly during the interview:
+
+1. **Call the karimo-assets CLI:**
+   ```bash
+   node .karimo/scripts/karimo-assets.js add "$PRD_SLUG" "$IMAGE_URL" "planning" "$DESCRIPTION" "karimo-interviewer"
+   ```
+
+2. **Parameters:**
+   - `$PRD_SLUG` - The current PRD slug
+   - `$IMAGE_URL` - URL to the image (e.g., `https://example.com/mockup.png`)
+   - `"planning"` - Always use "planning" stage for interviewer-added assets
+   - `$DESCRIPTION` - Brief description provided by user or inferred from context
+   - `"karimo-interviewer"` - Agent name (always this value)
+
+3. **Insert returned markdown reference** into the PRD
+
+---
+
+### Error Handling
 
 - If download fails: Inform user and ask for alternate source
 - If file is >10MB: Show warning but proceed
 - If duplicate detected: Inform user and ask whether to use existing or add new version
 - If unsupported file type: List supported types (png, jpg, jpeg, gif, svg, pdf, mp4)
 
-**Notes:**
+### Notes
 
-- Assets are stored in `.karimo/prds/{slug}/assets/planning/` with timestamped filenames
+- Manual imports go to flat folder: `.karimo/prds/{slug}/assets/`
+- URL-based imports go to staged folder: `.karimo/prds/{slug}/assets/planning/`
 - Metadata is tracked in `.karimo/prds/{slug}/assets.json`
-- PRD contains relative path references: `![Description](./assets/planning/filename.png)`
+- PRD contains relative path references: `![Description](./assets/filename.png)`
 - Images are NOT loaded into agent context (reference-only approach)
 
 ---
