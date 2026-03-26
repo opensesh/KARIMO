@@ -268,7 +268,7 @@ For tracking the final PR's Greptile review cycle (v7.13.0+):
 | `greptile_review.pr_number` | number | Final PR number |
 | `greptile_review.status` | string | Review status (see values below) |
 | `greptile_review.scores` | number[] | Array of scores from each review loop |
-| `greptile_review.loop_count` | number | Current loop iteration (1-3) |
+| `greptile_review.loop_count` | number | Current loop iteration (1-30, default max: 3) |
 | `greptile_review.max_loops` | number | Maximum loops allowed (default: 3) |
 | `greptile_review.threshold` | number | Target score (default: 5) |
 | `greptile_review.current_model` | string | Model used for remediation ("sonnet" or "opus") |
