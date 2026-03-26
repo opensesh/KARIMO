@@ -795,6 +795,63 @@ Attempt 3 → Score < threshold
 HARD GATE: needs-human-review
 ```
 
+### Budget-Aware Revision Loops (v7.20+)
+
+KARIMO v7.20 introduces smart early exit to help manage Greptile budget:
+
+**Budget Context:**
+- Greptile: $30/month for 50 PRs, then $1/PR after
+- Each revision loop triggers a new Greptile review
+- Extended loops (up to 30) can consume significant budget
+
+**Smart Early Exit:**
+
+When score reaches `threshold - 1` (e.g., 4/5 when threshold is 5), the command prompts:
+
+```
+╭────────────────────────────────────────────────╮
+│  ⚡ Smart Early Exit Opportunity               │
+╰────────────────────────────────────────────────╯
+
+  Score 4/5 is often safe to merge.
+  Continuing may improve score but costs additional review cycles.
+
+  Options:
+    1. Stop here (Recommended)
+    2. Continue to 5/5
+```
+
+**Configuration:**
+
+```yaml
+# .karimo/config.yaml
+review:
+  provider: greptile
+  threshold: 5
+  max_revision_loops: 3
+
+  # Extended (v7.20+)
+  extended_loops:
+    max_per_invocation: 30   # Hard cap when using --max-loops
+    early_exit_threshold: 4  # Defaults to threshold - 1
+    auto_mode: false         # Skip prompts (for CI/CD)
+```
+
+**CLI Flags:**
+
+| Flag | Description |
+|------|-------------|
+| `--max-loops {1-30}` | Extend loop limit (default: 3) |
+| `--early-exit {1-5}` | Custom early exit threshold |
+| `--auto` / `--no-prompt` | Skip prompts, continue to threshold |
+
+**Best Practices:**
+
+1. **For production PRs:** Use default settings (3 loops, threshold 5)
+2. **For stubborn PRs:** Use `--max-loops 10` with early exit prompts
+3. **For CI/CD:** Use `--auto` to skip prompts
+4. **Monitor budget:** Track PR volume vs $30 included quota
+
 ---
 
 ## Environment Isolation

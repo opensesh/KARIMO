@@ -700,7 +700,7 @@ This breakdown helps:
 
 ## /karimo:greptile-review
 
-Execute the full Greptile review cycle on a PR, looping until score meets threshold or circuit breaker triggers.
+Execute the full Greptile review cycle on a PR, looping until score meets threshold or circuit breaker triggers. Supports extended loops (up to 30) with smart early exit to save budget (v7.20+).
 
 ### Usage
 
@@ -710,6 +710,12 @@ Execute the full Greptile review cycle on a PR, looping until score meets thresh
 
 # Override threshold and max loops
 /karimo:greptile-review --pr 123 --threshold 4 --max-loops 2
+
+# Extended loops with budget-aware early exit (v7.20+)
+/karimo:greptile-review --pr 123 --max-loops 10
+
+# CI/CD mode (no prompts, auto-continue to threshold)
+/karimo:greptile-review --pr 123 --max-loops 10 --auto
 ```
 
 ### What It Does
@@ -717,9 +723,10 @@ Execute the full Greptile review cycle on a PR, looping until score meets thresh
 1. **Trigger** — Posts @greptileai comment if not already triggered
 2. **Poll** — Waits for Greptile review (10 min timeout)
 3. **Parse** — Extracts score and P1/P2/P3 findings
-4. **Remediate** — Spawns `karimo-greptile-remediator` to fix findings
-5. **Loop** — Repeats until score >= threshold (max 3 loops)
-6. **Report** — Returns exit code for calling command
+4. **Smart Exit** — Prompts for early exit when score reaches threshold-1 (v7.20+)
+5. **Remediate** — Spawns `karimo-greptile-remediator` to fix findings
+6. **Loop** — Repeats until score >= threshold (max 30 loops)
+7. **Report** — Returns exit code for calling command
 
 ### Arguments
 
@@ -727,13 +734,41 @@ Execute the full Greptile review cycle on a PR, looping until score meets thresh
 |------|----------|-------------|
 | `--pr {number}` | Yes | PR number to review |
 | `--threshold {1-5}` | No | Target score (default: from config.yaml or 5) |
-| `--max-loops {1-5}` | No | Maximum attempts (default: from config.yaml or 3) |
+| `--max-loops {1-30}` | No | Maximum attempts (default: from config.yaml or 3) |
+| `--early-exit {1-5}` | No | Score at which to prompt for early exit (default: threshold - 1) |
+| `--auto` | No | Skip early exit prompts, continue to threshold or max loops |
+| `--no-prompt` | No | Alias for --auto (for CI/CD environments) |
+
+### Smart Early Exit (v7.20+)
+
+When the score reaches `threshold - 1` (e.g., 4/5 when threshold is 5), the command prompts:
+
+```
+╭────────────────────────────────────────────────╮
+│  ⚡ Smart Early Exit Opportunity               │
+╰────────────────────────────────────────────────╯
+
+  Current score: 4/5
+  Target: 5/5
+  Early exit threshold: 4/5
+
+  Score 4/5 is often safe to merge.
+  Continuing may improve score but costs additional review cycles.
+
+  Options:
+    1. Stop here (Recommended) → Exit with greptile-passed label
+    2. Continue to 5/5 → Continue revision loop
+```
+
+**Budget reminder:** Greptile is $30/month for 50 PRs, then $1/PR after.
+
+Use `--auto` to skip prompts and continue automatically to threshold (useful for CI/CD).
 
 ### Exit Codes
 
 | Code | Meaning | Action |
 |------|---------|--------|
-| `0` | Passed | PR ready for merge |
+| `0` | Passed (score >= threshold OR early exit accepted) | PR ready for merge |
 | `1` | Transient error | Retry later |
 | `2` | Needs human | Max loops exceeded |
 

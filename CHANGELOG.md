@@ -7,6 +7,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [7.20.0] - 2026-03-26
+
+### Added
+
+- **Extended Greptile Loop Limits** — `--max-loops` now supports 1-30 iterations (was 1-5) for stubborn PRs that need more remediation cycles
+
+- **Smart Early Exit** — When score reaches `threshold - 1` (e.g., 4/5 when threshold is 5), prompts user to accept early exit or continue:
+  - Displays budget reminder: "$30/month for 50 PRs, then $1/PR after"
+  - Offers "Stop here (Recommended)" or "Continue to {threshold}/5" options
+  - Early exit applies `greptile-passed` label and exits with code 0
+
+- **Auto Mode Flags** — New `--auto` and `--no-prompt` flags for CI/CD environments:
+  - Skip early exit prompts and continue automatically to threshold
+  - Useful for automated pipelines where human interaction isn't available
+
+- **Early Exit Threshold Flag** — New `--early-exit <1-5>` flag to customize the score at which early exit is offered (default: threshold - 1)
+
+- **Budget Reminder Display** — Shows Greptile pricing reminder at command initialization to help users make informed budget decisions
+
+### Changed
+
+- **STATUS_SCHEMA.md** — Added `greptile_review.early_exit_threshold` and `greptile_review.early_exit_used` fields for tracking early exit decisions
+
+- **Exit Code Documentation** — Updated to clarify code 0 applies to both "score >= threshold" and "early exit accepted"
+
+### Documentation
+
+- **COMMANDS.md** — Updated `/karimo:greptile-review` section with new arguments and smart early exit workflow
+- **SAFEGUARDS.md** — Added "Budget-Aware Revision Loops" section with configuration examples and best practices
+
+---
+
 ## [7.19.0] - 2026-03-20
 
 ### Added

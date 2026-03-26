@@ -275,6 +275,8 @@ For tracking the final PR's Greptile review cycle (v7.13.0+):
 | `greptile_review.started_at` | ISO datetime | When review started |
 | `greptile_review.completed_at` | ISO datetime | When review completed |
 | `greptile_review.passed` | boolean | Whether review passed (score >= threshold) |
+| `greptile_review.early_exit_threshold` | number | Score that triggers early exit prompt (v7.20+) |
+| `greptile_review.early_exit_used` | boolean | Whether user chose early exit (v7.20+) |
 
 ### Greptile Review Status Values
 
@@ -299,6 +301,8 @@ For tracking the final PR's Greptile review cycle (v7.13.0+):
     "loop_count": 3,
     "max_loops": 3,
     "threshold": 5,
+    "early_exit_threshold": 4,
+    "early_exit_used": false,
     "current_model": "opus",
     "started_at": "2026-03-18T10:00:00Z",
     "completed_at": "2026-03-18T10:45:00Z",

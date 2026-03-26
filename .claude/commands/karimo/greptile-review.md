@@ -6,7 +6,10 @@ Execute the full Greptile review cycle on a PR, looping until score meets thresh
 
 - `--pr <number>` (required): The PR number to review.
 - `--threshold <1-5>` (optional): Target score (default: from config.yaml or 5).
-- `--max-loops <1-5>` (optional): Maximum revision attempts (default: from config.yaml or 3).
+- `--max-loops <1-30>` (optional): Maximum revision attempts (default: from config.yaml or 3).
+- `--early-exit <1-5>` (optional): Score at which to prompt for early exit (default: threshold - 1).
+- `--auto` (optional): Skip early exit prompts. Continue to threshold or max loops.
+- `--no-prompt` (optional): Alias for --auto. For CI/CD environments.
 
 ## Usage
 
@@ -16,6 +19,12 @@ Execute the full Greptile review cycle on a PR, looping until score meets thresh
 
 # Override threshold and max loops
 /karimo:greptile-review --pr 123 --threshold 4 --max-loops 2
+
+# Extended loop with budget-aware early exit
+/karimo:greptile-review --pr 123 --max-loops 10
+
+# Skip early exit prompts (CI/CD mode)
+/karimo:greptile-review --pr 123 --max-loops 10 --auto
 
 # Called by /karimo:merge (internal use)
 /karimo:greptile-review --pr 123 --internal
@@ -65,6 +74,32 @@ echo "  Branch: $pr_branch → $pr_base"
 echo "  Title: $pr_title"
 echo "  Threshold: ${threshold}/5"
 echo "  Max loops: $max_loops"
+echo ""
+echo "  Budget reminder: Greptile is \$30/month for 50 PRs, then \$1/PR after."
+echo ""
+```
+
+### Step 1b: Parse Extended Arguments
+
+```bash
+# Parse --early-exit, --auto, --no-prompt flags
+early_exit_threshold=${EARLY_EXIT:-$((threshold - 1))}
+auto_mode=${AUTO:-false}
+
+# --no-prompt is alias for --auto
+if [ "$NO_PROMPT" = "true" ]; then
+  auto_mode=true
+fi
+
+# Validate early_exit_threshold
+if [ "$early_exit_threshold" -lt 1 ] || [ "$early_exit_threshold" -gt 5 ]; then
+  early_exit_threshold=$((threshold - 1))
+fi
+
+echo "  Early exit threshold: ${early_exit_threshold}/5"
+if [ "$auto_mode" = "true" ]; then
+  echo "  Auto mode: enabled (no prompts)"
+fi
 echo ""
 ```
 
@@ -205,6 +240,61 @@ while [ $loop_count -lt $max_loops ]; do
 
     echo "Exit code: 0 (passed)"
     exit 0
+  fi
+
+  # Step 5b: Smart Early Exit Check
+  # When score >= (threshold - 1) AND score < threshold, offer early exit
+  if [ "$score" -ge "$early_exit_threshold" ] && [ "$score" -lt "$threshold" ]; then
+    echo ""
+    echo "╭────────────────────────────────────────────────╮"
+    echo "│  ⚡ Smart Early Exit Opportunity               │"
+    echo "╰────────────────────────────────────────────────╯"
+    echo ""
+    echo "  Current score: ${score}/5"
+    echo "  Target: ${threshold}/5"
+    echo "  Early exit threshold: ${early_exit_threshold}/5"
+    echo ""
+    echo "  Score ${score}/5 is often safe to merge."
+    echo "  Continuing may improve score but costs additional review cycles."
+    echo ""
+
+    if [ "$auto_mode" = "true" ]; then
+      echo "  Auto mode: Continuing to ${threshold}/5"
+    else
+      # Use AskUserQuestion tool to prompt user
+      # Options:
+      #   1. "Stop here (Recommended)" → Exit 0 with greptile-passed label
+      #   2. "Continue to {threshold}/5" → Continue loop
+
+      # If user chooses "Stop here":
+      # - Add greptile-passed label
+      # - Update status.json with early_exit_used: true
+      # - Exit 0
+
+      echo "  Prompting user for decision..."
+      # AskUserQuestion: "Score is ${score}/5. Stop here or continue to ${threshold}/5?"
+      # Options: ["Stop here (Recommended)", "Continue to ${threshold}/5"]
+
+      # If user chooses "Stop here (Recommended)":
+      gh pr edit $pr_number --add-label "greptile-passed" 2>/dev/null || true
+      gh pr edit $pr_number --remove-label "needs-revision" 2>/dev/null || true
+
+      echo ""
+      echo "╭────────────────────────────────────────────────╮"
+      echo "│  ✓ Early Exit Accepted                         │"
+      echo "╰────────────────────────────────────────────────╯"
+      echo ""
+      echo "  Score: ${score}/5 (early exit at ${early_exit_threshold}/5)"
+      echo "  Loops: $loop_count"
+      echo ""
+      echo "Exit code: 0 (early exit)"
+
+      # Update status.json: early_exit_used: true
+      exit 0
+
+      # If user chooses "Continue to {threshold}/5":
+      # - Continue loop (no action needed here)
+    fi
   fi
 
   echo "  Score below threshold, extracting findings..."
@@ -372,7 +462,7 @@ fi
 
 | Code | Meaning | Action |
 |------|---------|--------|
-| `0` | Passed (score >= threshold) | PR ready for merge |
+| `0` | Passed (score >= threshold OR early exit accepted) | PR ready for merge |
 | `1` | Transient error (timeout, API error) | Retry later |
 | `2` | Needs human (max loops exceeded) | Review PR manually |
 
@@ -408,6 +498,12 @@ Can also be run independently on any PR:
 
 # Override settings
 /karimo:greptile-review --pr 456 --threshold 4 --max-loops 2
+
+# Extended loops with budget-aware early exit (v7.20+)
+/karimo:greptile-review --pr 456 --max-loops 10
+
+# CI/CD mode (no prompts, auto-continue to threshold)
+/karimo:greptile-review --pr 456 --max-loops 10 --auto
 ```
 
 ---
