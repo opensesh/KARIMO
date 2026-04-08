@@ -136,7 +136,7 @@ KARIMO is an autonomous development **methodology** delivered via Claude Code co
 |---------|---------|
 | `/karimo:research "feature-name"` | **REQUIRED first step** — Create PRD folder + run research |
 | `/karimo:plan --prd {slug}` | PRD interview using research context |
-| `/karimo:run --prd {slug}` | Execute tasks from a PRD |
+| `/karimo:run --prd {slug}` | Execute: brief generation → review → orchestration |
 | `/karimo:merge --prd {slug}` | Create final PR to main after execution completes |
 | `/karimo:dashboard [--prd {slug}]` | Monitor progress and system health |
 | `/karimo:feedback` | Intelligent feedback with auto-detection |

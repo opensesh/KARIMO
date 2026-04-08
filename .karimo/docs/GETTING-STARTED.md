@@ -468,7 +468,7 @@ The refiner agent addresses annotations and updates research.
 
 ---
 
-## Executing Tasks *(v7.0 4-Phase Model)*
+## Execution: /karimo:run
 
 ### Run with Brief Review Loop
 

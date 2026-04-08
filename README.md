@@ -24,22 +24,23 @@ KARIMO is a **framework and Claude Code plugin** for PRD-driven autonomous devel
 ## How It Works
 
 ```
-┌──────────┐   ┌──────┐   ┌─────┐   ┌───────┐   ┌─────────────┐   ┌─────────────┐   ┌─────────┐   ┌───────┐
-│ RESEARCH │──▸│ PLAN │──▸│ RUN │──▸│ TASKS │──▸│ AUTO-REVIEW │──▸│ ORCHESTRATE │──▸│ INSPECT │──▸│ MERGE │
-└──────────┘   └──────┘   └─────┘   └───────┘   └─────────────┘   └─────────────┘   └─────────┘   └───────┘
-      │            │                    │              │                 │              │
-      └────────────┘                    └──────────────┘                 └──────────────┘
-          Loop 1                             Loop 2                           Loop 3
-          Human                              Claude                        Configurable
+┌──────────┐   ┌──────┐   ┌───────┐   ┌─────────────┐   ┌─────────────┐   ┌─────────┐   ┌───────┐
+│ RESEARCH │──▸│ PLAN │──▸│ TASKS │──▸│ AUTO-REVIEW │──▸│ ORCHESTRATE │──▸│ INSPECT │──▸│ MERGE │
+└──────────┘   └──────┘   └───────┘   └─────────────┘   └─────────────┘   └─────────┘   └───────┘
+      │            │           │              │                 │              │
+      └────────────┘           └──────────────┘                 └──────────────┘
+          Loop 1                    Loop 2                           Loop 3
+          Human                     Claude                        Configurable
 ```
 
 | Step | What Happens |
 |------|--------------|
 | **Research** | Discover patterns, libraries, gaps — creates PRD folder |
 | **Plan** | Structured interview captures requirements |
-| **Run** | Generate task briefs from research + PRD |
-| **Tasks → Auto-Review** | Claude validates briefs against codebase |
-| **Orchestrate → Inspect** | Execute in waves, review each PR |
+| **Tasks** | Generate task briefs from research + PRD |
+| **Auto-Review** | Claude validates briefs against codebase |
+| **Orchestrate** | Execute in waves |
+| **Inspect** | Review each PR (manual, Code Review, or Greptile) |
 | **Merge** | Final PR to main |
 
 ---
@@ -56,9 +57,9 @@ KARIMO has **three strategic loops** with increasing automation:
 
 **Loop 1 — Human-Driven:** `/karimo:research` ↔ `/karimo:plan` — You iterate until PRD is ready
 
-**Loop 2 — Claude Built-In:** `/karimo:run` generates briefs → auto-review validates → you approve
+**Loop 2 — Claude Built-In:** `/karimo:run` triggers Tasks → Auto-Review → you approve
 
-**Loop 3 — Review Automation:** Each wave creates PRs → inspect (your choice of tooling) → merge
+**Loop 3 — Review Automation:** Orchestrate creates PRs → Inspect (your choice of tooling) → merge
 
 After all waves complete → `/karimo:merge` creates final PR to main.
 
