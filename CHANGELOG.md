@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [7.20.1] - 2026-04-07
+
+### Fixed
+
+- **PM Agent Wave Push** — Feature branch now pushed to origin after each wave completes, fixing `/karimo:merge` failure when branch doesn't exist on remote
+- **PM Agent Wave Cleanup** — Worktrees and stale branches (`worktree-agent-*`, `worktree/{prd-slug}-*`) now cleaned up after each wave, preventing accumulation across waves
+
+---
+
 ## [7.20.0] - 2026-03-26
 
 ### Added

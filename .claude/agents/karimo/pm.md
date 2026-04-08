@@ -421,9 +421,83 @@ When all tasks in a wave have merged PRs:
 2. Run on-merge hook for each merged PR
 3. Update findings.md with wave summary
 4. Commit wave state (with branch guard)
-5. Verify target branch is stable
-6. Run post-wave hook
-7. Proceed to next wave
+5. **Push feature branch to origin** (feature-branch mode only)
+6. **Clean up wave worktrees and branches**
+7. Verify target branch is stable
+8. Run post-wave hook
+9. Proceed to next wave
+
+#### Wave Push (Feature Branch Mode Only)
+
+In feature-branch mode, push the feature branch to remote after each wave completes:
+
+```bash
+if [ "$execution_mode" = "feature-branch" ]; then
+  echo "Pushing feature branch to origin..."
+  if ! git ls-remote --heads origin "$base_branch" | grep -q "$base_branch"; then
+    # First push: set upstream
+    git push -u origin "$base_branch"
+    echo "  ✓ Feature branch pushed (upstream set)"
+  else
+    # Subsequent pushes
+    git push origin "$base_branch"
+    echo "  ✓ Feature branch pushed"
+  fi
+fi
+```
+
+**Why:** Task PRs target the feature branch, which must exist on origin for GitHub PR creation. Without this push, `/karimo:merge` fails because the feature branch exists locally but not on origin.
+
+#### Wave Cleanup
+
+After all tasks in a wave have merged, clean up their worktrees and branches. This prevents accumulation of stale branches across waves.
+
+```bash
+echo "Starting wave cleanup..."
+cleanup_count=0
+
+# Clean up merged task branches from this wave
+for task_id in ${completed_wave_tasks}; do
+  branch="worktree/${prd_slug}-${task_id}"
+  worktree_path=".worktrees/${prd_slug}/${task_id}"
+
+  # Delete remote branch (PR merged, no longer needed)
+  if git push origin --delete "$branch" 2>/dev/null; then
+    echo "  Deleted remote: $branch"
+    cleanup_count=$((cleanup_count + 1))
+  fi
+
+  # Delete local branch
+  git branch -D "$branch" 2>/dev/null || true
+
+  # Remove worktree if exists
+  [ -d "$worktree_path" ] && git worktree remove "$worktree_path" --force 2>/dev/null || true
+done
+
+# Prune stale worktree references
+git worktree prune
+
+# Clean Claude Code internal branches (created by worker agents)
+for branch in $(git branch --list 'worktree-agent-*' 2>/dev/null | sed 's/^[* ]*//' || true); do
+  if git branch -D "$branch" 2>/dev/null; then
+    echo "  Deleted stale: $branch"
+    cleanup_count=$((cleanup_count + 1))
+  fi
+done
+
+# Clean remote worktree-agent branches (if workers pushed them)
+for branch in $(git ls-remote --heads origin 2>/dev/null | \
+    grep 'worktree-agent-' | awk -F'refs/heads/' '{print $2}' || true); do
+  if git push origin --delete "$branch" 2>/dev/null; then
+    echo "  Deleted remote stale: $branch"
+    cleanup_count=$((cleanup_count + 1))
+  fi
+done
+
+echo "  ✓ Wave cleanup complete (${cleanup_count} branches cleaned)"
+```
+
+**Why:** Worker agents with `isolation: worktree` create branches that persist after task completion. Without wave-level cleanup, these accumulate and cause confusion at merge time.
 
 ---
 
