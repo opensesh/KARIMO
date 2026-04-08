@@ -1,5 +1,5 @@
 {
-  "version": "7.20.1",
+  "version": "7.21.0",
   "deprecated": {
     "commands": [
       "karimo-modify.md",
@@ -164,8 +164,14 @@
     "TASK_SCHEMA.md"
   ],
   "scripts": [
-    "karimo-assets.js"
+    "karimo-assets.js",
+    "native-hooks/worktree-cleanup.sh",
+    "native-hooks/subagent-cleanup.sh",
+    "native-hooks/session-cleanup.sh"
   ],
+  "settings": {
+    "hooks": ".claude/settings.json"
+  },
   "greptile_source": [
     "greptile/config.json",
     "greptile/rules.md"

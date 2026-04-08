@@ -389,19 +389,44 @@ If a branch mismatch is detected:
 - Or wait for wave transitions (natural pause points)
 - Never checkout branches while KARIMO is executing
 
-**Worktree Cleanup (v7.18.0, enhanced v7.20.1):**
+**Worktree Cleanup (v7.18.0, enhanced v7.21.0):**
 
-Cleanup uses discovery-based branch detection and runs at two points:
+KARIMO v7.21.0 introduces a **hybrid hook system** for reliable cleanup:
 
-1. **Wave-level cleanup (v7.20.1):** After each wave completes, merged task branches are cleaned up immediately. This prevents accumulation of stale branches across waves.
+### Native Hooks (Guaranteed Execution)
 
-2. **Finalizer cleanup:** At PRD completion, the PM-Finalizer performs comprehensive cleanup as a safety net.
+Configured in `.claude/settings.json`, these fire automatically via Claude Code runtime:
 
-Both cleanup stages detect:
+| Hook | When | What it Cleans |
+|------|------|----------------|
+| `WorktreeRemove` | Before worktree removal | Local + remote branches for the task |
+| `SubagentStop` | After worker agent finishes | Prunes stale worktree references |
+| `SessionEnd` | When session ends | Orphaned branches (`worktree/*-*`, `worktree-agent-*`) |
+
+**Why native hooks?** They fire even if a session crashes mid-execution, guaranteeing cleanup that was previously only possible at orchestration points.
+
+### Orchestration Cleanup (Belt-and-Suspenders)
+
+In addition to native hooks, orchestration-level cleanup verifies:
+
+1. **Wave-level verification:** After each wave completes, verifies branches were cleaned by native hooks and catches any missed.
+
+2. **Finalizer verification:** At PRD completion, PM-Finalizer verifies all cleanup completed and catches edge cases.
+
+### What Gets Cleaned
+
 - KARIMO-pattern branches: `worktree/{prd-slug}-{task-id}`
 - Claude Code internal branches: `worktree-agent-{hash}`
-- Both local and remote branches are cleaned
-- Cleanup actions are reported explicitly instead of silently swallowing errors
+- Both local and remote branches
+- Stale worktree references (via `git worktree prune`)
+
+### TTL Policies (Future Implementation)
+
+| Scenario | TTL | Action |
+|----------|-----|--------|
+| PR merged | Immediate | Native hook cleans |
+| PR closed without merge | 24 hours | Session end hook cleans |
+| Stale worktree | 7 days | Session end hook cleans |
 
 ---
 

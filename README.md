@@ -8,7 +8,7 @@
 ```
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
-[![Version](https://img.shields.io/badge/version-v7.19.0-blue)]()
+[![Version](https://img.shields.io/badge/version-v7.21.0-blue)]()
 [![Claude Code](https://img.shields.io/badge/Claude%20Code-Framework_&_Plugin-blueviolet.svg)]()
 
 ---
@@ -89,6 +89,38 @@ Wave 3: [task-3a] ─────────── final task
 | **Model routing** | Sonnet for simple tasks, Opus for complex, auto-escalation on failures |
 | **22 agents** | 16 coordination + 6 task agents ([details](.karimo/docs/ARCHITECTURE.md#agents)) |
 | **Crash recovery** | Git state reconstruction via `/karimo:dashboard --reconcile` |
+
+---
+
+## Hooks
+
+KARIMO uses a **hybrid hook system** for reliable resource management:
+
+| Hook Type | Configuration | Purpose |
+|-----------|---------------|---------|
+| **Native (Claude Code)** | `.claude/settings.json` | Worktree/branch cleanup (guaranteed execution) |
+| **Orchestration (KARIMO)** | `.karimo/hooks/*.sh` | Wave/task lifecycle customization |
+
+### Native Hooks (Automatic)
+
+| Event | When | What it Cleans |
+|-------|------|----------------|
+| `WorktreeRemove` | Before worktree removal | Local + remote branches |
+| `SubagentStop` | After worker finishes | Stale worktree references |
+| `SessionEnd` | Session termination | Orphaned branches |
+
+Native hooks fire even on session crash, guaranteeing cleanup.
+
+### KARIMO Orchestration Hooks (Customizable)
+
+| Hook | When | Example Use |
+|------|------|-------------|
+| `pre-wave.sh` | Before wave starts | Slack notification |
+| `post-wave.sh` | After wave completes | Metrics collection |
+| `on-merge.sh` | After PR merges | Deploy trigger |
+| `on-failure.sh` | Task fails | PagerDuty alert |
+
+Details: [Hooks Documentation](.karimo/hooks/README.md)
 
 ---
 

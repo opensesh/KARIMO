@@ -1,12 +1,48 @@
-# KARIMO Lifecycle Hooks
+# KARIMO Hooks
 
-Lifecycle hooks allow you to run custom scripts at key points during KARIMO execution. Use hooks to integrate KARIMO with your team's workflows, notification systems, monitoring tools, or custom automation.
+KARIMO uses a **hybrid hook system** combining Claude Code native hooks for reliable cleanup with KARIMO orchestration hooks for workflow events.
 
 ---
 
-## Overview
+## Two Hook Systems
 
-Hooks are executable shell scripts that KARIMO invokes at specific lifecycle events. They receive context about the current operation via environment variables and can perform any action (send notifications, update external systems, run custom validations, etc.).
+| Aspect | Claude Code Native Hooks | KARIMO Orchestration Hooks |
+|--------|--------------------------|----------------------------|
+| **Location** | `.claude/settings.json` | `.karimo/hooks/*.sh` |
+| **Execution** | Built into Claude Code runtime | Invoked by PM Agent |
+| **Reliability** | Guaranteed (even on crash) | Only at orchestration points |
+| **Purpose** | Worktree/branch cleanup | Wave/task lifecycle events |
+
+### Why Two Systems?
+
+- **Native hooks** run at the Claude Code runtime level — they fire even if a session crashes mid-execution, guaranteeing cleanup
+- **KARIMO hooks** run at orchestration points — they provide workflow customization but only execute when explicitly invoked by the PM Agent
+
+---
+
+## Native Hooks (Automatic)
+
+These hooks are configured in `.claude/settings.json` and fire automatically:
+
+| Event | Script | When it Fires |
+|-------|--------|---------------|
+| `WorktreeRemove` | `native-hooks/worktree-cleanup.sh` | Before worktree removal |
+| `SubagentStop` | `native-hooks/subagent-cleanup.sh` | After worker agent finishes |
+| `SessionEnd` | `native-hooks/session-cleanup.sh` | When Claude Code session ends |
+
+**What they clean:**
+- Local branches (`worktree/{prd-slug}-{task-id}`)
+- Remote branches (pushed during execution)
+- Stale worktree references
+- Orphaned Claude Code internal branches (`worktree-agent-*`)
+
+**Configuration:** See `.claude/settings.json` for hook definitions. These hooks are installed with KARIMO and should not be modified unless you understand the implications.
+
+---
+
+## KARIMO Orchestration Hooks (Customizable)
+
+These hooks allow you to integrate KARIMO with your team's workflows, notification systems, monitoring tools, or custom automation.
 
 **Key Features:**
 - **Event-driven**: Hooks trigger automatically at lifecycle points
@@ -15,16 +51,14 @@ Hooks are executable shell scripts that KARIMO invokes at specific lifecycle eve
 - **Team-wide**: Commit hooks to your repository for consistent team workflows
 - **Flexible**: Any executable script (bash, python, node, etc.)
 
----
-
-## Available Hooks
+### Available Orchestration Hooks
 
 | Hook | When It Runs | Use Cases |
 |------|--------------|-----------|
 | `pre-task.sh` | Before each task starts | Send Slack notification, create Jira ticket, log to tracking system |
 | `post-task.sh` | After each task completes | Update project management tools, trigger deployments, notify stakeholders |
 | `pre-wave.sh` | Before wave starts | Reserve cloud resources, notify team of batch start, prepare infrastructure |
-| `post-wave.sh` | After wave completes | Clean up resources, send batch completion reports, trigger CI/CD |
+| `post-wave.sh` | After wave completes | Send batch completion reports, trigger CI/CD |
 | `on-failure.sh` | When task fails (after retries) | Alert on-call engineer, create incident ticket, trigger rollback |
 | `on-merge.sh` | After PR merges to main | Trigger production deployment, update changelog, notify customers |
 

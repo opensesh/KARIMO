@@ -95,7 +95,21 @@ KARIMO supports two execution modes, detected automatically from `status.json`:
 
 ## Lifecycle Hooks
 
-KARIMO supports optional lifecycle hooks in `.karimo/hooks/`:
+KARIMO uses a **hybrid hook system** combining Claude Code native hooks for reliable cleanup with KARIMO orchestration hooks for workflow events.
+
+### Claude Code Native Hooks (Automatic)
+
+Configured in `.claude/settings.json`, these fire automatically:
+
+| Hook | When | Purpose |
+|------|------|---------|
+| `WorktreeRemove` | Before worktree removal | Delete local + remote branches |
+| `SubagentStop` | After worker agent finishes | Prune stale worktree refs |
+| `SessionEnd` | When session ends | Cleanup orphaned branches |
+
+### KARIMO Orchestration Hooks (Customizable)
+
+Optional hooks in `.karimo/hooks/`:
 
 | Hook | When |
 |------|------|
@@ -448,56 +462,32 @@ fi
 
 **Why:** Task PRs target the feature branch, which must exist on origin for GitHub PR creation. Without this push, `/karimo:merge` fails because the feature branch exists locally but not on origin.
 
-#### Wave Cleanup
+#### Wave Cleanup (Simplified)
 
-After all tasks in a wave have merged, clean up their worktrees and branches. This prevents accumulation of stale branches across waves.
+After all tasks in a wave have merged, verify cleanup status. **Native Claude Code hooks handle the primary cleanup** — the `WorktreeRemove` hook deletes local and remote branches when worktrees are removed. This runs as a belt-and-suspenders verification.
 
 ```bash
-echo "Starting wave cleanup..."
-cleanup_count=0
+echo "Verifying wave cleanup..."
 
-# Clean up merged task branches from this wave
-for task_id in ${completed_wave_tasks}; do
-  branch="worktree/${prd_slug}-${task_id}"
-  worktree_path=".worktrees/${prd_slug}/${task_id}"
-
-  # Delete remote branch (PR merged, no longer needed)
-  if git push origin --delete "$branch" 2>/dev/null; then
-    echo "  Deleted remote: $branch"
-    cleanup_count=$((cleanup_count + 1))
-  fi
-
-  # Delete local branch
-  git branch -D "$branch" 2>/dev/null || true
-
-  # Remove worktree if exists
-  [ -d "$worktree_path" ] && git worktree remove "$worktree_path" --force 2>/dev/null || true
-done
-
-# Prune stale worktree references
+# Prune stale worktree references (belt-and-suspenders)
 git worktree prune
 
-# Clean Claude Code internal branches (created by worker agents)
-for branch in $(git branch --list 'worktree-agent-*' 2>/dev/null | sed 's/^[* ]*//' || true); do
-  if git branch -D "$branch" 2>/dev/null; then
-    echo "  Deleted stale: $branch"
-    cleanup_count=$((cleanup_count + 1))
+# Verify completed task branches were cleaned by native hooks
+for task_id in ${completed_wave_tasks}; do
+  branch="worktree/${prd_slug}-${task_id}"
+
+  # Native hooks should have deleted these — verify and clean if missed
+  if git show-ref --verify --quiet "refs/heads/$branch" 2>/dev/null; then
+    echo "  Note: Native hook missed $branch, cleaning now"
+    git branch -D "$branch" 2>/dev/null || true
+    git push origin --delete "$branch" 2>/dev/null || true
   fi
 done
 
-# Clean remote worktree-agent branches (if workers pushed them)
-for branch in $(git ls-remote --heads origin 2>/dev/null | \
-    grep 'worktree-agent-' | awk -F'refs/heads/' '{print $2}' || true); do
-  if git push origin --delete "$branch" 2>/dev/null; then
-    echo "  Deleted remote stale: $branch"
-    cleanup_count=$((cleanup_count + 1))
-  fi
-done
-
-echo "  ✓ Wave cleanup complete (${cleanup_count} branches cleaned)"
+echo "  ✓ Wave cleanup verified"
 ```
 
-**Why:** Worker agents with `isolation: worktree` create branches that persist after task completion. Without wave-level cleanup, these accumulate and cause confusion at merge time.
+**Note:** Primary cleanup is handled by Claude Code native hooks configured in `.claude/settings.json`. The `WorktreeRemove` hook fires when worktrees are removed, deleting both local and remote branches. This verification step catches any edge cases.
 
 ---
 

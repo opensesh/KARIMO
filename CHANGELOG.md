@@ -7,6 +7,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [7.21.0] - 2026-04-08
+
+### Added
+
+- **Hybrid Hook System** — Claude Code native hooks for reliable cleanup combined with KARIMO hooks for orchestration
+- **Native Hooks** — `WorktreeRemove`, `SubagentStop`, `SessionEnd` fire automatically via Claude Code runtime
+- **Cleanup Scripts** — New scripts in `.karimo/scripts/native-hooks/`:
+  - `worktree-cleanup.sh` — Cleans local and remote branches when worktree is removed
+  - `subagent-cleanup.sh` — Prunes stale worktree references when worker agents finish
+  - `session-cleanup.sh` — Safety net cleanup for orphaned branches on session end
+- **Hooks Section in README** — New documentation section explaining the hybrid hook system
+
+### Changed
+
+- **PM Agent Wave Cleanup** — Simplified to rely on native hooks for branch/worktree deletion
+- **PM Finalizer Cleanup** — Simplified to rely on native hooks as safety net
+- **`.claude/settings.json`** — New file containing native hook configuration
+
+### Fixed
+
+- **Worktrees not closing on session crash** — Native hooks guarantee cleanup even on unexpected termination
+- **Orphaned branches accumulating** — Session end hook cleans orphaned `worktree/*-*` and `worktree-agent-*` branches
+
+---
+
 ## [7.20.1] - 2026-04-07
 
 ### Fixed

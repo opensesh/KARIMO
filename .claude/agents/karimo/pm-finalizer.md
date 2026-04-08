@@ -93,48 +93,60 @@ echo "✓ All task PRs merged"
 
 ---
 
-### Step 2: Discovery-Based Cleanup
+### Step 2: Discovery-Based Cleanup (Simplified)
 
-Clean up all task branches and worktrees. Uses discovery-based detection to handle both KARIMO naming (`worktree/{prd-slug}-{task-id}`) and Claude Code internal naming (`worktree-agent-{hash}`).
+Verify cleanup status and catch any resources missed by native hooks. **Primary cleanup is handled by Claude Code native hooks** configured in `.claude/settings.json`:
+
+- `WorktreeRemove` hook deletes local + remote branches when worktrees are removed
+- `SubagentStop` hook prunes stale worktree references when workers finish
+- `SessionEnd` hook cleans orphaned branches on session termination
+
+This step runs as a **belt-and-suspenders verification**:
 
 ```bash
-echo "Starting cleanup for ${prd_slug}..."
+echo "Verifying cleanup for ${prd_slug}..."
 cleanup_errors=0
 branches_deleted=0
 worktrees_removed=0
 stale_branches_found=0
 
-# Phase 1: Clean known task branches
+# Prune stale worktree references first
+git worktree prune
+echo "  Pruned stale worktree references"
+
+# Verify task branches were cleaned by native hooks (catch any missed)
 for task_id in ${TASKS_COMPLETED}; do
   branch="worktree/${prd_slug}-${task_id}"
   worktree_path=".worktrees/${prd_slug}/${task_id}"
 
-  # Delete remote branch (PR merged, branch no longer needed)
-  if git push origin --delete "$branch" 2>/dev/null; then
-    echo "  Deleted remote: $branch"
-    branches_deleted=$((branches_deleted + 1))
-  else
-    echo "  WARN: Could not delete remote: $branch (may not exist)"
+  # Check if native hooks missed the remote branch
+  if git ls-remote --heads origin "$branch" 2>/dev/null | grep -q "$branch"; then
+    echo "  Note: Native hook missed remote $branch, cleaning now"
+    if git push origin --delete "$branch" 2>/dev/null; then
+      branches_deleted=$((branches_deleted + 1))
+    fi
   fi
 
-  # Delete local branch
-  if git branch -D "$branch" 2>/dev/null; then
-    echo "  Deleted local: $branch"
+  # Check if native hooks missed the local branch
+  if git show-ref --verify --quiet "refs/heads/$branch" 2>/dev/null; then
+    echo "  Note: Native hook missed local $branch, cleaning now"
+    if git branch -D "$branch" 2>/dev/null; then
+      branches_deleted=$((branches_deleted + 1))
+    fi
   fi
 
-  # Remove worktree if exists
+  # Check if worktree still exists
   if [ -d "$worktree_path" ]; then
-    if git worktree remove "$worktree_path" 2>/dev/null; then
-      echo "  Removed worktree: $worktree_path"
+    echo "  Note: Worktree still exists: $worktree_path, cleaning now"
+    if git worktree remove "$worktree_path" --force 2>/dev/null; then
       worktrees_removed=$((worktrees_removed + 1))
     else
-      echo "  ERROR: Failed to remove worktree: $worktree_path"
       cleanup_errors=$((cleanup_errors + 1))
     fi
   fi
 done
 
-# Phase 2: Discovery audit for stale branches (belt-and-suspenders)
+# Discovery audit for any stale branches (handles edge cases)
 echo "Running discovery audit for stale branches..."
 
 # Find KARIMO-pattern stale branches (local)
@@ -153,24 +165,10 @@ for branch in $(git branch --list 'worktree-agent-*' 2>/dev/null | sed 's/^[* ]*
   fi
 done
 
-# Remote cleanup for both patterns
-for branch in $(git ls-remote --heads origin 2>/dev/null | \
-    grep -E "(worktree/${prd_slug}-|worktree-agent-)" | \
-    awk -F'refs/heads/' '{print $2}' || true); do
-  if git push origin --delete "$branch" 2>/dev/null; then
-    echo "  Deleted stale remote: $branch"
-    stale_branches_found=$((stale_branches_found + 1))
-  fi
-done
-
-# Prune stale worktree references
-git worktree prune
-echo "  Pruned stale worktree references"
-
 if [ "$cleanup_errors" -gt 0 ]; then
   echo "  WARNING: $cleanup_errors cleanup errors occurred"
 else
-  echo "  ✓ Cleanup complete"
+  echo "  ✓ Cleanup verification complete"
 fi
 ```
 
