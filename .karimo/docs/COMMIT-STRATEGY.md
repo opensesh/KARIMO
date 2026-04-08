@@ -321,9 +321,9 @@ Because commits are atomic and frequent:
 
 ## Related Documentation
 
-- [ARCHITECTURE.md](./ARCHITECTURE.md) — System design overview
-- [COMMANDS.md](./COMMANDS.md) — Command reference
-- [GETTING-STARTED.md](./GETTING-STARTED.md) — Installation guide
+- [ARCHITECTURE.md](ARCHITECTURE.md) — System design overview
+- [COMMANDS.md](COMMANDS.md) — Command reference
+- [GETTING-STARTED.md](GETTING-STARTED.md) — Installation guide
 
 ---
 

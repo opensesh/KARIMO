@@ -1079,7 +1079,7 @@ The Node.js CLI (`.karimo/scripts/karimo-assets.js`) handles platform difference
 
 **Tested environments:** macOS, Ubuntu 20.04+, WSL2, Alpine Linux (requires Node.js 14+)
 
-See [ASSETS.md](./ASSETS.md) for complete guide.
+See [ASSETS.md](ASSETS.md) for complete guide.
 
 ---
 

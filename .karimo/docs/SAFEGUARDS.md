@@ -389,13 +389,19 @@ If a branch mismatch is detected:
 - Or wait for wave transitions (natural pause points)
 - Never checkout branches while KARIMO is executing
 
-**Worktree Cleanup (v7.18.0):**
+**Worktree Cleanup (v7.18.0, enhanced v7.20.1):**
 
-Cleanup now uses discovery-based branch detection instead of assumed patterns:
-- Detects KARIMO-pattern branches: `worktree/{prd-slug}-{task-id}`
-- Detects Claude Code internal branches: `worktree-agent-{hash}`
-- Reports cleanup actions explicitly instead of silently swallowing errors
+Cleanup uses discovery-based branch detection and runs at two points:
+
+1. **Wave-level cleanup (v7.20.1):** After each wave completes, merged task branches are cleaned up immediately. This prevents accumulation of stale branches across waves.
+
+2. **Finalizer cleanup:** At PRD completion, the PM-Finalizer performs comprehensive cleanup as a safety net.
+
+Both cleanup stages detect:
+- KARIMO-pattern branches: `worktree/{prd-slug}-{task-id}`
+- Claude Code internal branches: `worktree-agent-{hash}`
 - Both local and remote branches are cleaned
+- Cleanup actions are reported explicitly instead of silently swallowing errors
 
 ---
 
