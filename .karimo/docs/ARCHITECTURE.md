@@ -113,7 +113,7 @@ The `/karimo:merge` command generates PR descriptions with markdown/code breakdo
 
 ## Context Architecture
 
-KARIMO uses layered context management inspired by the [OpenViking Protocol](https://github.com/ArcadeAI/OpenViking) for efficient token usage and quick context scanning.
+KARIMO uses layered context management inspired by the [OpenViking Protocol](https://github.com/volcengine/OpenViking) for efficient token usage and quick context scanning.
 
 ### Three-Layer System
 
@@ -208,7 +208,7 @@ Patterns discovered during execution are indexed for reuse:
 - Efficient pattern reuse across PRDs
 - Categorized learnings for targeted retrieval
 
-For projects wanting vector-enhanced search, see the [OpenViking repository](https://github.com/ArcadeAI/OpenViking) for embedding setup guidance.
+For projects wanting vector-enhanced search, see [EMBEDDINGS-OPTIONAL.md](EMBEDDINGS-OPTIONAL.md) for implementation guidance and the [OpenViking repository](https://github.com/volcengine/OpenViking) for protocol specification.
 
 ---
 

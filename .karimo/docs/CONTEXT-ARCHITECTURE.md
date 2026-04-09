@@ -7,7 +7,7 @@
 
 ## Overview
 
-KARIMO implements a layered context architecture inspired by the [OpenViking Protocol](https://github.com/ArcadeAI/OpenViking). This system optimizes token usage and enables efficient context scanning for AI agents.
+KARIMO implements a layered context architecture inspired by the [OpenViking Protocol](https://github.com/volcengine/OpenViking). This system optimizes token usage and enables efficient context scanning for AI agents.
 
 **Core principle:** Query category summaries first (L1), verify with compact abstracts (L0) when needed, and load full definitions (L2) only for execution.
 
@@ -462,7 +462,8 @@ For projects using vector-enhanced search (see OpenViking):
 |----------|-------------|
 | [ARCHITECTURE.md](ARCHITECTURE.md) | System design overview |
 | [COMPOUND-LEARNING.md](COMPOUND-LEARNING.md) | Learning system details |
-| [OpenViking Protocol](https://github.com/ArcadeAI/OpenViking) | Original protocol specification |
+| [EMBEDDINGS-OPTIONAL.md](EMBEDDINGS-OPTIONAL.md) | Optional vector search enhancement |
+| [OpenViking Protocol](https://github.com/volcengine/OpenViking) | Original protocol specification |
 
 ---
 
