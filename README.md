@@ -17,7 +17,7 @@
 
 KARIMO is a **framework and Claude Code plugin** for PRD-driven autonomous development. Think of it as **plan mode on steroids** — leveraging Anthropic's latest innovations, including [native worktree isolation](https://code.claude.com/docs/en/common-workflows), [sub-agents](https://code.claude.com/docs/en/sub-agents), [agent teams](https://code.claude.com/docs/en/agent-teams), [skills](https://code.claude.com/docs/en/skills), [hooks](https://code.claude.com/docs/en/hooks), and [model routing](https://code.claude.com/docs/en/model-config).
 
-> **Philosophy:** You are the architect, agents are the builders, automated review is the *optional* inspector.
+> **Philosophy:** You are the architect, agents are the builders
 
 ---
 
