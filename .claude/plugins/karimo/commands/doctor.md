@@ -41,10 +41,10 @@ Test 1: File Presence
 ─────────────────────
 
   ✅ Manifest    Present (.karimo/MANIFEST.json)
-  ✅ Agents      17/17 present (from manifest)
-  ✅ Commands    10/10 present (from manifest)
+  ✅ Agents      22/22 present (from manifest)
+  ✅ Commands    11/11 present (from manifest)
   ✅ Skills      7/7 present (from manifest)
-  ✅ Templates   17/17 present (from manifest)
+  ✅ Templates   18/18 present (from manifest)
 
 Test 2: Template Parsing
 ────────────────────────
@@ -348,9 +348,9 @@ EXPECTED_TEMPLATES=$(manifest_count "templates")
 **Step 2c: Count actual files and compare**
 
 ```bash
-ACTUAL_AGENTS=$(ls .claude/agents/*.md 2>/dev/null | wc -l)
-ACTUAL_COMMANDS=$(ls .claude/commands/*.md 2>/dev/null | wc -l)
-ACTUAL_SKILLS=$(ls .claude/skills/*.md 2>/dev/null | wc -l)
+ACTUAL_AGENTS=$(ls .claude/agents/karimo/*.md 2>/dev/null | wc -l)
+ACTUAL_COMMANDS=$(ls .claude/commands/karimo/*.md 2>/dev/null | wc -l)
+ACTUAL_SKILLS=$(ls .claude/skills/karimo/*.md 2>/dev/null | wc -l)
 ACTUAL_TEMPLATES=$(ls .karimo/templates/*.md 2>/dev/null | wc -l)
 ```
 
@@ -363,12 +363,22 @@ manifest_list() {
   sed -n "/\"$key\"/,/]/p" .karimo/MANIFEST.json | grep '"' | grep -v "\"$key\"" | sed 's/.*"\([^"]*\)".*/\1/'
 }
 
-# Check each agent from manifest
+# Check each file from manifest (handles karimo/ prefix in entries)
 for agent in $(manifest_list "agents"); do
-  [ -f ".claude/agents/$agent" ] || echo "Missing: $agent"
+  [ -f ".claude/agents/$agent" ] || echo "Missing: .claude/agents/$agent"
 done
 
-# Similar for commands, skills, templates
+for command in $(manifest_list "commands"); do
+  [ -f ".claude/commands/$command" ] || echo "Missing: .claude/commands/$command"
+done
+
+for skill in $(manifest_list "skills"); do
+  [ -f ".claude/skills/$skill" ] || echo "Missing: .claude/skills/$skill"
+done
+
+for template in $(manifest_list "templates"); do
+  [ -f ".karimo/templates/$template" ] || echo "Missing: .karimo/templates/$template"
+done
 ```
 
 **Other checks:**
@@ -384,22 +394,21 @@ Check 2: Installation Integrity
 ───────────────────────────────
 
   ✅ Manifest        Present (.karimo/MANIFEST.json)
-  ✅ Agents          13/13 present (from manifest)
-  ✅ Commands        10/10 present (from manifest)
-  ✅ Skills          5/5 present (from manifest)
+  ✅ Agents          22/22 present (from manifest)
+  ✅ Commands        11/11 present (from manifest)
+  ✅ Skills          7/7 present (from manifest)
   ✅ Rules           KARIMO_RULES.md present
   ✅ Learnings       .karimo/learnings/ present (categorized)
-  ✅ Templates       9/9 present (from manifest)
-  ✅ Workflows       5/5 present (1 required, 4 optional)
+  ✅ Templates       18/18 present (from manifest)
   ✅ CLAUDE.md       KARIMO section present (with markers)
   ✅ .gitignore      .worktrees/ entry present
 
   Or if issues found:
 
-  ⚠️  Agents          12/13 present
-      Missing: karimo-documenter-opus.md
-  ❌ Commands        8/10 present
-      Missing: doctor.md, test.md
+  ⚠️  Agents          21/22 present
+      Missing: karimo/documenter-opus.md
+  ❌ Commands        9/11 present
+      Missing: karimo/doctor.md, karimo/help.md
 ```
 
 ### Check 2.5: Deprecated Files
@@ -1248,15 +1257,23 @@ EXPECTED_COMMANDS=$(manifest_count "commands")
 EXPECTED_SKILLS=$(manifest_count "skills")
 EXPECTED_TEMPLATES=$(manifest_count "templates")
 
-# Count actual files
-ACTUAL_AGENTS=$(ls .claude/agents/*.md 2>/dev/null | wc -l | tr -d ' ')
-ACTUAL_COMMANDS=$(ls .claude/commands/*.md 2>/dev/null | wc -l | tr -d ' ')
-ACTUAL_SKILLS=$(ls .claude/skills/*.md 2>/dev/null | wc -l | tr -d ' ')
+# Count actual files (karimo/ subdirectory per manifest structure)
+ACTUAL_AGENTS=$(ls .claude/agents/karimo/*.md 2>/dev/null | wc -l | tr -d ' ')
+ACTUAL_COMMANDS=$(ls .claude/commands/karimo/*.md 2>/dev/null | wc -l | tr -d ' ')
+ACTUAL_SKILLS=$(ls .claude/skills/karimo/*.md 2>/dev/null | wc -l | tr -d ' ')
 ACTUAL_TEMPLATES=$(ls .karimo/templates/*.md 2>/dev/null | wc -l | tr -d ' ')
 
-# Verify each file from manifest exists
+# Verify each file from manifest exists (handles karimo/ prefix)
 for agent in $(manifest_list "agents"); do
-  [ -f ".claude/agents/$agent" ] || echo "Missing: $agent"
+  [ -f ".claude/agents/$agent" ] || echo "Missing: .claude/agents/$agent"
+done
+
+for command in $(manifest_list "commands"); do
+  [ -f ".claude/commands/$command" ] || echo "Missing: .claude/commands/$command"
+done
+
+for skill in $(manifest_list "skills"); do
+  [ -f ".claude/skills/$skill" ] || echo "Missing: .claude/skills/$skill"
 done
 
 # Check 3: Configuration
