@@ -61,7 +61,7 @@ Test 4: CLAUDE.md Integration
 
   ✅ KARIMO section        Present in CLAUDE.md (with markers)
   ✅ learnings/            Present in .karimo/ (categorized directories)
-  ✅ KARIMO_RULES.md       Present in .claude/
+  ✅ KARIMO_RULES.md       Present in .claude/plugins/karimo/
   ✅ prds/ directory       Exists
 
 Summary
@@ -349,9 +349,9 @@ EXPECTED_TEMPLATES=$(manifest_count "templates")
 **Step 2c: Count actual files and compare**
 
 ```bash
-ACTUAL_AGENTS=$(ls .claude/agents/karimo/*.md 2>/dev/null | wc -l)
-ACTUAL_COMMANDS=$(ls .claude/commands/karimo/*.md 2>/dev/null | wc -l)
-ACTUAL_SKILLS=$(ls .claude/skills/karimo/*.md 2>/dev/null | wc -l)
+ACTUAL_AGENTS=$(ls .claude/plugins/karimo/agents/*.md 2>/dev/null | wc -l)
+ACTUAL_COMMANDS=$(ls .claude/plugins/karimo/commands/*.md 2>/dev/null | wc -l)
+ACTUAL_SKILLS=$(ls .claude/plugins/karimo/skills/*.md 2>/dev/null | wc -l)
 ACTUAL_TEMPLATES=$(ls .karimo/templates/*.md 2>/dev/null | wc -l)
 ```
 
@@ -365,17 +365,17 @@ manifest_list() {
   sed -n "/^  \"$key\":/,/^  ]/p" .karimo/MANIFEST.json | grep '"' | grep -v "\"$key\"" | sed 's/.*"\([^"]*\)".*/\1/'
 }
 
-# Check each file from manifest (handles karimo/ prefix in entries)
+# Check each file from manifest (handles plugins/karimo/ prefix in entries)
 for agent in $(manifest_list "agents"); do
-  [ -f ".claude/agents/$agent" ] || echo "Missing: .claude/agents/$agent"
+  [ -f ".claude/$agent" ] || echo "Missing: .claude/$agent"
 done
 
 for command in $(manifest_list "commands"); do
-  [ -f ".claude/commands/$command" ] || echo "Missing: .claude/commands/$command"
+  [ -f ".claude/$command" ] || echo "Missing: .claude/$command"
 done
 
 for skill in $(manifest_list "skills"); do
-  [ -f ".claude/skills/$skill" ] || echo "Missing: .claude/skills/$skill"
+  [ -f ".claude/$skill" ] || echo "Missing: .claude/$skill"
 done
 
 for template in $(manifest_list "templates"); do
@@ -384,7 +384,7 @@ done
 ```
 
 **Other checks:**
-- `.claude/KARIMO_RULES.md` exists
+- `.claude/plugins/karimo/KARIMO_RULES.md` exists
 - `CLAUDE.md` contains KARIMO section (check for `<!-- KARIMO:START` markers, fall back to `## KARIMO`)
 - `.karimo/learnings/` directory exists with category subdirectories
 - `.gitignore` contains `.worktrees/`
@@ -501,7 +501,7 @@ fi
 [ -d ".karimo/learnings" ] && echo "✅ learnings/" || echo "❌ learnings/ missing"
 
 # Check rules file
-[ -f ".claude/KARIMO_RULES.md" ] && echo "✅ KARIMO_RULES.md" || echo "❌ KARIMO_RULES.md missing"
+[ -f ".claude/plugins/karimo/KARIMO_RULES.md" ] && echo "✅ KARIMO_RULES.md" || echo "❌ KARIMO_RULES.md missing"
 
 # Check config file (created by /karimo:configure)
 [ -f ".karimo/config.yaml" ] && echo "✅ config.yaml" || echo "⚠️ config.yaml missing (run /karimo:configure)"
@@ -1206,7 +1206,7 @@ If some files missing:
 ❌ Partial installation detected.
 
 Missing components:
-  - .claude/agents/karimo/pm.md
+  - .claude/plugins/karimo/agents/pm.md
   - .karimo/templates/TASK_SCHEMA.md
 
 Recommendation:
@@ -1260,23 +1260,23 @@ EXPECTED_COMMANDS=$(manifest_count "commands")
 EXPECTED_SKILLS=$(manifest_count "skills")
 EXPECTED_TEMPLATES=$(manifest_count "templates")
 
-# Count actual files (karimo/ subdirectory per manifest structure)
-ACTUAL_AGENTS=$(ls .claude/agents/karimo/*.md 2>/dev/null | wc -l | tr -d ' ')
-ACTUAL_COMMANDS=$(ls .claude/commands/karimo/*.md 2>/dev/null | wc -l | tr -d ' ')
-ACTUAL_SKILLS=$(ls .claude/skills/karimo/*.md 2>/dev/null | wc -l | tr -d ' ')
+# Count actual files (plugins/karimo/ subdirectory per manifest structure)
+ACTUAL_AGENTS=$(ls .claude/plugins/karimo/agents/*.md 2>/dev/null | wc -l | tr -d ' ')
+ACTUAL_COMMANDS=$(ls .claude/plugins/karimo/commands/*.md 2>/dev/null | wc -l | tr -d ' ')
+ACTUAL_SKILLS=$(ls .claude/plugins/karimo/skills/*.md 2>/dev/null | wc -l | tr -d ' ')
 ACTUAL_TEMPLATES=$(ls .karimo/templates/*.md 2>/dev/null | wc -l | tr -d ' ')
 
-# Verify each file from manifest exists (handles karimo/ prefix)
+# Verify each file from manifest exists (handles plugins/karimo/ prefix)
 for agent in $(manifest_list "agents"); do
-  [ -f ".claude/agents/$agent" ] || echo "Missing: .claude/agents/$agent"
+  [ -f ".claude/$agent" ] || echo "Missing: .claude/$agent"
 done
 
 for command in $(manifest_list "commands"); do
-  [ -f ".claude/commands/$command" ] || echo "Missing: .claude/commands/$command"
+  [ -f ".claude/$command" ] || echo "Missing: .claude/$command"
 done
 
 for skill in $(manifest_list "skills"); do
-  [ -f ".claude/skills/$skill" ] || echo "Missing: .claude/skills/$skill"
+  [ -f ".claude/$skill" ] || echo "Missing: .claude/$skill"
 done
 
 # Check 3: Configuration
@@ -1286,7 +1286,7 @@ if [ -f ".claude/CLAUDE.md" ]; then CLAUDE_MD=".claude/CLAUDE.md"; elif [ -f ".c
 
 # 3b: Check required config files exist
 [ -d ".karimo/learnings" ]
-[ -f ".claude/KARIMO_RULES.md" ]
+[ -f ".claude/plugins/karimo/KARIMO_RULES.md" ]
 [ -f ".karimo/config.yaml" ]
 
 # 3c: Check for _pending_ markers in config.yaml

@@ -238,10 +238,10 @@ When you run `install.sh`, these files are added:
 
 | Location | Contents |
 |----------|----------|
-| `.claude/agents/` | **22** agent definitions (16 coordination + 6 task agents) |
-| `.claude/commands/` | **11** slash commands |
-| `.claude/skills/` | **7** skills (1 bash + 3 research + 3 task agent skills) |
-| `.claude/KARIMO_RULES.md` | Agent behavior rules |
+| `.claude/plugins/karimo/agents/` | **22** agent definitions (16 coordination + 6 task agents) |
+| `.claude/plugins/karimo/commands/` | **11** slash commands |
+| `.claude/plugins/karimo/skills/` | **7** skills (1 bash + 3 research + 3 task agent skills) |
+| `.claude/plugins/karimo/KARIMO_RULES.md` | Agent behavior rules |
 | `.karimo/templates/` | **18** templates |
 | `.karimo/scripts/` | **1** CLI script (asset management) |
 
