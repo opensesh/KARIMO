@@ -59,11 +59,11 @@ manifest_list() {
     tail -n +99 .karimo/MANIFEST.json | sed -n "/^  \"$key\"/,/^  \]/p" | grep '"' | grep -v "\"$key\"" | sed 's/.*"\([^"]*\)".*/\1/'
 }
 
-# Test 1: Verify agent counts
+# Test 1: Verify agent counts (v8 plugin structure)
 info "Test 1a: Checking agent counts"
 
 MANIFEST_AGENTS=$(manifest_count "agents")
-ACTUAL_AGENTS=$(ls -1 .claude/agents/karimo/*.md 2>/dev/null | wc -l | tr -d ' ')
+ACTUAL_AGENTS=$(ls -1 .claude/plugins/karimo/agents/*.md 2>/dev/null | wc -l | tr -d ' ')
 
 if [ "$MANIFEST_AGENTS" = "$ACTUAL_AGENTS" ]; then
     pass_test "Agent count matches: $ACTUAL_AGENTS agents"
@@ -71,11 +71,11 @@ else
     fail_test "Agent count mismatch" "MANIFEST: $MANIFEST_AGENTS, Actual: $ACTUAL_AGENTS"
 fi
 
-# Test 2: Verify command counts
+# Test 2: Verify command counts (v8 plugin structure)
 info "Test 1b: Checking command counts"
 
 MANIFEST_COMMANDS=$(manifest_count "commands")
-ACTUAL_COMMANDS=$(ls -1 .claude/commands/karimo/*.md 2>/dev/null | wc -l | tr -d ' ')
+ACTUAL_COMMANDS=$(ls -1 .claude/plugins/karimo/commands/*.md 2>/dev/null | wc -l | tr -d ' ')
 
 if [ "$MANIFEST_COMMANDS" = "$ACTUAL_COMMANDS" ]; then
     pass_test "Command count matches: $ACTUAL_COMMANDS commands"
@@ -83,11 +83,11 @@ else
     fail_test "Command count mismatch" "MANIFEST: $MANIFEST_COMMANDS, Actual: $ACTUAL_COMMANDS"
 fi
 
-# Test 3: Verify skill counts
+# Test 3: Verify skill counts (v8 plugin structure)
 info "Test 1c: Checking skill counts"
 
 MANIFEST_SKILLS=$(manifest_count "skills")
-ACTUAL_SKILLS=$(ls -1 .claude/skills/karimo/*.md 2>/dev/null | wc -l | tr -d ' ')
+ACTUAL_SKILLS=$(ls -1 .claude/plugins/karimo/skills/*.md 2>/dev/null | wc -l | tr -d ' ')
 
 if [ "$MANIFEST_SKILLS" = "$ACTUAL_SKILLS" ]; then
     pass_test "Skill count matches: $ACTUAL_SKILLS skills"
@@ -109,12 +109,12 @@ else
     fail_test "Template count mismatch" "MANIFEST: $MANIFEST_TEMPLATES, Actual: $ACTUAL_TEMPLATES ($ACTUAL_TEMPLATES_MD .md + $ACTUAL_TEMPLATES_JSON .json)"
 fi
 
-# Test 5: Verify all MANIFEST agents exist
+# Test 5: Verify all MANIFEST agents exist (v8 plugin paths)
 info "Test 2: Verifying all MANIFEST agents exist on disk"
 
 MISSING_AGENTS=()
 for agent in $(manifest_list "agents"); do
-    if [ ! -f ".claude/agents/$agent" ]; then
+    if [ ! -f ".claude/$agent" ]; then
         MISSING_AGENTS+=("$agent")
     fi
 done
@@ -125,12 +125,12 @@ else
     fail_test "Missing agents" "${MISSING_AGENTS[*]}"
 fi
 
-# Test 6: Verify all MANIFEST commands exist
+# Test 6: Verify all MANIFEST commands exist (v8 plugin paths)
 info "Test 3: Verifying all MANIFEST commands exist on disk"
 
 MISSING_COMMANDS=()
 for cmd in $(manifest_list "commands"); do
-    if [ ! -f ".claude/commands/$cmd" ]; then
+    if [ ! -f ".claude/$cmd" ]; then
         MISSING_COMMANDS+=("$cmd")
     fi
 done
@@ -141,12 +141,12 @@ else
     fail_test "Missing commands" "${MISSING_COMMANDS[*]}"
 fi
 
-# Test 7: Verify all MANIFEST skills exist
+# Test 7: Verify all MANIFEST skills exist (v8 plugin paths)
 info "Test 4: Verifying all MANIFEST skills exist on disk"
 
 MISSING_SKILLS=()
 for skill in $(manifest_list "skills"); do
-    if [ ! -f ".claude/skills/$skill" ]; then
+    if [ ! -f ".claude/$skill" ]; then
         MISSING_SKILLS+=("$skill")
     fi
 done
@@ -173,22 +173,22 @@ else
     fail_test "Missing templates" "${MISSING_TEMPLATES[*]}"
 fi
 
-# Test 9: Verify new PM agents exist (v7.19.0 specific)
-info "Test 6: Verifying PM agent topology (v7.19.0)"
+# Test 9: Verify new PM agents exist (v8 plugin structure)
+info "Test 6: Verifying PM agent topology"
 
-if [ -f ".claude/agents/karimo/pm.md" ]; then
+if [ -f ".claude/plugins/karimo/agents/pm.md" ]; then
     pass_test "PM agent exists: pm.md"
 else
     fail_test "PM agent missing" "pm.md not found"
 fi
 
-if [ -f ".claude/agents/karimo/pm-reviewer.md" ]; then
+if [ -f ".claude/plugins/karimo/agents/pm-reviewer.md" ]; then
     pass_test "PM-Reviewer agent exists: pm-reviewer.md"
 else
     fail_test "PM-Reviewer agent missing" "pm-reviewer.md not found"
 fi
 
-if [ -f ".claude/agents/karimo/pm-finalizer.md" ]; then
+if [ -f ".claude/plugins/karimo/agents/pm-finalizer.md" ]; then
     pass_test "PM-Finalizer agent exists: pm-finalizer.md"
 else
     fail_test "PM-Finalizer agent missing" "pm-finalizer.md not found"
