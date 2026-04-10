@@ -131,22 +131,23 @@ manifest_get() {
 }
 
 # Remove files not in manifest (handles renames/deletions)
-# Works with subfolder structure (karimo/*.md files)
+# Works with v8 plugin structure (plugins/karimo/*/*.md files)
 cleanup_stale_files() {
-    local dir="$1"
-    local manifest_key="$2"
-    local manifest_file="$3"
+    local category="$1"  # agents, commands, or skills
+    local manifest_file="$2"
+    local project_root="$3"
     local removed=0
 
     # Get list of files that SHOULD exist (from manifest)
-    local expected_files=$(manifest_list "$manifest_key" "$manifest_file")
+    local expected_files=$(manifest_list "$category" "$manifest_file")
 
-    # Check each *.md file in karimo/ subfolder
-    if [ -d "$dir/karimo" ]; then
-        for file in "$dir/karimo"/*.md; do
+    # Check each *.md file in plugins/karimo/{category}/
+    local plugin_dir="$project_root/.claude/plugins/karimo/$category"
+    if [ -d "$plugin_dir" ]; then
+        for file in "$plugin_dir"/*.md; do
             [ -f "$file" ] || continue
             local filename=$(basename "$file")
-            local rel_path="karimo/$filename"
+            local rel_path="plugins/karimo/$category/$filename"
 
             # If not in manifest, remove it
             if ! echo "$expected_files" | grep -qx "$rel_path"; then
@@ -481,10 +482,11 @@ UPDATED_TEMPLATES=0
 UPDATED_SCRIPTS=0
 UPDATED_WORKFLOWS=0
 
-# Create directories if needed (subfolder structure)
-mkdir -p "$PROJECT_ROOT/.claude/agents/karimo"
-mkdir -p "$PROJECT_ROOT/.claude/commands/karimo"
-mkdir -p "$PROJECT_ROOT/.claude/skills/karimo"
+# Create directories if needed (v8+ plugin structure)
+mkdir -p "$PROJECT_ROOT/.claude/plugins/karimo/agents"
+mkdir -p "$PROJECT_ROOT/.claude/plugins/karimo/commands"
+mkdir -p "$PROJECT_ROOT/.claude/plugins/karimo/skills"
+mkdir -p "$PROJECT_ROOT/.claude/plugins/karimo/.claude-plugin"
 mkdir -p "$PROJECT_ROOT/.karimo/templates"
 mkdir -p "$PROJECT_ROOT/.karimo/scripts"
 mkdir -p "$PROJECT_ROOT/.karimo/learnings/patterns"
@@ -554,53 +556,85 @@ for subdir in by-prd by-pattern; do
 done
 
 # ==============================================================================
-# MIGRATE TO SUBFOLDER STRUCTURE (v7.11.0+)
+# MIGRATE TO v8 PLUGIN STRUCTURE
 # ==============================================================================
 # Handles migration from:
-#   - v7.10.0 flat: karimo-pm.md → karimo/pm.md
-#   - v7.9.0 subfolder with prefix: karimo/karimo-pm.md → karimo/pm.md
+#   - v7.x karimo/ subfolder → v8+ plugins/karimo/ structure
+#   - Old flat files → v8+ plugins/karimo/ structure
 
-migrate_to_subfolder() {
-    local dir="$1"
+migrate_to_v8_plugin() {
+    local project_root="$1"
     local migrated=0
 
-    # Migrate flat karimo-*.md files to karimo/ subfolder (v7.10.0 → v7.11.0)
-    for file in "$dir"/karimo-*.md; do
-        [ -f "$file" ] || continue
-        local filename=$(basename "$file")
-        local newname="${filename#karimo-}"  # Remove karimo- prefix
-        echo "    Migrating: $filename -> karimo/$newname" >&2
-        mv "$file" "$dir/karimo/$newname"
-        migrated=$((migrated + 1))
-    done
+    echo "  Checking for v7 to v8 migration..."
 
-    # Migrate karimo/karimo-*.md to karimo/*.md (v7.9.0 → v7.11.0)
-    if [ -d "$dir/karimo" ]; then
-        for file in "$dir/karimo"/karimo-*.md; do
+    # Migrate agents from .claude/agents/karimo/ to .claude/plugins/karimo/agents/
+    if [ -d "$project_root/.claude/agents/karimo" ]; then
+        echo "    Migrating agents to plugin structure..."
+        for file in "$project_root/.claude/agents/karimo"/*.md; do
             [ -f "$file" ] || continue
             local filename=$(basename "$file")
-            local newname="${filename#karimo-}"  # Remove karimo- prefix
-            echo "    Renaming: karimo/$filename -> karimo/$newname" >&2
-            mv "$file" "$dir/karimo/$newname"
+            mv "$file" "$project_root/.claude/plugins/karimo/agents/$filename"
             migrated=$((migrated + 1))
         done
+        rmdir "$project_root/.claude/agents/karimo" 2>/dev/null || true
     fi
 
+    # Migrate commands from .claude/commands/karimo/ to .claude/plugins/karimo/commands/
+    if [ -d "$project_root/.claude/commands/karimo" ]; then
+        echo "    Migrating commands to plugin structure..."
+        for file in "$project_root/.claude/commands/karimo"/*.md; do
+            [ -f "$file" ] || continue
+            local filename=$(basename "$file")
+            mv "$file" "$project_root/.claude/plugins/karimo/commands/$filename"
+            migrated=$((migrated + 1))
+        done
+        rmdir "$project_root/.claude/commands/karimo" 2>/dev/null || true
+    fi
+
+    # Migrate skills from .claude/skills/karimo/ to .claude/plugins/karimo/skills/
+    if [ -d "$project_root/.claude/skills/karimo" ]; then
+        echo "    Migrating skills to plugin structure..."
+        for file in "$project_root/.claude/skills/karimo"/*.md; do
+            [ -f "$file" ] || continue
+            local filename=$(basename "$file")
+            mv "$file" "$project_root/.claude/plugins/karimo/skills/$filename"
+            migrated=$((migrated + 1))
+        done
+        rmdir "$project_root/.claude/skills/karimo" 2>/dev/null || true
+    fi
+
+    # Migrate KARIMO_RULES.md from .claude/ to .claude/plugins/karimo/
+    if [ -f "$project_root/.claude/KARIMO_RULES.md" ]; then
+        echo "    Migrating KARIMO_RULES.md to plugin structure..."
+        mv "$project_root/.claude/KARIMO_RULES.md" "$project_root/.claude/plugins/karimo/KARIMO_RULES.md"
+        migrated=$((migrated + 1))
+    fi
+
+    # Clean up empty karimo directories
+    for category in agents commands skills; do
+        if [ -d "$project_root/.claude/$category/karimo" ]; then
+            if [ -z "$(ls -A "$project_root/.claude/$category/karimo")" ]; then
+                rmdir "$project_root/.claude/$category/karimo" 2>/dev/null || true
+            fi
+        fi
+    done
+
     if [ $migrated -gt 0 ]; then
-        echo "    Migrated $migrated files to subfolder structure" >&2
+        echo "    Migrated $migrated files to v8 plugin structure"
+    else
+        echo "    No v7 files to migrate"
     fi
 }
 
-echo "  Migrating to subfolder structure if needed..."
-migrate_to_subfolder "$PROJECT_ROOT/.claude/agents"
-migrate_to_subfolder "$PROJECT_ROOT/.claude/commands"
-migrate_to_subfolder "$PROJECT_ROOT/.claude/skills"
+# Run v8 migration
+migrate_to_v8_plugin "$PROJECT_ROOT"
 
-# Update agents (subfolder structure)
+# Update agents (v8 plugin structure)
 echo "  Updating agents..."
 for agent in $(manifest_list "agents" "$MANIFEST"); do
-    src="$KARIMO_SOURCE/.claude/agents/$agent"
-    dst="$PROJECT_ROOT/.claude/agents/$agent"
+    src="$KARIMO_SOURCE/.claude/$agent"
+    dst="$PROJECT_ROOT/.claude/$agent"
     if [ -f "$src" ]; then
         mkdir -p "$(dirname "$dst")"
         cp "$src" "$dst"
@@ -608,11 +642,11 @@ for agent in $(manifest_list "agents" "$MANIFEST"); do
     fi
 done
 
-# Update commands (subfolder structure)
+# Update commands (v8 plugin structure)
 echo "  Updating commands..."
 for cmd in $(manifest_list "commands" "$MANIFEST"); do
-    src="$KARIMO_SOURCE/.claude/commands/$cmd"
-    dst="$PROJECT_ROOT/.claude/commands/$cmd"
+    src="$KARIMO_SOURCE/.claude/$cmd"
+    dst="$PROJECT_ROOT/.claude/$cmd"
     if [ -f "$src" ]; then
         mkdir -p "$(dirname "$dst")"
         cp "$src" "$dst"
@@ -620,11 +654,11 @@ for cmd in $(manifest_list "commands" "$MANIFEST"); do
     fi
 done
 
-# Update skills (subfolder structure)
+# Update skills (v8 plugin structure)
 echo "  Updating skills..."
 for skill in $(manifest_list "skills" "$MANIFEST"); do
-    src="$KARIMO_SOURCE/.claude/skills/$skill"
-    dst="$PROJECT_ROOT/.claude/skills/$skill"
+    src="$KARIMO_SOURCE/.claude/$skill"
+    dst="$PROJECT_ROOT/.claude/$skill"
     if [ -f "$src" ]; then
         mkdir -p "$(dirname "$dst")"
         cp "$src" "$dst"
@@ -634,9 +668,9 @@ done
 
 # Cleanup stale files (handles renames/deletions)
 echo "  Cleaning up stale files..."
-CLEANED_AGENTS=$(cleanup_stale_files "$PROJECT_ROOT/.claude/agents" "agents" "$MANIFEST")
-CLEANED_COMMANDS=$(cleanup_stale_files "$PROJECT_ROOT/.claude/commands" "commands" "$MANIFEST")
-CLEANED_SKILLS=$(cleanup_stale_files "$PROJECT_ROOT/.claude/skills" "skills" "$MANIFEST")
+CLEANED_AGENTS=$(cleanup_stale_files "agents" "$MANIFEST" "$PROJECT_ROOT")
+CLEANED_COMMANDS=$(cleanup_stale_files "commands" "$MANIFEST" "$PROJECT_ROOT")
+CLEANED_SKILLS=$(cleanup_stale_files "skills" "$MANIFEST" "$PROJECT_ROOT")
 # Templates use different naming pattern, check manually
 CLEANED_TEMPLATES=0
 
@@ -666,10 +700,21 @@ for script in $(manifest_list "scripts" "$MANIFEST"); do
     fi
 done
 
-# Update KARIMO_RULES.md
-if [ -f "$KARIMO_SOURCE/.claude/KARIMO_RULES.md" ]; then
+# Update KARIMO_RULES.md (v8 plugin structure)
+if [ -f "$KARIMO_SOURCE/.claude/plugins/karimo/KARIMO_RULES.md" ]; then
     echo "  Updating KARIMO_RULES.md..."
-    cp "$KARIMO_SOURCE/.claude/KARIMO_RULES.md" "$PROJECT_ROOT/.claude/KARIMO_RULES.md"
+    cp "$KARIMO_SOURCE/.claude/plugins/karimo/KARIMO_RULES.md" "$PROJECT_ROOT/.claude/plugins/karimo/KARIMO_RULES.md"
+fi
+
+# Update plugin.json
+if [ -f "$KARIMO_SOURCE/.claude/plugins/karimo/.claude-plugin/plugin.json" ]; then
+    echo "  Updating plugin.json..."
+    cp "$KARIMO_SOURCE/.claude/plugins/karimo/.claude-plugin/plugin.json" "$PROJECT_ROOT/.claude/plugins/karimo/.claude-plugin/plugin.json"
+fi
+
+# Update plugin README
+if [ -f "$KARIMO_SOURCE/.claude/plugins/karimo/README.md" ]; then
+    cp "$KARIMO_SOURCE/.claude/plugins/karimo/README.md" "$PROJECT_ROOT/.claude/plugins/karimo/README.md"
 fi
 
 # ==============================================================================
@@ -848,7 +893,7 @@ This project uses [KARIMO](https://github.com/opensesh/KARIMO) for PRD-driven au
 ### Quick Reference
 
 - **Commands:** Type `/karimo-` to see all commands
-- **Agent rules:** `.claude/KARIMO_RULES.md`
+- **Agent rules:** `.claude/plugins/karimo/KARIMO_RULES.md`
 - **Configuration:** `.karimo/config.yaml`
 - **Learnings:** `.karimo/learnings/`
 
@@ -906,12 +951,9 @@ Co-Authored-By: KARIMO Update Script <noreply@opensession.co>"
     # Auto-commit (no prompt needed)
     echo "  Committing KARIMO updates..."
 
-    # Stage only KARIMO files
+    # Stage only KARIMO files (v8 plugin structure)
     git add \
-        .claude/agents/ \
-        .claude/commands/ \
-        .claude/skills/ \
-        .claude/KARIMO_RULES.md \
+        .claude/plugins/karimo/ \
         .karimo/templates/ \
         .karimo/scripts/ \
         .karimo/VERSION \
@@ -919,6 +961,9 @@ Co-Authored-By: KARIMO Update Script <noreply@opensession.co>"
         .karimo/update.sh \
         .github/workflows/karimo-*.yml \
         CLAUDE.md 2>/dev/null || true
+
+    # Also stage removal of old v7 paths if they were deleted
+    git add -u .claude/agents/karimo/ .claude/commands/karimo/ .claude/skills/karimo/ .claude/KARIMO_RULES.md 2>/dev/null || true
 
     # Create commit
     if git commit -m "$commit_message" 2>/dev/null; then

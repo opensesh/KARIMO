@@ -965,11 +965,11 @@ Check for and apply KARIMO updates from GitHub releases.
 
 | Category | Files |
 |----------|-------|
-| Commands | `.claude/commands/*.md` |
-| Agents | `.claude/agents/*.md` |
-| Skills | `.claude/skills/*.md` |
+| Commands | `.claude/plugins/karimo/commands/*.md` |
+| Agents | `.claude/plugins/karimo/agents/*.md` |
+| Skills | `.claude/plugins/karimo/skills/*.md` |
 | Templates | `.karimo/templates/*.md` |
-| Rules | `.claude/KARIMO_RULES.md` |
+| Rules | `.claude/plugins/karimo/KARIMO_RULES.md` |
 | Workflows | `.github/workflows/karimo-*.yml` (existing only) |
 
 ### What Is Preserved

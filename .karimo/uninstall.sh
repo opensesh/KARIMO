@@ -40,8 +40,8 @@ if [ ! -d "$TARGET_DIR" ]; then
     exit 1
 fi
 
-# Check if KARIMO is installed
-if [ ! -d "$TARGET_DIR/.karimo" ] && [ ! -f "$TARGET_DIR/.claude/KARIMO_RULES.md" ]; then
+# Check if KARIMO is installed (v8 plugin structure or legacy v7)
+if [ ! -d "$TARGET_DIR/.karimo" ] && [ ! -d "$TARGET_DIR/.claude/plugins/karimo" ] && [ ! -f "$TARGET_DIR/.claude/KARIMO_RULES.md" ]; then
     echo -e "${YELLOW}KARIMO does not appear to be installed in this directory.${NC}"
     exit 0
 fi
@@ -50,10 +50,11 @@ echo -e "${YELLOW}This will remove KARIMO from: $TARGET_DIR${NC}"
 echo
 echo "The following will be removed:"
 echo "  - .karimo/ directory (templates, PRDs)"
-echo "  - .claude/agents/karimo/*.md (agents from manifest)"
-echo "  - .claude/commands/*.md (commands from manifest)"
-echo "  - .claude/skills/*.md (skills from manifest)"
-echo "  - .claude/KARIMO_RULES.md"
+echo "  - .claude/plugins/karimo/ (v8 plugin structure)"
+echo "  - .claude/agents/karimo/*.md (legacy v7 agents)"
+echo "  - .claude/commands/karimo/*.md (legacy v7 commands)"
+echo "  - .claude/skills/karimo/*.md (legacy v7 skills)"
+echo "  - .claude/KARIMO_RULES.md (legacy v7)"
 echo "  - .github/workflows/karimo-*.yml"
 echo "  - .github/ISSUE_TEMPLATE/karimo-task.yml"
 echo "  - KARIMO section from CLAUDE.md"
@@ -80,6 +81,13 @@ REMOVED_COUNT=0
 if [ -d "$TARGET_DIR/.karimo" ]; then
     echo "Removing .karimo/ directory..."
     rm -rf "$TARGET_DIR/.karimo"
+    REMOVED_COUNT=$((REMOVED_COUNT + 1))
+fi
+
+# Remove v8 plugin directory
+if [ -d "$TARGET_DIR/.claude/plugins/karimo" ]; then
+    echo "Removing .claude/plugins/karimo/ directory..."
+    rm -rf "$TARGET_DIR/.claude/plugins/karimo"
     REMOVED_COUNT=$((REMOVED_COUNT + 1))
 fi
 

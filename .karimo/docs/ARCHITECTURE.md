@@ -93,7 +93,7 @@ The `/karimo:merge` command generates PR descriptions with markdown/code breakdo
 - Provides transparency in PR scope and complexity assessment
 
 **Implementation:**
-- Statistics calculation: Bash code in `.claude/commands/karimo/merge.md` (lines 105-128)
+- Statistics calculation: Bash code in `.claude/plugins/karimo/commands/merge.md` (lines 105-128)
 - PR body template: Enhanced template includes breakdown section (lines 386-388)
 - Git diff parsing: Uses `git diff --numstat` with grep filtering for markdown detection
 
@@ -299,7 +299,7 @@ bash KARIMO/.karimo/install.sh --ci /path/to/project
 
 KARIMO follows Anthropic's best practice of keeping CLAUDE.md minimal. `install.sh` uses a **modular approach**:
 
-1. **Copies** `KARIMO_RULES.md` to `.claude/KARIMO_RULES.md` (agent behavior rules)
+1. **Copies** `KARIMO_RULES.md` to `.claude/plugins/karimo/KARIMO_RULES.md` (agent behavior rules)
 2. **Creates** `.karimo/config.yaml` (project configuration — filled by `/karimo:configure`)
 3. **Creates** `.karimo/learnings/` directory (categorized learnings — filled by `/karimo:feedback`)
 4. **Creates** `.karimo/findings/` directory (cross-PRD patterns — populated during execution)
@@ -312,7 +312,7 @@ KARIMO follows Anthropic's best practice of keeping CLAUDE.md minimal. `install.
 
 This project uses [KARIMO](https://github.com/opensesh/KARIMO) for PRD-driven autonomous development.
 
-- **Agent rules:** `.claude/KARIMO_RULES.md`
+- **Agent rules:** `.claude/plugins/karimo/KARIMO_RULES.md`
 - **Config & PRDs:** `.karimo/`
 - **Learnings:** `.karimo/learnings/`
 - **All commands prefixed** `karimo:` — type `/karimo-` to see available commands
@@ -852,7 +852,7 @@ This enables efficient usage — expensive models only where reasoning quality m
 
 ### Agent Rules
 
-All agents follow rules defined in `.claude/KARIMO_RULES.md`:
+All agents follow rules defined in `.claude/plugins/karimo/KARIMO_RULES.md`:
 
 - **Boundary enforcement**: `never_touch` files are blocked
 - **Review flagging**: `require_review` files are highlighted

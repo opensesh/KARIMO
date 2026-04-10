@@ -62,10 +62,10 @@ The installer uses `.karimo/MANIFEST.json` as the single source of truth for fil
 **Note:** KARIMO installs zero workflows by default. If you want Greptile integration, run `/karimo:configure --greptile` after installation.
 
 This installs:
-- Agent definitions to `.claude/agents/`
-- Slash commands to `.claude/commands/`
-- Skills to `.claude/skills/`
-- Agent rules to `.claude/KARIMO_RULES.md`
+- Agent definitions to `.claude/plugins/karimo/agents/`
+- Slash commands to `.claude/plugins/karimo/commands/`
+- Skills to `.claude/plugins/karimo/skills/`
+- Agent rules to `.claude/plugins/karimo/KARIMO_RULES.md`
 - Templates to `.karimo/templates/`
 - Scripts to `.karimo/scripts/` (asset management CLI)
 - Learnings template to `.karimo/learnings/`
@@ -146,10 +146,10 @@ If your project already has `.claude/` with custom agents, commands, or `CLAUDE.
 - Your existing `CLAUDE.md` content
 
 **What gets added (from MANIFEST.json):**
-- 22 KARIMO agents (prefixed `karimo-*`)
-- 11 slash commands (prefixed `karimo-*`)
-- 7 KARIMO skills (prefixed `karimo-*`)
-- `.claude/KARIMO_RULES.md`
+- 22 KARIMO agents in `.claude/plugins/karimo/agents/`
+- 11 slash commands in `.claude/plugins/karimo/commands/`
+- 7 KARIMO skills in `.claude/plugins/karimo/skills/`
+- `.claude/plugins/karimo/KARIMO_RULES.md`
 - `.karimo/` directory with templates, scripts, manifest, and learnings
 - Marker-delimited KARIMO section appended to `CLAUDE.md` (~20 lines)
 
@@ -797,10 +797,7 @@ Or manually remove these files:
 
 ```bash
 rm -rf .karimo/
-rm .claude/agents/karimo/*.md
-rm .claude/commands/karimo/*.md
-rm .claude/skills/karimo/*.md
-rm .claude/KARIMO_RULES.md
+rm -rf .claude/plugins/karimo/
 rm .github/workflows/karimo-*.yml
 ```
 

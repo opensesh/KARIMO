@@ -176,7 +176,7 @@ Patterns use glob syntax:
 
 ## Agent Rules
 
-Agent behavior is constrained by rules defined in `.claude/KARIMO_RULES.md`.
+Agent behavior is constrained by rules defined in `.claude/plugins/karimo/KARIMO_RULES.md`.
 
 ### What Agents Cannot Do
 

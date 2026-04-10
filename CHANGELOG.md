@@ -7,6 +7,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [8.0.0] - 2026-04-09
+
+### Changed
+
+- **Plugin Directory Structure** — BREAKING: Migrated all KARIMO components to `.claude/plugins/karimo/`:
+  - Agents: `.claude/agents/karimo/` → `.claude/plugins/karimo/agents/`
+  - Commands: `.claude/commands/karimo/` → `.claude/plugins/karimo/commands/`
+  - Skills: `.claude/skills/karimo/` → `.claude/plugins/karimo/skills/`
+  - Rules: `.claude/KARIMO_RULES.md` → `.claude/plugins/karimo/KARIMO_RULES.md`
+
+- **MANIFEST.json Paths** — All paths updated from `karimo/` prefix to `plugins/karimo/` prefix
+
+- **Plugin Manifest** — Added `.claude/plugins/karimo/.claude-plugin/plugin.json` for Claude Code plugin discovery
+
+### Fixed
+
+- **doctor.md Path References** — Updated all file path checks to use new plugin structure
+
+### Migration
+
+Existing v7.x installations will need to run `/karimo:update` to migrate to the new plugin structure. The update script handles:
+- Moving files to new locations
+- Cleaning up old deprecated paths
+- Updating local MANIFEST.json references
+
+---
+
 ## [7.21.0] - 2026-04-08
 
 ### Added

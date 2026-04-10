@@ -215,11 +215,12 @@ fi
 echo -e "${GREEN}Installing KARIMO to: $TARGET_DIR${NC}"
 echo
 
-# Create directory structure
+# Create directory structure (v8 plugin structure)
 echo "Creating directories..."
-mkdir -p "$TARGET_DIR/.claude/agents/karimo"
-mkdir -p "$TARGET_DIR/.claude/commands/karimo"
-mkdir -p "$TARGET_DIR/.claude/skills/karimo"
+mkdir -p "$TARGET_DIR/.claude/plugins/karimo/agents"
+mkdir -p "$TARGET_DIR/.claude/plugins/karimo/commands"
+mkdir -p "$TARGET_DIR/.claude/plugins/karimo/skills"
+mkdir -p "$TARGET_DIR/.claude/plugins/karimo/.claude-plugin"
 mkdir -p "$TARGET_DIR/.karimo/templates"
 mkdir -p "$TARGET_DIR/.karimo/scripts"
 mkdir -p "$TARGET_DIR/.karimo/prds"
@@ -231,12 +232,12 @@ mkdir -p "$TARGET_DIR/.github/ISSUE_TEMPLATE"
 # MANIFEST-DRIVEN FILE INSTALLATION
 # ==============================================================================
 
-# Copy agents from manifest (supports subfolders)
+# Copy agents from manifest (v8 plugin structure)
 echo "Copying agents..."
 AGENT_COUNT=0
 for agent in $(manifest_list "agents"); do
-    src="$KARIMO_ROOT/.claude/agents/$agent"
-    dst="$TARGET_DIR/.claude/agents/$agent"
+    src="$KARIMO_ROOT/.claude/$agent"
+    dst="$TARGET_DIR/.claude/$agent"
     if [ -f "$src" ]; then
         mkdir -p "$(dirname "$dst")"
         cp "$src" "$dst"
@@ -247,12 +248,12 @@ for agent in $(manifest_list "agents"); do
 done
 echo "  Copied $AGENT_COUNT agents"
 
-# Copy commands from manifest (supports subfolders)
+# Copy commands from manifest (v8 plugin structure)
 echo "Copying commands..."
 COMMAND_COUNT=0
 for cmd in $(manifest_list "commands"); do
-    src="$KARIMO_ROOT/.claude/commands/$cmd"
-    dst="$TARGET_DIR/.claude/commands/$cmd"
+    src="$KARIMO_ROOT/.claude/$cmd"
+    dst="$TARGET_DIR/.claude/$cmd"
     if [ -f "$src" ]; then
         mkdir -p "$(dirname "$dst")"
         cp "$src" "$dst"
@@ -263,12 +264,12 @@ for cmd in $(manifest_list "commands"); do
 done
 echo "  Copied $COMMAND_COUNT commands"
 
-# Copy skills from manifest (supports subfolders)
+# Copy skills from manifest (v8 plugin structure)
 echo "Copying skills..."
 SKILL_COUNT=0
 for skill in $(manifest_list "skills"); do
-    src="$KARIMO_ROOT/.claude/skills/$skill"
-    dst="$TARGET_DIR/.claude/skills/$skill"
+    src="$KARIMO_ROOT/.claude/$skill"
+    dst="$TARGET_DIR/.claude/$skill"
     if [ -f "$src" ]; then
         mkdir -p "$(dirname "$dst")"
         cp "$src" "$dst"
@@ -324,9 +325,16 @@ cp "$KARIMO_ROOT/.github/ISSUE_TEMPLATE/$ISSUE_TEMPLATE" "$TARGET_DIR/.github/IS
 # Create .gitkeep for prds directory
 touch "$TARGET_DIR/.karimo/prds/.gitkeep"
 
-# Copy KARIMO_RULES.md to .claude/ (modular approach)
+# Copy KARIMO_RULES.md to plugin directory (v8 plugin structure)
 echo "Copying KARIMO rules..."
-cp "$KARIMO_ROOT/.claude/KARIMO_RULES.md" "$TARGET_DIR/.claude/KARIMO_RULES.md"
+cp "$KARIMO_ROOT/.claude/plugins/karimo/KARIMO_RULES.md" "$TARGET_DIR/.claude/plugins/karimo/KARIMO_RULES.md"
+
+# Copy plugin manifest
+echo "Copying plugin manifest..."
+cp "$KARIMO_ROOT/.claude/plugins/karimo/.claude-plugin/plugin.json" "$TARGET_DIR/.claude/plugins/karimo/.claude-plugin/plugin.json"
+
+# Copy plugin README
+cp "$KARIMO_ROOT/.claude/plugins/karimo/README.md" "$TARGET_DIR/.claude/plugins/karimo/README.md"
 
 # ==============================================================================
 # AUTO-DETECTION SECTION
@@ -502,7 +510,7 @@ This project uses [KARIMO](https://github.com/opensesh/KARIMO) for PRD-driven au
 ### Quick Reference
 
 - **Commands:** Type `/karimo:` to see all commands
-- **Agent rules:** `.claude/KARIMO_RULES.md`
+- **Agent rules:** `.claude/plugins/karimo/KARIMO_RULES.md`
 - **Configuration:** `.karimo/config.yaml`
 - **Learnings:** `.karimo/learnings/`
 
@@ -614,17 +622,17 @@ echo -e "${GREEN}│  Installation Complete!                                    
 echo -e "${GREEN}╰──────────────────────────────────────────────────────────────╯${NC}"
 echo
 echo "Installed files:"
-echo "  .claude/agents/karimo/    $MANIFEST_AGENTS agent definitions"
-echo "  .claude/commands/karimo/  $MANIFEST_COMMANDS slash commands (/karimo:*)"
-echo "  .claude/skills/karimo/    $MANIFEST_SKILLS skill definitions"
-echo "  .claude/KARIMO_RULES.md   Agent behavior rules"
-echo "  .karimo/templates/        $MANIFEST_TEMPLATES templates"
-echo "  .karimo/scripts/          $MANIFEST_SCRIPTS CLI scripts"
-echo "  .karimo/VERSION           Version tracking"
-echo "  .karimo/MANIFEST.json     File inventory"
-echo "  .github/ISSUE_TEMPLATE/   1 issue template"
-echo "  CLAUDE.md                 Updated with reference block"
-echo "  .gitignore                Updated with .worktrees/"
+echo "  .claude/plugins/karimo/agents/    $MANIFEST_AGENTS agent definitions"
+echo "  .claude/plugins/karimo/commands/  $MANIFEST_COMMANDS slash commands (/karimo:*)"
+echo "  .claude/plugins/karimo/skills/    $MANIFEST_SKILLS skill definitions"
+echo "  .claude/plugins/karimo/KARIMO_RULES.md  Agent behavior rules"
+echo "  .karimo/templates/                $MANIFEST_TEMPLATES templates"
+echo "  .karimo/scripts/                  $MANIFEST_SCRIPTS CLI scripts"
+echo "  .karimo/VERSION                   Version tracking"
+echo "  .karimo/MANIFEST.json             File inventory"
+echo "  .github/ISSUE_TEMPLATE/           1 issue template"
+echo "  CLAUDE.md                         Updated with reference block"
+echo "  .gitignore                        Updated with .worktrees/"
 echo
 echo "Configuration:"
 if [ "$CONFIG_AUTODETECTED" = true ]; then

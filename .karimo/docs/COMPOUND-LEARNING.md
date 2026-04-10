@@ -243,7 +243,7 @@ Deep investigation for unclear or systemic issues (30% of cases, 10-20 min).
    - Show each change with target file, confidence level, rationale
    - User approves/rejects/edits
 7. **Apply approved changes:**
-   - Update `.karimo/learnings/`, `.karimo/config.yaml`, `.claude/KARIMO_RULES.md`, or other files
+   - Update `.karimo/learnings/`, `.karimo/config.yaml`, `.claude/plugins/karimo/KARIMO_RULES.md`, or other files
    - Track in feedback document under "Applied Changes"
 8. **Commit** — `chore(feedback): {summary from investigation}`
 

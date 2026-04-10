@@ -808,4 +808,4 @@ node .karimo/scripts/karimo-assets.js add "dashboard" \
 
 ---
 
-*For implementation details, see the Node.js CLI script at `.karimo/scripts/karimo-assets.js` and usage documentation in `.claude/skills/karimo/bash-utilities.md`*
+*For implementation details, see the Node.js CLI script at `.karimo/scripts/karimo-assets.js` and usage documentation in `.claude/plugins/karimo/skills/bash-utilities.md`*

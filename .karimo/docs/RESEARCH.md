@@ -27,7 +27,7 @@ Research is executed in **two distinct phases** with commits after each:
 **Focus:** Codebase analysis
 **Tools:** Grep, Glob, Read, Bash (read-only)
 **Output:** `research/internal/findings.md`
-**Skill:** `.claude/skills/karimo/research-methods.md`
+**Skill:** `.claude/plugins/karimo/skills/research-methods.md`
 
 | Component | Purpose |
 |-----------|---------|
@@ -43,7 +43,7 @@ Research is executed in **two distinct phases** with commits after each:
 **Focus:** Web research, documentation, libraries
 **Tools:** Firecrawl (recommended), WebSearch, WebFetch
 **Output:** `research/external/findings.md`
-**Skill:** `.claude/skills/karimo/external-research.md`
+**Skill:** `.claude/plugins/karimo/skills/external-research.md`
 
 | Component | Purpose |
 |-----------|---------|
@@ -75,7 +75,7 @@ Research is executed in **two distinct phases** with commits after each:
 
 Firecrawl is the **recommended tool** for external research when available.
 
-**Full Reference:** `.claude/skills/karimo/firecrawl-web-tools.md`
+**Full Reference:** `.claude/plugins/karimo/skills/firecrawl-web-tools.md`
 
 **Tool Decision Tree:**
 

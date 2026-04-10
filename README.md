@@ -196,7 +196,7 @@ KARIMO uses layered context management for efficient token usage:
 
 **Key files:**
 - `.claude/agents.overview.md` — All agents at a glance
-- `.claude/agents/karimo/*.md` — Full agent definitions
+- `.claude/plugins/karimo/agents/*.md` — Full agent definitions
 - `.claude/skills.overview.md` — All skills with agent mapping
 - `.karimo/learnings/` — Categorized project learnings
 - `.karimo/findings/` — Cross-PRD pattern index
