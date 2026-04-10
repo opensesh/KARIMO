@@ -1,5 +1,5 @@
 {
-  "version": "7.21.0",
+  "version": "8.0.0",
   "deprecated": {
     "commands": [
       "karimo-modify.md",
@@ -31,7 +31,18 @@
       "karimo-plan.md",
       "karimo-research.md",
       "karimo-run.md",
-      "karimo-update.md"
+      "karimo-update.md",
+      "karimo/configure.md",
+      "karimo/dashboard.md",
+      "karimo/doctor.md",
+      "karimo/feedback.md",
+      "karimo/greptile-review.md",
+      "karimo/help.md",
+      "karimo/merge.md",
+      "karimo/plan.md",
+      "karimo/research.md",
+      "karimo/run.md",
+      "karimo/update.md"
     ],
     "agents": [
       "karimo/karimo-brief-corrector.md",
@@ -69,7 +80,29 @@
       "karimo-review-architect.md",
       "karimo-reviewer.md",
       "karimo-tester.md",
-      "karimo-tester-opus.md"
+      "karimo-tester-opus.md",
+      "karimo/brief-corrector.md",
+      "karimo/brief-reviewer.md",
+      "karimo/brief-writer.md",
+      "karimo/coverage-reviewer.md",
+      "karimo/documenter.md",
+      "karimo/documenter-opus.md",
+      "karimo/greptile-remediator.md",
+      "karimo/greptile-rules-writer.md",
+      "karimo/implementer.md",
+      "karimo/implementer-opus.md",
+      "karimo/interviewer.md",
+      "karimo/investigator.md",
+      "karimo/feedback-auditor.md",
+      "karimo/pm.md",
+      "karimo/pm-reviewer.md",
+      "karimo/pm-finalizer.md",
+      "karimo/refiner.md",
+      "karimo/researcher.md",
+      "karimo/review-architect.md",
+      "karimo/reviewer.md",
+      "karimo/tester.md",
+      "karimo/tester-opus.md"
     ],
     "skills": [
       "karimo-git-worktree-ops.md",
@@ -87,7 +120,14 @@
       "karimo-external-research.md",
       "karimo-firecrawl-web-tools.md",
       "karimo-research-methods.md",
-      "karimo-testing-standards.md"
+      "karimo-testing-standards.md",
+      "karimo/bash-utilities.md",
+      "karimo/code-standards.md",
+      "karimo/doc-standards.md",
+      "karimo/external-research.md",
+      "karimo/firecrawl-web-tools.md",
+      "karimo/research-methods.md",
+      "karimo/testing-standards.md"
     ],
     "templates": [
       "GREPTILE_FINDINGS_TEMPLATE.md",
@@ -95,53 +135,56 @@
     ],
     "workflows": [
       "karimo-greptile-review.yml"
+    ],
+    "rules": [
+      "KARIMO_RULES.md"
     ]
   },
   "agents": [
-    "karimo/brief-corrector.md",
-    "karimo/brief-reviewer.md",
-    "karimo/brief-writer.md",
-    "karimo/coverage-reviewer.md",
-    "karimo/documenter.md",
-    "karimo/documenter-opus.md",
-    "karimo/greptile-remediator.md",
-    "karimo/greptile-rules-writer.md",
-    "karimo/implementer.md",
-    "karimo/implementer-opus.md",
-    "karimo/interviewer.md",
-    "karimo/investigator.md",
-    "karimo/feedback-auditor.md",
-    "karimo/pm.md",
-    "karimo/pm-reviewer.md",
-    "karimo/pm-finalizer.md",
-    "karimo/refiner.md",
-    "karimo/researcher.md",
-    "karimo/review-architect.md",
-    "karimo/reviewer.md",
-    "karimo/tester.md",
-    "karimo/tester-opus.md"
+    "plugins/karimo/agents/brief-corrector.md",
+    "plugins/karimo/agents/brief-reviewer.md",
+    "plugins/karimo/agents/brief-writer.md",
+    "plugins/karimo/agents/coverage-reviewer.md",
+    "plugins/karimo/agents/documenter.md",
+    "plugins/karimo/agents/documenter-opus.md",
+    "plugins/karimo/agents/greptile-remediator.md",
+    "plugins/karimo/agents/greptile-rules-writer.md",
+    "plugins/karimo/agents/implementer.md",
+    "plugins/karimo/agents/implementer-opus.md",
+    "plugins/karimo/agents/interviewer.md",
+    "plugins/karimo/agents/investigator.md",
+    "plugins/karimo/agents/feedback-auditor.md",
+    "plugins/karimo/agents/pm.md",
+    "plugins/karimo/agents/pm-reviewer.md",
+    "plugins/karimo/agents/pm-finalizer.md",
+    "plugins/karimo/agents/refiner.md",
+    "plugins/karimo/agents/researcher.md",
+    "plugins/karimo/agents/review-architect.md",
+    "plugins/karimo/agents/reviewer.md",
+    "plugins/karimo/agents/tester.md",
+    "plugins/karimo/agents/tester-opus.md"
   ],
   "commands": [
-    "karimo/configure.md",
-    "karimo/dashboard.md",
-    "karimo/doctor.md",
-    "karimo/feedback.md",
-    "karimo/greptile-review.md",
-    "karimo/help.md",
-    "karimo/merge.md",
-    "karimo/plan.md",
-    "karimo/research.md",
-    "karimo/run.md",
-    "karimo/update.md"
+    "plugins/karimo/commands/configure.md",
+    "plugins/karimo/commands/dashboard.md",
+    "plugins/karimo/commands/doctor.md",
+    "plugins/karimo/commands/feedback.md",
+    "plugins/karimo/commands/greptile-review.md",
+    "plugins/karimo/commands/help.md",
+    "plugins/karimo/commands/merge.md",
+    "plugins/karimo/commands/plan.md",
+    "plugins/karimo/commands/research.md",
+    "plugins/karimo/commands/run.md",
+    "plugins/karimo/commands/update.md"
   ],
   "skills": [
-    "karimo/bash-utilities.md",
-    "karimo/code-standards.md",
-    "karimo/doc-standards.md",
-    "karimo/external-research.md",
-    "karimo/firecrawl-web-tools.md",
-    "karimo/research-methods.md",
-    "karimo/testing-standards.md"
+    "plugins/karimo/skills/bash-utilities.md",
+    "plugins/karimo/skills/code-standards.md",
+    "plugins/karimo/skills/doc-standards.md",
+    "plugins/karimo/skills/external-research.md",
+    "plugins/karimo/skills/firecrawl-web-tools.md",
+    "plugins/karimo/skills/research-methods.md",
+    "plugins/karimo/skills/testing-standards.md"
   ],
   "templates": [
     "ANNOTATION_GUIDE.md",
@@ -177,7 +220,7 @@
     "greptile/rules.md"
   ],
   "other": {
-    "rules": "KARIMO_RULES.md",
+    "rules": "plugins/karimo/KARIMO_RULES.md",
     "issue_template": "karimo-task.yml"
   }
 }
