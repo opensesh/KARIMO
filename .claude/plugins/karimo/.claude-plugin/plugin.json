@@ -1,0 +1,10 @@
+{
+  "name": "karimo",
+  "version": "8.0.0",
+  "description": "Autonomous development methodology: PRD interviews → agent execution → automated review",
+  "author": {
+    "name": "Open Session",
+    "email": "hello@opensesh.com"
+  },
+  "repository": "https://github.com/opensesh/KARIMO"
+}
