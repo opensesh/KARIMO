@@ -333,10 +333,11 @@ fi
 **Step 2b: Read expected counts from manifest**
 
 ```bash
-# Helper function for manifest parsing (jq-free)
+# Helper function for manifest parsing (jq-free, skips deprecated section)
+# Uses 2-space indent to find root-level arrays (not nested in deprecated)
 manifest_count() {
   local key="$1"
-  sed -n "/\"$key\"/,/]/p" .karimo/MANIFEST.json | grep '"' | grep -v "\"$key\"" | wc -l | tr -d ' '
+  sed -n "/^  \"$key\":/,/^  ]/p" .karimo/MANIFEST.json | grep '"' | grep -v "\"$key\"" | wc -l | tr -d ' '
 }
 
 EXPECTED_AGENTS=$(manifest_count "agents")
@@ -357,10 +358,11 @@ ACTUAL_TEMPLATES=$(ls .karimo/templates/*.md 2>/dev/null | wc -l)
 **Step 2d: Verify each manifest file exists**
 
 ```bash
-# Helper function to list manifest items (jq-free)
+# Helper function to list manifest items (jq-free, skips deprecated section)
+# Uses 2-space indent to find root-level arrays (not nested in deprecated)
 manifest_list() {
   local key="$1"
-  sed -n "/\"$key\"/,/]/p" .karimo/MANIFEST.json | grep '"' | grep -v "\"$key\"" | sed 's/.*"\([^"]*\)".*/\1/'
+  sed -n "/^  \"$key\":/,/^  ]/p" .karimo/MANIFEST.json | grep '"' | grep -v "\"$key\"" | sed 's/.*"\([^"]*\)".*/\1/'
 }
 
 # Check each file from manifest (handles karimo/ prefix in entries)
@@ -1241,10 +1243,11 @@ else
 fi
 
 # Check 2: Installation (manifest-driven, jq-free)
-# Helper functions for manifest parsing
+# Helper functions for manifest parsing (skips deprecated section)
+# Uses 2-space indent to find root-level arrays (not nested in deprecated)
 manifest_list() {
   local key="$1"
-  sed -n "/\"$key\"/,/]/p" .karimo/MANIFEST.json | grep '"' | grep -v "\"$key\"" | sed 's/.*"\([^"]*\)".*/\1/'
+  sed -n "/^  \"$key\":/,/^  ]/p" .karimo/MANIFEST.json | grep '"' | grep -v "\"$key\"" | sed 's/.*"\([^"]*\)".*/\1/'
 }
 
 manifest_count() {
