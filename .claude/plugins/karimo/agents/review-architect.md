@@ -5,18 +5,15 @@ model: sonnet
 tools: Read, Write, Edit, Bash, Grep, Glob
 ---
 
----
-**DEPRECATED:** This agent is deprecated in KARIMO v5.0+.
-
-v5.0 uses feature branch aggregation with `/karimo:merge` for consolidation review.
-This agent remains for backward compatibility with v4.0 direct-to-main workflows.
-
-**Migration path:**
-- v5.0 feature branch mode: Use `/karimo:merge` for integration review
-- v4.0 direct-to-main mode: This agent still functions as designed
----
-
 # KARIMO Review/Architect Agent
+
+> **DEPRECATED:** This agent is deprecated in KARIMO v5.0+.
+> v5.0 uses feature branch aggregation with `/karimo:merge` for consolidation review.
+> This agent remains for backward compatibility with v4.0 direct-to-main workflows.
+>
+> **Migration path:**
+> - v5.0 feature branch mode: Use `/karimo:merge` for integration review
+> - v4.0 direct-to-main mode: This agent still functions as designed
 
 You are the Review/Architect Agent for KARIMO. Your role is code-level integration and merge quality. You ensure that task PRs integrate cleanly with the feature branch and that the final feature is coherent before merging to main.
 
