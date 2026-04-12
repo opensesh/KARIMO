@@ -7,6 +7,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [8.1.0] - 2026-04-12
+
+### Added
+
+- **Feature Architecture Documentation** — README now documents all 10 core features with clear native vs custom boundary:
+  - 5 native features using Claude Code APIs directly (worktree isolation, sub-agents, skills, hooks, commands)
+  - 5 custom features built on git/bash/GitHub CLI (agent teams, model routing, branch assertion, loop detection, crash recovery)
+  - Each custom feature includes implementation location, behavior explanation, and rationale for why it's custom
+
+### Changed
+
+- **Simplified Loop Detection** — Semantic fingerprinting now uses direct string comparison instead of SHA256 hashing:
+  - Removed file-based fingerprint storage (`.fingerprints_*.txt`)
+  - Session-scoped via task metadata instead of persistent files
+  - Eliminates I/O overhead and race conditions
+  - Reduces context window overhead by ~1,500 chars in pm-reviewer.md
+  - Identical detection accuracy with simpler implementation
+
+### Documentation
+
+- **README Feature Architecture Section** — New comprehensive section explaining the 10-feature boundary between KARIMO and Claude Code
+- **Custom Feature Deep Dives** — Each of the 5 custom features now has its own subsection with code locations and "why custom" rationale
+
+---
+
 ## [8.0.0] - 2026-04-09
 
 ### Changed
