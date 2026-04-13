@@ -19,11 +19,30 @@
 
 ## Quick Start
 
-```bash
-# Install
-curl -sL https://raw.githubusercontent.com/opensesh/KARIMO/main/.karimo/remote-install.sh | bash
+### Option 1: Terminal
 
-# Your first feature
+Clone the repo and run the install script from your terminal.
+
+```bash
+git clone https://github.com/opensesh/KARIMO
+bash KARIMO/.karimo/install.sh ./my-project
+```
+
+### Option 2: Claude Code
+
+Paste this prompt into Claude Code and it will handle the rest.
+
+```
+Clone github.com/opensesh/KARIMO and run the install script to set up KARIMO in this project.
+```
+
+*Works in Claude Code CLI, desktop app, or IDE extensions.*
+
+---
+
+### Your First Feature
+
+```bash
 /karimo:research "feature-name"   # Creates PRD folder + runs research
 /karimo:plan --prd {slug}         # Interactive PRD creation (~10 min)
 /karimo:run --prd {slug}          # Execute tasks in waves
