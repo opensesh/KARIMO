@@ -1,6 +1,6 @@
 # KARIMO Architecture
 
-**Version:** 7.19.0
+**Version:** 8.1.0
 **Status:** Active
 
 ---
@@ -16,6 +16,172 @@ KARIMO is an autonomous development **methodology** delivered via Claude Code co
 **Single-PRD scope.** KARIMO operates within one PRD at a time. Each PRD maps to one feature branch. Cross-feature dependencies are the human architect's responsibility — you sequence PRDs so that dependent features execute only after their prerequisites are merged to main. This is intentional: the goal isn't to produce a hundred features simultaneously, it's to let agents autonomously execute a few features at a time while building trust between you, the codebase, and the agents.
 
 **Sequential feature execution.** If Feature 8 depends on Feature 3, you finish Feature 3's PRD cycle (plan → execute → review → merge to main) before starting Feature 8. You may run Features 1, 2, and 3 in parallel if they're independent, but Feature 8 waits. This matches how product teams actually ship.
+
+---
+
+## Feature Architecture
+
+KARIMO is built on 10 core features — 5 native Claude Code APIs and 5 custom systems. Understanding this boundary clarifies what KARIMO adds vs what Claude Code provides out of the box.
+
+### Native Features (Using Claude Code Directly)
+
+These features use Claude Code's built-in capabilities with no custom logic:
+
+| # | Feature | Claude Code API | How KARIMO Uses It |
+|---|---------|-----------------|-------------------|
+| **1** | Worktree Isolation | `isolation: worktree` in agent frontmatter | Each task gets isolated git worktree, preventing file conflicts |
+| **2** | Sub-Agents | Task tool spawning | PM Agent spawns worker agents (implementer, tester, documenter) |
+| **3** | Skills | `skills:` in agent frontmatter | Agents inherit code/testing/doc standards automatically |
+| **4** | Hooks | Native hook events in `.claude/settings.json` | `WorktreeRemove`, `SubagentStop`, `SessionEnd` trigger cleanup scripts |
+| **5** | Commands | `.claude/commands/*.md` files | All `/karimo:*` commands are standard Claude Code command files |
+
+These work without KARIMO — we simply configure them correctly.
+
+### Custom Features (Built on Git/Bash/GitHub CLI)
+
+These features have **no native Claude Code equivalent**. KARIMO implements them using git operations, bash logic, and GitHub CLI:
+
+| # | Feature | What It Does | Why It's Custom |
+|---|---------|--------------|-----------------|
+| **6** | [Agent Teams](#agent-teams-wave-execution) | Wave-based parallel execution with max 3 concurrent tasks | Claude Code spawns agents but doesn't coordinate completion order or dependencies |
+| **7** | [Model Routing](#model-routing-complexity--escalation) | Complexity-based Sonnet/Opus selection + auto-escalation on failure | Claude Code has `model:` param but no complexity assessment or escalation triggers |
+| **8** | [Branch Assertion](#branch-assertion-4-layer-validation) | 4-layer validation preventing commits to wrong branches | Native worktrees isolate files but don't verify branch identity before commits |
+| **9** | [Loop Detection](#loop-detection-semantic-fingerprinting) | Semantic fingerprinting catches stuck tasks via diff comparison | Claude Code has no built-in loop/repetition detection |
+| **10** | [Crash Recovery](#crash-recovery-git-state-reconciliation) | Git-based state reconstruction when sessions crash | Native worktrees persist but don't track what was "in progress" |
+
+---
+
+### Agent Teams (Wave Execution)
+
+**Location:** `pm.md` lines 285-310
+
+Tasks execute in dependency-ordered waves:
+
+```
+Wave 1: [1a, 1b] ──▸ parallel (max 3) ──▸ wait for all PRs to merge
+                              ↓
+Wave 2: [2a, 2b] ──▸ parallel (max 3) ──▸ wait for all PRs to merge
+                              ↓
+Wave 3: [3a]     ──▸ final task
+```
+
+**Why custom:** Claude Code's Task tool spawns agents but doesn't:
+- Understand task dependencies (task 2a needs task 1a's output)
+- Enforce concurrency limits (could overwhelm CI/CD)
+- Wait for PR merges between waves
+- Propagate findings from completed tasks to dependent tasks
+
+**Without this:** Tasks would race, later tasks would miss earlier changes, merge conflicts would accumulate.
+
+---
+
+### Model Routing (Complexity + Escalation)
+
+**Location:** `pm.md` lines 312-317, `pm-reviewer.md` lines 265-298
+
+Two-tier model selection:
+
+| Complexity | Model | Agent |
+|------------|-------|-------|
+| 1-2 (simple) | Sonnet | karimo-implementer, karimo-tester, karimo-documenter |
+| 3-10 (complex) | Opus | karimo-implementer-opus, karimo-tester-opus, karimo-documenter-opus |
+
+Auto-escalation triggers:
+- Architectural keywords in review findings (`refactor`, `decouple`, `design pattern`)
+- Type system issues (`interface`, `contract`, `abstraction`)
+- Second failed revision attempt
+
+**Why custom:** Claude Code's `model:` parameter is static per agent. It doesn't:
+- Assess task complexity to route dynamically
+- Detect failure patterns that indicate need for stronger model
+- Escalate Sonnet → Opus when simpler model is stuck
+
+**Without this:** Simple tasks would waste Opus tokens, complex tasks would fail repeatedly with Sonnet.
+
+---
+
+### Branch Assertion (4-Layer Validation)
+
+**Location:** `pm.md` lines 201-233, `KARIMO_RULES.md` lines 74-105
+
+Defense-in-depth against cross-branch commits:
+
+```
+Layer 1: ensure_branch() function ──▸ Recovery mechanism in PM Agent
+Layer 2: KARIMO_RULES.md Section 2 ──▸ Mandatory pre-commit check
+Layer 3: Spawn prompt context ──▸ Visual branch reminder
+Layer 4: Task agent verification ──▸ All 6 agents check branch
+```
+
+Invocation points:
+1. Before each wave starts
+2. Before spawning each worker
+3. Before committing wave state
+4. Before running validation
+5. Before finalization commit
+
+**Why custom:** Native `isolation: worktree` creates separate worktrees but doesn't:
+- Enforce predictable branch naming (`worktree/{prd-slug}-{task-id}`)
+- Verify branch identity before git operations
+- Recover if agent accidentally checks out different branch
+
+**Without this:** A confused agent could commit to main or another task's branch, corrupting the repository.
+
+---
+
+### Loop Detection (Semantic Fingerprinting)
+
+**Location:** `pm-reviewer.md` lines 357-412
+
+Detects stuck tasks by comparing execution state:
+
+```bash
+fingerprint = "${files_changed}|${error_patterns}"
+# Example: "src/api.ts,src/types.ts|TypeError:,build failed"
+```
+
+Circuit breaker behavior:
+
+| Condition | Action |
+|-----------|--------|
+| Same fingerprint + Sonnet | Escalate to Opus, reset loop count |
+| Same fingerprint + Opus | Return `escalate` verdict → human review |
+| 3 revision loops | Return `escalate` verdict |
+| 5 total loops (hard limit) | Return `escalate` verdict |
+
+**Why custom:** Claude Code has no built-in mechanism to detect when:
+- Same files are being modified repeatedly with same errors
+- Agent is making identical changes on each attempt
+- Task is genuinely stuck vs making incremental progress
+
+**Without this:** Revision loops would continue indefinitely, burning tokens on unsolvable problems.
+
+---
+
+### Crash Recovery (Git State Reconciliation)
+
+**Location:** `pm.md` lines 235-280
+
+Reconstructs execution state from git + GitHub when session crashes:
+
+```bash
+for task_id in all_tasks:
+  if branch_exists(local OR remote):
+    pr = gh pr list --head $branch
+    if pr.merged: status = "done"
+    elif pr.needs_revision: status = "needs-revision"
+    elif pr.open: status = "in-review"
+    else: status = "crashed"
+  else:
+    status = "pending"
+```
+
+**Why custom:** Claude Code doesn't maintain state about:
+- Which tasks were running when session ended
+- Whether PRs were created/merged/closed
+- How to resume partial execution
+
+**Without this:** After a crash, you'd have to start over or manually inspect git state.
 
 ---
 
