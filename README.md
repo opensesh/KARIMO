@@ -17,39 +17,11 @@
 
 ---
 
-## Quick Start
+## See It In Action
 
-### Option 1: Terminal
+<!-- TODO: Embed demo video here -->
 
-Clone the repo and run the install script from your terminal.
-
-```bash
-git clone https://github.com/opensesh/KARIMO
-bash KARIMO/.karimo/install.sh ./my-project
-```
-
-### Option 2: Claude Code
-
-Paste this prompt into Claude Code and it will handle the rest.
-
-```
-Clone github.com/opensesh/KARIMO and run the install script to set up KARIMO in this project.
-```
-
-*Works in Claude Code CLI, desktop app, or IDE extensions.*
-
----
-
-### Your First Feature
-
-```bash
-/karimo:research "feature-name"   # Creates PRD folder + runs research
-/karimo:plan --prd {slug}         # Interactive PRD creation (~10 min)
-/karimo:run --prd {slug}          # Execute tasks in waves
-/karimo:merge --prd {slug}        # Final PR to main
-```
-
-**Prerequisites:** [Claude Code](https://claude.ai/code), [GitHub CLI](https://cli.github.com/) (`gh auth login`), Git 2.5+
+Want to see exactly how KARIMO works? Check out the [interactive demo](https://karimo-overview.vercel.app/) to understand why it was built and how it works in detail.
 
 ---
 
@@ -119,6 +91,40 @@ Details: [Feature Architecture](.karimo/docs/ARCHITECTURE.md#feature-architectur
 | **Phase 3** | CLI dashboard with velocity metrics |
 
 Details: [PHASES.md](.karimo/docs/PHASES.md)
+
+---
+
+## Quick Start
+
+### Option 1: Terminal
+
+Clone the repo and run the install script from your terminal.
+
+```bash
+git clone https://github.com/opensesh/KARIMO
+bash KARIMO/.karimo/install.sh ./my-project
+```
+
+### Option 2: Claude Code
+
+Paste this prompt into Claude Code and it will handle the rest.
+
+```
+Clone github.com/opensesh/KARIMO and run the install script to set up KARIMO in this project.
+```
+
+*Works in Claude Code CLI, desktop app, or IDE extensions.*
+
+### Your First Feature
+
+```bash
+/karimo:research "feature-name"   # Creates PRD folder + runs research
+/karimo:plan --prd {slug}         # Interactive PRD creation (~10 min)
+/karimo:run --prd {slug}          # Execute tasks in waves
+/karimo:merge --prd {slug}        # Final PR to main
+```
+
+**Prerequisites:** [Claude Code](https://claude.ai/code), [GitHub CLI](https://cli.github.com/) (`gh auth login`), Git 2.5+
 
 ---
 
