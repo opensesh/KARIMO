@@ -9,7 +9,7 @@
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Version](https://img.shields.io/badge/version-v8.1.0-blue)]()
-[![Claude Code](https://img.shields.io/badge/Claude%20Code-Framework_&_Plugin-blueviolet.svg)]()
+[![Claude Code](https://img.shields.io/badge/Claude%20Code-Plugin-blueviolet.svg)]()
 
 **PRD-driven autonomous development for Claude Code.**
 
