@@ -163,4 +163,4 @@ See [CONTRIBUTING.md](CONTRIBUTING.md)
 
 ---
 
-*Built with Claude Code by [Open Session](https://opensesh.com)*
+*Built with Claude Code by [Open Session](https://opensession.co)*
