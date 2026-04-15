@@ -146,9 +146,31 @@ Clone github.com/opensesh/KARIMO and run the install script to set up KARIMO in 
 ## FAQ
 
 **Can I run without automated review?**
+
 Yes. Review is optional (Phase 2). PRD interviews, execution, and PRs all work out of the box.
 
+**Do I need to use a feature branch?**
+
+No. KARIMO supports two modes configured via `/karimo:configure`: feature branch mode (tasks branch from a feature branch) or main mode (tasks branch directly from main). Choose what fits your workflow.
+
+**Can I run multiple KARIMO orchestration sessions at once?**
+
+Yes, but be careful when running multiple feature branches with worktrees simultaneously. With Claude Opus 4.5, we've seen occasional conflicts. For best results, let one orchestration complete before starting another.
+
+**Do I need to use Greptile?**
+
+No. You can use manual review, Claude Code Review, or any other review mechanism. Greptile is one option for automated review in Phase 2, but it's entirely optional.
+
+**Can I use other tools for research?**
+
+Yes. We use Firecrawl MCP for deeper web research capability. You can integrate any MCP servers or tools that fit your workflow.
+
+**Can I customize KARIMO for my use case?**
+
+Yes. You can modify your local installation directly or fork the repository for more extensive customization. Agent definitions, templates, and skills are all editable.
+
 **Having issues?**
+
 Run `/karimo:doctor` to diagnose. Still stuck? [hello@opensession.co](mailto:hello@opensession.co)
 
 ---
