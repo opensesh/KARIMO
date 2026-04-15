@@ -160,9 +160,9 @@ No. KARIMO supports two modes configured via `/karimo:configure`: feature branch
 </details>
 
 <details>
-<summary><strong>Can I run multiple KARIMO orchestration sessions at once?</strong></summary>
+<summary><strong>Can I run multiple KARIMO sessions at once?</strong></summary>
 
-Yes, but be careful when running multiple feature branches with worktrees simultaneously. With Claude Opus 4.5, we've seen occasional conflicts. For best results, let one orchestration complete before starting another.
+Yes, but be careful when running multiple feature branches with worktrees simultaneously. With Claude Opus 4.6, we've seen occasional conflicts. For best results, let one orchestration complete before starting another.
 
 </details>
 
