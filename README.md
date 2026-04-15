@@ -160,9 +160,9 @@ No. KARIMO supports two modes configured via `/karimo:configure`: feature branch
 </details>
 
 <details>
-<summary><strong>Can I run multiple KARIMO sessions at once?</strong></summary>
+<summary><strong>Can I run multiple sessions at once?</strong></summary>
 
-Yes, but be careful when running multiple feature branches with worktrees simultaneously. With Claude Opus 4.6, we've seen occasional conflicts. For best results, let one orchestration complete before starting another.
+Yes, but be careful when running multiple feature branches with worktrees simultaneously. Typically when a feature branch and work trees are kicked off for a PRD, you only want to be doing research and planning on main. With Claude Opus 4.6, we've seen occasional conflicts. For best results, let one orchestration complete before starting another.
 
 </details>
 
@@ -181,7 +181,7 @@ Yes. We use Firecrawl MCP for deeper web research capability. You can integrate 
 </details>
 
 <details>
-<summary><strong>Can I customize KARIMO for my use case?</strong></summary>
+<summary><strong>Can I customize for my use case?</strong></summary>
 
 Yes. You can modify your local installation directly or fork the repository for more extensive customization. Agent definitions, templates, and skills are all editable.
 
