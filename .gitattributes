@@ -1,0 +1,21 @@
+# Language Statistics
+# Make Markdown detectable in GitHub language stats
+*.md linguist-detectable
+
+# Line Ending Normalization
+* text=auto eol=lf
+
+# Shell scripts (explicit LF)
+*.sh text eol=lf
+
+# Documentation & Config
+*.md text eol=lf
+*.yaml text eol=lf
+*.yml text eol=lf
+*.json text eol=lf
+
+# Future binary assets
+*.png binary
+*.jpg binary
+*.gif binary
+*.svg binary
