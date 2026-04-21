@@ -95,11 +95,13 @@ echo "✓ All task PRs merged"
 
 ### Step 2: Discovery-Based Cleanup (Simplified)
 
-Verify cleanup status and catch any resources missed by native hooks. **Primary cleanup is handled by Claude Code native hooks** configured in `.claude/settings.json`:
+Verify cleanup status and catch any resources missed by native hooks or kill signals. **Primary cleanup is handled by Claude Code native hooks** configured in `.claude/settings.json`:
 
 - `WorktreeRemove` hook deletes local + remote branches when worktrees are removed
 - `SubagentStop` hook prunes stale worktree references when workers finish
 - `SessionEnd` hook cleans orphaned branches on session termination
+
+**Kill-Hook Cleanup:** If PM is terminated via SIGTERM (Ctrl+C, process kill), the finalizer may not run. Native hooks still fire, but worktree directories may remain. The PM startup validation catches this on next run.
 
 This step runs as a **belt-and-suspenders verification**:
 
@@ -117,7 +119,7 @@ echo "  Pruned stale worktree references"
 # Verify task branches were cleaned by native hooks (catch any missed)
 for task_id in ${TASKS_COMPLETED}; do
   branch="worktree/${prd_slug}-${task_id}"
-  worktree_path=".worktrees/${prd_slug}/${task_id}"
+  worktree_path=".karimo/.worktrees/${prd_slug}/${task_id}"
 
   # Check if native hooks missed the remote branch
   if git ls-remote --heads origin "$branch" 2>/dev/null | grep -q "$branch"; then
@@ -135,7 +137,7 @@ for task_id in ${TASKS_COMPLETED}; do
     fi
   fi
 
-  # Check if worktree still exists
+  # Check if worktree still exists at standard KARIMO path
   if [ -d "$worktree_path" ]; then
     echo "  Note: Worktree still exists: $worktree_path, cleaning now"
     if git worktree remove "$worktree_path" --force 2>/dev/null; then
@@ -145,6 +147,24 @@ for task_id in ${TASKS_COMPLETED}; do
     fi
   fi
 done
+
+# Clean up orphaned worktree directories from kills/crashes
+if [ -d ".karimo/.worktrees/${prd_slug}" ]; then
+  for orphan_dir in .karimo/.worktrees/${prd_slug}/*; do
+    [ -d "$orphan_dir" ] || continue
+    task_id=$(basename "$orphan_dir")
+
+    # If not a valid git worktree, remove directory
+    if ! git -C "$orphan_dir" rev-parse --git-dir >/dev/null 2>&1; then
+      echo "  Removing orphaned directory: $orphan_dir"
+      rm -rf "$orphan_dir"
+      worktrees_removed=$((worktrees_removed + 1))
+    fi
+  done
+
+  # Remove PRD worktree parent if empty
+  rmdir ".karimo/.worktrees/${prd_slug}" 2>/dev/null || true
+fi
 
 # Discovery audit for any stale branches (handles edge cases)
 echo "Running discovery audit for stale branches..."
