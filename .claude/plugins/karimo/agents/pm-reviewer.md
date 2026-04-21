@@ -76,6 +76,7 @@ review_summary:
 ```bash
 # Read from input or config
 review_provider="${REVIEW_CONFIG_PROVIDER:-greptile}"
+none_behavior="${REVIEW_CONFIG_NONE_BEHAVIOR:-manual}"  # manual | auto-pass
 
 case "$review_provider" in
   "greptile")
@@ -85,12 +86,84 @@ case "$review_provider" in
     echo "Using Code Review flow"
     ;;
   "none")
-    echo "No automated review configured"
-    # Return immediate pass verdict
+    echo "No automated review provider configured"
+
+    case "$none_behavior" in
+      "manual")
+        # Default: Require human review
+        echo "Behavior: manual (awaiting human review)"
+
+        # Post comment requesting human review
+        gh pr comment $pr_number --body "$(cat <<'EOF'
+## Manual Review Required
+
+No automated code review is configured for this project.
+
+**Please review this PR manually before merging:**
+- [ ] Code follows project conventions
+- [ ] Changes are correct and complete
+- [ ] Tests pass (if applicable)
+- [ ] No security concerns
+
+After review, merge the PR to continue execution.
+
+---
+*KARIMO: Provider `none` with `none_behavior: manual`*
+EOF
+)"
+
+        # Update status to awaiting-human
+        # PM will treat this as unmerged for wave gate purposes
+        verdict="awaiting-human"
+        echo "Status updated to awaiting-human"
+        echo "PR will block wave transition until human merges"
+        ;;
+
+      "auto-pass")
+        # User explicitly configured no review — pass immediately
+        echo "Behavior: auto-pass (immediate pass, no review gate)"
+        echo "WARNING: PR will proceed without any code review"
+        verdict="pass"
+        ;;
+
+      *)
+        echo "ERROR: Unknown none_behavior: $none_behavior"
+        echo "Valid options: manual, auto-pass"
+        exit 1
+        ;;
+    esac
+
+    # Return verdict (skip rest of review flow)
+    # Output contract:
+    echo "---"
+    echo "task_id: \"$task_id\""
+    echo "verdict: \"$verdict\""
+    echo "revisions_used: 0"
+    echo "findings_resolved: 0"
+    echo "escalated_model: null"
+    echo "review_summary:"
+    echo "  provider: \"none\""
+    echo "  none_behavior: \"$none_behavior\""
     exit 0
     ;;
 esac
 ```
+
+**Config Schema:**
+```yaml
+review:
+  provider: none
+  none_behavior: manual  # "manual" (default) | "auto-pass"
+```
+
+**Behavior Summary:**
+
+| none_behavior | Action | Wave Gate |
+|---------------|--------|-----------|
+| `manual` (default) | Post comment, set `awaiting-human` status | Blocks until human merges |
+| `auto-pass` | Immediate pass, no review | Allows advancement after PR created |
+
+**PM Agent handling:** Treat `awaiting-human` as unmerged for wave gate purposes.
 
 ---
 
@@ -207,6 +280,147 @@ nit_count=$(echo "$nit_findings" | grep -c '🟡' || echo 0)
 
 ---
 
+### Step 3.5: Finding Classification (Context-Aware)
+
+Classify each finding to determine if it's truly actionable or should be deferred/skipped.
+
+**Classification Categories:**
+
+| Category | Description | Action |
+|----------|-------------|--------|
+| `actionable` | Real issue requiring fix in this task | Include in revision scope |
+| `future-work-overlap` | References file created by later task | Defer to merge gate |
+| `false-positive-factual` | Contradicts user memory/config | Log and skip |
+| `unknown` | Cannot classify | Treat as actionable |
+
+```bash
+classify_findings() {
+  local findings="$1"
+  local prd_path="$2"
+  local current_task_wave="$3"
+
+  actionable_findings=""
+  deferred_findings=""
+  skipped_findings=""
+  actionable_count=0
+  deferred_count=0
+  skipped_count=0
+
+  # Load tasks.yaml to get later-wave file mappings
+  local tasks_yaml="${prd_path}/tasks.yaml"
+
+  echo "$findings" | while IFS= read -r finding; do
+    [ -z "$finding" ] && continue
+
+    classification="unknown"
+    detail=""
+
+    # 1. Extract file paths from finding
+    file_path=$(echo "$finding" | grep -oE '[a-zA-Z0-9_/.-]+\.(ts|tsx|js|jsx|py|go|rs|md)' | head -1)
+
+    if [ -n "$file_path" ]; then
+      # 2. Check if file is created by a LATER wave task
+      if [ -f "$tasks_yaml" ]; then
+        later_wave_files=$(yq -r ".tasks[] | select(.wave > $current_task_wave) | .files_affected[]?" "$tasks_yaml" 2>/dev/null | sort -u)
+
+        if echo "$later_wave_files" | grep -qF "$file_path"; then
+          classification="future-work-overlap"
+          detail="File $file_path created by later wave task"
+        fi
+      fi
+    fi
+
+    # 3. Check if finding contradicts project config or CLAUDE.md
+    if [ "$classification" = "unknown" ]; then
+      # Check for null/undefined complaints that match schema-allowed patterns
+      if echo "$finding" | grep -qiE 'null.*undefined|undefined.*null|optional.*required'; then
+        # Check if project uses strict null checks or allows nullable
+        if grep -q '"strictNullChecks": false' tsconfig.json 2>/dev/null; then
+          classification="false-positive-factual"
+          detail="Project allows nullable (strictNullChecks: false)"
+        fi
+      fi
+
+      # Check for style complaints that contradict CLAUDE.md
+      if echo "$finding" | grep -qiE 'naming convention|style guide|formatting'; then
+        if [ -f "CLAUDE.md" ]; then
+          if echo "$finding" | grep -qoE '[a-zA-Z_]+' | while read pattern; do
+            grep -qi "$pattern" CLAUDE.md && echo "match"
+          done | grep -q "match"; then
+            classification="false-positive-factual"
+            detail="Style matches project CLAUDE.md conventions"
+          fi
+        fi
+      fi
+    fi
+
+    # 4. Default to actionable if still unknown
+    if [ "$classification" = "unknown" ]; then
+      classification="actionable"
+    fi
+
+    # Record classification
+    case "$classification" in
+      "actionable")
+        actionable_findings="${actionable_findings}${finding}\n"
+        actionable_count=$((actionable_count + 1))
+        ;;
+      "future-work-overlap")
+        deferred_findings="${deferred_findings}${finding}|${classification}:${detail}\n"
+        deferred_count=$((deferred_count + 1))
+        echo "  Deferred: $file_path (future-work-overlap)"
+        ;;
+      "false-positive-factual")
+        skipped_findings="${skipped_findings}${finding}|${classification}:${detail}\n"
+        skipped_count=$((skipped_count + 1))
+        echo "  Skipped: $(echo "$finding" | head -c 50)... (false-positive)"
+        ;;
+    esac
+  done
+
+  echo "Classification summary:"
+  echo "  Actionable: $actionable_count"
+  echo "  Deferred (future-work): $deferred_count"
+  echo "  Skipped (false-positive): $skipped_count"
+
+  # Write deferred findings for merge gate
+  if [ "$deferred_count" -gt 0 ]; then
+    deferred_file="${prd_path}/deferred_findings.md"
+    echo "# Deferred Findings: ${task_id}" >> "$deferred_file"
+    echo "" >> "$deferred_file"
+    echo "## Metadata" >> "$deferred_file"
+    echo "- **Task:** ${task_id}" >> "$deferred_file"
+    echo "- **Created:** $(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$deferred_file"
+    echo "- **Provider:** ${review_provider}" >> "$deferred_file"
+    echo "" >> "$deferred_file"
+    echo "## Deferred Items" >> "$deferred_file"
+    echo -e "$deferred_findings" >> "$deferred_file"
+    echo "Wrote $deferred_count items to deferred_findings.md"
+  fi
+}
+
+# Run classification
+all_findings="${p1_findings}\n${p2_findings}\n${p3_findings}"
+classify_findings "$all_findings" "$prd_path" "$wave"
+```
+
+**Modified Decision Logic:**
+
+After classification, the decision tree changes:
+
+```
+IF score >= threshold
+  → pass
+
+ELIF actionable_count == 0 (all findings deferred or skipped)
+  → pass (findings deferred to merge gate)
+
+ELSE
+  → fail (enter revision loop with ONLY actionable findings)
+```
+
+---
+
 ### Step 4: Decision Tree
 
 #### Greptile Decision
@@ -216,8 +430,24 @@ if [ "$score" -ge "$threshold" ]; then
   echo "✓ Greptile passed (${score}/5 >= ${threshold}/5)"
   gh pr edit $pr_number --add-label "greptile-passed"
   verdict="pass"
+
+elif [ "$actionable_count" -eq 0 ]; then
+  # All findings were deferred (future-work) or skipped (false-positive)
+  echo "✓ Greptile below threshold but no actionable findings"
+  echo "  Score: ${score}/5 (threshold: ${threshold}/5)"
+  echo "  All $((deferred_count + skipped_count)) findings classified as non-actionable"
+  gh pr edit $pr_number --add-label "greptile-passed-classified"
+
+  # Add note about deferred items
+  if [ "$deferred_count" -gt 0 ]; then
+    gh pr comment $pr_number --body "**Note:** $deferred_count findings deferred to merge gate (future-work-overlap). See \`deferred_findings.md\`."
+  fi
+
+  verdict="pass"
+
 else
   echo "✗ Greptile needs revision (${score}/5 < ${threshold}/5)"
+  echo "  Actionable findings: $actionable_count"
   gh pr edit $pr_number --add-label "needs-revision"
 
   loop_count="${TASK_METADATA_LOOP_COUNT:-1}"
@@ -228,7 +458,7 @@ else
     gh pr edit $pr_number --add-label "blocked-needs-human"
   else
     verdict="fail"
-    # Enter revision loop (Step 5)
+    # Enter revision loop (Step 5) with ONLY actionable findings
   fi
 fi
 ```
