@@ -8,7 +8,7 @@
 ```
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
-[![Version](https://img.shields.io/badge/version-v8.2.0-blue)]()
+[![Version](https://img.shields.io/badge/version-v8.2.1-blue)]()
 [![Claude Code](https://img.shields.io/badge/Claude%20Code-Plugin-blueviolet.svg)]()
 
 **PRD-driven autonomous development for Claude Code.**
@@ -94,26 +94,30 @@ Details: [PHASES.md](.karimo/docs/PHASES.md)
 
 ---
 
-## Quick Start
+## Installation
 
-### Option 1: Terminal
+### Via Claude Code marketplace (recommended)
 
-Clone the repo and run the install script from your terminal.
+```
+/plugin marketplace add opensesh/KARIMO
+/plugin install karimo@karimo
+/reload-plugins
+```
+
+Once Anthropic accepts KARIMO into the official marketplace (in review), this becomes:
+
+```
+/plugin install karimo@claude-plugins-official
+```
+
+### Via install script (legacy)
 
 ```bash
 git clone https://github.com/opensesh/KARIMO
 bash KARIMO/.karimo/install.sh ./my-project
 ```
 
-### Option 2: Claude Code
-
-Paste this prompt into Claude Code and it will handle the rest.
-
-```
-Clone github.com/opensesh/KARIMO and run the install script to set up KARIMO in this project.
-```
-
-*Works in Claude Code CLI, desktop app, or IDE extensions.*
+If you previously used `.karimo/update.sh` to sync files into your project's `.claude/plugins/karimo/`, it continues to work but is no longer the recommended path. Plugin-managed installs benefit from Claude Code's built-in update, reload, and scope management.
 
 ### Your First Feature
 

@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [8.2.1] - 2026-04-21
+
+### Added
+
+- **Claude Code Marketplace Support** — `.claude-plugin/marketplace.json` enables plugin installation via `/plugin marketplace add opensesh/KARIMO`
+
+### Changed
+
+- **Installation Documentation** — README now recommends `/plugin install` over `.karimo/update.sh`
+
+---
+
 ## [8.2.0] - 2026-04-21
 
 ### Added
