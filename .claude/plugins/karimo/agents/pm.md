@@ -145,6 +145,87 @@ run_hook() {
 
 ## 5-Step Execution Flow
 
+### Step 0: Startup Validation (MANDATORY)
+
+**Before ANY execution begins, validate the main working tree is ready.**
+
+```bash
+validate_startup() {
+  local base_branch="$1"
+  local errors=()
+
+  echo "PM Startup Validation..."
+
+  # 1. Check main working tree is clean
+  if [ -n "$(git status --porcelain)" ]; then
+    echo "  ✗ Main working tree has uncommitted changes:"
+    git status --porcelain | head -10
+    echo ""
+    echo "  Resolution: Stash or commit before proceeding"
+    echo "    git stash -m 'pre-karimo' && /karimo:run --prd {slug}"
+    errors+=("dirty-working-tree")
+  else
+    echo "  ✓ Main working tree is clean"
+  fi
+
+  # 2. Verify on expected base branch
+  local current_branch=$(git branch --show-current)
+  if [ "$current_branch" != "$base_branch" ]; then
+    echo "  ⚠ Expected branch '$base_branch', currently on '$current_branch'"
+    if git checkout "$base_branch" 2>/dev/null; then
+      echo "  ✓ Switched to $base_branch"
+    else
+      echo "  ✗ Failed to checkout $base_branch"
+      errors+=("wrong-branch")
+    fi
+  else
+    echo "  ✓ On expected branch: $base_branch"
+  fi
+
+  # 3. Check for orphaned worktrees from previous runs
+  local orphaned_worktrees=$(git worktree list --porcelain | grep -c "^worktree" || echo "0")
+  if [ "$orphaned_worktrees" -gt 1 ]; then
+    echo "  ⚠ Found $((orphaned_worktrees - 1)) existing worktrees (main + extras)"
+    echo "    Run 'git worktree prune' if these are stale"
+  fi
+
+  # 4. Ensure .karimo/.worktrees directory is gitignored
+  if ! grep -q "\.karimo/\.worktrees" .gitignore 2>/dev/null; then
+    echo "  ⚠ .karimo/.worktrees not in .gitignore — adding"
+    echo -e "\n# KARIMO worktree directories\n.karimo/.worktrees/" >> .gitignore
+    git add .gitignore
+    git commit -m "chore: gitignore KARIMO worktree directories" --no-verify 2>/dev/null || true
+  fi
+
+  # Return error if any critical issues found
+  if [ ${#errors[@]} -gt 0 ]; then
+    echo ""
+    echo "╭──────────────────────────────────────────────────────────────╮"
+    echo "│  STARTUP VALIDATION FAILED                                   │"
+    echo "╰──────────────────────────────────────────────────────────────╯"
+    echo ""
+    echo "Resolve the issues above before proceeding."
+    return 1
+  fi
+
+  echo "  ✓ Startup validation passed"
+  return 0
+}
+```
+
+**Call this at PM start, before loading PRD data:**
+
+```bash
+# Determine base branch from status.json or default to main
+base_branch="${status_base_branch:-main}"
+
+if ! validate_startup "$base_branch"; then
+  exit 1
+fi
+```
+
+---
+
 ### Step 1: Parse, Validate & Plan
 
 **Read and validate:**
@@ -317,31 +398,105 @@ WHILE waves remain:
 | 1–2 | Sonnet | karimo-implementer, karimo-tester, karimo-documenter |
 | 3–10 | Opus | karimo-implementer-opus, karimo-tester-opus, karimo-documenter-opus |
 
-#### Spawn Worker
+#### Worktree Creation (MANDATORY)
 
-Before spawning, run branch guard and pre-task hook:
+**CRITICAL: Workers MUST operate in isolated git worktrees, not the main repo.**
+
+The `isolation: worktree` YAML header tells Claude Code to spawn in a worktree, but the PM must explicitly create the worktree directory BEFORE spawning:
 
 ```bash
+create_task_worktree() {
+  local prd_slug="$1"
+  local task_id="$2"
+  local base_branch="$3"
+
+  local worktree_path=".karimo/.worktrees/${prd_slug}/${task_id}"
+  local branch_name="worktree/${prd_slug}-${task_id}"
+
+  echo "Creating worktree for task ${task_id}..."
+
+  # Ensure parent directory exists
+  mkdir -p "$(dirname "$worktree_path")"
+
+  # Check if worktree already exists (resume scenario)
+  if [ -d "$worktree_path" ]; then
+    echo "  ⚠ Worktree exists at $worktree_path — checking state"
+    if git -C "$worktree_path" rev-parse --git-dir >/dev/null 2>&1; then
+      echo "  ✓ Valid worktree found, reusing"
+      echo "$worktree_path"
+      return 0
+    else
+      echo "  Removing invalid worktree directory"
+      rm -rf "$worktree_path"
+    fi
+  fi
+
+  # Check if branch exists
+  if git show-ref --verify --quiet "refs/heads/$branch_name" 2>/dev/null; then
+    # Branch exists — create worktree from existing branch
+    git worktree add "$worktree_path" "$branch_name"
+    echo "  ✓ Worktree created from existing branch"
+  elif git ls-remote --heads origin "$branch_name" 2>/dev/null | grep -q "$branch_name"; then
+    # Branch exists on remote — fetch and create worktree
+    git fetch origin "$branch_name"
+    git worktree add "$worktree_path" "origin/$branch_name"
+    echo "  ✓ Worktree created from remote branch"
+  else
+    # New branch — create worktree with new branch from base
+    git worktree add -b "$branch_name" "$worktree_path" "$base_branch"
+    echo "  ✓ Worktree created with new branch from $base_branch"
+  fi
+
+  echo "$worktree_path"
+}
+```
+
+**Verification:** After creating worktrees, `git worktree list` should show multiple entries:
+
+```
+/path/to/repo                  abc1234 [main]
+/path/to/repo/.karimo/.worktrees/my-prd/1a  def5678 [worktree/my-prd-1a]
+/path/to/repo/.karimo/.worktrees/my-prd/1b  ghi9012 [worktree/my-prd-1b]
+```
+
+---
+
+#### Spawn Worker
+
+Before spawning, create worktree, run branch guard, and pre-task hook:
+
+```bash
+# 1. Create isolated worktree for this task
+worktree_path=$(create_task_worktree "$prd_slug" "$task_id" "$base_branch")
+
+# 2. Ensure main repo is on base branch (safety)
 ensure_branch "$base_branch" "pre-spawn-${task_id}" || continue
+
+# 3. Run pre-task hook
 run_hook pre-task
 ```
 
 **Spawn prompt:**
 
-> Execute the following task with STRICT branch identity enforcement:
+> Execute the following task in an ISOLATED GIT WORKTREE:
 >
 > ═══════════════════════════════════════════════════════════════
 > KARIMO EXECUTION CONTEXT (DO NOT VIOLATE)
 > ═══════════════════════════════════════════════════════════════
-> PRD:      {prd_slug} ({prd_number})
-> Branch:   worktree/{prd-slug}-{task-id}
-> Task:     [{task-id}] {task-title}
-> Wave:     {wave_number}
-> Model:    {model}
+> PRD:       {prd_slug} ({prd_number})
+> Worktree:  {worktree_path}
+> Branch:    worktree/{prd-slug}-{task-id}
+> Task:      [{task-id}] {task-title}
+> Wave:      {wave_number}
+> Model:     {model}
 > ═══════════════════════════════════════════════════════════════
 >
-> CRITICAL: Before EVERY commit, verify `git branch --show-current`
-> matches "worktree/{prd-slug}-{task-id}". If mismatch detected, STOP.
+> CRITICAL: You are operating in an isolated git worktree at:
+>   {worktree_path}
+>
+> All file operations MUST be relative to this worktree.
+> DO NOT modify files in the main repository working tree.
+> Before EVERY commit, verify you are in the correct worktree.
 >
 > Use the karimo-{agent-type} agent to execute the task at
 > `.karimo/prds/{prd-slug}/briefs/{task-id}_{prd-slug}.md`.
