@@ -229,6 +229,7 @@ Each PRD folder contains a `status.json` file that tracks execution state. This 
 | `ready` | PRD approved, ready for execution |
 | `active` | Execution in progress |
 | `paused` | Execution paused (manual or usage limit) |
+| `paused-wave-gate` | Wave gate failed, waiting for prior wave PRs to merge (v8.2+) |
 | `ready-for-merge` | All tasks merged to feature branch, awaiting /karimo:merge (v5.0, feature-branch mode only) |
 | `merging` | /karimo:merge in progress (v5.0, feature-branch mode only) |
 | `complete` | All tasks merged, finalization done |
@@ -319,6 +320,7 @@ For tracking the final PR's Greptile review cycle (v7.13.0+):
 | `running` | Worker agent actively executing |
 | `paused` | Execution paused |
 | `in-review` | PR created, awaiting merge |
+| `awaiting-human` | No automated reviewer, waiting for manual review (v8.2+, provider: none with manual behavior) |
 | `needs-revision` | Greptile review requested changes |
 | `needs-human-review` | Failed 3 attempts, requires human |
 | `done` | PR merged successfully |
