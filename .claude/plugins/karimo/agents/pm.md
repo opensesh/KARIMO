@@ -306,7 +306,8 @@ WHILE waves remain:
     9. Spawn PM-Reviewer for review (if configured)
     10. On merge → update status.json
 
-  WAIT for all wave tasks to merge before next wave
+  # WAVE GATE (MANDATORY — executable verification)
+  verify_wave_merged "$current_wave" "$prd_slug" "$status_file" || exit 0
 ```
 
 #### Model Assignment
@@ -427,19 +428,109 @@ escalated_model: null  # or "opus"
 - `fail` → PM-Reviewer handles revision loop internally
 - `escalate` → Mark needs-human-review, notify user
 
+#### Wave Gate Verification (MANDATORY)
+
+**Before advancing to the next wave, VERIFY all current wave PRs are merged.** This is executable verification, not documentation.
+
+```bash
+verify_wave_merged() {
+  local wave_number="$1"
+  local prd_slug="$2"
+  local status_file="$3"
+  local unmerged_prs=()
+  local unmerged_tasks=()
+
+  echo "Wave Gate: Verifying wave ${wave_number} PRs are merged..."
+
+  # Get all tasks in this wave from status.json
+  local wave_tasks=$(jq -r --arg wave "$wave_number" \
+    '.tasks | to_entries[] | select(.value.wave == ($wave | tonumber)) | .key' \
+    "$status_file")
+
+  for task_id in $wave_tasks; do
+    local pr_number=$(jq -r --arg tid "$task_id" '.tasks[$tid].pr_number // empty' "$status_file")
+
+    if [ -z "$pr_number" ]; then
+      echo "  ⚠ Task $task_id has no PR number — may have crashed"
+      unmerged_tasks+=("$task_id (no PR)")
+      continue
+    fi
+
+    # Verify merge status via gh CLI
+    local merged_at=$(gh pr view "$pr_number" --json mergedAt --jq '.mergedAt' 2>/dev/null)
+
+    if [ -z "$merged_at" ] || [ "$merged_at" = "null" ]; then
+      local pr_state=$(gh pr view "$pr_number" --json state --jq '.state' 2>/dev/null)
+      echo "  ✗ PR #$pr_number ($task_id) NOT MERGED — state: ${pr_state:-unknown}"
+      unmerged_prs+=("$pr_number")
+      unmerged_tasks+=("$task_id (PR #$pr_number)")
+    else
+      echo "  ✓ PR #$pr_number ($task_id) merged at $merged_at"
+    fi
+  done
+
+  # If ANY PR is unmerged, halt execution
+  if [ ${#unmerged_tasks[@]} -gt 0 ]; then
+    echo ""
+    echo "╭──────────────────────────────────────────────────────────────╮"
+    echo "│  WAVE GATE FAILED: Cannot advance to wave $((wave_number + 1))                │"
+    echo "╰──────────────────────────────────────────────────────────────╯"
+    echo ""
+    echo "Unmerged tasks in wave ${wave_number}:"
+    for task in "${unmerged_tasks[@]}"; do
+      echo "  - $task"
+    done
+    echo ""
+    echo "Next steps:"
+    echo "  1. Review and merge the PRs above"
+    echo "  2. Resume execution: /karimo:run --prd $prd_slug --resume"
+    echo ""
+
+    # Update status to paused-wave-gate
+    jq --arg status "paused-wave-gate" \
+       --arg wave "$wave_number" \
+       '.status = $status | .paused_at_wave = ($wave | tonumber)' \
+       "$status_file" > "${status_file}.tmp" && mv "${status_file}.tmp" "$status_file"
+
+    return 1
+  fi
+
+  echo "  ✓ All wave ${wave_number} PRs verified merged"
+  return 0
+}
+```
+
+**Call this function at the end of each wave, BEFORE proceeding to the next:**
+
+```bash
+# After all wave tasks have PRs created/reviewed:
+if ! verify_wave_merged "$current_wave" "$prd_slug" "$status_file"; then
+  echo "Execution paused at wave gate. Status: paused-wave-gate"
+  exit 0  # Graceful exit — user will resume after merging
+fi
+```
+
+**Behavior on failure:**
+- Updates status.json to `paused-wave-gate`
+- Records `paused_at_wave` for resume context
+- Displays which PRs need to be merged
+- Provides `/karimo:run --prd {slug} --resume` command
+- Exits gracefully (no polling — human reviews/merges PRs)
+
+---
+
 #### Wave Transition
 
-When all tasks in a wave have merged PRs:
+When wave gate verification passes (all PRs merged):
 
-1. Verify PRs merged to correct target
-2. Run on-merge hook for each merged PR
-3. Update findings.md with wave summary
-4. Commit wave state (with branch guard)
-5. **Push feature branch to origin** (feature-branch mode only)
-6. **Clean up wave worktrees and branches**
-7. Verify target branch is stable
-8. Run post-wave hook
-9. Proceed to next wave
+1. Run on-merge hook for each merged PR
+2. Update findings.md with wave summary
+3. Commit wave state (with branch guard)
+4. **Push feature branch to origin** (feature-branch mode only)
+5. **Clean up wave worktrees and branches**
+6. Verify target branch is stable
+7. Run post-wave hook
+8. Proceed to next wave
 
 #### Wave Push (Feature Branch Mode Only)
 
@@ -582,9 +673,11 @@ A task is stalling when `loop_count` >= 3 without passing:
 | `queued` | Task waiting to start |
 | `running` | Worker agent active |
 | `paused` | Execution paused (usage limit or human hold) |
+| `paused-wave-gate` | Wave gate failed, waiting for prior wave PRs to merge |
 | `in-review` | PR created, awaiting merge |
 | `needs-revision` | Review requested changes |
 | `needs-human-review` | Failed 3 attempts, requires human |
+| `awaiting-human` | No automated reviewer, waiting for manual review |
 | `done` | PR merged |
 | `failed` | Execution failed irrecoverably |
 | `blocked` | Waiting on failed dependency |
