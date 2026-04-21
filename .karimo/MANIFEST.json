@@ -1,5 +1,5 @@
 {
-  "version": "8.1.0",
+  "version": "8.2.0",
   "deprecated": {
     "commands": [
       "karimo-modify.md",
@@ -188,6 +188,7 @@
   ],
   "templates": [
     "ANNOTATION_GUIDE.md",
+    "DEFERRED_FINDINGS_TEMPLATE.md",
     "ASSETS_MANIFEST_TEMPLATE.json",
     "DEPENDENCIES_TEMPLATE.md",
     "EXECUTION_PLAN_SCHEMA.md",

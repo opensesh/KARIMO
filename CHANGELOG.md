@@ -7,6 +7,75 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [8.2.0] - 2026-04-21
+
+### Added
+
+- **Wave Gate Enforcement** — PM agent now verifies all PRs in current wave are merged before advancing to next wave:
+  - Uses `gh pr view` to check `mergedAt` field for each PR
+  - Halts with `paused-wave-gate` status when gate fails
+  - Displays which PRs remain unmerged with actionable next steps
+  - Resume with `/karimo:run --prd {slug} --resume` after PRs merge
+
+- **Context-Aware Finding Classification** — Intelligent review finding analysis:
+  - `actionable`: Real issues requiring fix (included in revision scope)
+  - `future-work-overlap`: References files created by later-wave tasks (deferred to merge gate)
+  - `false-positive-factual`: Contradicts CLAUDE.md or config.yaml (logged and skipped)
+  - `unknown`: Cannot classify (treated as actionable)
+  - PR passes when `actionable_count == 0` even if score < threshold
+
+- **Pre-Execution Configuration Prompt** — User control before PM spawns:
+  - Configure max revision loops (1-5)
+  - Select review mode (automated/manual/skip)
+  - Enable/disable classification bypasses
+  - Settings stored in `.execution_config.json`
+  - Skip with `--skip-config` flag
+
+- **Configurable "none" Provider Behavior** — When `review.provider: none`:
+  - `manual` (default): Posts comment requesting human review, sets status to `awaiting-human`
+  - `auto-pass`: Immediate pass verdict, no review gate
+
+- **Deferred Findings Gate at Merge** — Final verification in `/karimo:merge`:
+  - Verifies `future-work-overlap` files now exist
+  - Cross-references against final Greptile review
+  - Logs unresolved deferrals in final PR description
+
+- **New Status Values:**
+  - `paused-wave-gate`: PRD status when wave gate fails
+  - `awaiting-human`: Task status when awaiting manual review
+
+- **New Template:** `DEFERRED_FINDINGS_TEMPLATE.md` for tracking deferred findings
+
+### Changed
+
+- **Worktree Isolation** — Worker agents now operate in true isolated git worktrees:
+  - PM creates worktrees via `git worktree add` before spawning workers
+  - Workers receive explicit worktree path in execution context
+  - Cleanup via `git worktree remove` on completion/failure/kill
+  - `.karimo/.worktrees/` added to .gitignore during configuration
+
+- **PM Startup Validation** — Pre-flight checks before execution:
+  - Verifies main working tree is clean
+  - Confirms checkout on expected base branch
+  - Fails fast with actionable error messages
+
+- **5-Phase Execution Model** — Updated from 4-phase:
+  1. Research → 2. Plan → 3. Configure → 4. Iterate (User) → 5. Orchestrate
+
+- **Review Configuration Schema** — Expanded config options:
+  - `none_behavior`: manual | auto-pass
+  - `allow_below_threshold_on`: Classification bypass list
+  - `final_merge_gate.verify_deferred_findings`: boolean
+  - `pre_execution_prompt`: boolean
+
+### Fixed
+
+- **Critical:** PM advancing waves while PRs still open (PRD 015 incident)
+- **Critical:** Worker agents polluting main working tree (recurring bug)
+- **Critical:** Provider "none" silently bypassing all review
+
+---
+
 ## [8.1.0] - 2026-04-12
 
 ### Added
