@@ -381,6 +381,97 @@ fi
 Note: No coverage report detected. Skipping coverage analysis.
 ```
 
+### 5c. Deferred Findings Gate
+
+**Verify findings deferred during automated review have been resolved:**
+
+```bash
+deferred_file="${prd_path}/deferred_findings.md"
+unresolved_count=0
+warnings=""
+
+if [ -f "$deferred_file" ]; then
+  echo "Checking deferred findings from automated review..."
+
+  # Parse future-work-overlap entries
+  while IFS='|' read -r finding classification; do
+    [ -z "$finding" ] && continue
+
+    case "$classification" in
+      future-work-overlap:*)
+        # Extract file path from detail
+        file_path=$(echo "$classification" | sed 's/future-work-overlap:File //' | cut -d' ' -f1)
+
+        if [ -n "$file_path" ]; then
+          if [ -f "$file_path" ]; then
+            echo "  ✓ $file_path now exists"
+          else
+            echo "  ⚠ $file_path still missing"
+            warnings="${warnings}  - File not found: $file_path\n"
+            unresolved_count=$((unresolved_count + 1))
+          fi
+        fi
+        ;;
+      false-positive-factual:*)
+        # These are logged for audit, not re-checked
+        echo "  ○ Logged: $(echo "$finding" | head -c 40)..."
+        ;;
+    esac
+  done < <(grep -E '^\- .+\|' "$deferred_file" | sed 's/^- //')
+
+  if [ "$unresolved_count" -gt 0 ]; then
+    echo ""
+    echo "╭──────────────────────────────────────────────────────────────╮"
+    echo "│  ⚠  DEFERRED FINDINGS WARNING                                │"
+    echo "╰──────────────────────────────────────────────────────────────╯"
+    echo ""
+    echo "$unresolved_count future-work-overlap items unresolved:"
+    echo -e "$warnings"
+    echo ""
+    echo "These files were expected to be created by later tasks but are missing."
+    echo ""
+
+    # Ask user how to proceed
+    echo "Options:"
+    echo "  [1] Proceed anyway (log in PR description)"
+    echo "  [2] Abort merge and investigate"
+    echo ""
+    read -p "Choice [1/2]: " choice
+
+    case "$choice" in
+      1)
+        echo "Proceeding with unresolved findings (will log in PR)"
+        unresolved_note="**Note:** $unresolved_count deferred findings remain unresolved. See deferred_findings.md."
+        ;;
+      2)
+        echo "Aborting. Review ${deferred_file} and resolve issues."
+        exit 1
+        ;;
+      *)
+        echo "Invalid choice. Aborting."
+        exit 1
+        ;;
+    esac
+  else
+    echo "  ✓ All deferred findings resolved"
+  fi
+else
+  echo "Note: No deferred_findings.md found. Skipping deferred findings check."
+fi
+```
+
+**What this checks:**
+
+| Classification | Verification | On Failure |
+|----------------|--------------|------------|
+| `future-work-overlap` | File now exists | Warn user, offer to proceed or abort |
+| `false-positive-factual` | None (logged for audit) | N/A |
+
+**If unresolved findings:**
+- Display warning with list of missing files
+- User can proceed (logs in final PR) or abort to investigate
+- Unresolved items added to final PR description
+
 ---
 
 ### 6. Integration Analysis
