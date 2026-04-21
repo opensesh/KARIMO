@@ -1160,9 +1160,17 @@ execution:
 
 review:
   enabled: false
-  provider: null
-  threshold: 5           # Target score (1-5), used when provider is greptile
-  max_revision_loops: 3  # Max attempts before human review
+  provider: null                    # greptile | code-review | none
+  threshold: 5                      # Target score (1-5), used when provider is greptile
+  max_revision_loops: 3             # Max attempts before human review
+  none_behavior: manual             # When provider is "none": manual | auto-pass
+  allow_below_threshold_on:         # Classifications that bypass threshold
+    - future-work-overlap           # File created by later-wave task
+    - false-positive-factual        # Contradicts CLAUDE.md or config
+  final_merge_gate:
+    enabled: true                   # Check deferred findings at merge
+    verify_deferred_findings: true  # Verify future-work-overlap files exist
+  pre_execution_prompt: true        # Prompt user before PM execution
 
 cost_controls:
   enable_escalation: true
@@ -1894,8 +1902,20 @@ cost:
   escalate_after_failures: 1
   max_attempts: 3
 
-# Review provider: none | greptile | code-review
-review_provider: none
+# Review configuration
+review:
+  enabled: false
+  provider: none                    # none | greptile | code-review
+  threshold: 5                      # Target score (1-5), used when provider is greptile
+  max_revision_loops: 3             # Max attempts before human review
+  none_behavior: manual             # When provider is "none": manual | auto-pass
+  allow_below_threshold_on:         # Classifications that bypass threshold
+    - future-work-overlap           # File created by later-wave task
+    - false-positive-factual        # Contradicts CLAUDE.md or config
+  final_merge_gate:
+    enabled: true                   # Check deferred findings at merge
+    verify_deferred_findings: true  # Verify future-work-overlap files exist
+  pre_execution_prompt: true        # Prompt user before PM execution
 
 # CD provider configuration (optional)
 cd:
