@@ -1093,6 +1093,26 @@ options:
 
 ---
 
+### Basic Mode: Ensure Gitignore
+
+Before saving, ensure worktrees are gitignored:
+
+```bash
+# Ensure .karimo/.worktrees/ is in .gitignore
+if [ -f ".gitignore" ]; then
+  if ! grep -q "\.karimo/\.worktrees" .gitignore; then
+    echo "" >> .gitignore
+    echo "# KARIMO worktree directories (isolated task execution)" >> .gitignore
+    echo ".karimo/.worktrees/" >> .gitignore
+  fi
+else
+  echo "# KARIMO worktree directories (isolated task execution)" > .gitignore
+  echo ".karimo/.worktrees/" >> .gitignore
+fi
+```
+
+---
+
 ### Basic Mode: Save Configuration
 
 After 3 questions answered, save to `.karimo/config.yaml`:
@@ -1188,16 +1208,17 @@ Auto Mode accepts all defaults without user interaction. For CI/CD pipelines and
 ### Auto Mode Behavior
 
 1. **Spawn investigator agent** to auto-detect all settings
-2. **Use all detected defaults** (no prompts)
-3. **Set safe defaults for undetected values:**
+2. **Ensure gitignore** — Add `.karimo/.worktrees/` to `.gitignore` if missing
+3. **Use all detected defaults** (no prompts)
+4. **Set safe defaults for undetected values:**
    - Default model: sonnet
    - Max parallel tasks: 3
    - Pre-PR checks: build, typecheck (if commands detected)
    - Review: disabled
    - Escalation: enabled
    - Max attempts: 3
-4. **Save to config.yaml** immediately
-5. **Display summary** (no confirmation needed)
+5. **Save to config.yaml** immediately
+6. **Display summary** (no confirmation needed)
 
 **Display only:**
 
@@ -1731,6 +1752,39 @@ cd:
 ```
 
 Skip this step in the UI and proceed to Step 8.
+
+---
+
+### Step 7.5: Ensure Gitignore
+
+Before writing configuration, ensure `.karimo/.worktrees/` is in `.gitignore`:
+
+```bash
+# Check if .gitignore exists
+if [ -f ".gitignore" ]; then
+  # Check if worktrees pattern already exists
+  if ! grep -q "\.karimo/\.worktrees" .gitignore; then
+    # Add worktrees to gitignore
+    echo "" >> .gitignore
+    echo "# KARIMO worktree directories (isolated task execution)" >> .gitignore
+    echo ".karimo/.worktrees/" >> .gitignore
+    echo "✅ Added .karimo/.worktrees/ to .gitignore"
+  fi
+else
+  # Create .gitignore with worktrees
+  cat > .gitignore << 'EOF'
+# KARIMO worktree directories (isolated task execution)
+.karimo/.worktrees/
+EOF
+  echo "✅ Created .gitignore with KARIMO worktree exclusion"
+fi
+```
+
+**Why this matters:**
+- KARIMO uses git worktrees for isolated task execution
+- Each task gets its own worktree directory under `.karimo/.worktrees/`
+- These should NOT be committed to the repository
+- They are temporary working directories cleaned up after task completion
 
 ---
 
