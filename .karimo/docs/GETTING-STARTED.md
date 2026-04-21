@@ -476,7 +476,7 @@ The refiner agent addresses annotations and updates research.
 /karimo:run --prd user-profiles
 ```
 
-KARIMO v7.0 uses a 4-phase execution model with a user approval loop before tasks execute:
+KARIMO uses a 5-phase execution model (v8.2) with user approval loops before tasks execute:
 
 ### Phase 1: Brief Generation
 
@@ -523,9 +523,37 @@ Your choice:
 
 You can iterate until satisfied, then approve to proceed.
 
-### Phase 4: Orchestrate
+### Phase 4: Configure (v8.2)
 
-After approval, tasks execute in waves:
+Before execution, you configure run-time settings:
+
+```
+╭──────────────────────────────────────────────────────────────╮
+│  Execution Configuration: {slug}                             │
+╰──────────────────────────────────────────────────────────────╯
+
+Review settings (from .karimo/config.yaml):
+  Provider: greptile
+  Threshold: 5/5
+  Max revision loops: [1-5, default: 3] ___
+
+Allow below-threshold pass when:
+  [x] Future-work-overlap (files created by later tasks)
+  [x] False-positive-factual (contradicts project config)
+
+Review mode for this execution:
+  ( ) Automated (Greptile/Code Review)
+  ( ) Manual (human approval required)
+  ( ) Skip review (direct merge - use with caution)
+
+Proceed with execution? [y/N]:
+```
+
+This lets you tune revision behavior and review mode before the PM spawns. Skip with `--skip-config`.
+
+### Phase 5: Orchestrate
+
+After configuration, tasks execute in waves:
 
 ```
 Wave 1: [1a, 1b] — Execute in parallel

@@ -5,7 +5,7 @@ Reference for all KARIMO slash commands available in Claude Code.
 **v7.0 Change:** Research is now required before planning. The new workflow is:
 1. `/karimo:research "feature-name"` — Creates folder, runs research
 2. `/karimo:plan --prd feature-name` — Uses research, creates PRD
-3. `/karimo:run --prd feature-name` — 4-phase execution with user iterate loop
+3. `/karimo:run --prd feature-name` — 5-phase execution with user iterate loop
 
 ---
 
@@ -17,7 +17,7 @@ Reference for all KARIMO slash commands available in Claude Code.
 |---------|---------|
 | `/karimo:research "feature-name"` | **REQUIRED first step** — Creates PRD folder + runs research |
 | `/karimo:plan --prd {slug}` | PRD interview using research context |
-| `/karimo:run --prd {slug}` | 4-phase execution (briefs → review → iterate → orchestrate) |
+| `/karimo:run --prd {slug}` | 5-phase execution (briefs → review → iterate → configure → orchestrate) |
 | `/karimo:merge --prd {slug}` | Create final PR to main after execution |
 | `/karimo:dashboard [--prd {slug}]` | Monitor progress (no arg = all PRDs, with arg = details) |
 | `/karimo:feedback` | Intelligent feedback capture with auto-detection (simple or complex) |
@@ -442,7 +442,7 @@ Check this each morning or after execution runs complete.
 
 ## /karimo:run
 
-Execute tasks from an approved PRD using the 4-phase execution model (v7.0).
+Execute tasks from an approved PRD using the 5-phase execution model (v8.2).
 
 ### Usage
 
@@ -454,7 +454,7 @@ Execute tasks from an approved PRD using the 4-phase execution model (v7.0).
 /karimo:run --prd {slug} --brief-only
 ```
 
-### What It Does (4 Phases)
+### What It Does (5 Phases)
 
 ```
 Phase 1: Brief Generation
@@ -467,7 +467,10 @@ Phase 3: User Iterate
   → Present recommendations → User feedback → Adjust briefs
   ↺ (loop until approved)
 
-Phase 4: Orchestrate
+Phase 4: Configure (v8.2)
+  → Review settings → Max loops → Review mode → Classification bypasses
+
+Phase 5: Orchestrate
   → Execute tasks in waves → Create PRs → Validate
 ```
 
@@ -481,6 +484,7 @@ Phase 4: Orchestrate
 | `--review-only` | No | Stop after Phase 3 (no execution) |
 | `--brief-only` | No | Stop after Phase 1 (no review or execution) |
 | `--resume` | No | Resume after pausing |
+| `--skip-config` | No | Skip Phase 4 configuration prompt (v8.2) |
 
 ### Pre-Execution Review Workflow (New in v5.5.0)
 
