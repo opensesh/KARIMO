@@ -4,7 +4,7 @@
 # project configuration for KARIMO execution.
 #
 # Location: .karimo/config.yaml
-# Version: 9.1.0
+# Version: 9.2.0
 
 # Project metadata (auto-detected)
 project:
@@ -82,6 +82,16 @@ orchestration:
       code-review:
         fire_at: []             # when this provider fires: task, wave, gate, umbrella
         on_findings: halt       # halt | comment-only
+
+  # Gate model configuration (v9.2)
+  gates:
+    model: pause                # pause | conditional | skip-on-pass
+    auto_place: false           # Infer gates during /karimo:plan
+    max_waves_per_gate: 8       # Max waves between gates (inference heuristic)
+    conditions:                 # For conditional/skip-on-pass models
+      require_tests_pass: true  # All tests must pass
+      require_build_pass: true  # Build must succeed
+      max_critical_findings: 0  # Max P1 findings allowed (0 = none)
 
 # Review configuration (legacy — see orchestration.review for v9.1+)
 review:
