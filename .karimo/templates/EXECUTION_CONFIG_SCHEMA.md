@@ -1,7 +1,7 @@
 # Execution Config Schema Reference
 
-**Version:** 8.3.0
-**Purpose:** Document the `.execution_config.json` format used by KARIMO v8.3
+**Version:** 9.0.0
+**Purpose:** Document the `.execution_config.json` format used by KARIMO v9.0
 **Location:** `.karimo/prds/{slug}/.execution_config.json`
 
 ---
@@ -13,7 +13,7 @@ Each PRD folder contains an `.execution_config.json` file that stores execution-
 - Read by the PM agent at execution startup
 - Used to control slicing, review frequency, model overrides, and gate behavior
 
-**v8.3 Introduction:** This schema is new in v8.3, replacing the simpler configuration stored in earlier versions.
+**v9.0 Updates:** This version adds the orchestration policy layer with integration cadence control. The schema was originally introduced in v8.3.
 
 ---
 
@@ -22,6 +22,13 @@ Each PRD folder contains an `.execution_config.json` file that stores execution-
 ```json
 {
   "configured_at": "2026-04-25T10:00:00Z",
+  "orchestration_version": 2,
+  "orchestration": {
+    "integration": {
+      "cadence": "worktree",
+      "auto_merge_on_green": true
+    }
+  },
   "slicing": {
     "enabled": true,
     "slice_count": 3,
@@ -58,11 +65,34 @@ Each PRD folder contains an `.execution_config.json` file that stores execution-
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
 | `configured_at` | ISO datetime | Yes | When configuration was set |
+| `orchestration_version` | number | No | Orchestration policy version (1=legacy, 2=policy layer). Default: 1 |
+| `orchestration` | object | No | Orchestration policy configuration (v9.0) |
 | `slicing` | object | No | Slicing and gate configuration |
 | `review` | object | No | Review frequency and provider settings |
 | `model_override` | object | No | Task-level model overrides |
 | `max_revision_loops` | number | No | Max revision attempts (default: 3) |
 | `allow_bypass` | object | No | Classification bypass rules |
+
+### Orchestration Object (v9.0)
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `integration` | object | — | Integration cadence settings |
+
+### Integration Object
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `cadence` | string | "worktree" | Integration cadence: worktree, wave, feature |
+| `auto_merge_on_green` | boolean | true | Skip human if CI passes |
+
+### Integration Cadence Values
+
+| Cadence | Behavior | Use Case |
+|---------|----------|----------|
+| `worktree` | Task commits in worktree → merge to feature when wave completes | Default, current behavior |
+| `wave` | Task commits in worktree → wave-PR → feature branch | Medium/large PRDs, wave-level review checkpoints |
+| `feature` | Task commits → individual PRs to feature branch | Small PRDs, boilerplate, limited scope |
 
 ### Slicing Object
 
@@ -117,7 +147,76 @@ Each PRD folder contains an `.execution_config.json` file that stores execution-
 
 ## Example Configurations
 
-### Minimal (No Slicing)
+### Minimal (No Slicing, v9.0)
+
+```json
+{
+  "configured_at": "2026-04-25T10:00:00Z",
+  "orchestration_version": 2,
+  "orchestration": {
+    "integration": {
+      "cadence": "worktree"
+    }
+  },
+  "review": {
+    "frequency": "per-task",
+    "provider": "none"
+  },
+  "max_revision_loops": 3
+}
+```
+
+### Wave Cadence with Review Checkpoints
+
+```json
+{
+  "configured_at": "2026-04-25T10:00:00Z",
+  "orchestration_version": 2,
+  "orchestration": {
+    "integration": {
+      "cadence": "wave",
+      "auto_merge_on_green": true
+    }
+  },
+  "slicing": {
+    "enabled": true,
+    "slice_count": 2,
+    "gates": [
+      { "after_wave": 3, "label": "Review core implementation" }
+    ],
+    "auto_pause_at_gates": true
+  },
+  "review": {
+    "frequency": "per-wave",
+    "provider": "greptile"
+  },
+  "max_revision_loops": 3
+}
+```
+
+### Feature Cadence for Small PRDs
+
+```json
+{
+  "configured_at": "2026-04-25T10:00:00Z",
+  "orchestration_version": 2,
+  "orchestration": {
+    "integration": {
+      "cadence": "feature",
+      "auto_merge_on_green": true
+    }
+  },
+  "review": {
+    "frequency": "per-task",
+    "provider": "code-review"
+  },
+  "max_revision_loops": 3
+}
+```
+
+### Legacy v8.3 (No Orchestration)
+
+v8.3 PRDs without orchestration_version are treated as v1 (legacy):
 
 ```json
 {
@@ -247,6 +346,50 @@ get_task_model() {
 
 ---
 
+## Migration from v8.3
+
+v8.3 stored configuration without orchestration policy:
+
+```json
+// v8.3 format
+{
+  "configured_at": "...",
+  "slicing": { ... },
+  "review": { ... },
+  "max_revision_loops": 3,
+  "allow_bypass": { ... }
+}
+```
+
+The PM agent handles backward compatibility:
+- Missing `orchestration_version` → treated as `1` (legacy hardcoded behavior)
+- Missing `orchestration.integration.cadence` → defaults to `"worktree"`
+- v1 PRDs use current hardcoded behavior unchanged
+- v2 defaults to `cadence: worktree` (same behavior, explicit config)
+
+### Upgrading Mid-Flight PRDs
+
+Users can upgrade existing PRDs:
+
+```bash
+/karimo:run --prd {slug} --upgrade-orchestration
+```
+
+This prompts for new settings and updates `.execution_config.json` with:
+- `orchestration_version: 2`
+- User-selected orchestration config
+- `policy_started_at_wave: N` (for partial migration)
+
+### Deprecation Path
+
+| Version | Behavior |
+|---------|----------|
+| v9.0 | v1 fully supported, no warnings |
+| v9.3 | v1 shows deprecation notice on load |
+| v10.0 | v1 removed, migration required |
+
+---
+
 ## Migration from v8.2
 
 v8.2 stored a simpler configuration without slicing:
@@ -274,10 +417,11 @@ No migration script needed — the PM agent reads what's available.
 
 | Document | Purpose |
 |----------|---------|
+| [ORCHESTRATION.md](../docs/ORCHESTRATION.md) | Full orchestration policy layer reference |
 | [STATUS_SCHEMA.md](STATUS_SCHEMA.md) | Status tracking including `paused-at-gate` |
 | [CONFIG_TEMPLATE.yaml](CONFIG_TEMPLATE.yaml) | Project-level config with slicing thresholds |
 | [TOKEN-ECONOMICS.md](../docs/TOKEN-ECONOMICS.md) | Rationale for slicing and gates |
 
 ---
 
-*Generated by [KARIMO v8.3](https://github.com/opensesh/KARIMO)*
+*Generated by [KARIMO v9.0](https://github.com/opensesh/KARIMO)*
