@@ -1,6 +1,6 @@
 # Orchestration Policy Layer
 
-**Version:** 9.1.0
+**Version:** 9.2.0
 **Status:** Active
 
 ---
@@ -11,9 +11,9 @@ The Orchestration Policy Layer provides configurable control over how KARIMO exe
 
 1. **Integration Cadence** — When worktree commits flow to feature branch (Phase 1: v9.0 ✓)
 2. **Review Cadence** — When review tools fire and against what scope (Phase 2: v9.1 ✓)
-3. **Gate Model** — Where PM halts for human review (Phase 3: v9.2)
+3. **Gate Model** — Configurable gate behaviors with auto-placement (Phase 3: v9.2 ✓)
 
-This document covers **Integration Cadence** (v9.0) and **Review Cadence** (v9.1).
+This document covers all three phases.
 
 ---
 
@@ -408,7 +408,17 @@ When selecting a cadence, consider:
 - PM agent review cadence loading
 - PM-Reviewer scope-based diff and on_findings handling
 
-### Phase 3: Gate Model + Inference (v9.2)
+### Phase 3: Gate Model + Inference (v9.2) ✓
+
+Configurable gate behavior with three models and an inference engine.
+
+---
+
+## Gate Model (Phase 3: v9.2)
+
+The Gate Model controls how gates behave during execution.
+
+### Configuration
 
 ```yaml
 orchestration:
@@ -416,9 +426,155 @@ orchestration:
     model: pause                # pause | conditional | skip-on-pass
     auto_place: true            # infer gates during /karimo:plan
     max_waves_per_gate: 8       # inference heuristic
+    conditions:
+      require_tests_pass: true  # All tests must pass
+      require_build_pass: true  # Build must succeed
+      max_critical_findings: 0  # Max P1 findings allowed
+    placements:
+      - after_wave: 3
+        label: "Review core implementation"
+        model: conditional      # Optional per-gate override
+      - after_wave: 6
+        label: "Validate integration"
+        model: pause
 ```
 
-Inference engine will recommend orchestration settings based on PRD complexity.
+### Gate Model Values
+
+| Model | Behavior | Use Case |
+|-------|----------|----------|
+| `pause` | Always halt, require human resume | High-risk, critical decisions (default) |
+| `conditional` | Auto-pass if conditions met, pause otherwise | Risk-aware automation |
+| `skip-on-pass` | Skip gate entirely if conditions met | Low-risk, proven patterns |
+
+### Gate Conditions
+
+Conditions are evaluated when gate model is `conditional` or `skip-on-pass`:
+
+| Condition | Default | Description |
+|-----------|---------|-------------|
+| `require_tests_pass` | true | All tests must pass |
+| `require_build_pass` | true | Build must succeed |
+| `max_critical_findings` | 0 | Max P1 findings allowed (0 = none) |
+
+### PM Agent Behavior
+
+```bash
+# Load gate model (v9.2)
+load_gate_model() {
+  gate_model=$(jq -r '.orchestration.gates.model // "pause"' "$config_file")
+  gate_auto_place=$(jq -r '.orchestration.gates.auto_place // false' "$config_file")
+  # Load conditions...
+}
+
+# Evaluate conditions (v9.2)
+evaluate_gate_conditions() {
+  local all_pass=true
+  # Check tests, build, findings...
+  [ "$all_pass" = "true" ] && return 0 || return 1
+}
+
+# Check gate with model-aware behavior (v9.2)
+check_gate() {
+  case "$effective_model" in
+    "pause")       # Always pause ;;
+    "conditional") # Evaluate conditions, pause if fail ;;
+    "skip-on-pass") # Evaluate conditions, skip if pass ;;
+  esac
+}
+```
+
+### New Status Values
+
+| Status | Description |
+|--------|-------------|
+| `gate-evaluating` | Evaluating gate conditions |
+| `gate-auto-passed` | Gate auto-passed (conditional/skip-on-pass) |
+| `gate-skipped` | Gate skipped (skip-on-pass) |
+| `paused-at-gate` | Gate paused for human (existing) |
+
+---
+
+## Inference Engine (v9.2)
+
+The inference engine recommends orchestration settings during `/karimo:plan` (Round 2.6).
+
+### Inputs
+
+| Input | Type | Description |
+|-------|------|-------------|
+| `task_count` | number | Total tasks in PRD |
+| `wave_count` | number | Total waves |
+| `total_points` | number | Sum of complexity scores |
+| `high_risk_count` | number | Tasks with complexity 7+ |
+| `require_review_files` | number | Tasks touching sensitive files |
+| `review_provider` | string | Configured provider |
+
+### Decision Trees
+
+**Integration Cadence:**
+- `task_count < 8` → `feature`
+- `task_count >= 15 OR total_points >= 200` → `wave`
+- Else → `worktree`
+
+**Review Cadence:**
+- `review_provider = greptile, task_count >= 15` → `per-wave`
+- `review_provider = code-review, total_points >= 200` → `per-gate`
+- Else → `per-task`
+
+**Gate Placement:**
+- `wave_count < 4` → No gates
+- `wave_count >= 8` → Gates every `max_waves_per_gate` waves
+- Else → Single gate at midpoint
+
+**Gate Model:**
+- `high_risk_count >= 3` → `pause`
+- `high_risk_count >= 1` → `conditional`
+- Else → `skip-on-pass`
+
+### Output Format
+
+```yaml
+orchestration_recommendation:
+  integration:
+    cadence: "wave"
+    reason: "18 tasks across 6 waves — wave-level PRs provide review checkpoints"
+  review:
+    trigger: "per-wave"
+    scope: "wave-diff"
+    reason: "Greptile at $30/month makes per-wave cost-effective"
+  gates:
+    model: "conditional"
+    placements:
+      - after_wave: 3
+        label: "Review core implementation"
+      - after_wave: 5
+        label: "Validate integration layer"
+    reason: "Based on dependency structure and complexity distribution"
+```
+
+### User Interaction
+
+During Round 2.6, users can:
+- **[Y] Accept** — Use recommendations as-is
+- **[C] Customize** — Override specific settings
+- **[S] Skip** — Use project defaults
+
+---
+
+## Backward Compatibility
+
+### Gate Model Migration
+
+| Legacy Field | New Field | Mapping |
+|-------------|-----------|---------|
+| `slicing.gates[]` | `orchestration.gates.placements[]` | Direct mapping |
+| `slicing.auto_pause_at_gates: true` | `orchestration.gates.model: pause` | Boolean → model |
+| (missing) | `orchestration.gates.model` | Default: `pause` |
+| (missing) | `orchestration.gates.auto_place` | Default: `false` |
+| (missing) | `orchestration.gates.conditions` | Default: tests + build pass |
+
+Existing PRDs with `slicing.gates[]` continue to work — the PM agent checks both locations.
 
 ---
 
@@ -433,4 +589,4 @@ Inference engine will recommend orchestration settings based on PRD complexity.
 
 ---
 
-*Generated by [KARIMO v9.1](https://github.com/opensesh/KARIMO)*
+*Generated by [KARIMO v9.2](https://github.com/opensesh/KARIMO)*
