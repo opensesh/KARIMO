@@ -7,6 +7,66 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [9.0.0] - 2026-04-26
+
+### Added
+
+- **Orchestration Policy Layer** — Configurable control over how PRDs execute with three axes:
+
+  - **Integration Cadence** (v9.0) — When worktree commits flow to feature branch:
+    - `worktree`: Tasks merge to feature when wave completes (default, current behavior)
+    - `wave`: Wave PRs for consolidated review before merging to feature
+    - `feature`: Individual task PRs to feature branch
+
+  - **Review Cadence** (Phase 2: v9.1) — When review tools fire and against what scope
+  - **Gate Model** (Phase 3: v9.2) — Where PM halts for human review
+
+- **`orchestration_version` field** — Version flag in `.execution_config.json`:
+  - `1` (or missing): Legacy hardcoded behavior unchanged
+  - `2`: Policy layer active, reads orchestration config
+
+- **PM Agent Orchestration Functions:**
+  - `load_orchestration_policy()`: Load cadence config at startup
+  - `complete_wave()`: Cadence-aware wave completion handler
+  - `create_wave_pr()`: Create wave-level PRs for wave cadence
+  - `wait_for_pr_merge()`: Polling for wave PR merge
+  - `verify_wave_prs_merged()`: Verification for feature cadence
+
+- **Phase 3.5 Cadence Selection** — New Step 2 in execution configuration:
+  - Explains each cadence option with use cases
+  - User selects cadence before execution begins
+  - Selection stored in `.execution_config.json`
+
+- **New Documentation:**
+  - `ORCHESTRATION.md` — Full orchestration policy layer reference
+  - Execution model terminology
+  - Cadence selection heuristics
+  - Phase roadmap (v9.0-v9.2)
+
+### Changed
+
+- **CONFIG_TEMPLATE.yaml** — Added `orchestration:` block with version and integration cadence
+- **EXECUTION_CONFIG_SCHEMA.md** — Document orchestration_version and integration fields
+- **pm.md** — Added orchestration policy loading and cadence-aware wave completion
+- **run.md** — Added Step 2: Integration Cadence Selection to Phase 3.5
+- **ARCHITECTURE.md** — Added Orchestration Policy Layer as Feature #11 (11 total custom features)
+
+### Migration
+
+- **Backward Compatible** — Missing `orchestration_version` treated as `1` (legacy behavior unchanged)
+- **No Breaking Changes** — Existing PRDs continue working without modification
+- **Opt-In Upgrade** — New PRDs automatically use v2 policy layer when configured
+
+### Deprecation Path
+
+| Version | Status |
+|---------|--------|
+| v9.0 | v1 fully supported, no warnings |
+| v9.3 | v1 shows deprecation notice on load |
+| v10.0 | v1 removed, migration required |
+
+---
+
 ## [8.3.0] - 2026-04-25
 
 ### Added
