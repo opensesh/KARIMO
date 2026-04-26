@@ -38,12 +38,17 @@ review_config:
   provider: "greptile"  # or "code-review" or "none"
   threshold: 5          # Greptile pass threshold (1-5)
   max_revisions: 3      # Max revision attempts before hard gate
+  # v9.1 review cadence fields
+  scope: "pr-diff"      # pr-diff | wave-diff | cumulative
+  on_findings: "halt"   # halt | comment-only
 task_metadata:
   complexity: 4
   model: "sonnet"       # Current model
   wave: 2
   task_type: "implementation"  # implementation, testing, documentation
   loop_count: 1         # Current loop count
+  # For wave-diff scope (v9.1)
+  wave_pr_numbers: []   # All PR numbers in this wave (for wave-diff)
 ```
 
 ---
@@ -61,10 +66,122 @@ escalated_model: null   # or "opus" if escalated
 review_summary:
   provider: "greptile"
   final_score: 4        # Greptile only
+  scope_used: "pr-diff" # v9.1: what diff was reviewed
+  on_findings: "halt"   # v9.1: how findings were handled
   findings_by_priority:
     p1: 0
     p2: 2
     p3: 1
+```
+
+---
+
+## Review Scope Handling (v9.1)
+
+The `scope` setting determines what diff is sent to the review provider.
+
+### get_review_diff()
+
+```bash
+get_review_diff() {
+  local scope="${REVIEW_CONFIG_SCOPE:-pr-diff}"
+  local pr_number="${PR_NUMBER}"
+  local prd_slug="${PRD_SLUG}"
+  local wave="${TASK_METADATA_WAVE}"
+
+  case "$scope" in
+    "pr-diff")
+      # Default: just this PR's changes
+      echo "Reviewing single PR diff..."
+      gh pr diff "$pr_number"
+      ;;
+
+    "wave-diff")
+      # All PRs in this wave combined
+      echo "Reviewing wave-level diff..."
+      local wave_prs="${TASK_METADATA_WAVE_PR_NUMBERS}"
+      local combined_diff=""
+
+      for wave_pr in $(echo "$wave_prs" | jq -r '.[]'); do
+        combined_diff="${combined_diff}$(gh pr diff "$wave_pr")"
+      done
+
+      echo "$combined_diff"
+      ;;
+
+    "cumulative")
+      # All changes since last review
+      echo "Reviewing cumulative diff..."
+      local last_reviewed_sha="${TASK_METADATA_LAST_REVIEWED_SHA:-HEAD~10}"
+      git diff "$last_reviewed_sha"..HEAD
+      ;;
+
+    *)
+      # Default to pr-diff
+      echo "Unknown scope '$scope', falling back to pr-diff"
+      gh pr diff "$pr_number"
+      ;;
+  esac
+}
+```
+
+---
+
+## on_findings Behavior (v9.1)
+
+The `on_findings` setting determines whether findings block the merge or just post comments.
+
+### handle_findings()
+
+```bash
+handle_findings() {
+  local findings="$1"
+  local on_findings="${REVIEW_CONFIG_ON_FINDINGS:-halt}"
+  local pr_number="${PR_NUMBER}"
+
+  case "$on_findings" in
+    "halt")
+      # Default: block merge until findings resolved
+      if [ -n "$findings" ]; then
+        echo "Findings detected — blocking merge"
+        gh pr edit "$pr_number" --add-label "needs-revision"
+        verdict="fail"
+      else
+        verdict="pass"
+      fi
+      ;;
+
+    "comment-only")
+      # Post comments but allow merge to proceed
+      if [ -n "$findings" ]; then
+        echo "Findings detected — posting comments (non-blocking)"
+        gh pr comment "$pr_number" --body "$(cat <<EOF
+## Review Findings (Non-Blocking)
+
+The following issues were identified but are not blocking this PR:
+
+$findings
+
+---
+*on_findings: comment-only — merge is permitted*
+*KARIMO v9.1 Review Cadence*
+EOF
+)"
+        # Still pass — findings are informational only
+        verdict="pass"
+      else
+        verdict="pass"
+      fi
+      ;;
+
+    *)
+      echo "Unknown on_findings value: $on_findings"
+      verdict="fail"
+      ;;
+  esac
+
+  echo "$verdict"
+}
 ```
 
 ---
@@ -426,6 +543,8 @@ ELSE
 #### Greptile Decision
 
 ```bash
+on_findings="${REVIEW_CONFIG_ON_FINDINGS:-halt}"
+
 if [ "$score" -ge "$threshold" ]; then
   echo "✓ Greptile passed (${score}/5 >= ${threshold}/5)"
   gh pr edit $pr_number --add-label "greptile-passed"
@@ -446,19 +565,49 @@ elif [ "$actionable_count" -eq 0 ]; then
   verdict="pass"
 
 else
-  echo "✗ Greptile needs revision (${score}/5 < ${threshold}/5)"
+  echo "✗ Greptile below threshold (${score}/5 < ${threshold}/5)"
   echo "  Actionable findings: $actionable_count"
-  gh pr edit $pr_number --add-label "needs-revision"
 
-  loop_count="${TASK_METADATA_LOOP_COUNT:-1}"
+  # v9.1: Apply on_findings behavior
+  if [ "$on_findings" = "comment-only" ]; then
+    echo "  on_findings: comment-only — posting findings but allowing merge"
+    gh pr comment $pr_number --body "$(cat <<EOF
+## Review Findings (Non-Blocking)
 
-  if [ "$loop_count" -ge "$max_revision_loops" ]; then
-    echo "Max revision loops reached ($loop_count)"
-    verdict="escalate"
-    gh pr edit $pr_number --add-label "blocked-needs-human"
+**Greptile score:** ${score}/5 (threshold: ${threshold}/5)
+
+The following issues were identified but are not blocking this PR:
+
+**P1 (Critical):**
+${p1_findings:-None}
+
+**P2 (Important):**
+${p2_findings:-None}
+
+**P3 (Optional):**
+${p3_findings:-None}
+
+---
+*on_findings: comment-only — merge is permitted*
+*KARIMO v9.1 Review Cadence*
+EOF
+)"
+    gh pr edit $pr_number --add-label "greptile-comment-only"
+    verdict="pass"
   else
-    verdict="fail"
-    # Enter revision loop (Step 5) with ONLY actionable findings
+    # Default: halt — require revision
+    gh pr edit $pr_number --add-label "needs-revision"
+
+    loop_count="${TASK_METADATA_LOOP_COUNT:-1}"
+
+    if [ "$loop_count" -ge "$max_revision_loops" ]; then
+      echo "Max revision loops reached ($loop_count)"
+      verdict="escalate"
+      gh pr edit $pr_number --add-label "blocked-needs-human"
+    else
+      verdict="fail"
+      # Enter revision loop (Step 5) with ONLY actionable findings
+    fi
   fi
 fi
 ```
@@ -466,22 +615,47 @@ fi
 #### Code Review Decision
 
 ```bash
+on_findings="${REVIEW_CONFIG_ON_FINDINGS:-halt}"
+
 if [ "$normal_count" -eq 0 ]; then
   echo "✓ Code Review passed (no 🔴 findings)"
   verdict="pass"
 else
-  echo "✗ Code Review needs revision ($normal_count 🔴 findings)"
-  gh pr edit $pr_number --add-label "needs-revision"
+  echo "✗ Code Review found $normal_count 🔴 findings"
 
-  loop_count="${TASK_METADATA_LOOP_COUNT:-1}"
+  # v9.1: Apply on_findings behavior
+  if [ "$on_findings" = "comment-only" ]; then
+    echo "  on_findings: comment-only — posting findings but allowing merge"
+    gh pr comment $pr_number --body "$(cat <<EOF
+## Review Findings (Non-Blocking)
 
-  if [ "$loop_count" -ge "$max_revision_loops" ]; then
-    echo "Max revision loops reached ($loop_count)"
-    verdict="escalate"
-    gh pr edit $pr_number --add-label "blocked-needs-human"
+**Code Review findings:** $normal_count 🔴 (Normal)
+
+The following issues were identified but are not blocking this PR:
+
+${normal_findings}
+
+---
+*on_findings: comment-only — merge is permitted*
+*KARIMO v9.1 Review Cadence*
+EOF
+)"
+    gh pr edit $pr_number --add-label "code-review-comment-only"
+    verdict="pass"
   else
-    verdict="fail"
-    # Enter revision loop (Step 5)
+    # Default: halt — require revision
+    gh pr edit $pr_number --add-label "needs-revision"
+
+    loop_count="${TASK_METADATA_LOOP_COUNT:-1}"
+
+    if [ "$loop_count" -ge "$max_revision_loops" ]; then
+      echo "Max revision loops reached ($loop_count)"
+      verdict="escalate"
+      gh pr edit $pr_number --add-label "blocked-needs-human"
+    else
+      verdict="fail"
+      # Enter revision loop (Step 5)
+    fi
   fi
 fi
 ```
