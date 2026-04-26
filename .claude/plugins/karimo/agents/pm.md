@@ -364,6 +364,120 @@ should_skip_review_small_diff() {
   fi
   return 1
 }
+
+# Load gate model configuration (v9.2)
+load_gate_model() {
+  local config_file="${prd_path}/.execution_config.json"
+
+  if [ "$orchestration_version" = "2" ]; then
+    local has_gates=$(jq -r '.orchestration.gates // empty' "$config_file" 2>/dev/null)
+
+    if [ -n "$has_gates" ]; then
+      echo "Loading gate model v9.2..."
+      gate_model=$(jq -r '.orchestration.gates.model // "pause"' "$config_file")
+      gate_auto_place=$(jq -r '.orchestration.gates.auto_place // false' "$config_file")
+      max_waves_per_gate=$(jq -r '.orchestration.gates.max_waves_per_gate // 8' "$config_file")
+
+      # Load conditions
+      require_tests_pass=$(jq -r '.orchestration.gates.conditions.require_tests_pass // true' "$config_file")
+      require_build_pass=$(jq -r '.orchestration.gates.conditions.require_build_pass // true' "$config_file")
+      max_critical_findings=$(jq -r '.orchestration.gates.conditions.max_critical_findings // 0' "$config_file")
+
+      echo "  ✓ Gate model: $gate_model"
+      echo "  ✓ Auto-place: $gate_auto_place"
+    else
+      # Legacy: use existing slicing.gates with pause model
+      echo "Loading gate model (legacy)..."
+      gate_model="pause"
+      gate_auto_place=false
+      require_tests_pass=true
+      require_build_pass=true
+      max_critical_findings=0
+      echo "  ✓ Gate model: $gate_model (default)"
+    fi
+  else
+    # v1: hardcoded pause behavior
+    gate_model="pause"
+    gate_auto_place=false
+    require_tests_pass=true
+    require_build_pass=true
+    max_critical_findings=0
+  fi
+}
+
+# Evaluate gate conditions (v9.2)
+evaluate_gate_conditions() {
+  local wave_number="$1"
+  local prd_slug="$2"
+
+  echo "Evaluating gate conditions..."
+  local all_pass=true
+
+  # Check tests pass
+  if [ "$require_tests_pass" = "true" ]; then
+    if run_tests_for_wave "$wave_number" 2>/dev/null; then
+      echo "  ✓ Tests passed"
+    else
+      echo "  ✗ Tests failed"
+      all_pass=false
+    fi
+  fi
+
+  # Check build pass
+  if [ "$require_build_pass" = "true" ]; then
+    if run_build 2>/dev/null; then
+      echo "  ✓ Build passed"
+    else
+      echo "  ✗ Build failed"
+      all_pass=false
+    fi
+  fi
+
+  # Check critical findings
+  if [ "$max_critical_findings" -ge 0 ]; then
+    local p1_count=$(count_p1_findings "$wave_number" 2>/dev/null || echo "0")
+    if [ "$p1_count" -gt "$max_critical_findings" ]; then
+      echo "  ✗ $p1_count P1 findings (max: $max_critical_findings)"
+      all_pass=false
+    else
+      echo "  ✓ $p1_count P1 findings (max: $max_critical_findings)"
+    fi
+  fi
+
+  [ "$all_pass" = "true" ] && return 0 || return 1
+}
+
+# Record gate auto-passed (v9.2)
+record_gate_auto_passed() {
+  local wave_number="$1"
+  local gate_label="$2"
+  local timestamp=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+
+  jq --arg wave "$wave_number" \
+     --arg label "$gate_label" \
+     --arg at "$timestamp" \
+     '.gates_auto_passed = (.gates_auto_passed // []) + [{
+       "wave": ($wave | tonumber),
+       "label": $label,
+       "passed_at": $at
+     }]' "$status_file" > "${status_file}.tmp" && mv "${status_file}.tmp" "$status_file"
+}
+
+# Record gate skipped (v9.2)
+record_gate_skipped() {
+  local wave_number="$1"
+  local gate_label="$2"
+  local timestamp=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+
+  jq --arg wave "$wave_number" \
+     --arg label "$gate_label" \
+     --arg at "$timestamp" \
+     '.gates_skipped = (.gates_skipped // []) + [{
+       "wave": ($wave | tonumber),
+       "label": $label,
+       "skipped_at": $at
+     }]' "$status_file" > "${status_file}.tmp" && mv "${status_file}.tmp" "$status_file"
+}
 ```
 
 #### Model Override Application (v8.3)
@@ -408,7 +522,7 @@ load_gates() {
 }
 ```
 
-**Important:** After loading execution config, also load the orchestration policy and review cadence:
+**Important:** After loading execution config, also load the orchestration policy, review cadence, and gate model:
 
 ```bash
 # Load execution config (existing)
@@ -419,6 +533,9 @@ load_orchestration_policy
 
 # Load review cadence (v9.1)
 load_review_cadence
+
+# Load gate model (v9.2)
+load_gate_model
 ```
 
 **Detect issues before starting:**
@@ -976,58 +1093,134 @@ fi
 
 ---
 
-#### Human Gate Check (v8.3)
+#### Gate Check with Model-Aware Behavior (v9.2)
 
-After wave gate verification passes, check for configured human gates:
+After wave gate verification passes, check for configured gates with model-aware behavior:
 
 ```bash
-check_human_gate() {
+check_gate() {
   local wave_number="$1"
   local prd_slug="$2"
   local config_file="$3"
   local status_file="$4"
 
-  # Skip if slicing not enabled
-  if [ "$slicing_enabled" != "true" ] || [ "$auto_pause_at_gates" != "true" ]; then
-    return 0
+  # Get gate config — check v9.2 location first, then legacy
+  local gate_config=""
+  local gate_label=""
+  local gate_specific_model=""
+
+  # v9.2: Check orchestration.gates.placements
+  gate_config=$(jq -r --arg wave "$wave_number" \
+    '.orchestration.gates.placements[]? | select(.after_wave == ($wave | tonumber))' \
+    "$config_file" 2>/dev/null)
+
+  if [ -n "$gate_config" ]; then
+    gate_label=$(echo "$gate_config" | jq -r '.label // "Gate checkpoint"')
+    gate_specific_model=$(echo "$gate_config" | jq -r '.model // empty')
+  else
+    # Legacy: Check slicing.gates
+    if [ "$slicing_enabled" = "true" ] && [ "$auto_pause_at_gates" = "true" ]; then
+      gate_label=$(jq -r --arg wave "$wave_number" \
+        '.slicing.gates[]? | select(.after_wave == ($wave | tonumber)) | .label // empty' \
+        "$config_file")
+    fi
   fi
 
-  # Check if this wave has a configured gate
-  local gate_label=$(jq -r --arg wave "$wave_number" \
-    '.slicing.gates[] | select(.after_wave == ($wave | tonumber)) | .label // empty' \
-    "$config_file")
+  # No gate at this wave
+  [ -z "$gate_label" ] && return 0
 
-  if [ -n "$gate_label" ]; then
-    echo ""
-    echo "╭──────────────────────────────────────────────────────────────╮"
-    echo "│  HUMAN GATE: $gate_label"
-    echo "╰──────────────────────────────────────────────────────────────╯"
-    echo ""
-    echo "Wave $wave_number complete. Status: paused-at-gate"
-    echo ""
-    echo "Gate purpose: $gate_label"
-    echo ""
-    echo "Resume: /karimo:run --prd $prd_slug --resume"
-    echo ""
+  # Determine effective model
+  local effective_model="${gate_specific_model:-$gate_model}"
 
-    # Update status to paused-at-gate
-    jq --arg status "paused-at-gate" \
-       --arg wave "$wave_number" \
-       --arg label "$gate_label" \
-       --arg reached_at "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
-       '.status = $status |
-        .gate_reached = {
-          "wave": ($wave | tonumber),
-          "label": $label,
-          "reached_at": $reached_at
-        } |
-        .gates_passed = (.gates_passed // []) + [($wave | tonumber)]' \
-       "$status_file" > "${status_file}.tmp" && mv "${status_file}.tmp" "$status_file"
+  echo ""
+  echo "╭──────────────────────────────────────────────────────────────╮"
+  echo "│  GATE: $gate_label"
+  echo "│  Model: $effective_model"
+  echo "╰──────────────────────────────────────────────────────────────╯"
 
-    return 1  # Signal to pause execution
-  fi
+  case "$effective_model" in
+    "pause")
+      # Always pause for human
+      echo ""
+      echo "Status: paused-at-gate"
+      echo "Resume: /karimo:run --prd $prd_slug --resume"
+      echo ""
 
-  return 0  # No gate at this wave, continue
+      jq --arg status "paused-at-gate" \
+         --arg wave "$wave_number" \
+         --arg label "$gate_label" \
+         --arg reached_at "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+         '.status = $status |
+          .gate_reached = {
+            "wave": ($wave | tonumber),
+            "label": $label,
+            "reached_at": $reached_at,
+            "model": "pause"
+          } |
+          .gates_passed = (.gates_passed // []) + [($wave | tonumber)]' \
+         "$status_file" > "${status_file}.tmp" && mv "${status_file}.tmp" "$status_file"
+
+      return 1
+      ;;
+
+    "conditional")
+      # Evaluate conditions
+      if evaluate_gate_conditions "$wave_number" "$prd_slug"; then
+        echo "  ✓ All conditions passed — auto-advancing"
+        record_gate_auto_passed "$wave_number" "$gate_label"
+        return 0
+      else
+        echo "  ✗ Conditions failed — pausing for human review"
+        echo ""
+        echo "Resume: /karimo:run --prd $prd_slug --resume"
+
+        jq --arg status "paused-at-gate" \
+           --arg wave "$wave_number" \
+           --arg label "$gate_label" \
+           --arg reached_at "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+           '.status = $status |
+            .gate_reached = {
+              "wave": ($wave | tonumber),
+              "label": $label,
+              "reached_at": $reached_at,
+              "model": "conditional",
+              "reason": "conditions_failed"
+            }' \
+           "$status_file" > "${status_file}.tmp" && mv "${status_file}.tmp" "$status_file"
+
+        return 1
+      fi
+      ;;
+
+    "skip-on-pass")
+      # Skip entirely if conditions met
+      if evaluate_gate_conditions "$wave_number" "$prd_slug"; then
+        echo "  ✓ Conditions passed — skipping gate"
+        record_gate_skipped "$wave_number" "$gate_label"
+        return 0
+      else
+        echo "  ✗ Conditions failed — pausing for human review"
+        echo ""
+        echo "Resume: /karimo:run --prd $prd_slug --resume"
+
+        jq --arg status "paused-at-gate" \
+           --arg wave "$wave_number" \
+           --arg label "$gate_label" \
+           --arg reached_at "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+           '.status = $status |
+            .gate_reached = {
+              "wave": ($wave | tonumber),
+              "label": $label,
+              "reached_at": $reached_at,
+              "model": "skip-on-pass",
+              "reason": "conditions_failed"
+            }' \
+           "$status_file" > "${status_file}.tmp" && mv "${status_file}.tmp" "$status_file"
+
+        return 1
+      fi
+      ;;
+  esac
 }
 ```
 
@@ -1035,8 +1228,8 @@ check_human_gate() {
 
 ```bash
 # After verify_wave_merged passes:
-if ! check_human_gate "$current_wave" "$prd_slug" "$config_file" "$status_file"; then
-  echo "Execution paused at human gate. Status: paused-at-gate"
+if ! check_gate "$current_wave" "$prd_slug" "$config_file" "$status_file"; then
+  echo "Execution paused at gate. Status: paused-at-gate"
   exit 0  # Graceful exit — user will resume after review
 fi
 ```
@@ -1209,7 +1402,7 @@ When wave gate verification passes (all PRs merged):
 5. **Push feature branch to origin** (feature-branch mode only)
 6. **Clean up wave worktrees and branches**
 7. Verify target branch is stable
-8. **Check for human gate (v8.3)** — Pause if gate configured
+8. **Check gate with model-aware behavior (v9.2)** — Pause, auto-pass, or skip based on model
 9. Run post-wave hook
 10. Proceed to next wave
 
@@ -1355,7 +1548,10 @@ A task is stalling when `loop_count` >= 3 without passing:
 | `running` | Worker agent active |
 | `paused` | Execution paused (usage limit or human hold) |
 | `paused-wave-gate` | Wave gate failed, waiting for prior wave PRs to merge |
-| `paused-at-gate` | Human gate reached, waiting for user to resume (v8.3) |
+| `paused-at-gate` | Human gate reached, waiting for user to resume |
+| `gate-evaluating` | Evaluating gate conditions (v9.2) |
+| `gate-auto-passed` | Gate auto-passed via conditional/skip-on-pass (v9.2) |
+| `gate-skipped` | Gate skipped via skip-on-pass (v9.2) |
 | `in-review` | PR created, awaiting merge |
 | `needs-revision` | Review requested changes |
 | `needs-human-review` | Failed 3 attempts, requires human |
