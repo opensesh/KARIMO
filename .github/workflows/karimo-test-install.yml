@@ -31,37 +31,39 @@ jobs:
       - name: Verify installation
         run: |
           test -f /tmp/test-project/.karimo/MANIFEST.json
-          test -f /tmp/test-project/.claude/KARIMO_RULES.md
+          test -f /tmp/test-project/.claude/plugins/karimo/KARIMO_RULES.md
           test -f /tmp/test-project/.karimo/VERSION
           echo "✓ Core files installed"
 
       - name: Verify file counts
         run: |
           cd /tmp/test-project
-          AGENTS=$(ls -1 .claude/agents/karimo/*.md 2>/dev/null | wc -l | tr -d ' ')
-          COMMANDS=$(ls -1 .claude/commands/karimo/*.md 2>/dev/null | wc -l | tr -d ' ')
-          SKILLS=$(ls -1 .claude/skills/karimo/*.md 2>/dev/null | wc -l | tr -d ' ')
+          # v8+ plugin structure: .claude/plugins/karimo/{agents,commands,skills}
+          AGENTS=$(ls -1 .claude/plugins/karimo/agents/*.md 2>/dev/null | wc -l | tr -d ' ')
+          COMMANDS=$(ls -1 .claude/plugins/karimo/commands/*.md 2>/dev/null | wc -l | tr -d ' ')
+          SKILLS=$(ls -1 .claude/plugins/karimo/skills/*.md 2>/dev/null | wc -l | tr -d ' ')
           TEMPLATES_MD=$(ls -1 .karimo/templates/*.md 2>/dev/null | wc -l | tr -d ' ')
           TEMPLATES_JSON=$(ls -1 .karimo/templates/*.json 2>/dev/null | wc -l | tr -d ' ')
           TEMPLATES=$((TEMPLATES_MD + TEMPLATES_JSON))
 
           echo "Agents: $AGENTS (expected 22)"
           echo "Commands: $COMMANDS (expected 11)"
-          echo "Skills: $SKILLS (expected 7)"
-          echo "Templates: $TEMPLATES (expected 18)"
+          echo "Skills: $SKILLS (expected 8)"
+          echo "Templates: $TEMPLATES (expected 21)"
 
-          # Verify counts match expected values
+          # Verify counts match expected values (v9.7.1)
           [ "$AGENTS" -eq 22 ] || { echo "❌ Agent count mismatch"; exit 1; }
           [ "$COMMANDS" -eq 11 ] || { echo "❌ Command count mismatch"; exit 1; }
-          [ "$SKILLS" -eq 7 ] || { echo "❌ Skill count mismatch"; exit 1; }
-          [ "$TEMPLATES" -eq 18 ] || { echo "❌ Template count mismatch"; exit 1; }
+          [ "$SKILLS" -eq 8 ] || { echo "❌ Skill count mismatch"; exit 1; }
+          [ "$TEMPLATES" -eq 21 ] || { echo "❌ Template count mismatch"; exit 1; }
 
           echo "✓ All file counts verified"
 
       - name: Verify PM agent topology
         run: |
           cd /tmp/test-project
-          test -f .claude/agents/karimo/pm.md || { echo "❌ pm.md missing"; exit 1; }
-          test -f .claude/agents/karimo/pm-reviewer.md || { echo "❌ pm-reviewer.md missing"; exit 1; }
-          test -f .claude/agents/karimo/pm-finalizer.md || { echo "❌ pm-finalizer.md missing"; exit 1; }
+          # v8+ plugin structure
+          test -f .claude/plugins/karimo/agents/pm.md || { echo "❌ pm.md missing"; exit 1; }
+          test -f .claude/plugins/karimo/agents/pm-reviewer.md || { echo "❌ pm-reviewer.md missing"; exit 1; }
+          test -f .claude/plugins/karimo/agents/pm-finalizer.md || { echo "❌ pm-finalizer.md missing"; exit 1; }
           echo "✓ PM agent topology verified (pm, pm-reviewer, pm-finalizer)"

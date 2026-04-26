@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [9.7.2] - 2026-04-26
+
+### Fixed
+
+- **CI workflow** — Updated `karimo-test-install.yml` to use v8+ plugin paths (`.claude/plugins/karimo/`) and correct file counts (8 skills, 21 templates)
+
+---
+
 ## [9.7.1] - 2026-04-26
 
 ### Fixed
