@@ -59,6 +59,107 @@ The protocol defines:
 
 ---
 
+## Complexity Assessment (Round 2.5)
+
+After capturing requirements in Round 2, generate and display complexity assessment before proceeding to dependencies.
+
+### Calculation Logic
+
+```
+total_points = sum(task.complexity for task in tasks)
+sonnet_count = count(tasks where complexity 1-4)
+opus_count = count(tasks where complexity 5-10)
+high_risk_count = count(tasks where complexity 7+)
+```
+
+### Slicing Triggers
+
+Auto-propose gates when ANY condition is true:
+- `task_count >= 15`
+- `wave_count >= 8`
+- `total_points >= 100`
+- Any task touches files in `require_review` from config.yaml
+
+### Slicing Thresholds
+
+| Points Range | Recommendation |
+|--------------|----------------|
+| <100 | "No slicing needed" |
+| 100-200 | "Consider 2 slices with 1 gate" |
+| 200-300 | "Recommend 3 slices with 2 gates" |
+| 300+ | "Strong recommendation: 4+ slices" |
+
+### Gate Boundary Detection
+
+Identify gate-boundary candidates by scanning task titles/descriptions for:
+- Keywords: "audit", "review", "baseline", "classify", "analyze", "assess"
+- Output type: Tasks producing artifacts requiring human interpretation
+- Decision points: Tasks informing subsequent architectural choices
+
+### Display Format
+
+```
+╭──────────────────────────────────────────────────────────────╮
+│  Complexity Assessment                                       │
+╰──────────────────────────────────────────────────────────────╯
+
+Tasks: {task_count}
+Total complexity: {total_points} points
+
+Distribution:
+  Sonnet (1-4): {sonnet_count} tasks
+  Opus (5-10): {opus_count} tasks
+  High-risk (7+): {high_risk_count} tasks
+
+{slicing_recommendation}
+
+Proceed to Dependencies? [Y] or discuss slicing [S]
+```
+
+### Slicing Discussion Flow
+
+If user chooses [S]:
+1. Present proposed slice boundaries with gate labels
+2. Allow adjustment (move gates, add/remove gates)
+3. Capture final decision in `complexity_assessment.slices[]`
+4. Continue to Round 3
+
+---
+
+## Model Override (Round 3)
+
+After capturing dependencies, offer model override.
+
+### Override Display
+
+```
+╭──────────────────────────────────────────────────────────────╮
+│  Model Override (Optional)                                   │
+╰──────────────────────────────────────────────────────────────╯
+
+Current assignments (from complexity):
+  Sonnet: [1a], [1b], [1c]
+  Opus: [2a], [3a]
+
+Override any? [Y/n]
+```
+
+### Override Capture
+
+If user accepts:
+1. List each task with current model assignment
+2. Accept task IDs to force to Opus (e.g., "1a, 1c")
+3. Accept task IDs to force to Sonnet (e.g., "3a")
+4. Store in PRD metadata:
+
+```yaml
+model_override:
+  force_opus: ["1a", "1c"]
+  force_sonnet: ["3a"]
+```
+
+---
+
 ## Voice & Delivery
 
 **Do:** Present questions and outputs directly without announcing them.
