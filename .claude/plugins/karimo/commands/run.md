@@ -252,25 +252,94 @@ Cadence selection [1/2/3]:
 | `wave` | 15+ tasks, need review checkpoints | Wave PRs → feature branch |
 | `feature` | <8 tasks, boilerplate | Task PRs → feature branch |
 
-### Step 3: Review Frequency Selection
+### Step 3: Review Cadence Selection (v9.1)
 
 ```
-Review Frequency:
+Review Cadence:
 
 Provider: {provider} ({pricing_info})
 
-Options:
-  (1) Per-task — Review each PR individually
-  (2) Per-wave — Consolidated review after wave
-  (3) Per-slice — Review only at gate checkpoints
+─────────────────────────────────────────────
+Review Trigger:
+─────────────────────────────────────────────
+
+When should reviews fire?
+
+  (1) Per-task (Recommended) — Review each PR individually
+      High scrutiny, catches issues early.
+
+  (2) Per-wave — Consolidated review after wave completes
+      Balanced cost/quality. Good for medium+ PRDs.
+
+  (3) Per-gate — Review only at gate checkpoints
+      Cost optimization. Relies on gates for review points.
+
+  (4) On-umbrella — Review only final feature→main PR
+      Maximum savings. Single review at the end.
+
+Trigger selection [1/2/3/4]: 1
+
+─────────────────────────────────────────────
+Review Scope:
+─────────────────────────────────────────────
+
+What diff should be reviewed?
+
+  (1) PR-diff (Recommended) — Single PR changes
+      Minimal context, focused review.
+
+  (2) Wave-diff — All changes in wave combined
+      Wave-level context. Good with per-wave trigger.
+
+  (3) Cumulative — All changes since last review
+      Maximum context. Good with per-gate/on-umbrella.
+
+Scope selection [1/2/3]: 1
+
+─────────────────────────────────────────────
+Skip Small Diffs:
+─────────────────────────────────────────────
+
+Skip review for PRs under N lines changed?
+(Reduces noise from trivial changes)
+
+  (1) Never skip (0 lines)
+  (2) Skip under 50 lines
+  (3) Skip under 100 lines
+  (4) Custom threshold
+
+Skip selection [1/2/3/4]: 1
+
+─────────────────────────────────────────────
+On Findings Behavior:
+─────────────────────────────────────────────
+
+What happens when review finds issues?
+
+  (1) Halt (Recommended) — Block merge until findings resolved
+      Strict quality gate. Default behavior.
+
+  (2) Comment-only — Post comments but allow merge
+      Advisory mode. Findings are informational.
+
+On findings [1/2]: 1
+
+─────────────────────────────────────────────
+Per-Provider Configuration:
+─────────────────────────────────────────────
+
+Configure different triggers per provider? [y/N]: n
+
+(If yes, prompts for greptile and code-review fire_at and on_findings)
+```
 
 Cost estimates (Claude Code Review ~$20/PR):
   Per-task: {task_count} × $20 = ${total}
   Per-wave: {wave_count} × $20 = ${total}
-  Per-slice: {slice_count} × $20 = ${total}
+  Per-gate: {gate_count} × $20 = ${total}
+  On-umbrella: 1 × $20 = $20
 
-Note: Greptile is $30/month flat (frequency affects timing, not cost)
-```
+Note: Greptile is $30/month flat (trigger affects timing, not cost)
 
 ### Step 4: Gate Configuration
 
@@ -297,9 +366,16 @@ Gate benefits explained:
 Review settings:
   Integration cadence: {cadence}
   Provider: {provider}
-  Frequency: {frequency}
+  Review trigger: {trigger}
+  Review scope: {scope}
+  Skip if diff under: {skip_threshold} lines
+  On findings: {on_findings}
   Max revision loops: {max_loops}
   Gates: {gate_count} ({gate_labels})
+
+Per-provider overrides:
+  Greptile: {greptile_fire_at or "default"}
+  Code Review: {code_review_fire_at or "default"}
 
 Allow below-threshold pass when:
   [x] Future-work-overlap (files created by later tasks)
@@ -323,12 +399,26 @@ Proceed with execution? [y/N]:
 | `future-work-overlap` | File created by later-wave task | ✓ Enabled |
 | `false-positive-factual` | Contradicts CLAUDE.md or config | ✓ Enabled |
 
-**Review Frequency:**
-| Frequency | Trigger | Cost Impact |
-|-----------|---------|-------------|
+**Review Trigger (v9.1):**
+| Trigger | When Reviews Fire | Cost Impact |
+|---------|-------------------|-------------|
 | `per-task` | After each task PR | Highest (most reviews) |
 | `per-wave` | After wave completes | Medium (consolidated) |
-| `per-slice` | Only at gates | Lowest (focused) |
+| `per-gate` | Only at gates | Lower (focused) |
+| `on-umbrella` | Only final feature→main PR | Lowest (single review) |
+
+**Review Scope (v9.1):**
+| Scope | What Gets Reviewed | Context Level |
+|-------|-------------------|---------------|
+| `pr-diff` | Single PR changes | Minimal (default) |
+| `wave-diff` | All changes in wave | Wave-level |
+| `cumulative` | Changes since last review | Maximum |
+
+**on_findings (v9.1):**
+| Value | Behavior |
+|-------|----------|
+| `halt` | Block merge until findings resolved (default) |
+| `comment-only` | Post comments but allow merge |
 
 **Review Mode Override:**
 - **Automated** — Use configured provider (Greptile/Code Review)
@@ -340,7 +430,7 @@ Proceed with execution? [y/N]:
 Configuration is stored for PM agent to read:
 
 ```bash
-# Write execution config (v9.0)
+# Write execution config (v9.1)
 cat > ".karimo/prds/{NNN}_{slug}/.execution_config.json" << 'EOF'
 {
   "configured_at": "{ISO timestamp}",
@@ -349,6 +439,16 @@ cat > ".karimo/prds/{NNN}_{slug}/.execution_config.json" << 'EOF'
     "integration": {
       "cadence": "worktree",
       "auto_merge_on_green": true
+    },
+    "review": {
+      "trigger": "per-task",
+      "scope": "pr-diff",
+      "skip_if_diff_under": 0,
+      "on_findings": "halt",
+      "providers": {
+        "greptile": { "fire_at": [], "on_findings": "halt" },
+        "code-review": { "fire_at": [], "on_findings": "halt" }
+      }
     }
   },
   "slicing": {
@@ -789,18 +889,20 @@ Need help? Run /karimo:doctor
 
 ## Technical Details
 
-This command (v9.0) implements the 5-phase execution model:
+This command (v9.1) implements the 5-phase execution model:
 
 - **Phase 1 — Brief Generation:** Spawns brief-writer with research context
 - **Phase 2 — Auto-Review:** Spawns brief-reviewer for validation
 - **Phase 3 — User Iterate:** Interactive approval/modification loop
-- **Phase 3.5 — Execution Configuration:** User configures integration cadence (v9.0), review loops, bypass rules, review mode
+- **Phase 3.5 — Execution Configuration:** User configures integration cadence (v9.0), review cadence (v9.1), bypass rules, review mode
 - **Phase 4 — Orchestrate:** PM agent executes tasks with configured cadence
 
 **Key features:**
 - Research-informed briefs from PRD research context
 - Wave-based parallelization with worktree isolation
 - Configurable integration cadence (worktree, wave, feature) — v9.0
+- Configurable review cadence (trigger, scope, skip threshold, on_findings) — v9.1
+- Per-provider review configuration (different fire_at points) — v9.1
 - User iteration loop before execution
 - Git state reconciliation for crash recovery
 - Task PRs target feature branch (consolidated with /karimo:merge)
@@ -811,4 +913,4 @@ This command (v9.0) implements the 5-phase execution model:
 
 ---
 
-*Generated by [KARIMO v9.0](https://github.com/opensesh/KARIMO)*
+*Generated by [KARIMO v9.1](https://github.com/opensesh/KARIMO)*
