@@ -4,7 +4,7 @@
 # project configuration for KARIMO execution.
 #
 # Location: .karimo/config.yaml
-# Version: 8.3.0
+# Version: 9.0.0
 
 # Project metadata (auto-detected)
 project:
@@ -59,6 +59,13 @@ slicing:
     # Above three_slices: recommend 4+ slices
   wave_threshold: 8           # Waves at or above this suggest slicing
   auto_suggest: true          # Show slicing recommendations in interview
+
+# Orchestration policy layer (v9.0)
+orchestration:
+  version: 2                    # 1 = legacy (hardcoded), 2 = policy layer
+  integration:
+    cadence: worktree           # worktree | wave | feature
+    auto_merge_on_green: true   # Skip human if CI passes
 
 # Review configuration
 review:
