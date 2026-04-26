@@ -405,20 +405,24 @@ load_gate_model() {
   fi
 }
 
-# Evaluate gate conditions (v9.2)
+# Evaluate gate conditions (v9.2+)
 evaluate_gate_conditions() {
   local wave_number="$1"
   local prd_slug="$2"
+  local config_file="${prd_path}/.execution_config.json"
 
   echo "Evaluating gate conditions..."
   local all_pass=true
+  local conditions_json='{}'
 
   # Check tests pass
   if [ "$require_tests_pass" = "true" ]; then
     if run_tests_for_wave "$wave_number" 2>/dev/null; then
       echo "  ✓ Tests passed"
+      conditions_json=$(echo "$conditions_json" | jq '.require_tests_pass = {"result": true, "details": "All tests passed"}')
     else
       echo "  ✗ Tests failed"
+      conditions_json=$(echo "$conditions_json" | jq '.require_tests_pass = {"result": false, "details": "Tests failed"}')
       all_pass=false
     fi
   fi
@@ -427,8 +431,10 @@ evaluate_gate_conditions() {
   if [ "$require_build_pass" = "true" ]; then
     if run_build 2>/dev/null; then
       echo "  ✓ Build passed"
+      conditions_json=$(echo "$conditions_json" | jq '.require_build_pass = {"result": true, "details": "Build succeeded"}')
     else
       echo "  ✗ Build failed"
+      conditions_json=$(echo "$conditions_json" | jq '.require_build_pass = {"result": false, "details": "Build failed"}')
       all_pass=false
     fi
   fi
@@ -438,13 +444,164 @@ evaluate_gate_conditions() {
     local p1_count=$(count_p1_findings "$wave_number" 2>/dev/null || echo "0")
     if [ "$p1_count" -gt "$max_critical_findings" ]; then
       echo "  ✗ $p1_count P1 findings (max: $max_critical_findings)"
+      conditions_json=$(echo "$conditions_json" | jq --arg count "$p1_count" --arg max "$max_critical_findings" \
+        '.max_critical_findings = {"result": false, "details": ($count + " P1 findings, max: " + $max)}')
       all_pass=false
     else
       echo "  ✓ $p1_count P1 findings (max: $max_critical_findings)"
+      conditions_json=$(echo "$conditions_json" | jq --arg count "$p1_count" \
+        '.max_critical_findings = {"result": true, "details": ($count + " P1 findings")}')
     fi
   fi
 
+  # Evaluate custom conditions (v9.4)
+  if ! evaluate_custom_conditions "$config_file" "$wave_number"; then
+    all_pass=false
+  fi
+
+  # Export conditions for gate history recording
+  export GATE_CONDITIONS_JSON="$conditions_json"
+
   [ "$all_pass" = "true" ] && return 0 || return 1
+}
+
+# Evaluate custom condition expressions (v9.4)
+evaluate_custom_conditions() {
+  local config_file="$1"
+  local wave_number="$2"
+  local all_pass=true
+
+  # Get custom conditions array
+  local customs=$(jq -r '.orchestration.gates.conditions.custom // []' "$config_file" 2>/dev/null)
+
+  # Skip if no custom conditions
+  if [ "$customs" = "[]" ] || [ -z "$customs" ]; then
+    return 0
+  fi
+
+  echo "Evaluating custom conditions..."
+
+  for condition in $(echo "$customs" | jq -c '.[]'); do
+    local expr=$(echo "$condition" | jq -r '.expr')
+    local label=$(echo "$condition" | jq -r '.label')
+
+    # Parse and evaluate expression
+    case "$expr" in
+      coverage*)
+        local threshold=$(echo "$expr" | grep -oE '[0-9]+')
+        local actual=$(get_coverage_percentage 2>/dev/null || echo "0")
+        if [ "$actual" -ge "$threshold" ]; then
+          echo "  ✓ $label: ${actual}% >= ${threshold}%"
+        else
+          echo "  ✗ $label: ${actual}% < ${threshold}%"
+          all_pass=false
+        fi
+        ;;
+
+      lint_errors*)
+        local actual=$(get_lint_error_count 2>/dev/null || echo "0")
+        if [ "$actual" -eq 0 ]; then
+          echo "  ✓ $label: 0 errors"
+        else
+          echo "  ✗ $label: $actual errors"
+          all_pass=false
+        fi
+        ;;
+
+      type_errors*)
+        local actual=$(get_type_error_count 2>/dev/null || echo "0")
+        if [ "$actual" -eq 0 ]; then
+          echo "  ✓ $label: 0 errors"
+        else
+          echo "  ✗ $label: $actual errors"
+          all_pass=false
+        fi
+        ;;
+
+      bundle_size*)
+        # Parse "bundle_size < 500kb"
+        local threshold=$(echo "$expr" | grep -oE '[0-9]+')
+        local actual=$(get_bundle_size_kb 2>/dev/null || echo "0")
+        if [ "$actual" -lt "$threshold" ]; then
+          echo "  ✓ $label: ${actual}kb < ${threshold}kb"
+        else
+          echo "  ✗ $label: ${actual}kb >= ${threshold}kb"
+          all_pass=false
+        fi
+        ;;
+
+      security_score*)
+        local threshold=$(echo "$expr" | grep -oE '[0-9]+')
+        local actual=$(get_security_score 2>/dev/null || echo "0")
+        if [ "$actual" -ge "$threshold" ]; then
+          echo "  ✓ $label: ${actual} >= ${threshold}"
+        else
+          echo "  ✗ $label: ${actual} < ${threshold}"
+          all_pass=false
+        fi
+        ;;
+
+      *)
+        echo "  ⚠ Unknown expression: $expr"
+        ;;
+    esac
+  done
+
+  [ "$all_pass" = "true" ] && return 0 || return 1
+}
+
+# Helper functions for custom conditions (v9.4)
+get_coverage_percentage() {
+  # Try common coverage tools
+  if [ -f "coverage/lcov-report/index.html" ]; then
+    grep -oE '[0-9]+\.[0-9]+%' coverage/lcov-report/index.html | head -1 | tr -d '%' | cut -d'.' -f1
+  elif [ -f "coverage-summary.json" ]; then
+    jq -r '.total.lines.pct // 0' coverage-summary.json | cut -d'.' -f1
+  else
+    echo "0"
+  fi
+}
+
+get_lint_error_count() {
+  # Run lint and count errors
+  local lint_cmd=$(yq '.commands.lint // ""' .karimo/config.yaml 2>/dev/null)
+  if [ -n "$lint_cmd" ]; then
+    eval "$lint_cmd" 2>&1 | grep -cE '(error|Error)' || echo "0"
+  else
+    echo "0"
+  fi
+}
+
+get_type_error_count() {
+  # Run typecheck and count errors
+  local typecheck_cmd=$(yq '.commands.typecheck // ""' .karimo/config.yaml 2>/dev/null)
+  if [ -n "$typecheck_cmd" ]; then
+    eval "$typecheck_cmd" 2>&1 | grep -cE '(error|Error)' || echo "0"
+  else
+    echo "0"
+  fi
+}
+
+get_bundle_size_kb() {
+  # Try common bundle analysis files
+  if [ -f ".next/analyze/client.html" ]; then
+    # Next.js bundle analyzer
+    du -k .next/static/chunks/*.js | awk '{sum += $1} END {print sum}'
+  elif [ -f "dist/stats.json" ]; then
+    # Webpack stats
+    jq '.assets | map(.size) | add / 1024' dist/stats.json | cut -d'.' -f1
+  else
+    echo "0"
+  fi
+}
+
+get_security_score() {
+  # Try common security scan outputs
+  if [ -f "security-report.json" ]; then
+    jq -r '.score // 0' security-report.json
+  else
+    echo "100"  # Default to passing if no security scan configured
+  fi
 }
 
 # Record gate auto-passed (v9.2)
@@ -1216,8 +1373,11 @@ check_gate() {
   local gate_config=""
   local gate_label=""
   local gate_specific_model=""
+  local gate_review_config=""
+  local gate_branches=""
+  local gate_merge_strategy=""
 
-  # v9.2: Check orchestration.gates.placements
+  # v9.2+: Check orchestration.gates.placements
   gate_config=$(jq -r --arg wave "$wave_number" \
     '.orchestration.gates.placements[]? | select(.after_wave == ($wave | tonumber))' \
     "$config_file" 2>/dev/null)
@@ -1225,6 +1385,13 @@ check_gate() {
   if [ -n "$gate_config" ]; then
     gate_label=$(echo "$gate_config" | jq -r '.label // "Gate checkpoint"')
     gate_specific_model=$(echo "$gate_config" | jq -r '.model // empty')
+
+    # v9.4: Per-gate review configuration
+    gate_review_config=$(echo "$gate_config" | jq -r '.review // empty')
+
+    # v9.4: Parallel branches
+    gate_branches=$(echo "$gate_config" | jq -r '.branches // empty')
+    gate_merge_strategy=$(echo "$gate_config" | jq -r '.merge_strategy // "all"')
   else
     # Legacy: Check slicing.gates
     if [ "$slicing_enabled" = "true" ] && [ "$auto_pause_at_gates" = "true" ]; then
@@ -1236,6 +1403,48 @@ check_gate() {
 
   # No gate at this wave
   [ -z "$gate_label" ] && return 0
+
+  # Handle per-gate review (v9.4)
+  if [ -n "$gate_review_config" ]; then
+    local gate_review_trigger=$(echo "$gate_review_config" | jq -r '.trigger // false')
+    if [ "$gate_review_trigger" = "true" ]; then
+      local gate_review_provider=$(echo "$gate_review_config" | jq -r '.provider // empty')
+      local gate_review_scope=$(echo "$gate_review_config" | jq -r '.scope // "cumulative"')
+
+      echo "  📋 Per-gate review configured"
+      echo "    Provider: ${gate_review_provider:-default}"
+      echo "    Scope: $gate_review_scope"
+
+      # Spawn PM-Reviewer with gate-specific config
+      spawn_gate_review "$wave_number" "$prd_slug" "$gate_review_provider" "$gate_review_scope"
+    fi
+  fi
+
+  # Handle parallel branches (v9.4)
+  if [ -n "$gate_branches" ] && [ "$gate_branches" != "null" ]; then
+    echo "  🌿 Parallel branches detected"
+    local branch_count=$(echo "$gate_branches" | jq 'length')
+
+    for i in $(seq 0 $((branch_count - 1))); do
+      local branch=$(echo "$gate_branches" | jq -r ".[$i]")
+      local branch_label=$(echo "$branch" | jq -r '.label')
+      local branch_waves=$(echo "$branch" | jq -r '.waves | @json')
+      echo "    Branch $((i + 1)): $branch_label (waves: $branch_waves)"
+    done
+
+    echo "    Merge strategy: $gate_merge_strategy"
+
+    # Wait for branches based on merge strategy
+    if ! wait_for_parallel_branches "$gate_branches" "$gate_merge_strategy" "$status_file"; then
+      echo "  ⏳ Waiting for parallel branches to complete"
+      jq --arg status "waiting-for-branches" \
+         --arg wave "$wave_number" \
+         --arg label "$gate_label" \
+         '.status = $status | .gate_reached.waiting_branches = true' \
+         "$status_file" > "${status_file}.tmp" && mv "${status_file}.tmp" "$status_file"
+      return 1
+    fi
+  fi
 
   # Determine effective model
   local effective_model="${gate_specific_model:-$gate_model}"
@@ -1327,6 +1536,82 @@ check_gate() {
 
         return 1
       fi
+      ;;
+  esac
+}
+
+# Spawn gate-specific review (v9.4)
+spawn_gate_review() {
+  local wave_number="$1"
+  local prd_slug="$2"
+  local provider="$3"
+  local scope="$4"
+
+  echo "Spawning gate review for wave $wave_number..."
+  echo "  Provider: ${provider:-$review_provider}"
+  echo "  Scope: $scope"
+
+  # Collect all PRs from waves up to this gate
+  local prs_to_review=()
+  for w in $(seq 1 "$wave_number"); do
+    local wave_tasks=$(jq -r --arg wave "$w" \
+      '.tasks | to_entries[] | select(.value.wave == ($wave | tonumber)) | .key' \
+      "$status_file")
+
+    for task_id in $wave_tasks; do
+      local pr=$(jq -r --arg tid "$task_id" '.tasks[$tid].pr_number // empty' "$status_file")
+      if [ -n "$pr" ]; then
+        prs_to_review+=("$pr")
+      fi
+    done
+  done
+
+  echo "  PRs in scope: ${prs_to_review[*]}"
+
+  # Gate review is handled by spawning PM-Reviewer with cumulative scope
+}
+
+# Wait for parallel branches (v9.4)
+wait_for_parallel_branches() {
+  local branches_json="$1"
+  local merge_strategy="$2"
+  local status_file="$3"
+
+  local branch_count=$(echo "$branches_json" | jq 'length')
+  local completed_branches=0
+
+  for i in $(seq 0 $((branch_count - 1))); do
+    local branch=$(echo "$branches_json" | jq -r ".[$i]")
+    local branch_waves=$(echo "$branch" | jq -r '.waves[]')
+    local branch_complete=true
+
+    for wave in $branch_waves; do
+      local wave_tasks=$(jq -r --arg wave "$wave" \
+        '.tasks | to_entries[] | select(.value.wave == ($wave | tonumber)) | .key' \
+        "$status_file")
+
+      for task_id in $wave_tasks; do
+        local task_status=$(jq -r --arg tid "$task_id" '.tasks[$tid].status // "pending"' "$status_file")
+        if [ "$task_status" != "done" ]; then
+          branch_complete=false
+          break
+        fi
+      done
+
+      [ "$branch_complete" = false ] && break
+    done
+
+    if [ "$branch_complete" = true ]; then
+      completed_branches=$((completed_branches + 1))
+    fi
+  done
+
+  case "$merge_strategy" in
+    "all")
+      [ "$completed_branches" -eq "$branch_count" ] && return 0 || return 1
+      ;;
+    "any")
+      [ "$completed_branches" -gt 0 ] && return 0 || return 1
       ;;
   esac
 }

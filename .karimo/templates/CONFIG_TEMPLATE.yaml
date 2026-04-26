@@ -4,7 +4,7 @@
 # project configuration for KARIMO execution.
 #
 # Location: .karimo/config.yaml
-# Version: 9.3.0
+# Version: 9.4.0
 
 # Project metadata (auto-detected)
 project:
@@ -93,7 +93,7 @@ orchestration:
         fire_at: []             # when this provider fires: task, wave, gate, umbrella
         on_findings: halt       # halt | comment-only
 
-  # Gate model configuration (v9.2)
+  # Gate model configuration (v9.2+)
   gates:
     model: pause                # pause | conditional | skip-on-pass
     auto_place: false           # Infer gates during /karimo:plan
@@ -102,6 +102,34 @@ orchestration:
       require_tests_pass: true  # All tests must pass
       require_build_pass: true  # Build must succeed
       max_critical_findings: 0  # Max P1 findings allowed (0 = none)
+
+      # Custom condition expressions (v9.4)
+      custom: []                # Custom conditions beyond presets
+      # Example:
+      # - expr: "coverage >= 80"
+      #   label: "Code coverage threshold"
+      # - expr: "lint_errors == 0"
+      #   label: "No lint errors"
+      # - expr: "bundle_size < 500kb"
+      #   label: "Bundle size limit"
+
+    # Gate placements (v9.2) — typically set per-PRD, not project-level
+    # placements:
+    #   - after_wave: 3
+    #     label: "Review core implementation"
+    #     model: conditional
+    #     # Per-gate review (v9.4)
+    #     review:
+    #       trigger: true         # Force review at this gate
+    #       provider: greptile    # Override default provider
+    #       scope: cumulative     # Review all changes since last gate
+    #     # Parallel branches (v9.4)
+    #     branches:
+    #       - waves: [4, 5]
+    #         label: "Frontend track"
+    #       - waves: [4, 5, 6]
+    #         label: "Backend track"
+    #     merge_strategy: all     # all | any
 
 # Review configuration (legacy — see orchestration.review for v9.1+)
 review:
