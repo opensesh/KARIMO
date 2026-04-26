@@ -4,7 +4,7 @@
 # project configuration for KARIMO execution.
 #
 # Location: .karimo/config.yaml
-# Version: 9.0.0
+# Version: 9.1.0
 
 # Project metadata (auto-detected)
 project:
@@ -60,14 +60,30 @@ slicing:
   wave_threshold: 8           # Waves at or above this suggest slicing
   auto_suggest: true          # Show slicing recommendations in interview
 
-# Orchestration policy layer (v9.0)
+# Orchestration policy layer (v9.0+)
 orchestration:
   version: 2                    # 1 = legacy (hardcoded), 2 = policy layer
   integration:
     cadence: worktree           # worktree | wave | feature
     auto_merge_on_green: true   # Skip human if CI passes
 
-# Review configuration
+  # Review cadence configuration (v9.1)
+  review:
+    trigger: per-task           # per-task | per-wave | per-gate | on-umbrella
+    scope: pr-diff              # pr-diff | wave-diff | cumulative
+    skip_if_diff_under: 0       # Skip review if PR has fewer lines (0 = never skip)
+    on_findings: halt           # halt | comment-only
+
+    # Per-provider overrides (optional)
+    providers:
+      greptile:
+        fire_at: []             # when this provider fires: task, wave, gate, umbrella
+        on_findings: halt       # halt | comment-only
+      code-review:
+        fire_at: []             # when this provider fires: task, wave, gate, umbrella
+        on_findings: halt       # halt | comment-only
+
+# Review configuration (legacy — see orchestration.review for v9.1+)
 review:
   provider: none              # none | greptile | code-review
   frequency: per-task         # per-task | per-wave | per-slice
