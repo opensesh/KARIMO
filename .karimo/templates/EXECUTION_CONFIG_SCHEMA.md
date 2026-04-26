@@ -1,7 +1,7 @@
 # Execution Config Schema Reference
 
-**Version:** 9.0.0
-**Purpose:** Document the `.execution_config.json` format used by KARIMO v9.0
+**Version:** 9.1.0
+**Purpose:** Document the `.execution_config.json` format used by KARIMO v9.1
 **Location:** `.karimo/prds/{slug}/.execution_config.json`
 
 ---
@@ -11,9 +11,11 @@
 Each PRD folder contains an `.execution_config.json` file that stores execution-time configuration decisions. This file is:
 - Created by `/karimo:run` during Phase 3.5 (Execution Configuration)
 - Read by the PM agent at execution startup
-- Used to control slicing, review frequency, model overrides, and gate behavior
+- Used to control slicing, review cadence, model overrides, and gate behavior
 
-**v9.0 Updates:** This version adds the orchestration policy layer with integration cadence control. The schema was originally introduced in v8.3.
+**v9.1 Updates:** This version adds review cadence configuration with trigger, scope, skip threshold, and per-provider overrides.
+
+**v9.0 Updates:** Added orchestration policy layer with integration cadence control.
 
 ---
 
@@ -27,6 +29,16 @@ Each PRD folder contains an `.execution_config.json` file that stores execution-
     "integration": {
       "cadence": "worktree",
       "auto_merge_on_green": true
+    },
+    "review": {
+      "trigger": "per-wave",
+      "scope": "wave-diff",
+      "skip_if_diff_under": 50,
+      "on_findings": "halt",
+      "providers": {
+        "greptile": { "fire_at": ["wave"], "on_findings": "halt" },
+        "code-review": { "fire_at": ["umbrella"], "on_findings": "comment-only" }
+      }
     }
   },
   "slicing": {
@@ -93,6 +105,49 @@ Each PRD folder contains an `.execution_config.json` file that stores execution-
 | `worktree` | Task commits in worktree → merge to feature when wave completes | Default, current behavior |
 | `wave` | Task commits in worktree → wave-PR → feature branch | Medium/large PRDs, wave-level review checkpoints |
 | `feature` | Task commits → individual PRs to feature branch | Small PRDs, boilerplate, limited scope |
+
+### Review Object (v9.1)
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `trigger` | string | "per-task" | When reviews fire |
+| `scope` | string | "pr-diff" | What diff to review |
+| `skip_if_diff_under` | number | 0 | Skip review if PR has fewer lines (0 = never skip) |
+| `on_findings` | string | "halt" | Block merge or just comment |
+| `providers` | object | {} | Per-provider overrides |
+
+### Review Trigger Values (v9.1)
+
+| Trigger | When Reviews Fire | Best For |
+|---------|-------------------|----------|
+| `per-task` | After each task PR | High scrutiny (default) |
+| `per-wave` | After wave completes | Balanced |
+| `per-gate` | Only at gates | Cost optimization |
+| `on-umbrella` | Only final feature→main PR | Maximum savings |
+
+### Review Scope Values (v9.1)
+
+| Scope | What Gets Reviewed | Context Level |
+|-------|-------------------|---------------|
+| `pr-diff` | Single PR changes | Minimal (default) |
+| `wave-diff` | All PRs in wave | Wave-level |
+| `cumulative` | Changes since last review | Maximum |
+
+### Review on_findings Values (v9.1)
+
+| Value | Behavior |
+|-------|----------|
+| `halt` | Block merge until findings resolved (default) |
+| `comment-only` | Post comments but allow merge |
+
+### Review Providers Object (v9.1)
+
+Per-provider overrides allow different providers to fire at different points:
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `fire_at` | string[] | When provider fires: "task", "wave", "gate", "umbrella" |
+| `on_findings` | string | Provider-specific on_findings override |
 
 ### Slicing Object
 
@@ -292,6 +347,62 @@ v8.3 PRDs without orchestration_version are treated as v1 (legacy):
 }
 ```
 
+### Review Cadence with Per-Provider Overrides (v9.1)
+
+```json
+{
+  "configured_at": "2026-04-25T10:00:00Z",
+  "orchestration_version": 2,
+  "orchestration": {
+    "integration": {
+      "cadence": "wave"
+    },
+    "review": {
+      "trigger": "per-wave",
+      "scope": "wave-diff",
+      "skip_if_diff_under": 50,
+      "on_findings": "halt",
+      "providers": {
+        "greptile": {
+          "fire_at": ["wave"],
+          "on_findings": "halt"
+        },
+        "code-review": {
+          "fire_at": ["umbrella"],
+          "on_findings": "comment-only"
+        }
+      }
+    }
+  },
+  "review": {
+    "provider": "greptile"
+  }
+}
+```
+
+### Skip Small Diffs (v9.1)
+
+```json
+{
+  "configured_at": "2026-04-25T10:00:00Z",
+  "orchestration_version": 2,
+  "orchestration": {
+    "integration": {
+      "cadence": "worktree"
+    },
+    "review": {
+      "trigger": "per-task",
+      "scope": "pr-diff",
+      "skip_if_diff_under": 100,
+      "on_findings": "halt"
+    }
+  },
+  "review": {
+    "provider": "code-review"
+  }
+}
+```
+
 ---
 
 ## PM Agent Usage
@@ -367,6 +478,15 @@ The PM agent handles backward compatibility:
 - v1 PRDs use current hardcoded behavior unchanged
 - v2 defaults to `cadence: worktree` (same behavior, explicit config)
 
+**v9.1 Review Cadence Compatibility:**
+- Missing `orchestration.review` → legacy `review.frequency` mapping applied
+- `review.frequency: per-task` → `orchestration.review.trigger: per-task`
+- `review.frequency: per-wave` → `orchestration.review.trigger: per-wave`
+- `review.frequency: per-slice` → `orchestration.review.trigger: per-gate` (renamed)
+- Missing `scope` → defaults to `"pr-diff"`
+- Missing `skip_if_diff_under` → defaults to `0` (never skip)
+- Missing `on_findings` → defaults to `"halt"`
+
 ### Upgrading Mid-Flight PRDs
 
 Users can upgrade existing PRDs:
@@ -424,4 +544,4 @@ No migration script needed — the PM agent reads what's available.
 
 ---
 
-*Generated by [KARIMO v9.0](https://github.com/opensesh/KARIMO)*
+*Generated by [KARIMO v9.1](https://github.com/opensesh/KARIMO)*
