@@ -220,6 +220,30 @@ Each PRD folder contains a `status.json` file that tracks execution state. This 
 | `finalized_at` | ISO datetime | When finalization step completed |
 | `waves` | object | Map of wave number → wave state |
 | `tasks` | object | Map of task ID → task state |
+| `gate_reached` | object | Current gate info when status is `paused-at-gate` (v8.3+) |
+| `gates_passed` | array | List of wave numbers where gates were completed (v8.3+) |
+
+### Gate Tracking Fields (v8.3+)
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `gate_reached.wave` | number | Wave number where gate was reached |
+| `gate_reached.label` | string | Human-readable gate description |
+| `gate_reached.reached_at` | ISO datetime | When gate was reached |
+| `gates_passed` | number[] | Array of wave numbers with completed gates |
+
+**Example (paused-at-gate state):**
+```json
+{
+  "status": "paused-at-gate",
+  "gate_reached": {
+    "wave": 3,
+    "label": "Review baseline metrics",
+    "reached_at": "2026-04-25T10:30:00Z"
+  },
+  "gates_passed": [1]
+}
+```
 
 ### PRD Status Values
 
@@ -230,6 +254,7 @@ Each PRD folder contains a `status.json` file that tracks execution state. This 
 | `active` | Execution in progress |
 | `paused` | Execution paused (manual or usage limit) |
 | `paused-wave-gate` | Wave gate failed, waiting for prior wave PRs to merge (v8.2+) |
+| `paused-at-gate` | Human gate reached, waiting for user review and resume (v8.3+) |
 | `ready-for-merge` | All tasks merged to feature branch, awaiting /karimo:merge (v5.0, feature-branch mode only) |
 | `merging` | /karimo:merge in progress (v5.0, feature-branch mode only) |
 | `complete` | All tasks merged, finalization done |
