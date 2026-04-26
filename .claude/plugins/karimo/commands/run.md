@@ -5,7 +5,7 @@ Execute an approved PRD using feature branch workflow (v7.0). This command gener
 ## Usage
 
 ```bash
-/karimo:run --prd {slug} [--dry-run] [--skip-review] [--review-only] [--brief-only] [--resume] [--task {id}]
+/karimo:run --prd {slug} [--dry-run] [--skip-review] [--review-only] [--brief-only] [--resume] [--task {id}] [--recalibrate]
 ```
 
 ## Arguments
@@ -19,6 +19,7 @@ Execute an approved PRD using feature branch workflow (v7.0). This command gener
 - `--brief-only` (optional): Generate briefs only, stop before review
 - `--resume` (optional): Resume execution after pausing
 - `--task {id}` (optional): Execute only a specific task by ID
+- `--recalibrate` (optional): Re-run orchestration inference mid-execution (v9.5)
 
 ## What This Command Does (5 Phases)
 
@@ -794,6 +795,73 @@ Use `--brief-only` to stop after Phase 1:
 - Just generate briefs for review
 - Manual inspection before automated review
 - Resume later with `--resume`
+
+---
+
+## Recalibrate (v9.5)
+
+Use `--recalibrate` to re-run orchestration inference on an active PRD:
+
+```bash
+/karimo:run --prd feature-name --recalibrate
+```
+
+**What it does:**
+1. Pauses current execution
+2. Re-analyzes remaining tasks and complexity
+3. Presents updated orchestration recommendations
+4. User accepts or rejects changes
+5. Resumes with new settings (or continues with current)
+
+**Use cases:**
+- Early waves revealed higher complexity than expected
+- Review findings suggest different gate strategy needed
+- Cost optimization after initial execution started
+- Risk profile changed mid-execution
+
+**Recalibration UI:**
+
+```
+╭──────────────────────────────────────────────────────────────╮
+│  Orchestration Recalibration                                 │
+╰──────────────────────────────────────────────────────────────╯
+
+Current progress: Wave 4/8, 12 tasks remaining
+
+Re-analyzing based on:
+  - Remaining task complexity: 85 points
+  - High-risk tasks remaining: 2
+  - Review findings so far: 3 P2, 0 P1
+
+Updated Recommendation:
+  Gate model: pause → conditional (lower risk remaining)
+  Review trigger: per-task → per-wave (cost optimization)
+  Complexity threshold: 5 → 7 (based on execution patterns)
+
+[A] Accept changes
+[K] Keep current settings
+[C] Customize
+```
+
+**Recalibration record:**
+
+Each recalibration is recorded in `status.json`:
+
+```json
+{
+  "recalibrations": [
+    {
+      "at_wave": 4,
+      "timestamp": "2026-04-26T10:30:00Z",
+      "reason": "user_triggered",
+      "changes": {
+        "gate_model": { "from": "conditional", "to": "pause" },
+        "review_trigger": { "from": "per-task", "to": "per-wave" }
+      }
+    }
+  ]
+}
+```
 
 ---
 

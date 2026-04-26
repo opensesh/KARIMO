@@ -801,7 +801,171 @@ load_gate_model
 
 # Load model config (v9.3)
 load_model_config
+
+# Check for recalibration flag (v9.5)
+if [ "${RECALIBRATE:-false}" = "true" ]; then
+  run_recalibration "$prd_path" "$prd_slug"
+fi
 ```
+
+### Recalibration Flow (v9.5)
+
+Handle mid-PRD recalibration when `--recalibrate` flag is passed:
+
+```bash
+run_recalibration() {
+  local prd_path="$1"
+  local prd_slug="$2"
+  local status_file="${prd_path}/status.json"
+  local config_file="${prd_path}/.execution_config.json"
+  local tasks_yaml="${prd_path}/tasks.yaml"
+
+  echo ""
+  echo "╭──────────────────────────────────────────────────────────────╮"
+  echo "│  Orchestration Recalibration                                 │"
+  echo "╰──────────────────────────────────────────────────────────────╯"
+  echo ""
+
+  # Get current progress
+  local current_wave=$(jq -r '.current_wave // 1' "$status_file")
+  local total_waves=$(yq '.tasks | map(.wave) | max' "$tasks_yaml" 2>/dev/null || echo "1")
+  local completed_tasks=$(jq -r '[.tasks | to_entries[] | select(.value.status == "done")] | length' "$status_file")
+  local total_tasks=$(yq '.tasks | length' "$tasks_yaml" 2>/dev/null || echo "0")
+  local remaining_tasks=$((total_tasks - completed_tasks))
+
+  echo "Current progress: Wave ${current_wave}/${total_waves}, ${remaining_tasks} tasks remaining"
+  echo ""
+
+  # Re-analyze remaining tasks
+  local remaining_complexity=$(calculate_remaining_complexity "$status_file" "$tasks_yaml")
+  local remaining_high_risk=$(count_remaining_high_risk "$status_file" "$tasks_yaml")
+  local p1_so_far=$(jq -r '[.tasks | to_entries[] | .value.review.findings_by_priority.p1 // 0] | add' "$status_file" 2>/dev/null || echo "0")
+  local p2_so_far=$(jq -r '[.tasks | to_entries[] | .value.review.findings_by_priority.p2 // 0] | add' "$status_file" 2>/dev/null || echo "0")
+
+  echo "Re-analyzing based on:"
+  echo "  - Remaining task complexity: ${remaining_complexity} points"
+  echo "  - High-risk tasks remaining: ${remaining_high_risk}"
+  echo "  - Review findings so far: ${p2_so_far} P2, ${p1_so_far} P1"
+  echo ""
+
+  # Generate updated recommendations
+  generate_recalibration_recommendations \
+    "$remaining_complexity" "$remaining_high_risk" "$p1_so_far" "$p2_so_far" "$config_file"
+
+  echo ""
+
+  # User choice
+  echo "[A] Accept changes"
+  echo "[K] Keep current settings"
+  echo "[C] Customize"
+  echo ""
+}
+
+# Calculate remaining complexity (v9.5)
+calculate_remaining_complexity() {
+  local status_file="$1"
+  local tasks_yaml="$2"
+
+  # Get task IDs not yet done
+  local remaining_ids=$(jq -r '.tasks | to_entries[] | select(.value.status != "done") | .key' "$status_file")
+
+  local total=0
+  for task_id in $remaining_ids; do
+    local complexity=$(yq -r --arg tid "$task_id" '.tasks[] | select(.id == $tid) | .complexity // 3' "$tasks_yaml" 2>/dev/null || echo "3")
+    total=$((total + complexity))
+  done
+
+  echo "$total"
+}
+
+# Count remaining high-risk tasks (v9.5)
+count_remaining_high_risk() {
+  local status_file="$1"
+  local tasks_yaml="$2"
+
+  local remaining_ids=$(jq -r '.tasks | to_entries[] | select(.value.status != "done") | .key' "$status_file")
+
+  local count=0
+  for task_id in $remaining_ids; do
+    local complexity=$(yq -r --arg tid "$task_id" '.tasks[] | select(.id == $tid) | .complexity // 3' "$tasks_yaml" 2>/dev/null || echo "3")
+    if [ "$complexity" -ge 7 ]; then
+      count=$((count + 1))
+    fi
+  done
+
+  echo "$count"
+}
+
+# Generate recalibration recommendations (v9.5)
+generate_recalibration_recommendations() {
+  local remaining_complexity="$1"
+  local remaining_high_risk="$2"
+  local p1_so_far="$3"
+  local p2_so_far="$4"
+  local config_file="$5"
+
+  # Get current settings
+  local current_gate_model=$(jq -r '.orchestration.gates.model // "pause"' "$config_file")
+  local current_review_trigger=$(jq -r '.orchestration.review.trigger // "per-task"' "$config_file")
+  local current_threshold=$(jq -r '.models.complexity_threshold // 5' "$config_file")
+
+  echo "Updated Recommendation:"
+
+  # Gate model recommendation
+  if [ "$remaining_high_risk" -eq 0 ] && [ "$p1_so_far" -eq 0 ]; then
+    if [ "$current_gate_model" = "pause" ]; then
+      echo "  Gate model: pause → conditional (lower risk remaining)"
+    fi
+  elif [ "$remaining_high_risk" -ge 2 ] || [ "$p1_so_far" -gt 0 ]; then
+    if [ "$current_gate_model" != "pause" ]; then
+      echo "  Gate model: ${current_gate_model} → pause (elevated risk)"
+    fi
+  fi
+
+  # Review trigger recommendation
+  if [ "$remaining_complexity" -lt 50 ]; then
+    if [ "$current_review_trigger" = "per-task" ]; then
+      echo "  Review trigger: per-task → per-wave (cost optimization)"
+    fi
+  fi
+
+  # Complexity threshold recommendation
+  local total_findings=$((p1_so_far + p2_so_far))
+  if [ "$total_findings" -gt 5 ]; then
+    if [ "$current_threshold" -gt 3 ]; then
+      echo "  Complexity threshold: ${current_threshold} → 3 (increase quality focus)"
+    fi
+  elif [ "$total_findings" -eq 0 ] && [ "$remaining_complexity" -gt 100 ]; then
+    if [ "$current_threshold" -lt 7 ]; then
+      echo "  Complexity threshold: ${current_threshold} → 7 (cost optimization)"
+    fi
+  fi
+}
+
+# Record recalibration in status.json (v9.5)
+record_recalibration() {
+  local status_file="$1"
+  local wave="$2"
+  local action="$3"
+  local changes_json="$4"
+
+  local timestamp=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+
+  local recal_entry=$(jq -n \
+    --arg wave "$wave" \
+    --arg ts "$timestamp" \
+    --arg action "$action" \
+    --argjson changes "$changes_json" \
+    '{
+      at_wave: ($wave | tonumber),
+      timestamp: $ts,
+      reason: "user_triggered",
+      action: $action,
+      changes: $changes
+    }')
+
+  jq --argjson entry "$recal_entry" '.recalibrations = (.recalibrations // []) + [$entry]' "$status_file" > tmp.json && mv tmp.json "$status_file"
+}
 
 **Detect issues before starting:**
 - Missing dependencies (task references non-existent ID)
