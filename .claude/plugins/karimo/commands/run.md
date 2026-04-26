@@ -14,6 +14,7 @@ Execute an approved PRD using feature branch workflow (v7.0). This command gener
 - `--dry-run` (optional): Preview the execution plan without making changes
 - `--skip-review` (optional): Skip brief review and execute immediately
 - `--skip-config` (optional): Use default execution config without prompting
+- `--no-gates` (optional): Override gate requirement for large PRDs (v8.3)
 - `--review-only` (optional): Generate briefs and review, stop without executing
 - `--brief-only` (optional): Generate briefs only, stop before review
 - `--resume` (optional): Resume execution after pausing
@@ -185,26 +186,95 @@ Your choice:
 
 ## Phase 3.5: Execution Configuration
 
-**Before spawning the PM agent**, present execution configuration prompt:
+**Before spawning the PM agent**, validate PRD complexity and present execution configuration.
+
+### Large PRD Safety Check (v8.3)
+
+PRDs with ≥15 tasks require at least 1 gate configured, unless explicitly overridden:
+
+```
+❌ This PRD has {n} tasks but no gates configured.
+
+For PRDs with ≥15 tasks, gates are required for:
+  • Token efficiency (avoid compaction)
+  • Decision lineage (learnings feed forward)
+  • Focused human review
+
+Options:
+  1. Configure gates: /karimo:run --prd {slug} (will prompt)
+  2. Override: /karimo:run --prd {slug} --no-gates
+```
+
+### Step 1: Complexity Summary
+
+Display PRD complexity metrics from interview assessment:
 
 ```
 ╭──────────────────────────────────────────────────────────────╮
 │  Execution Configuration: {slug}                             │
 ╰──────────────────────────────────────────────────────────────╯
 
-Review settings (from .karimo/config.yaml):
-  Provider: {provider}  # greptile | code-review | none
-  Threshold: {threshold}/{threshold}
-  Max revision loops: [1-5, default: 3] ___
+Complexity Summary:
+  Tasks: {task_count}
+  Waves: {wave_count}
+  Total points: {total_points}
+  Distribution: {sonnet_count} Sonnet / {opus_count} Opus
+  High-risk (7+): {high_risk_count} tasks
+
+{slicing_recommendation}
+```
+
+### Step 2: Review Frequency Selection
+
+```
+Review Frequency:
+
+Provider: {provider} ({pricing_info})
+
+Options:
+  (1) Per-task — Review each PR individually
+  (2) Per-wave — Consolidated review after wave
+  (3) Per-slice — Review only at gate checkpoints
+
+Cost estimates (Claude Code Review ~$20/PR):
+  Per-task: {task_count} × $20 = ${total}
+  Per-wave: {wave_count} × $20 = ${total}
+  Per-slice: {slice_count} × $20 = ${total}
+
+Note: Greptile is $30/month flat (frequency affects timing, not cost)
+```
+
+### Step 3: Gate Configuration
+
+If slicing is recommended or user requests:
+
+```
+Gates for {slice_count} slices:
+  Gate 1: After wave {n} — "{label}"
+  Gate 2: After wave {m} — "{label}"
+
+Auto-pause at gates? [Y/n]
+```
+
+Gate benefits explained:
+- Decision lineage feeds forward (Slice 1 findings baked into Slice 2 briefs)
+- No compaction lossiness (specific decisions survive in disk artifacts)
+- Recovery surface (debug in clean chat)
+- Human review budget (focused gates vs mega-review)
+- Cost-control on Greptile (per-wave economics feasible with gates)
+
+### Step 4: Confirm
+
+```
+Review settings:
+  Provider: {provider}
+  Frequency: {frequency}
+  Max revision loops: {max_loops}
+  Gates: {gate_count} ({gate_labels})
 
 Allow below-threshold pass when:
   [x] Future-work-overlap (files created by later tasks)
   [x] False-positive-factual (contradicts project config)
-
-Review mode for this execution:
-  ( ) Automated (Greptile/Code Review)
-  ( ) Manual (human approval required)
-  ( ) Skip review (direct merge - use with caution)
 
 Proceed with execution? [y/N]:
 ```
@@ -224,6 +294,13 @@ Proceed with execution? [y/N]:
 | `future-work-overlap` | File created by later-wave task | ✓ Enabled |
 | `false-positive-factual` | Contradicts CLAUDE.md or config | ✓ Enabled |
 
+**Review Frequency:**
+| Frequency | Trigger | Cost Impact |
+|-----------|---------|-------------|
+| `per-task` | After each task PR | Highest (most reviews) |
+| `per-wave` | After wave completes | Medium (consolidated) |
+| `per-slice` | Only at gates | Lowest (focused) |
+
 **Review Mode Override:**
 - **Automated** — Use configured provider (Greptile/Code Review)
 - **Manual** — Post comment requesting human review, wait for merge
@@ -238,8 +315,26 @@ Configuration is stored for PM agent to read:
 cat > ".karimo/prds/{NNN}_{slug}/.execution_config.json" << 'EOF'
 {
   "configured_at": "{ISO timestamp}",
+  "slicing": {
+    "enabled": true,
+    "slice_count": 3,
+    "gates": [
+      { "after_wave": 2, "label": "Review baseline metrics" },
+      { "after_wave": 5, "label": "Validate core functionality" }
+    ],
+    "auto_pause_at_gates": true
+  },
+  "review": {
+    "frequency": "per-wave",
+    "provider": "greptile",
+    "estimated_cost": 90.00
+  },
+  "model_override": {
+    "enabled": true,
+    "force_opus_tasks": ["1a"],
+    "force_sonnet_tasks": []
+  },
   "max_revision_loops": 3,
-  "review_mode": "automated",
   "allow_bypass": {
     "future_work_overlap": true,
     "false_positive_factual": true
@@ -257,6 +352,19 @@ Use `--skip-config` to use defaults without prompting:
 ```
 
 Uses values from `.karimo/config.yaml` without user confirmation.
+
+### No Gates Override
+
+Use `--no-gates` to override the large PRD gate requirement:
+
+```bash
+/karimo:run --prd feature-name --no-gates
+```
+
+**Warning:** Large PRDs without gates risk:
+- Context compaction (early decisions lost to summarization)
+- Mega-review burden (all changes reviewed at once)
+- No human checkpoints (no early course correction)
 
 ---
 
