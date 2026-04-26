@@ -7,6 +7,67 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [9.1.0] - 2026-04-26
+
+### Added
+
+- **Review Cadence Configuration (Phase 2)** — Configurable control over when and how reviews fire:
+
+  - **Review Trigger** — When reviews fire:
+    - `per-task`: After each task PR (default, high scrutiny)
+    - `per-wave`: After wave completes (balanced)
+    - `per-gate`: Only at gates (cost optimization)
+    - `on-umbrella`: Only final feature→main PR (maximum savings)
+
+  - **Review Scope** — What diff is reviewed:
+    - `pr-diff`: Single PR changes (default, minimal context)
+    - `wave-diff`: All PRs in wave combined (wave-level context)
+    - `cumulative`: All changes since last review (maximum context)
+
+  - **Skip Small Diffs** — `skip_if_diff_under` threshold to skip review for trivial changes (0 = never skip)
+
+  - **On Findings Behavior** — `on_findings` controls merge blocking:
+    - `halt`: Block merge until findings resolved (default)
+    - `comment-only`: Post findings as comments, allow merge (advisory mode)
+
+  - **Per-Provider Overrides** — Different providers can fire at different execution points:
+    - `fire_at`: Array of trigger points (task, wave, gate, umbrella)
+    - Provider-specific `on_findings` override
+
+- **PM Agent Review Cadence Functions:**
+  - `load_review_cadence()`: Load trigger, scope, skip threshold, per-provider overrides
+  - `should_skip_review_small_diff()`: Skip review for PRs under line threshold
+  - Updated `should_spawn_reviewer()`: Support per-provider fire_at and new trigger values
+
+- **PM-Reviewer Scope and on_findings Handling:**
+  - `get_review_diff()`: Scope-based diff generation (pr-diff, wave-diff, cumulative)
+  - `handle_findings()`: on_findings behavior (halt vs comment-only)
+  - Updated decision trees for Greptile and Code Review with on_findings support
+
+- **Phase 3.5 Review Cadence Selection:**
+  - Step 3 in execution configuration with trigger, scope, skip, and on_findings options
+  - Per-provider configuration prompt
+  - Updated confirmation display with all review cadence settings
+
+### Changed
+
+- **CONFIG_TEMPLATE.yaml** — Added `orchestration.review` block with all v9.1 fields
+- **EXECUTION_CONFIG_SCHEMA.md** — Document review cadence fields and backward compatibility
+- **pm.md** — Added review cadence loading and updated should_spawn_reviewer()
+- **pm-reviewer.md** — Added scope-based diff and on_findings handling
+- **run.md** — Added review cadence UI to Phase 3.5, updated storage format
+- **ORCHESTRATION.md** — Full Phase 2 documentation, marked complete in roadmap
+
+### Migration
+
+- **Backward Compatible** — Missing `orchestration.review` triggers legacy `review.frequency` mapping:
+  - `per-task` → `trigger: per-task`
+  - `per-wave` → `trigger: per-wave`
+  - `per-slice` → `trigger: per-gate` (renamed)
+- **Defaults** — `scope: pr-diff`, `skip_if_diff_under: 0`, `on_findings: halt`
+
+---
+
 ## [9.0.0] - 2026-04-26
 
 ### Added
