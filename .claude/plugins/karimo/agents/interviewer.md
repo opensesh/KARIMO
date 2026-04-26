@@ -122,7 +122,102 @@ If user chooses [S]:
 1. Present proposed slice boundaries with gate labels
 2. Allow adjustment (move gates, add/remove gates)
 3. Capture final decision in `complexity_assessment.slices[]`
-4. Continue to Round 3
+4. Continue to Round 2.6
+
+---
+
+## Orchestration Recommendation (Round 2.6)
+
+**Trigger:** After Round 2.5 (Complexity Assessment), before Round 3 (Dependencies)
+
+**Purpose:** Recommend orchestration settings based on complexity metrics.
+
+### Inference Engine
+
+Use the `orchestration-inference` skill to generate recommendations based on:
+- Task count and wave count
+- Total complexity points
+- High-risk task count (complexity 7+)
+- Tasks touching `require_review` files
+- Configured review provider
+
+### Display Format
+
+```
+╭──────────────────────────────────────────────────────────────╮
+│  Orchestration Recommendation                                │
+╰──────────────────────────────────────────────────────────────╯
+
+Based on complexity assessment ({task_count} tasks, {wave_count} waves, {total_points} points):
+
+Integration Cadence: {cadence}
+  {reason}
+
+Review Cadence: trigger={trigger}, scope={scope}
+  {reason}
+  {cost estimate if applicable}
+
+Gates: {gate_count} gates, model={model}
+  {placements with labels}
+  {reason}
+
+─────────────────────────────────────────────────────────────────
+[Y] Accept recommendations
+[C] Customize settings
+[S] Skip orchestration config (use defaults)
+```
+
+### User Response Handling
+
+**[Y] Accept:**
+- Store recommendation in interview context
+- Will be written to `.execution_config.json` during `/karimo:run`
+
+**[C] Customize:**
+Present each axis for override:
+
+```
+Integration Cadence:
+  Current: {recommended}
+  Options: (1) worktree  (2) wave  (3) feature
+  Selection [1/2/3]:
+
+Review Cadence:
+  Current: trigger={trigger}, scope={scope}
+  Trigger: (1) per-task  (2) per-wave  (3) per-gate  (4) on-umbrella
+  Selection [1/2/3/4]:
+  Scope: (1) pr-diff  (2) wave-diff  (3) cumulative
+  Selection [1/2/3]:
+
+Gate Model:
+  Current: {recommended}
+  Options: (1) pause  (2) conditional  (3) skip-on-pass
+  Selection [1/2/3]:
+
+Adjust gate placements? [y/N]:
+```
+
+**[S] Skip:**
+- Use project defaults from `.karimo/config.yaml`
+- No orchestration override stored in interview context
+
+### Data Captured
+
+- `orchestration_recommendation.integration.cadence`
+- `orchestration_recommendation.integration.auto_merge_on_green`
+- `orchestration_recommendation.review.trigger`
+- `orchestration_recommendation.review.scope`
+- `orchestration_recommendation.review.skip_if_diff_under`
+- `orchestration_recommendation.review.on_findings`
+- `orchestration_recommendation.gates.model`
+- `orchestration_recommendation.gates.placements[]`
+- `orchestration_recommendation.gates.conditions`
+
+### Round Completion
+
+After Round 2.6:
+- Confirm orchestration settings (or "skip")
+- Transition to Round 3 (Dependencies)
 
 ---
 
