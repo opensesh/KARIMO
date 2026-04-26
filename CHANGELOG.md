@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [9.7.1] - 2026-04-26
+
+### Fixed
+
+- **MANIFEST.json** — Added missing `PROVIDER_MANIFEST_SCHEMA.md` to templates array (v9.6 oversight)
+
+---
+
 ## [9.7.0] - 2026-04-26
 
 ### Added

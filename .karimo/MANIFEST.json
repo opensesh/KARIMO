@@ -1,5 +1,5 @@
 {
-  "version": "9.7.0",
+  "version": "9.7.1",
   "deprecated": {
     "commands": [
       "karimo-modify.md",
@@ -206,6 +206,7 @@
     "PRD_RESEARCH_SECTION_TEMPLATE.md",
     "PRD_TEMPLATE.md",
     "PRE_EXECUTION_REVIEW_TEMPLATE.md",
+    "PROVIDER_MANIFEST_SCHEMA.md",
     "REVIEW_TEMPLATE.md",
     "STATUS_SCHEMA.md",
     "TASK_SCHEMA.md"
