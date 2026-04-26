@@ -1,0 +1,40 @@
+# Claude Code Review Provider Manifest (v9.6)
+# Built-in review provider for KARIMO
+
+name: code-review
+version: 1.0.0
+description: Claude Code Review integration (~$15-25/PR)
+pricing_model: per-pr
+
+# Capabilities
+capabilities:
+  auto_review: true                # Automatically reviews via GitHub check
+  inline_comments: true            # Posts inline code comments
+  score_output: false              # Uses pass/fail based on findings, not score
+  revision_tracking: true          # Tracks 🟣 pre-existing vs new findings
+  batch_review: false              # Reviews PRs individually
+
+# Integration hooks
+hooks:
+  # Code Review auto-triggers via GitHub check — no on_pr_create needed
+  on_pr_create: null
+  on_review_complete: scripts/parse_code_review.sh
+  # Code Review auto-re-triggers on push — no on_revision_push needed
+  on_revision_push: null
+
+# Configuration schema
+config_schema:
+  block_on_red:
+    type: boolean
+    default: true
+    description: Block merge when 🔴 (Normal) findings present
+  ignore_nits:
+    type: boolean
+    default: false
+    description: Ignore 🟡 (Nit) findings — allow merge with nits
+  ignore_preexisting:
+    type: boolean
+    default: true
+    description: Ignore 🟣 (Pre-existing) findings — not from this PR
+
+# No score mapping — Code Review uses finding-based pass/fail

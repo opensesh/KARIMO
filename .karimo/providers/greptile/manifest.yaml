@@ -1,0 +1,41 @@
+# Greptile Provider Manifest (v9.6)
+# Built-in review provider for KARIMO
+
+name: greptile
+version: 1.0.0
+description: Greptile AI-powered code review ($30/month flat rate)
+pricing_model: flat-rate
+
+# Capabilities
+capabilities:
+  auto_review: true                # Automatically reviews PRs via webhook
+  inline_comments: true            # Posts inline code comments with findings
+  score_output: true               # Provides 1-5 confidence score
+  revision_tracking: false         # Does not track revision history internally
+  batch_review: false              # Reviews PRs individually
+
+# Integration hooks
+hooks:
+  # Greptile auto-triggers via GitHub webhook — no on_pr_create needed
+  on_pr_create: null
+  on_review_complete: scripts/parse_greptile.sh
+  # Greptile auto-re-triggers on push — no on_revision_push needed
+  on_revision_push: null
+
+# Configuration schema
+config_schema:
+  threshold:
+    type: number
+    default: 5
+    description: Pass score threshold (1-5)
+    validation:
+      min: 1
+      max: 5
+
+# Score mapping
+score_mapping:
+  type: numeric
+  min: 1
+  max: 5
+  pass_threshold: 5
+  # No conversion needed — native Greptile scale

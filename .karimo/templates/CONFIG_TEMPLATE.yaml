@@ -4,7 +4,7 @@
 # project configuration for KARIMO execution.
 #
 # Location: .karimo/config.yaml
-# Version: 9.5.0
+# Version: 9.6.0
 
 # Project metadata (auto-detected)
 project:
@@ -133,11 +133,29 @@ orchestration:
 
 # Review configuration (legacy — see orchestration.review for v9.1+)
 review:
-  provider: none              # none | greptile | code-review
+  provider: none              # none | greptile | code-review | {custom}
   frequency: per-task         # per-task | per-wave | per-slice
   threshold: 5                # Greptile score threshold (0-5)
   max_revision_loops: 3       # Max revision attempts before escalation
   none_behavior: manual       # manual | auto-pass (when provider: none)
+
+  # Provider registry (v9.6)
+  providers:
+    registered:               # List of available providers
+      - greptile              # Built-in: .karimo/providers/greptile/
+      - code-review           # Built-in: .karimo/providers/code-review/
+      # - my-provider         # Custom: .karimo/providers/my-provider/
+
+    active: none              # Currently active provider (or "none")
+
+    # Per-provider configuration (optional)
+    # config:
+    #   greptile:
+    #     threshold: 5
+    #   code-review:
+    #     block_on_red: true
+    #   my-provider:
+    #     api_endpoint: https://api.example.com
 
 # Cost control settings
 cost:

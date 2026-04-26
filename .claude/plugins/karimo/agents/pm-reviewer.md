@@ -188,12 +188,101 @@ EOF
 
 ## Review Flow
 
+### Step 0: Load Review Provider (v9.6)
+
+Load provider dynamically from manifest:
+
+```bash
+# Load provider from manifest (v9.6)
+load_review_provider() {
+  local provider_name="$1"
+  local manifest_path=".karimo/providers/${provider_name}/manifest.yaml"
+
+  if [ ! -f "$manifest_path" ]; then
+    echo "Provider manifest not found: $manifest_path"
+    echo "Falling back to legacy hardcoded behavior"
+    return 1
+  fi
+
+  echo "Loading provider: $provider_name"
+
+  # Load capabilities
+  provider_auto_review=$(yq '.capabilities.auto_review // true' "$manifest_path")
+  provider_score_output=$(yq '.capabilities.score_output // false' "$manifest_path")
+  provider_inline_comments=$(yq '.capabilities.inline_comments // false' "$manifest_path")
+  provider_revision_tracking=$(yq '.capabilities.revision_tracking // false' "$manifest_path")
+
+  # Load hooks
+  on_pr_create=$(yq '.hooks.on_pr_create // empty' "$manifest_path")
+  on_review_complete=$(yq '.hooks.on_review_complete // empty' "$manifest_path")
+  on_revision_push=$(yq '.hooks.on_revision_push // empty' "$manifest_path")
+
+  # Load config schema defaults
+  provider_config_defaults=$(yq '.config_schema | to_entries | map({(.key): .value.default}) | add' "$manifest_path")
+
+  echo "  ✓ Capabilities: auto_review=$provider_auto_review, score=$provider_score_output"
+  echo "  ✓ Hooks loaded: on_review_complete=${on_review_complete:-none}"
+
+  return 0
+}
+
+# Trigger review using provider hook (v9.6)
+trigger_provider_review() {
+  local pr_number="$1"
+  local provider_name="$2"
+
+  if [ -n "$on_pr_create" ] && [ "$on_pr_create" != "null" ]; then
+    echo "Triggering review via provider hook..."
+    export PR_NUMBER="$pr_number"
+    export PR_URL="https://github.com/${REPO_OWNER}/${REPO_NAME}/pull/${pr_number}"
+    export REPO_OWNER="${GITHUB_OWNER}"
+    export REPO_NAME="${GITHUB_REPO}"
+    bash ".karimo/providers/${provider_name}/${on_pr_create}"
+  else
+    echo "Provider auto-triggers via webhook — no manual trigger needed"
+  fi
+}
+
+# Parse review results using provider hook (v9.6)
+parse_provider_results() {
+  local pr_number="$1"
+  local provider_name="$2"
+
+  if [ -n "$on_review_complete" ] && [ "$on_review_complete" != "null" ]; then
+    echo "Parsing review results via provider hook..."
+    export PR_NUMBER="$pr_number"
+    export REPO_OWNER="${GITHUB_OWNER}"
+    export REPO_NAME="${GITHUB_REPO}"
+    export THRESHOLD="${REVIEW_CONFIG_THRESHOLD:-5}"
+
+    # Run parse script and capture output
+    local results
+    results=$(bash ".karimo/providers/${provider_name}/${on_review_complete}")
+
+    # Export results as variables
+    eval "$results"
+
+    return 0
+  fi
+
+  return 1
+}
+```
+
 ### Step 1: Detect Review Provider
 
 ```bash
 # Read from input or config
 review_provider="${REVIEW_CONFIG_PROVIDER:-greptile}"
 none_behavior="${REVIEW_CONFIG_NONE_BEHAVIOR:-manual}"  # manual | auto-pass
+
+# Try to load provider via manifest (v9.6)
+if load_review_provider "$review_provider" 2>/dev/null; then
+  echo "Using provider manifest: $review_provider"
+else
+  # Fall back to legacy detection
+  echo "Using legacy provider detection"
+fi
 
 case "$review_provider" in
   "greptile")
