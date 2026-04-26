@@ -1,19 +1,19 @@
 # Orchestration Policy Layer
 
-**Version:** 9.0.0
+**Version:** 9.1.0
 **Status:** Active
 
 ---
 
 ## Overview
 
-The Orchestration Policy Layer provides configurable control over how KARIMO executes PRDs. Instead of hardcoded behavior, v9.0 introduces three configurable axes:
+The Orchestration Policy Layer provides configurable control over how KARIMO executes PRDs. Instead of hardcoded behavior, v9.x introduces three configurable axes:
 
-1. **Integration Cadence** — When worktree commits flow to feature branch
-2. **Review Cadence** — When review tools fire and against what scope (Phase 2: v9.1)
+1. **Integration Cadence** — When worktree commits flow to feature branch (Phase 1: v9.0 ✓)
+2. **Review Cadence** — When review tools fire and against what scope (Phase 2: v9.1 ✓)
 3. **Gate Model** — Where PM halts for human review (Phase 3: v9.2)
 
-This document focuses on **Integration Cadence** (Phase 1, v9.0).
+This document covers **Integration Cadence** (v9.0) and **Review Cadence** (v9.1).
 
 ---
 
@@ -188,6 +188,144 @@ The `complete_wave()` function handles wave completion based on cadence:
 
 ---
 
+## Review Cadence (Phase 2: v9.1)
+
+Review Cadence controls when reviews fire and what scope they cover.
+
+### Configuration
+
+```yaml
+orchestration:
+  review:
+    trigger: per-task           # per-task | per-wave | per-gate | on-umbrella
+    scope: pr-diff              # pr-diff | wave-diff | cumulative
+    skip_if_diff_under: 0       # Skip review if PR has fewer lines (0 = never skip)
+    on_findings: halt           # halt | comment-only
+
+    # Per-provider overrides (optional)
+    providers:
+      greptile:
+        fire_at: [wave]         # When this provider fires
+        on_findings: halt
+      code-review:
+        fire_at: [umbrella]
+        on_findings: comment-only
+```
+
+### Review Trigger Options
+
+| Trigger | When Reviews Fire | Best For |
+|---------|-------------------|----------|
+| `per-task` | After each task PR | High scrutiny (default) |
+| `per-wave` | After wave completes | Balanced cost/quality |
+| `per-gate` | Only at gates | Cost optimization |
+| `on-umbrella` | Only final feature→main PR | Maximum savings |
+
+### Review Scope Options
+
+| Scope | What Gets Reviewed | Context Level |
+|-------|-------------------|---------------|
+| `pr-diff` | Single PR changes | Minimal (default) |
+| `wave-diff` | All PRs in wave combined | Wave-level |
+| `cumulative` | Changes since last review | Maximum |
+
+### Skip Small Diffs
+
+Set `skip_if_diff_under` to skip reviews for trivial changes:
+
+| Value | Behavior |
+|-------|----------|
+| `0` | Never skip (default) |
+| `50` | Skip PRs under 50 lines |
+| `100` | Skip PRs under 100 lines |
+
+### on_findings Behavior
+
+| Value | Behavior | Use Case |
+|-------|----------|----------|
+| `halt` | Block merge until findings resolved | Strict quality gate (default) |
+| `comment-only` | Post findings as comments, allow merge | Advisory mode |
+
+### Per-Provider Overrides
+
+Different providers can fire at different points:
+
+```yaml
+providers:
+  greptile:
+    fire_at: [wave]           # Greptile reviews at wave completion
+    on_findings: halt         # Block on greptile findings
+  code-review:
+    fire_at: [umbrella]       # Code Review at final PR only
+    on_findings: comment-only # Advisory only
+```
+
+This allows cost optimization (Greptile flat rate at wave level) while getting comprehensive review (Code Review) at the umbrella level.
+
+### PM Agent Behavior (v9.1)
+
+The PM agent loads review cadence with `load_review_cadence()`:
+
+```bash
+load_review_cadence() {
+  local config_file="${prd_path}/.execution_config.json"
+
+  if [ "$orchestration_version" = "2" ]; then
+    local has_orch_review=$(jq -r '.orchestration.review // empty' "$config_file")
+
+    if [ -n "$has_orch_review" ]; then
+      review_trigger=$(jq -r '.orchestration.review.trigger // "per-task"' "$config_file")
+      review_scope=$(jq -r '.orchestration.review.scope // "pr-diff"' "$config_file")
+      skip_if_diff_under=$(jq -r '.orchestration.review.skip_if_diff_under // 0' "$config_file")
+      on_findings_default=$(jq -r '.orchestration.review.on_findings // "halt"' "$config_file")
+
+      # Per-provider overrides
+      greptile_fire_at=$(jq -r '.orchestration.review.providers.greptile.fire_at // []' "$config_file")
+      code_review_fire_at=$(jq -r '.orchestration.review.providers["code-review"].fire_at // []' "$config_file")
+    else
+      # Legacy mapping from review.frequency
+      case "$(jq -r '.review.frequency // "per-task"' "$config_file")" in
+        "per-task") review_trigger="per-task" ;;
+        "per-wave") review_trigger="per-wave" ;;
+        "per-slice") review_trigger="per-gate" ;;
+      esac
+      review_scope="pr-diff"
+      skip_if_diff_under=0
+    fi
+  fi
+}
+```
+
+### PM-Reviewer Behavior (v9.1)
+
+The PM-Reviewer handles scope-based diff generation and on_findings:
+
+```bash
+# Scope-based diff generation
+get_review_diff() {
+  case "$scope" in
+    "pr-diff")   gh pr diff "$pr_number" ;;
+    "wave-diff") # Combined diff from all wave PRs ;;
+    "cumulative") git diff "$last_reviewed_sha"..HEAD ;;
+  esac
+}
+
+# on_findings handling
+handle_findings() {
+  case "$on_findings" in
+    "halt")
+      [ -n "$findings" ] && verdict="fail"
+      ;;
+    "comment-only")
+      [ -n "$findings" ] && gh pr comment "$pr_number" --body "..."
+      verdict="pass"  # Allow merge despite findings
+      ;;
+  esac
+}
+```
+
+---
+
 ## Backward Compatibility
 
 ### orchestration_version Field
@@ -203,6 +341,15 @@ Existing PRDs continue working unchanged:
 - Missing `orchestration_version` → treated as `1`
 - v1 PRDs use hardcoded worktree cadence
 - No breaking changes to existing workflows
+
+**v9.1 Review Cadence Migration:**
+- Missing `orchestration.review` → legacy `review.frequency` mapping applied
+- `review.frequency: per-task` → `trigger: per-task`
+- `review.frequency: per-wave` → `trigger: per-wave`
+- `review.frequency: per-slice` → `trigger: per-gate` (renamed)
+- Missing `scope` → defaults to `pr-diff`
+- Missing `skip_if_diff_under` → defaults to `0`
+- Missing `on_findings` → defaults to `halt`
 
 ### Upgrading Mid-Flight PRDs
 
@@ -251,20 +398,15 @@ When selecting a cadence, consider:
 - `orchestration.integration.auto_merge_on_green`: boolean
 - PM agent cadence-aware wave completion
 
-### Phase 2: Review Cadence (v9.1)
+### Phase 2: Review Cadence (v9.1) ✓
 
-```yaml
-orchestration:
-  review:
-    trigger: per-task           # per-task | per-wave | per-gate | on-umbrella
-    scope: pr-diff              # pr-diff | wave-diff | cumulative
-    skip_if_diff_under: 50      # skip review if PR has <50 lines
-    providers:
-      greptile:
-        fire_at: [wave]
-      code-review:
-        fire_at: [umbrella]
-```
+- `orchestration.review.trigger`: per-task, per-wave, per-gate, on-umbrella
+- `orchestration.review.scope`: pr-diff, wave-diff, cumulative
+- `orchestration.review.skip_if_diff_under`: line threshold
+- `orchestration.review.on_findings`: halt, comment-only
+- `orchestration.review.providers`: per-provider fire_at overrides
+- PM agent review cadence loading
+- PM-Reviewer scope-based diff and on_findings handling
 
 ### Phase 3: Gate Model + Inference (v9.2)
 
@@ -291,4 +433,4 @@ Inference engine will recommend orchestration settings based on PRD complexity.
 
 ---
 
-*Generated by [KARIMO v9.0](https://github.com/opensesh/KARIMO)*
+*Generated by [KARIMO v9.1](https://github.com/opensesh/KARIMO)*
