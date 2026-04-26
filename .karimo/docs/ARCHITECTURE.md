@@ -1,6 +1,6 @@
 # KARIMO Architecture
 
-**Version:** 8.3.0
+**Version:** 9.0.0
 **Status:** Active
 
 ---
@@ -21,7 +21,7 @@ KARIMO is an autonomous development **methodology** delivered via Claude Code co
 
 ## Feature Architecture
 
-KARIMO is built on 10 core features — 5 native Claude Code APIs and 5 custom systems. Understanding this boundary clarifies what KARIMO adds vs what Claude Code provides out of the box.
+KARIMO is built on 11 core features — 5 native Claude Code APIs and 6 custom systems. Understanding this boundary clarifies what KARIMO adds vs what Claude Code provides out of the box.
 
 ### Native Features (Using Claude Code Directly)
 
@@ -48,6 +48,7 @@ These features have **no native Claude Code equivalent**. KARIMO implements them
 | **8** | [Branch Assertion](#branch-assertion-4-layer-validation) | 4-layer validation preventing commits to wrong branches | Native worktrees isolate files but don't verify branch identity before commits |
 | **9** | [Loop Detection](#loop-detection-semantic-fingerprinting) | Semantic fingerprinting catches stuck tasks via diff comparison | Claude Code has no built-in loop/repetition detection |
 | **10** | [Crash Recovery](#crash-recovery-git-state-reconciliation) | Git-based state reconstruction when sessions crash | Native worktrees persist but don't track what was "in progress" |
+| **11** | [Orchestration Policy](#orchestration-policy-layer-v90) | Configurable integration cadence (worktree, wave, feature) | Claude Code doesn't provide cadence-aware wave completion or integration strategies |
 
 ---
 
@@ -182,6 +183,52 @@ for task_id in all_tasks:
 - How to resume partial execution
 
 **Without this:** After a crash, you'd have to start over or manually inspect git state.
+
+---
+
+### Orchestration Policy Layer (v9.0)
+
+**Location:** `pm.md` lines 280-350, `.karimo/config.yaml`, `.execution_config.json`
+
+Configurable control over how task work flows to the feature branch:
+
+| Cadence | Behavior | Use Case |
+|---------|----------|----------|
+| `worktree` | Tasks merge to feature when wave completes | Default, most PRDs |
+| `wave` | Wave PRs for consolidated review | Large PRDs (15+ tasks) |
+| `feature` | Individual task PRs to feature | Small PRDs, boilerplate |
+
+**Configuration:**
+
+```yaml
+# .karimo/config.yaml (project defaults)
+orchestration:
+  version: 2
+  integration:
+    cadence: worktree
+    auto_merge_on_green: true
+```
+
+```json
+// .execution_config.json (per-PRD override)
+{
+  "orchestration_version": 2,
+  "orchestration": {
+    "integration": {
+      "cadence": "wave"
+    }
+  }
+}
+```
+
+**Why custom:** Claude Code doesn't provide:
+- Configurable integration strategies
+- Wave-level PR aggregation
+- Cadence-aware completion handlers
+
+**Without this:** All PRDs would use the same hardcoded worktree flow, regardless of size or review needs.
+
+**Full documentation:** [ORCHESTRATION.md](ORCHESTRATION.md)
 
 ---
 
