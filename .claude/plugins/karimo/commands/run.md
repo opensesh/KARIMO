@@ -341,17 +341,66 @@ Cost estimates (Claude Code Review ~$20/PR):
 
 Note: Greptile is $30/month flat (trigger affects timing, not cost)
 
-### Step 4: Gate Configuration
+### Step 4: Gate Configuration (v9.2)
 
-If slicing is recommended or user requests:
+Configure gate model behavior and placements:
 
 ```
-Gates for {slice_count} slices:
+─────────────────────────────────────────────────────────────────
+Gate Model:
+─────────────────────────────────────────────────────────────────
+
+How should gates behave?
+
+  (1) Pause (Recommended) — Always pause for human approval
+      Safest option. Human reviews at each gate before continuing.
+
+  (2) Conditional — Auto-pass if tests/build pass
+      Risk-aware automation. Pauses only when conditions fail.
+
+  (3) Skip-on-pass — Skip gate entirely if conditions met
+      Most automated. Gates become invisible when all green.
+
+Model selection [1/2/3]: 1
+
+─────────────────────────────────────────────────────────────────
+Gate Conditions (for conditional/skip-on-pass):
+─────────────────────────────────────────────────────────────────
+
+Conditions for auto-pass:
+
+  [x] Require tests pass
+  [x] Require build pass
+  Max critical findings allowed: [0]
+
+─────────────────────────────────────────────────────────────────
+Gate Placement:
+─────────────────────────────────────────────────────────────────
+
+Auto-place gates? [Y/n]: y
+
+Suggested gates based on {wave_count} waves:
   Gate 1: After wave {n} — "{label}"
   Gate 2: After wave {m} — "{label}"
 
-Auto-pause at gates? [Y/n]
+Accept gate placements? [y/N]:
 ```
+
+**Gate Model Values:**
+
+| Model | Behavior | When to Use |
+|-------|----------|-------------|
+| `pause` | Always halt for human | High-risk, critical decisions (default) |
+| `conditional` | Auto-pass if conditions met | Risk-aware automation |
+| `skip-on-pass` | Skip gate entirely if green | Low-risk, proven patterns |
+
+**Gate Conditions:**
+
+| Condition | Default | Description |
+|-----------|---------|-------------|
+| `require_tests_pass` | true | All tests must pass |
+| `require_build_pass` | true | Build must succeed |
+| `max_critical_findings` | 0 | Max P1 findings allowed (0 = none) |
 
 Gate benefits explained:
 - Decision lineage feeds forward (Slice 1 findings baked into Slice 2 briefs)
@@ -359,6 +408,7 @@ Gate benefits explained:
 - Recovery surface (debug in clean chat)
 - Human review budget (focused gates vs mega-review)
 - Cost-control on Greptile (per-wave economics feasible with gates)
+- **v9.2:** Conditional/skip-on-pass reduces gate fatigue for low-risk PRDs
 
 ### Step 5: Confirm
 
@@ -371,7 +421,11 @@ Review settings:
   Skip if diff under: {skip_threshold} lines
   On findings: {on_findings}
   Max revision loops: {max_loops}
+
+Gate configuration (v9.2):
+  Model: {gate_model}
   Gates: {gate_count} ({gate_labels})
+  Conditions: tests={require_tests_pass}, build={require_build_pass}, max_p1={max_critical_findings}
 
 Per-provider overrides:
   Greptile: {greptile_fire_at or "default"}
@@ -430,7 +484,7 @@ Proceed with execution? [y/N]:
 Configuration is stored for PM agent to read:
 
 ```bash
-# Write execution config (v9.1)
+# Write execution config (v9.2)
 cat > ".karimo/prds/{NNN}_{slug}/.execution_config.json" << 'EOF'
 {
   "configured_at": "{ISO timestamp}",
@@ -449,6 +503,20 @@ cat > ".karimo/prds/{NNN}_{slug}/.execution_config.json" << 'EOF'
         "greptile": { "fire_at": [], "on_findings": "halt" },
         "code-review": { "fire_at": [], "on_findings": "halt" }
       }
+    },
+    "gates": {
+      "model": "conditional",
+      "auto_place": true,
+      "max_waves_per_gate": 8,
+      "conditions": {
+        "require_tests_pass": true,
+        "require_build_pass": true,
+        "max_critical_findings": 0
+      },
+      "placements": [
+        { "after_wave": 2, "label": "Review baseline metrics" },
+        { "after_wave": 5, "label": "Validate core functionality" }
+      ]
     }
   },
   "slicing": {
@@ -889,13 +957,13 @@ Need help? Run /karimo:doctor
 
 ## Technical Details
 
-This command (v9.1) implements the 5-phase execution model:
+This command (v9.2) implements the 5-phase execution model:
 
 - **Phase 1 — Brief Generation:** Spawns brief-writer with research context
 - **Phase 2 — Auto-Review:** Spawns brief-reviewer for validation
 - **Phase 3 — User Iterate:** Interactive approval/modification loop
-- **Phase 3.5 — Execution Configuration:** User configures integration cadence (v9.0), review cadence (v9.1), bypass rules, review mode
-- **Phase 4 — Orchestrate:** PM agent executes tasks with configured cadence
+- **Phase 3.5 — Execution Configuration:** User configures integration cadence (v9.0), review cadence (v9.1), gate model (v9.2), bypass rules
+- **Phase 4 — Orchestrate:** PM agent executes tasks with configured cadence and gate model
 
 **Key features:**
 - Research-informed briefs from PRD research context
@@ -903,6 +971,9 @@ This command (v9.1) implements the 5-phase execution model:
 - Configurable integration cadence (worktree, wave, feature) — v9.0
 - Configurable review cadence (trigger, scope, skip threshold, on_findings) — v9.1
 - Per-provider review configuration (different fire_at points) — v9.1
+- Configurable gate model (pause, conditional, skip-on-pass) — v9.2
+- Gate conditions (tests, build, critical findings) — v9.2
+- Auto-placement of gates based on PRD complexity — v9.2
 - User iteration loop before execution
 - Git state reconciliation for crash recovery
 - Task PRs target feature branch (consolidated with /karimo:merge)
@@ -913,4 +984,4 @@ This command (v9.1) implements the 5-phase execution model:
 
 ---
 
-*Generated by [KARIMO v9.1](https://github.com/opensesh/KARIMO)*
+*Generated by [KARIMO v9.2](https://github.com/opensesh/KARIMO)*
