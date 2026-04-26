@@ -1,5 +1,5 @@
 {
-  "version": "9.1.0",
+  "version": "9.2.0",
   "deprecated": {
     "commands": [
       "karimo-modify.md",
@@ -183,6 +183,7 @@
     "plugins/karimo/skills/doc-standards.md",
     "plugins/karimo/skills/external-research.md",
     "plugins/karimo/skills/firecrawl-web-tools.md",
+    "plugins/karimo/skills/orchestration-inference.md",
     "plugins/karimo/skills/research-methods.md",
     "plugins/karimo/skills/testing-standards.md"
   ],

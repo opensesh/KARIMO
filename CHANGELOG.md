@@ -7,6 +7,61 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [9.2.0] - 2026-04-26
+
+### Added
+
+- **Gate Model Configuration (Phase 3)** — Configurable gate behavior with three models:
+
+  - **Gate Model Values:**
+    - `pause`: Always halt, require human resume (default)
+    - `conditional`: Auto-pass if conditions met, pause otherwise
+    - `skip-on-pass`: Skip gate entirely if conditions met
+
+  - **Gate Conditions** for conditional/skip-on-pass:
+    - `require_tests_pass`: All tests must pass (default: true)
+    - `require_build_pass`: Build must succeed (default: true)
+    - `max_critical_findings`: Max P1 findings allowed (default: 0)
+
+  - **Per-Gate Model Override** — Individual gates can have their own model
+
+- **Orchestration Inference Engine** — Recommends settings during `/karimo:plan`:
+
+  - **Round 2.6: Orchestration Recommendation** — New interview round after complexity assessment
+  - Decision trees for integration cadence, review cadence, gate placement, and model selection
+  - Cost estimation for review providers
+  - User can accept, customize, or skip recommendations
+
+- **PM Agent Gate Functions:**
+  - `load_gate_model()`: Load gate config from .execution_config.json
+  - `evaluate_gate_conditions()`: Evaluate tests/build/findings conditions
+  - `check_gate()`: Model-aware gate handling (replaces `check_human_gate()`)
+  - `record_gate_auto_passed()`, `record_gate_skipped()`: Status tracking
+
+- **New Skill:** `orchestration-inference.md` — Inference engine for recommending orchestration settings
+
+- **New Status Values:**
+  - `gate-evaluating`: Evaluating gate conditions
+  - `gate-auto-passed`: Gate auto-passed (conditional/skip-on-pass)
+  - `gate-skipped`: Gate skipped (skip-on-pass)
+
+### Changed
+
+- **CONFIG_TEMPLATE.yaml** — Added `orchestration.gates` block with model, auto_place, conditions
+- **EXECUTION_CONFIG_SCHEMA.md** — Documented gate model fields and examples
+- **INTERVIEW_PROTOCOL.md** — Added Round 2.6 documentation
+- **plan.md** — Updated interview flow table to include Round 2.5 and 2.6
+- **run.md** — Phase 3.5 now includes gate model configuration UI
+- **ORCHESTRATION.md** — Added Phase 3 documentation
+
+### Backward Compatibility
+
+- `slicing.gates[]` continues to work — PM checks both locations
+- `slicing.auto_pause_at_gates: true` equivalent to `gates.model: pause`
+- Missing `orchestration.gates` defaults to legacy pause behavior
+
+---
+
 ## [9.1.0] - 2026-04-26
 
 ### Added
