@@ -604,12 +604,13 @@ get_security_score() {
   fi
 }
 
-# Record gate auto-passed (v9.2)
+# Record gate auto-passed (v9.2+)
 record_gate_auto_passed() {
   local wave_number="$1"
   local gate_label="$2"
   local timestamp=$(date -u +%Y-%m-%dT%H:%M:%SZ)
 
+  # Legacy format (v9.2)
   jq --arg wave "$wave_number" \
      --arg label "$gate_label" \
      --arg at "$timestamp" \
@@ -618,14 +619,18 @@ record_gate_auto_passed() {
        "label": $label,
        "passed_at": $at
      }]' "$status_file" > "${status_file}.tmp" && mv "${status_file}.tmp" "$status_file"
+
+  # Record to gate_history (v9.7)
+  record_gate_outcome "$wave_number" "$gate_label" "conditional" "auto-passed"
 }
 
-# Record gate skipped (v9.2)
+# Record gate skipped (v9.2+)
 record_gate_skipped() {
   local wave_number="$1"
   local gate_label="$2"
   local timestamp=$(date -u +%Y-%m-%dT%H:%M:%SZ)
 
+  # Legacy format (v9.2)
   jq --arg wave "$wave_number" \
      --arg label "$gate_label" \
      --arg at "$timestamp" \
@@ -634,6 +639,91 @@ record_gate_skipped() {
        "label": $label,
        "skipped_at": $at
      }]' "$status_file" > "${status_file}.tmp" && mv "${status_file}.tmp" "$status_file"
+
+  # Record to gate_history (v9.7)
+  record_gate_outcome "$wave_number" "$gate_label" "skip-on-pass" "skipped"
+}
+
+# Record gate outcome to gate_history (v9.7)
+record_gate_outcome() {
+  local wave="$1"
+  local label="$2"
+  local model="$3"
+  local outcome="$4"
+  local approved_by="${5:-}"
+  local notes="${6:-}"
+
+  local now=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+  local conditions_json="${GATE_CONDITIONS_JSON:-{}}"
+
+  # Build gate history entry
+  local entry
+  if [ -n "$approved_by" ]; then
+    entry=$(jq -n \
+      --arg wave "$wave" \
+      --arg label "$label" \
+      --arg model "$model" \
+      --arg outcome "$outcome" \
+      --arg reached "${gate_reached_at:-$now}" \
+      --arg completed "$now" \
+      --arg approved_by "$approved_by" \
+      --arg notes "$notes" \
+      --argjson conditions "$conditions_json" \
+      '{
+        wave: ($wave | tonumber),
+        label: $label,
+        model: $model,
+        reached_at: $reached,
+        outcome: $outcome,
+        completed_at: $completed,
+        approved_by: $approved_by,
+        notes: $notes,
+        conditions_evaluated: $conditions
+      }')
+  else
+    entry=$(jq -n \
+      --arg wave "$wave" \
+      --arg label "$label" \
+      --arg model "$model" \
+      --arg outcome "$outcome" \
+      --arg reached "${gate_reached_at:-$now}" \
+      --arg completed "$now" \
+      --argjson conditions "$conditions_json" \
+      '{
+        wave: ($wave | tonumber),
+        label: $label,
+        model: $model,
+        reached_at: $reached,
+        outcome: $outcome,
+        completed_at: $completed,
+        conditions_evaluated: $conditions
+      }')
+  fi
+
+  # Append to gate_history
+  jq --argjson entry "$entry" '.gate_history = (.gate_history // []) + [$entry]' "$status_file" > tmp.json && mv tmp.json "$status_file"
+
+  echo "Recorded gate outcome: wave $wave → $outcome"
+}
+
+# Record human-approved gate (v9.7)
+record_gate_human_approved() {
+  local wave_number="$1"
+  local gate_label="$2"
+  local notes="${3:-}"
+  local timestamp=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+
+  jq --arg wave "$wave_number" \
+     --arg label "$gate_label" \
+     --arg at "$timestamp" \
+     '.gates_human_approved = (.gates_human_approved // []) + [{
+       "wave": ($wave | tonumber),
+       "label": $label,
+       "approved_at": $at
+     }]' "$status_file" > "${status_file}.tmp" && mv "${status_file}.tmp" "$status_file"
+
+  # Record to gate_history (v9.7)
+  record_gate_outcome "$wave_number" "$gate_label" "pause" "human-approved" "user" "$notes"
 }
 ```
 

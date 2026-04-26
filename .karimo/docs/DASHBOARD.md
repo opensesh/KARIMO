@@ -175,6 +175,61 @@ Timeline of events across all PRDs.
 - Task started
 - PR created
 
+### 6. Gate Timeline (v9.7)
+
+Visual history of gate evaluations and outcomes. Available via `--gates` flag.
+
+```
+🚪 GATE TIMELINE — user-profiles
+─────────────────────────────────
+
+Wave 3 ─── conditional ─── ✓ auto-passed (10:00:05)
+  └─ Tests: ✓ 42 passed
+  └─ Build: ✓ succeeded
+  └─ Findings: ✓ 0 P1
+  └─ Coverage: ✓ 85% >= 80%
+
+Wave 6 ─── pause ─── ⏸ waiting for human (14:30:00)
+  └─ Resume: /karimo:run --prd user-profiles --resume
+
+Wave 8 ─── conditional ─── ✓ human-approved (15:45:00)
+  └─ Approved by: user
+  └─ Notes: "Approved after manual testing"
+```
+
+**Gate Outcomes:**
+- **auto-passed** — All conditions met, execution continued automatically
+- **human-approved** — Pause gate resumed by user
+- **waiting** — Gate reached, awaiting conditions or human approval
+- **failed** — Conditions not met, execution halted
+
+**Condition Details:**
+Each gate shows the evaluated conditions from `orchestration.gates.conditions`:
+- Preset conditions (require_tests_pass, require_build_pass, max_critical_findings)
+- Custom expressions (coverage >= 80, lint_errors == 0, bundle_size < 500kb)
+
+**JSON Output:**
+```json
+{
+  "gate_history": [
+    {
+      "wave": 3,
+      "label": "Review core implementation",
+      "model": "conditional",
+      "reached_at": "2026-04-26T10:00:00Z",
+      "outcome": "auto-passed",
+      "completed_at": "2026-04-26T10:00:05Z",
+      "conditions_evaluated": {
+        "require_tests_pass": { "result": true, "details": "42 tests passed" },
+        "require_build_pass": { "result": true, "details": "Build succeeded" },
+        "max_critical_findings": { "result": true, "details": "0 P1 findings" },
+        "coverage >= 80": { "result": true, "details": "85% >= 80%" }
+      }
+    }
+  ]
+}
+```
+
 ---
 
 ## Command Flags
@@ -193,6 +248,9 @@ Timeline of events across all PRDs.
 
 # PRD-specific dashboard
 /karimo:dashboard --prd user-profiles
+
+# Gate timeline visualization (v9.7)
+/karimo:dashboard --prd user-profiles --gates
 ```
 
 ### Filters (Inherited from `/karimo-overview`)
