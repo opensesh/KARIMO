@@ -4,7 +4,7 @@
 # project configuration for KARIMO execution.
 #
 # Location: .karimo/config.yaml
-# Version: 9.2.0
+# Version: 9.3.0
 
 # Project metadata (auto-detected)
 project:
@@ -44,6 +44,16 @@ execution:
     - build
     - typecheck
     - lint
+
+  # Model selection configuration (v9.3)
+  models:
+    default: sonnet                    # Default model for all tasks
+    complexity_threshold: 5            # Complexity >= N uses Opus
+    escalation:
+      after_failures: 1                # Failures before escalating to Opus
+      triggers:                        # Additional escalation triggers
+        - architectural_issues
+        - type_system_issues
 
 # Slicing configuration (v8.3)
 slicing:

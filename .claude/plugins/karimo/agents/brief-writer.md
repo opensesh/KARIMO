@@ -300,9 +300,10 @@ From `.karimo/config.yaml` boundaries section:
 - require_review patterns → Files Requiring Review
 - commands section → Validation Checklist
 
-Model assignment uses complexity threshold (default: 5):
-- complexity < 5 → sonnet
-- complexity >= 5 → opus
+Model assignment uses configurable complexity threshold (v9.3):
+- Read threshold from `.karimo/config.yaml` or `.execution_config.json`
+- Default threshold: 5 (complexity < 5 → sonnet, complexity >= 5 → opus)
+- Force overrides apply first (force_opus_tasks, force_sonnet_tasks)
 
 ### 4. Include Investigator Findings
 
@@ -487,15 +488,58 @@ pnpm test --coverage --coverageThreshold='{"global":{"lines":80}}'
 
 ## Determining Model Assignment
 
-Use complexity threshold (default: 5):
+Read model configuration from `.karimo/config.yaml` (v9.3) or `.execution_config.json`:
+
+```bash
+# Read from config (v9.3)
+get_model_assignment() {
+  local complexity="$1"
+  local task_id="$2"
+  local config_file=".karimo/config.yaml"
+  local exec_config=".karimo/prds/${prd_slug}/.execution_config.json"
+
+  # Check per-PRD execution config first
+  if [ -f "$exec_config" ]; then
+    # Check force_opus_tasks
+    if jq -e --arg tid "$task_id" '.models.force_opus_tasks // [] | index($tid)' "$exec_config" >/dev/null 2>&1; then
+      echo "opus"
+      return
+    fi
+
+    # Check force_sonnet_tasks
+    if jq -e --arg tid "$task_id" '.models.force_sonnet_tasks // [] | index($tid)' "$exec_config" >/dev/null 2>&1; then
+      echo "sonnet"
+      return
+    fi
+
+    # Read threshold from execution config
+    complexity_threshold=$(jq -r '.models.complexity_threshold // 5' "$exec_config")
+    default_model=$(jq -r '.models.default // "sonnet"' "$exec_config")
+  else
+    # Fall back to project config
+    complexity_threshold=$(yq '.execution.models.complexity_threshold // 5' "$config_file" 2>/dev/null || echo "5")
+    default_model=$(yq '.execution.models.default // "sonnet"' "$config_file" 2>/dev/null || echo "sonnet")
+  fi
+
+  # Assign model based on complexity
+  if [ "$complexity" -ge "$complexity_threshold" ]; then
+    echo "opus"
+  else
+    echo "$default_model"
+  fi
+}
 ```
-model = complexity < 5 ? "sonnet" : "opus"
 
-Example (complexity 5):
-model = "opus" (complexity meets threshold)
+**Default behavior (backward compatible):**
+- Complexity threshold: 5 (tasks with complexity >= 5 use Opus)
+- Default model: sonnet
 
-Example (complexity 4):
-model = "sonnet" (complexity below threshold)
+**Examples:**
+```
+threshold=5, complexity=4 → sonnet
+threshold=5, complexity=5 → opus
+threshold=7, complexity=6 → sonnet (custom threshold)
+force_opus_tasks=["1a"], task=1a → opus (override)
 ```
 
 ## Writing Guidelines

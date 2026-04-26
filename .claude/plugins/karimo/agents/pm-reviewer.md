@@ -666,11 +666,32 @@ fi
 
 When verdict is "fail", spawn revision worker and re-review.
 
-#### Model Escalation Triggers
+#### Model Escalation Triggers (v9.3)
 
-Check finding text for escalation indicators:
+Check finding text for escalation indicators based on configured triggers:
 
 ```bash
+# Load escalation config (v9.3)
+load_escalation_config() {
+  local config_file="${PRD_PATH}/.execution_config.json"
+
+  if [ -f "$config_file" ]; then
+    local has_models=$(jq -r '.models // empty' "$config_file" 2>/dev/null)
+
+    if [ -n "$has_models" ]; then
+      escalation_after_failures=$(jq -r '.models.escalation.after_failures // 1' "$config_file")
+      escalation_triggers=$(jq -r '.models.escalation.triggers // []' "$config_file")
+    else
+      # Defaults
+      escalation_after_failures=1
+      escalation_triggers='["architectural_issues", "type_system_issues"]'
+    fi
+  else
+    escalation_after_failures=1
+    escalation_triggers='["architectural_issues", "type_system_issues"]'
+  fi
+}
+
 should_escalate() {
   local findings="$1"
   local current_model="$2"
@@ -680,23 +701,41 @@ should_escalate() {
     return 1
   fi
 
-  # Architectural issues trigger escalation
-  if echo "$findings" | grep -qiE 'architecture|design pattern|structure|refactor|reorganize|decouple'; then
-    echo "Escalation trigger: architectural issue"
+  # Check failure count threshold (v9.3)
+  if [ "$loop_count" -ge "$escalation_after_failures" ]; then
+    echo "Escalation trigger: failure count ($loop_count >= $escalation_after_failures)"
     return 0
   fi
 
-  # Type system issues trigger escalation
-  if echo "$findings" | grep -qiE 'type system|interface|contract|dependency injection|abstraction'; then
-    echo "Escalation trigger: type system issue"
-    return 0
-  fi
-
-  # Second failed attempt triggers escalation
-  if [ "$loop_count" -ge 2 ]; then
-    echo "Escalation trigger: second failed attempt"
-    return 0
-  fi
+  # Check configured triggers (v9.3)
+  for trigger in $(echo "$escalation_triggers" | jq -r '.[]'); do
+    case "$trigger" in
+      "architectural_issues")
+        if echo "$findings" | grep -qiE 'architecture|design pattern|structure|refactor|reorganize|decouple'; then
+          echo "Escalation trigger: architectural_issues"
+          return 0
+        fi
+        ;;
+      "type_system_issues")
+        if echo "$findings" | grep -qiE 'type system|interface|contract|dependency injection|abstraction'; then
+          echo "Escalation trigger: type_system_issues"
+          return 0
+        fi
+        ;;
+      "security_issues")
+        if echo "$findings" | grep -qiE 'security|vulnerability|injection|xss|csrf|auth'; then
+          echo "Escalation trigger: security_issues"
+          return 0
+        fi
+        ;;
+      "performance_issues")
+        if echo "$findings" | grep -qiE 'performance|optimization|memory leak|n\+1|slow'; then
+          echo "Escalation trigger: performance_issues"
+          return 0
+        fi
+        ;;
+    esac
+  done
 
   return 1
 }

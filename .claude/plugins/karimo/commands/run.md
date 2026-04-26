@@ -341,7 +341,69 @@ Cost estimates (Claude Code Review ~$20/PR):
 
 Note: Greptile is $30/month flat (trigger affects timing, not cost)
 
-### Step 4: Gate Configuration (v9.2)
+### Step 4: Model Configuration (v9.3)
+
+Configure model selection thresholds and escalation behavior:
+
+```
+─────────────────────────────────────────────────────────────────
+Model Configuration:
+─────────────────────────────────────────────────────────────────
+
+Default Model:
+  Current: sonnet
+
+Complexity Threshold:
+  Tasks with complexity >= N will use Opus.
+
+  (1) 5 (Recommended) — Complexity 5+ uses Opus
+      Standard threshold for balanced cost/quality.
+
+  (2) 7 (Cost-optimized) — Complexity 7+ uses Opus
+      More tasks on Sonnet, lower cost.
+
+  (3) 3 (Quality-focused) — Complexity 3+ uses Opus
+      More tasks on Opus, higher quality.
+
+  (4) Custom threshold
+
+Threshold selection [1/2/3/4]: 1
+
+─────────────────────────────────────────────────────────────────
+Escalation Configuration:
+─────────────────────────────────────────────────────────────────
+
+Escalate Sonnet → Opus after how many failures?
+
+  (1) 1 failure (Recommended) — Fast escalation
+  (2) 2 failures — Allow retry before escalation
+  (3) Never auto-escalate
+
+Escalation selection [1/2/3]: 1
+
+Which findings trigger escalation? (multi-select)
+
+  [x] Architectural issues (design patterns, structure)
+  [x] Type system issues (interfaces, contracts)
+  [ ] Security issues (vulnerabilities, auth)
+  [ ] Performance issues (optimization, memory)
+
+─────────────────────────────────────────────────────────────────
+Force Model Overrides:
+─────────────────────────────────────────────────────────────────
+
+Force specific tasks to use Opus? (comma-separated, or 'none')
+  Example: 1a, 2c, 3a
+
+Force Opus tasks: none
+
+Force specific tasks to use Sonnet? (comma-separated, or 'none')
+  Example: 1a, 2c, 3a
+
+Force Sonnet tasks: none
+```
+
+### Step 5: Gate Configuration (v9.2)
 
 Configure gate model behavior and placements:
 
@@ -410,7 +472,7 @@ Gate benefits explained:
 - Cost-control on Greptile (per-wave economics feasible with gates)
 - **v9.2:** Conditional/skip-on-pass reduces gate fatigue for low-risk PRDs
 
-### Step 5: Confirm
+### Step 6: Confirm
 
 ```
 Review settings:
@@ -421,6 +483,14 @@ Review settings:
   Skip if diff under: {skip_threshold} lines
   On findings: {on_findings}
   Max revision loops: {max_loops}
+
+Model configuration (v9.3):
+  Default: {default_model}
+  Complexity threshold: {complexity_threshold}
+  Escalation after: {escalation_after_failures} failure(s)
+  Escalation triggers: {escalation_triggers}
+  Force Opus: {force_opus_tasks or "none"}
+  Force Sonnet: {force_sonnet_tasks or "none"}
 
 Gate configuration (v9.2):
   Model: {gate_model}
@@ -484,7 +554,7 @@ Proceed with execution? [y/N]:
 Configuration is stored for PM agent to read:
 
 ```bash
-# Write execution config (v9.2)
+# Write execution config (v9.3)
 cat > ".karimo/prds/{NNN}_{slug}/.execution_config.json" << 'EOF'
 {
   "configured_at": "{ISO timestamp}",
@@ -517,6 +587,16 @@ cat > ".karimo/prds/{NNN}_{slug}/.execution_config.json" << 'EOF'
         { "after_wave": 2, "label": "Review baseline metrics" },
         { "after_wave": 5, "label": "Validate core functionality" }
       ]
+    }
+  },
+  "models": {
+    "default": "sonnet",
+    "complexity_threshold": 5,
+    "force_opus_tasks": ["1a"],
+    "force_sonnet_tasks": [],
+    "escalation": {
+      "after_failures": 1,
+      "triggers": ["architectural_issues", "type_system_issues"]
     }
   },
   "slicing": {
@@ -957,13 +1037,13 @@ Need help? Run /karimo:doctor
 
 ## Technical Details
 
-This command (v9.2) implements the 5-phase execution model:
+This command (v9.3) implements the 5-phase execution model:
 
 - **Phase 1 — Brief Generation:** Spawns brief-writer with research context
 - **Phase 2 — Auto-Review:** Spawns brief-reviewer for validation
 - **Phase 3 — User Iterate:** Interactive approval/modification loop
-- **Phase 3.5 — Execution Configuration:** User configures integration cadence (v9.0), review cadence (v9.1), gate model (v9.2), bypass rules
-- **Phase 4 — Orchestrate:** PM agent executes tasks with configured cadence and gate model
+- **Phase 3.5 — Execution Configuration:** User configures integration cadence (v9.0), review cadence (v9.1), gate model (v9.2), model configuration (v9.3), bypass rules
+- **Phase 4 — Orchestrate:** PM agent executes tasks with configured cadence, gate model, and model selection
 
 **Key features:**
 - Research-informed briefs from PRD research context
@@ -974,6 +1054,9 @@ This command (v9.2) implements the 5-phase execution model:
 - Configurable gate model (pause, conditional, skip-on-pass) — v9.2
 - Gate conditions (tests, build, critical findings) — v9.2
 - Auto-placement of gates based on PRD complexity — v9.2
+- Configurable model selection (complexity threshold, escalation triggers) — v9.3
+- Task-level model overrides (force Opus/Sonnet) — v9.3
+- Configurable escalation behavior (after N failures, trigger patterns) — v9.3
 - User iteration loop before execution
 - Git state reconciliation for crash recovery
 - Task PRs target feature branch (consolidated with /karimo:merge)
@@ -984,4 +1067,4 @@ This command (v9.2) implements the 5-phase execution model:
 
 ---
 
-*Generated by [KARIMO v9.2](https://github.com/opensesh/KARIMO)*
+*Generated by [KARIMO v9.3](https://github.com/opensesh/KARIMO)*

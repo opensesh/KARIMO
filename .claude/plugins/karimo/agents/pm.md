@@ -480,29 +480,134 @@ record_gate_skipped() {
 }
 ```
 
-#### Model Override Application (v8.3)
+#### Model Configuration Loading (v9.3)
 
-Apply model overrides from execution config:
+Load model configuration from execution config:
+
+```bash
+# Load model configuration (v9.3)
+load_model_config() {
+  local config_file="${prd_path}/.execution_config.json"
+
+  if [ -f "$config_file" ]; then
+    local has_models=$(jq -r '.models // empty' "$config_file" 2>/dev/null)
+
+    if [ -n "$has_models" ]; then
+      echo "Loading model config v9.3..."
+      model_default=$(jq -r '.models.default // "sonnet"' "$config_file")
+      model_complexity_threshold=$(jq -r '.models.complexity_threshold // 5' "$config_file")
+      model_force_opus=$(jq -r '.models.force_opus_tasks // []' "$config_file")
+      model_force_sonnet=$(jq -r '.models.force_sonnet_tasks // []' "$config_file")
+      escalation_after_failures=$(jq -r '.models.escalation.after_failures // 1' "$config_file")
+      escalation_triggers=$(jq -r '.models.escalation.triggers // []' "$config_file")
+
+      echo "  ✓ Default model: $model_default"
+      echo "  ✓ Complexity threshold: $model_complexity_threshold"
+      echo "  ✓ Escalation after failures: $escalation_after_failures"
+    else
+      # Legacy: use model_override if present
+      echo "Loading model config (legacy)..."
+      model_default="sonnet"
+      model_complexity_threshold=5
+      model_force_opus=$(jq -r '.model_override.force_opus_tasks // []' "$config_file")
+      model_force_sonnet=$(jq -r '.model_override.force_sonnet_tasks // []' "$config_file")
+      escalation_after_failures=1
+      escalation_triggers='["architectural_issues", "type_system_issues"]'
+    fi
+  else
+    # Defaults
+    model_default="sonnet"
+    model_complexity_threshold=5
+    model_force_opus="[]"
+    model_force_sonnet="[]"
+    escalation_after_failures=1
+    escalation_triggers='["architectural_issues", "type_system_issues"]'
+  fi
+}
+```
+
+#### Model Assignment (v9.3)
+
+Apply model configuration with complexity threshold:
 
 ```bash
 get_task_model() {
   local task_id="$1"
-  local default_model="$2"
+  local complexity="$2"
 
   # Check force_opus_tasks
-  if echo "$force_opus_tasks" | jq -e --arg tid "$task_id" 'index($tid) != null' >/dev/null 2>&1; then
+  if echo "$model_force_opus" | jq -e --arg tid "$task_id" 'index($tid) != null' >/dev/null 2>&1; then
     echo "opus"
     return
   fi
 
   # Check force_sonnet_tasks
-  if echo "$force_sonnet_tasks" | jq -e --arg tid "$task_id" 'index($tid) != null' >/dev/null 2>&1; then
+  if echo "$model_force_sonnet" | jq -e --arg tid "$task_id" 'index($tid) != null' >/dev/null 2>&1; then
     echo "sonnet"
     return
   fi
 
-  # Use default (from complexity)
-  echo "$default_model"
+  # Apply complexity threshold
+  if [ "$complexity" -ge "$model_complexity_threshold" ]; then
+    echo "opus"
+  else
+    echo "$model_default"
+  fi
+}
+```
+
+#### Escalation Trigger Detection (v9.3)
+
+Check if findings match configured escalation triggers:
+
+```bash
+should_escalate_on_findings() {
+  local findings="$1"
+  local current_model="$2"
+  local loop_count="$3"
+
+  # Already Opus - cannot escalate further
+  if [ "$current_model" = "opus" ]; then
+    return 1
+  fi
+
+  # Check failure count threshold
+  if [ "$loop_count" -ge "$escalation_after_failures" ]; then
+    echo "Escalation trigger: failure count ($loop_count >= $escalation_after_failures)"
+    return 0
+  fi
+
+  # Check configured triggers
+  for trigger in $(echo "$escalation_triggers" | jq -r '.[]'); do
+    case "$trigger" in
+      "architectural_issues")
+        if echo "$findings" | grep -qiE 'architecture|design pattern|structure|refactor|reorganize|decouple'; then
+          echo "Escalation trigger: architectural_issues"
+          return 0
+        fi
+        ;;
+      "type_system_issues")
+        if echo "$findings" | grep -qiE 'type system|interface|contract|dependency injection|abstraction'; then
+          echo "Escalation trigger: type_system_issues"
+          return 0
+        fi
+        ;;
+      "security_issues")
+        if echo "$findings" | grep -qiE 'security|vulnerability|injection|xss|csrf|auth'; then
+          echo "Escalation trigger: security_issues"
+          return 0
+        fi
+        ;;
+      "performance_issues")
+        if echo "$findings" | grep -qiE 'performance|optimization|memory leak|n\+1|slow'; then
+          echo "Escalation trigger: performance_issues"
+          return 0
+        fi
+        ;;
+    esac
+  done
+
+  return 1
 }
 ```
 
@@ -522,7 +627,7 @@ load_gates() {
 }
 ```
 
-**Important:** After loading execution config, also load the orchestration policy, review cadence, and gate model:
+**Important:** After loading execution config, also load the orchestration policy, review cadence, gate model, and model config:
 
 ```bash
 # Load execution config (existing)
@@ -536,6 +641,9 @@ load_review_cadence
 
 # Load gate model (v9.2)
 load_gate_model
+
+# Load model config (v9.3)
+load_model_config
 ```
 
 **Detect issues before starting:**
