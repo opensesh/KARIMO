@@ -115,6 +115,41 @@ This is where everyone starts. Phase 1 provides everything needed to go from ide
   - Rules created in `.karimo/learnings/{category}/`
   - Future agents learn from feedback
 
+- **Complexity-Aware Execution** (v8.3)
+  - **Round 2.5 Complexity Assessment** — Auto-generated after requirements capture:
+    - Task count, total points, Sonnet/Opus distribution
+    - Slicing recommendations based on thresholds
+    - Gate boundary suggestions for human decision points
+  - **Model Override** — Force Opus or Sonnet for specific tasks
+  - **Review Frequency** — Choose per-task, per-wave, or per-slice review
+  - **Human Gates** — Strategic checkpoints for feedback and course correction
+
+### Slicing & Gates (v8.3)
+
+Large PRDs benefit from slicing with human gates:
+
+| Metric | No Slicing | 2 Slices | 3 Slices | 4+ Slices |
+|--------|------------|----------|----------|-----------|
+| Tasks | <15 | 15-29 | 30-49 | 50+ |
+| Points | <100 | 100-199 | 200-299 | 300+ |
+| Waves | <8 | 8-12 | 13-20 | 20+ |
+
+**Why slice?**
+- Token efficiency (avoid context compaction)
+- Decision lineage (findings feed forward as artifacts)
+- Recovery surface (debug from clean checkpoint)
+- Human review budget (focused gates vs mega-review)
+- Cost control (per-slice review is cheapest)
+
+**Gate execution:**
+1. PM completes wave with configured gate
+2. Displays gate label and pauses
+3. User reviews, provides feedback
+4. User runs `/karimo:run --prd {slug} --resume`
+5. PM continues with next slice
+
+See [TOKEN-ECONOMICS.md](TOKEN-ECONOMICS.md) for detailed rationale.
+
 ### Prerequisites
 
 - Claude Code installed

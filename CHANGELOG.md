@@ -7,6 +7,69 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [8.3.0] - 2026-04-25
+
+### Added
+
+- **Complexity-Aware Execution Configuration** — Surface slicing recommendations, review frequency options, and model overrides during PRD planning and execution:
+
+- **Round 2.5: Complexity Assessment** — Auto-generated complexity display after Requirements round:
+  - Shows task count, total complexity points, Sonnet/Opus distribution
+  - Identifies high-risk tasks (complexity 7+)
+  - Auto-proposes slicing when: ≥15 tasks, ≥8 waves, ≥100 points, or `require_review` files touched
+  - Slicing thresholds: 100-200 points → 2 slices, 200-300 → 3 slices, 300+ → 4+ slices
+  - Gate boundary heuristic identifies human decision tasks (audit, review, baseline, classify)
+
+- **Model Override in Round 3** — User can override automatic model assignments:
+  - Force Opus for specific Sonnet tasks
+  - Force Sonnet for specific Opus tasks (cost savings)
+  - Stored in `model_override.force_opus_tasks` and `model_override.force_sonnet_tasks`
+
+- **Expanded Phase 3.5: Execution Configuration** — Enhanced pre-execution configuration:
+  - Step 1: Complexity summary display
+  - Step 2: Review frequency selection (per-task, per-wave, per-slice) with cost estimates
+  - Step 3: Gate configuration with auto-pause option
+  - Step 4: Confirmation with full settings summary
+  - Large PRD safety check: ≥15 tasks require gates unless `--no-gates` flag
+
+- **Human Gate Execution** — PM agent pauses at configured gates:
+  - Displays gate label and resume instructions
+  - Sets status to `paused-at-gate`
+  - Records `gate_reached.label`, `gate_reached.reached_at`, `gates_passed[]`
+  - Resume with `/karimo:run --prd {slug} --resume`
+
+- **Review Frequency Logic** — Control when PM-Reviewer spawns:
+  - `per-task`: Review every PR individually (highest cost)
+  - `per-wave`: Consolidated review after wave completes (medium cost)
+  - `per-slice`: Review only at gate checkpoints (lowest cost)
+
+- **New Templates:**
+  - `CONFIG_TEMPLATE.yaml` — Project configuration template with slicing thresholds
+  - `EXECUTION_CONFIG_SCHEMA.md` — Documents `.execution_config.json` structure
+
+- **New Documentation:**
+  - `TOKEN-ECONOMICS.md` — Explains token economics, slicing rationale, and gate benefits
+
+- **New Status Value:** `paused-at-gate` — PRD status when human gate is reached
+
+- **New Flag:** `--no-gates` — Override gate requirement for large PRDs
+
+### Changed
+
+- **INTERVIEW_PROTOCOL.md** — Added Round 2.5 and Model Override sections
+- **interviewer.md** — Implements complexity assessment and model override logic
+- **run.md** — Expanded Phase 3.5 with 4-step execution configuration
+- **pm.md** — Loads execution config, applies model overrides, checks gates after waves
+- **STATUS_SCHEMA.md** — Added `paused-at-gate` status and gate tracking fields
+- **MANIFEST.json** — Added new templates to manifest
+
+### Documentation
+
+- **PHASES.md** — Document slicing and gates in Phase 1 description (pending)
+- **ARCHITECTURE.md** — Updated version header to 8.3.0
+
+---
+
 ## [8.2.1] - 2026-04-21
 
 ### Added
