@@ -1,6 +1,6 @@
 # KARIMO Research Methodology
 
-**Version:** 7.15.0
+**Version:** 9.7.0
 **Purpose:** Complete guide to research integration in KARIMO workflow
 
 ---

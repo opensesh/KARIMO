@@ -7,6 +7,189 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [9.7.0] - 2026-04-26
+
+### Added
+
+- **Gate Timeline Visualization** — Visual history of gate evaluations and outcomes:
+
+  - **`--gates` Flag** — New dashboard flag to show detailed gate history
+  - **Gate Timeline Section** — Shows gate outcomes with condition details
+  - **Gate Outcomes:** auto-passed, human-approved, waiting, failed
+  - **Condition Details:** Shows each evaluated condition (tests, build, findings, custom)
+
+- **PM Agent Gate Recording Functions:**
+  - `record_gate_outcome()`: Record gate completion with all condition evaluation details
+  - `record_gate_human_approved()`: Record human approval with optional notes
+
+- **JSON Output for Gates:**
+  - `gate_history` array in status.json with full condition evaluation details
+  - `--gates --json` flag for automation
+
+### Changed
+
+- **dashboard.md** — Added Gate Timeline section and `--gates` flag documentation
+- **DASHBOARD.md** — Added Section 6: Gate Timeline documentation
+- **pm.md** — Added gate recording functions after `check_gate()`
+
+---
+
+## [9.6.0] - 2026-04-26
+
+### Added
+
+- **Pluggable Review Provider Architecture** — Easy addition of new review providers:
+
+  - **Provider Manifests** — YAML-based provider definitions in `.karimo/providers/{name}/manifest.yaml`
+  - **Capabilities System:** auto_review, inline_comments, score_output, revision_tracking, batch_review
+  - **Hook Scripts:** on_pr_create, on_review_complete, on_revision_push
+  - **Config Schema:** Provider-specific configuration with type validation
+
+- **Built-in Provider Manifests:**
+  - `greptile/manifest.yaml` — Greptile integration ($30/month flat)
+  - `code-review/manifest.yaml` — Claude Code Review integration ($15-25/PR)
+  - Parse scripts for each provider
+
+- **Provider Registry in config.yaml:**
+  - `review.providers.registered[]` — List of available providers
+  - `review.providers.active` — Currently active provider
+  - `review.providers.config.{provider}` — Per-provider configuration
+
+- **PM-Reviewer Provider Functions:**
+  - `load_review_provider()`: Dynamic provider loading from manifest
+  - `trigger_provider_review()`: Execute provider's on_pr_create hook
+  - `parse_provider_results()`: Execute provider's parse script
+
+- **New Documentation:**
+  - `PROVIDER_MANIFEST_SCHEMA.md` — Complete provider manifest reference
+  - `REVIEW-PROVIDERS.md` — Provider development guide
+
+### Changed
+
+- **CONFIG_TEMPLATE.yaml** — Added provider registry block
+- **pm-reviewer.md** — Refactored to use dynamic provider loading
+
+### Backward Compatibility
+
+- Legacy `review.provider` setting continues to work
+- PM-Reviewer falls back to built-in behavior if no manifest found
+
+---
+
+## [9.5.0] - 2026-04-26
+
+### Added
+
+- **Mid-PRD Inference (Recalibration)** — Re-run orchestration inference on active PRDs:
+
+  - **`--recalibrate` Flag** — New run.md flag to trigger mid-execution recalibration
+  - **Recalibration Flow:**
+    1. Pause current execution
+    2. Analyze remaining tasks and complexity
+    3. Present updated orchestration recommendations
+    4. User accepts, rejects, or customizes
+    5. Resume with new settings
+
+- **PM Agent Recalibration Functions:**
+  - `run_recalibration()`: Main recalibration flow
+  - `calculate_remaining_complexity()`: Sum complexity of remaining tasks
+  - `count_remaining_high_risk()`: Count high-risk tasks still pending
+  - `generate_recalibration_recommendations()`: Generate new recommendations
+  - `record_recalibration()`: Track recalibration history in status.json
+
+- **Recalibration History Tracking:**
+  - `recalibrations[]` array in status.json
+  - Records wave, timestamp, reason, and changes made
+
+### Changed
+
+- **run.md** — Added `--recalibrate` flag documentation
+- **STATUS_SCHEMA.md** — Added recalibrations array and gate_history documentation
+- **pm.md** — Added recalibration functions
+
+---
+
+## [9.4.0] - 2026-04-26
+
+### Added
+
+- **Custom Gate Condition Expressions** — Beyond preset conditions:
+
+  - **Custom Expression Syntax:** `expr` + `label` format
+  - **Supported Expressions:**
+    - `coverage >= N`: Code coverage threshold
+    - `lint_errors == 0`: No lint errors
+    - `bundle_size < Nkb`: Bundle size limit
+  - **Evaluation Functions:** Helper functions for each expression type
+
+- **Per-Gate Review Triggers** — Different review behavior per gate:
+
+  - **Per-Gate `review` Block:**
+    - `trigger`: Force review at this gate
+    - `provider`: Override default provider
+    - `scope`: Override review scope (pr-diff, wave-diff, cumulative)
+
+- **Parallel Gate Branches** — Non-sequential gate logic:
+
+  - **`branches[]` Array** — Define parallel execution tracks
+  - **`merge_strategy`:** `all` (wait for all) or `any` (first completes)
+  - Enables frontend/backend tracks to execute in parallel
+
+- **PM Agent Custom Condition Functions:**
+  - `evaluate_custom_conditions()`: Evaluate custom expression array
+  - `get_coverage_percentage()`: Fetch code coverage
+  - `get_lint_error_count()`: Count lint errors
+  - `get_bundle_size_kb()`: Get bundle size
+
+### Changed
+
+- **CONFIG_TEMPLATE.yaml** — Added `conditions.custom[]`, per-gate review, parallel branches
+- **EXECUTION_CONFIG_SCHEMA.md** — Documented all v9.4 fields
+- **pm.md** — Updated `check_gate()` with per-gate review and parallel branches
+- **ORCHESTRATION.md** — Added v9.4 Gate Enhancements section
+
+---
+
+## [9.3.0] - 2026-04-26
+
+### Added
+
+- **Configurable Model Selection** — Replace hardcoded complexity thresholds:
+
+  - **`execution.models` Block:**
+    - `default`: Default model for all tasks (sonnet)
+    - `complexity_threshold`: Complexity >= N uses Opus (default: 5)
+    - `escalation.after_failures`: Failures before escalating (default: 1)
+    - `escalation.triggers`: Additional escalation triggers
+
+  - **Per-Task Model Overrides in .execution_config.json:**
+    - `force_opus_tasks[]`: Always use Opus for these task IDs
+    - `force_sonnet_tasks[]`: Always use Sonnet for these task IDs
+
+- **Escalation Triggers:**
+  - `architectural_issues`: Escalate on architectural problems
+  - `type_system_issues`: Escalate on type system problems
+  - `security_issues`: Escalate on security findings
+  - `performance_issues`: Escalate on performance problems
+
+- **PM Agent Model Functions:**
+  - `load_model_config()`: Load model configuration from config.yaml
+  - `get_task_model()`: Determine model for a task (force overrides, complexity threshold)
+  - `should_escalate_on_findings()`: Check if findings match escalation triggers
+
+- **PM-Reviewer Escalation Functions:**
+  - `load_escalation_config()`: Load escalation settings
+  - Updated `should_escalate()`: Check configurable triggers
+
+### Changed
+
+- **CONFIG_TEMPLATE.yaml** — Added `execution.models` block
+- **EXECUTION_CONFIG_SCHEMA.md** — Documented models object and escalation
+- **brief-writer.md** — Uses `get_model_assignment()` reading from config
+- **run.md** — Phase 3.5 includes model configuration UI
+
+---
+
 ## [9.2.0] - 2026-04-26
 
 ### Added
