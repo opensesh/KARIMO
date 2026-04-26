@@ -1,7 +1,7 @@
 # Execution Config Schema Reference
 
-**Version:** 9.1.0
-**Purpose:** Document the `.execution_config.json` format used by KARIMO v9.1
+**Version:** 9.2.0
+**Purpose:** Document the `.execution_config.json` format used by KARIMO v9.2
 **Location:** `.karimo/prds/{slug}/.execution_config.json`
 
 ---
@@ -11,7 +11,9 @@
 Each PRD folder contains an `.execution_config.json` file that stores execution-time configuration decisions. This file is:
 - Created by `/karimo:run` during Phase 3.5 (Execution Configuration)
 - Read by the PM agent at execution startup
-- Used to control slicing, review cadence, model overrides, and gate behavior
+- Used to control slicing, review cadence, gate model, and gate behavior
+
+**v9.2 Updates:** This version adds gate model configuration with configurable behaviors (`pause`, `conditional`, `skip-on-pass`) and inference engine support for auto-placement.
 
 **v9.1 Updates:** This version adds review cadence configuration with trigger, scope, skip threshold, and per-provider overrides.
 
@@ -39,6 +41,20 @@ Each PRD folder contains an `.execution_config.json` file that stores execution-
         "greptile": { "fire_at": ["wave"], "on_findings": "halt" },
         "code-review": { "fire_at": ["umbrella"], "on_findings": "comment-only" }
       }
+    },
+    "gates": {
+      "model": "conditional",
+      "auto_place": true,
+      "max_waves_per_gate": 8,
+      "conditions": {
+        "require_tests_pass": true,
+        "require_build_pass": true,
+        "max_critical_findings": 0
+      },
+      "placements": [
+        { "after_wave": 3, "label": "Review core implementation", "model": "conditional" },
+        { "after_wave": 6, "label": "Validate integration", "model": "pause" }
+      ]
     }
   },
   "slicing": {
@@ -148,6 +164,40 @@ Per-provider overrides allow different providers to fire at different points:
 |-------|------|-------------|
 | `fire_at` | string[] | When provider fires: "task", "wave", "gate", "umbrella" |
 | `on_findings` | string | Provider-specific on_findings override |
+
+### Gates Object (v9.2)
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `model` | string | "pause" | Default gate behavior: pause, conditional, skip-on-pass |
+| `auto_place` | boolean | false | Enable inference-based gate placement |
+| `max_waves_per_gate` | number | 8 | Max waves between gates (inference heuristic) |
+| `conditions` | object | {} | Conditions for conditional/skip-on-pass |
+| `placements` | array | [] | Gate definitions with optional per-gate model override |
+
+### Gate Model Values (v9.2)
+
+| Model | Behavior | Use Case |
+|-------|----------|----------|
+| `pause` | Always pause, require human resume | High-risk, critical decisions (default) |
+| `conditional` | Auto-pass if conditions met, pause otherwise | Risk-aware automation |
+| `skip-on-pass` | Skip gate entirely if conditions met | Low-risk, proven patterns |
+
+### Gate Conditions Object (v9.2)
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `require_tests_pass` | boolean | true | All tests must pass |
+| `require_build_pass` | boolean | true | Build must succeed |
+| `max_critical_findings` | number | 0 | Max P1 findings allowed (0 = none) |
+
+### Gate Placement Object (v9.2)
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `after_wave` | number | Yes | Wave number after which gate triggers |
+| `label` | string | Yes | Human-readable gate description |
+| `model` | string | No | Per-gate model override (pause, conditional, skip-on-pass) |
 
 ### Slicing Object
 
@@ -403,6 +453,60 @@ v8.3 PRDs without orchestration_version are treated as v1 (legacy):
 }
 ```
 
+### With Gate Model (v9.2)
+
+```json
+{
+  "configured_at": "2026-04-26T10:00:00Z",
+  "orchestration_version": 2,
+  "orchestration": {
+    "integration": {
+      "cadence": "wave"
+    },
+    "review": {
+      "trigger": "per-wave",
+      "scope": "wave-diff"
+    },
+    "gates": {
+      "model": "conditional",
+      "auto_place": true,
+      "max_waves_per_gate": 8,
+      "conditions": {
+        "require_tests_pass": true,
+        "require_build_pass": true,
+        "max_critical_findings": 0
+      },
+      "placements": [
+        { "after_wave": 3, "label": "Review core implementation" },
+        { "after_wave": 6, "label": "Validate integration", "model": "pause" }
+      ]
+    }
+  }
+}
+```
+
+### Conditional Gates with Custom Thresholds (v9.2)
+
+```json
+{
+  "configured_at": "2026-04-26T10:00:00Z",
+  "orchestration_version": 2,
+  "orchestration": {
+    "gates": {
+      "model": "skip-on-pass",
+      "conditions": {
+        "require_tests_pass": true,
+        "require_build_pass": true,
+        "max_critical_findings": 2
+      },
+      "placements": [
+        { "after_wave": 4, "label": "Midpoint check", "model": "conditional" }
+      ]
+    }
+  }
+}
+```
+
 ---
 
 ## PM Agent Usage
@@ -487,6 +591,14 @@ The PM agent handles backward compatibility:
 - Missing `skip_if_diff_under` → defaults to `0` (never skip)
 - Missing `on_findings` → defaults to `"halt"`
 
+**v9.2 Gate Model Compatibility:**
+- Missing `orchestration.gates` → uses `slicing.gates` with `pause` model
+- `slicing.auto_pause_at_gates: true` → equivalent to `gates.model: pause`
+- `slicing.gates[]` → maps directly to `orchestration.gates.placements[]`
+- Missing `gates.model` → defaults to `"pause"`
+- Missing `gates.auto_place` → defaults to `false`
+- Missing `gates.conditions` → defaults to tests + build pass
+
 ### Upgrading Mid-Flight PRDs
 
 Users can upgrade existing PRDs:
@@ -544,4 +656,4 @@ No migration script needed — the PM agent reads what's available.
 
 ---
 
-*Generated by [KARIMO v9.1](https://github.com/opensesh/KARIMO)*
+*Generated by [KARIMO v9.2](https://github.com/opensesh/KARIMO)*
