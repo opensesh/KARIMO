@@ -1,6 +1,6 @@
 # Token Economics & Slicing Rationale
 
-**Version:** 9.7.0
+**Version:** 9.8.0
 **Purpose:** Document the token economics behind KARIMO's slicing and gate system
 
 ---

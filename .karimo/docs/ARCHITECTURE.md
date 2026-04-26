@@ -175,12 +175,18 @@ for task_id in all_tasks:
     else: status = "crashed"
   else:
     status = "pending"
+
+# v9.8: Reconcile active_worktrees from git state
+reconcile_active_worktrees "$prd_slug"
 ```
+
+**v9.8 Worktree Tracking:** The `active_worktrees` array in `status.json` is rebuilt from `git worktree list` during recovery. This provides live state of which worktrees exist, rather than relying on append-only tracking.
 
 **Why custom:** Claude Code doesn't maintain state about:
 - Which tasks were running when session ended
 - Whether PRs were created/merged/closed
 - How to resume partial execution
+- Which worktrees are currently active
 
 **Without this:** After a crash, you'd have to start over or manually inspect git state.
 
@@ -735,7 +741,7 @@ task-branch-1b ─┘         ▲                  ▲
 - `PRD_{slug}.md` — Full PRD document (slug-based naming for searchability)
 - `tasks.yaml` — Task definitions
 - `execution_plan.yaml` — Wave-based execution plan
-- `status.json` — Execution tracking (status: `ready` when approved)
+- `status.json` — Execution tracking (status: `ready` when approved, `active_worktrees` for live worktree state)
 - `findings.md` — Cross-task discoveries (populated during execution)
 
 ### Research Phase (`/karimo:research`)
@@ -1109,10 +1115,12 @@ Worktrees should not persist indefinitely. The PM Agent enforces:
 
 | Scenario | TTL | Action |
 |----------|-----|--------|
-| PR merged | Immediate | Remove worktree |
+| PR merged | Immediate | Remove worktree, delete branches, update `active_worktrees` |
 | PR closed (abandoned) | 24 hours | Remove worktree |
 | Stale worktree (no commits) | 7 days | Remove worktree |
 | Execution paused | 30 days | Remove worktree |
+
+**v9.8 Cleanup Improvements:** Cleanup now triggers immediately when merge is detected during `verify_wave_prs_merged()`, not just at wave completion or PM-Finalizer. Native Claude Code hooks remain as belt-and-suspenders backup.
 
 **Safe teardown sequence:**
 ```bash
