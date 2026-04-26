@@ -1,5 +1,5 @@
 {
-  "version": "9.7.2",
+  "version": "9.8.0",
   "deprecated": {
     "commands": [
       "karimo-modify.md",

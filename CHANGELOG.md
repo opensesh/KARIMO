@@ -7,6 +7,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [9.8.0] - 2026-04-26
+
+### Added
+
+- **`active_worktrees` Live State (v9.8)** — Framework-maintained array in status.json tracking active worktrees:
+  - Populated when PM creates worktree before spawning worker
+  - Removed when task PR merges (immediate cleanup)
+  - Reconciled from `git worktree list` on resume
+  - Replaces hand-rolled recovery conventions with formal live state
+
+- **PM Agent Worktree Functions:**
+  - `track_active_worktree()`: Add worktree to status.json on creation
+  - `untrack_active_worktree()`: Remove worktree from status.json on cleanup
+  - `reconcile_active_worktrees()`: Rebuild from git state on resume
+  - `cleanup_task_worktree()`: Full cleanup (worktree + branches + tracking)
+
+### Fixed
+
+- **Auto-cleanup Post-Merge** — Immediate cleanup when PR merge is detected, not just at wave boundaries:
+  - `verify_wave_prs_merged()` now calls `cleanup_task_worktree()` for each merged task
+  - Fixes gap where cleanup only ran at wave completion or PM-Finalizer
+  - Native hook cleanup remains belt-and-suspenders backup
+
+### Notes
+
+- **v8 Worktree Artifacts** — PRDs that started under v8.x may have sibling worktrees outside `.karimo/.worktrees/`. These are one-time artifacts from the v8→v9 transition. Safe to clean up manually at the next gate; v9.8 does not auto-migrate them.
+
+---
+
 ## [9.7.2] - 2026-04-26
 
 ### Fixed

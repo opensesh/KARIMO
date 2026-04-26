@@ -1,7 +1,7 @@
 # Status Schema Reference
 
-**Version:** 9.7.0
-**Purpose:** Document the `status.json` format used by KARIMO v9.7
+**Version:** 9.8.0
+**Purpose:** Document the `status.json` format used by KARIMO v9.8
 **Location:** `.karimo/prds/{slug}/status.json`
 
 ---
@@ -13,6 +13,11 @@ Each PRD folder contains a `status.json` file that tracks execution state. This 
 - Updated continuously by the PM agent during execution
 - Read by `/karimo:run` for resume scenarios
 - Read by `/karimo:status` to display progress
+
+**v9.8 Changes:**
+- Added: `active_worktrees` array for live worktree state tracking
+- Changed: Immediate cleanup on PR merge detection (auto-cleanup fix)
+- Changed: Worktree state reconciled from git on resume
 
 **v9.5 Changes:**
 - Added: `recalibrations` array for mid-PRD inference tracking
@@ -69,6 +74,15 @@ Each PRD folder contains a `status.json` file that tracks execution state. This 
     "1": { "status": "complete" },
     "2": { "status": "running" }
   },
+
+  "active_worktrees": [
+    {
+      "task_id": "2a",
+      "path": ".karimo/.worktrees/user-profiles/2a",
+      "branch": "worktree/user-profiles-2a",
+      "created_at": "2026-02-19T11:00:00Z"
+    }
+  ],
 
   "tasks": {
     "1a": {
@@ -228,6 +242,45 @@ Each PRD folder contains a `status.json` file that tracks execution state. This 
 | `gates_passed` | array | List of wave numbers where gates were completed (v8.3+) |
 | `gate_history` | array | Detailed gate outcomes with condition evaluations (v9.7+) |
 | `recalibrations` | array | Mid-PRD orchestration changes (v9.5+) |
+| `active_worktrees` | array | Live worktree state, derived from git (v9.8+) |
+
+### Active Worktrees (v9.8+)
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `active_worktrees` | array | Currently active worktrees for this PRD |
+| `active_worktrees[].task_id` | string | Task ID the worktree belongs to |
+| `active_worktrees[].path` | string | Filesystem path to worktree (e.g., `.karimo/.worktrees/slug/1a`) |
+| `active_worktrees[].branch` | string | Git branch name (e.g., `worktree/slug-1a`) |
+| `active_worktrees[].created_at` | ISO datetime | When worktree was created |
+| `active_worktrees[].reconciled_at` | ISO datetime | When entry was reconciled from git state (resume only) |
+
+**Lifecycle:**
+- **Created:** When task spawns (PM creates worktree before worker)
+- **Removed:** When task PR merges (immediate cleanup on merge detection)
+- **Reconciled:** On resume, rebuilt from `git worktree list` filtered to PRD branches
+
+**Example (active execution):**
+```json
+{
+  "active_worktrees": [
+    {
+      "task_id": "7b",
+      "path": ".karimo/.worktrees/user-profiles/7b",
+      "branch": "worktree/user-profiles-7b",
+      "created_at": "2026-02-19T14:00:00Z"
+    },
+    {
+      "task_id": "7c",
+      "path": ".karimo/.worktrees/user-profiles/7c",
+      "branch": "worktree/user-profiles-7c",
+      "created_at": "2026-02-19T14:01:00Z"
+    }
+  ]
+}
+```
+
+**Note:** This field is live state, not append-only. Entries are removed when worktrees are cleaned up. Empty array `[]` indicates no active worktrees.
 
 ### Gate Tracking Fields (v8.3+)
 

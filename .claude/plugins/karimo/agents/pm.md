@@ -1174,6 +1174,9 @@ for task_id in $(get_all_task_ids); do
 
   update_task_status "$task_id" "$derived_status"
 done
+
+# v9.8: Reconcile active_worktrees from git state
+reconcile_active_worktrees "$prd_slug"
 ```
 
 **Reconciliation Rules:**
@@ -1273,7 +1276,111 @@ create_task_worktree() {
     echo "  ✓ Worktree created with new branch from $base_branch"
   fi
 
+  # Track in active_worktrees
+  track_active_worktree "$prd_slug" "$task_id" "$worktree_path" "$branch_name"
+
   echo "$worktree_path"
+}
+
+# Cleanup worktree and branch after PR merge (v9.8)
+cleanup_task_worktree() {
+  local prd_slug="$1"
+  local task_id="$2"
+  local status_file="${prd_path}/status.json"
+
+  local worktree_path=".karimo/.worktrees/${prd_slug}/${task_id}"
+  local branch_name="worktree/${prd_slug}-${task_id}"
+
+  echo "Cleaning up task ${task_id}..."
+
+  # Remove worktree directory
+  if [ -d "$worktree_path" ]; then
+    if git worktree remove "$worktree_path" --force 2>/dev/null; then
+      echo "  ✓ Worktree removed: $worktree_path"
+    else
+      # Fallback: remove directory if git worktree fails
+      rm -rf "$worktree_path" 2>/dev/null
+      echo "  ✓ Worktree directory removed (fallback)"
+    fi
+  fi
+
+  # Prune stale references
+  git worktree prune
+
+  # Delete local branch
+  if git show-ref --verify --quiet "refs/heads/$branch_name" 2>/dev/null; then
+    git branch -D "$branch_name" 2>/dev/null && echo "  ✓ Local branch deleted: $branch_name"
+  fi
+
+  # Delete remote branch
+  if git ls-remote --heads origin "$branch_name" 2>/dev/null | grep -q "$branch_name"; then
+    git push origin --delete "$branch_name" 2>/dev/null && echo "  ✓ Remote branch deleted: $branch_name"
+  fi
+
+  # Untrack from active_worktrees
+  untrack_active_worktree "$task_id"
+
+  # Remove PRD worktree parent if empty
+  rmdir ".karimo/.worktrees/${prd_slug}" 2>/dev/null || true
+}
+
+# Track worktree in status.json active_worktrees (v9.8)
+track_active_worktree() {
+  local prd_slug="$1"
+  local task_id="$2"
+  local worktree_path="$3"
+  local branch_name="$4"
+  local status_file="${prd_path}/status.json"
+
+  jq --arg tid "$task_id" --arg path "$worktree_path" --arg branch "$branch_name" \
+    '.active_worktrees = ((.active_worktrees // []) | map(select(.task_id != $tid))) + [{
+      "task_id": $tid,
+      "path": $path,
+      "branch": $branch,
+      "created_at": (now | todate)
+    }]' "$status_file" > "${status_file}.tmp" && mv "${status_file}.tmp" "$status_file"
+}
+
+# Remove worktree from status.json active_worktrees (v9.8)
+untrack_active_worktree() {
+  local task_id="$1"
+  local status_file="${prd_path}/status.json"
+
+  jq --arg tid "$task_id" \
+    '.active_worktrees = ((.active_worktrees // []) | map(select(.task_id != $tid)))' \
+    "$status_file" > "${status_file}.tmp" && mv "${status_file}.tmp" "$status_file"
+}
+
+# Reconcile active_worktrees from git state on resume (v9.8)
+reconcile_active_worktrees() {
+  local prd_slug="$1"
+  local status_file="${prd_path}/status.json"
+
+  echo "Reconciling active_worktrees from git state..."
+
+  # Get actual worktrees from git
+  local actual_worktrees=$(git worktree list --porcelain | grep -E "^worktree.*\.karimo/\.worktrees/${prd_slug}/" | sed 's/^worktree //' || true)
+
+  # Reset active_worktrees array
+  jq '.active_worktrees = []' "$status_file" > "${status_file}.tmp" && mv "${status_file}.tmp" "$status_file"
+
+  # Rebuild from actual git state
+  for wt_path in $actual_worktrees; do
+    [ -d "$wt_path" ] || continue
+    local task_id=$(basename "$wt_path")
+    local branch_name="worktree/${prd_slug}-${task_id}"
+
+    # Verify it's a valid worktree with our branch
+    if git -C "$wt_path" rev-parse --abbrev-ref HEAD 2>/dev/null | grep -q "$branch_name"; then
+      jq --arg tid "$task_id" --arg path "$wt_path" --arg branch "$branch_name" \
+        '.active_worktrees += [{"task_id": $tid, "path": $path, "branch": $branch, "reconciled_at": (now | todate)}]' \
+        "$status_file" > "${status_file}.tmp" && mv "${status_file}.tmp" "$status_file"
+      echo "  ✓ Tracked: $task_id at $wt_path"
+    fi
+  done
+
+  local count=$(jq '.active_worktrees | length' "$status_file")
+  echo "  ✓ Reconciled $count active worktrees"
 }
 ```
 
@@ -1992,30 +2099,48 @@ wait_for_pr_merge() {
 }
 
 # Verify all wave task PRs are merged (for feature cadence)
+# v9.8: Also triggers immediate cleanup for each merged task
 verify_wave_prs_merged() {
   local wave_number="$1"
+  local prd_slug="$2"
 
   local wave_tasks=$(jq -r --arg wave "$wave_number" \
     '.tasks | to_entries[] | select(.value.wave == ($wave | tonumber)) | .key' \
     "$status_file")
+
+  local all_merged=true
+  local merged_tasks=""
 
   for task_id in $wave_tasks; do
     local pr_number=$(jq -r --arg tid "$task_id" '.tasks[$tid].pr_number // empty' "$status_file")
 
     if [ -z "$pr_number" ]; then
       echo "  ✗ Task $task_id has no PR"
-      return 1
+      all_merged=false
+      continue
     fi
 
     local merged_at=$(gh pr view "$pr_number" --json mergedAt --jq '.mergedAt' 2>/dev/null)
     if [ -z "$merged_at" ] || [ "$merged_at" = "null" ]; then
       echo "  ✗ Task $task_id PR #$pr_number not merged"
-      return 1
+      all_merged=false
+    else
+      # v9.8: Immediate cleanup on merge detection
+      merged_tasks="${merged_tasks} ${task_id}"
     fi
   done
 
-  echo "  ✓ All wave $wave_number task PRs merged"
-  return 0
+  # Clean up merged tasks immediately (v9.8)
+  for task_id in $merged_tasks; do
+    cleanup_task_worktree "$prd_slug" "$task_id"
+  done
+
+  if [ "$all_merged" = true ]; then
+    echo "  ✓ All wave $wave_number task PRs merged"
+    return 0
+  else
+    return 1
+  fi
 }
 
 # Merge wave tasks to feature (for worktree cadence - default behavior)
