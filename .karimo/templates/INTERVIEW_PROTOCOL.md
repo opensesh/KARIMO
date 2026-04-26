@@ -260,7 +260,97 @@ Goals, requirements, and UX notes completed.
 Co-Authored-By: Claude <noreply@anthropic.com>"
 ```
 
-3. **Transition to Round 3**
+3. **Transition to Round 2.5**
+
+---
+
+## Round 2.5: Complexity Assessment (Auto-Generated)
+
+**Purpose:** Surface complexity metrics, slicing recommendations, and model distribution before defining dependencies.
+
+After capturing requirements and before defining dependencies, the interviewer auto-generates a complexity assessment:
+
+### Assessment Display
+
+```
+╭──────────────────────────────────────────────────────────────╮
+│  Complexity Assessment                                       │
+╰──────────────────────────────────────────────────────────────╯
+
+Tasks: {task_count}
+Total complexity: {total_points} points
+
+Distribution:
+  Sonnet (1-4): {sonnet_count} tasks
+  Opus (5-10): {opus_count} tasks
+  High-risk (7+): {high_risk_count} tasks
+
+{slicing_recommendation}
+
+Proceed to Dependencies? [Y] or discuss slicing [S]
+```
+
+### Slicing Recommendation Logic
+
+**Auto-propose gates when ANY of:**
+- ≥15 tasks
+- ≥8 waves
+- total_complexity ≥100 points
+- Touches `require_review` paths from config.yaml
+
+**Slicing thresholds (complexity-based):**
+
+| Total Points | Recommendation |
+|--------------|----------------|
+| <100 | "No slicing needed" (unless task/wave triggers) |
+| 100-200 | "Consider 2 slices with 1 gate" |
+| 200-300 | "Recommend 3 slices with 2 gates" |
+| 300+ | "Strong recommendation: 4+ slices" |
+
+### Gate Boundary Heuristic
+
+Tasks producing human decisions (audits, baselines, classifications — artifacts humans interpret) are gate-boundary candidates. The interviewer identifies these by looking for:
+
+- Tasks with "audit", "review", "baseline", or "classify" in the title
+- Tasks that output artifacts requiring human interpretation
+- Tasks that inform subsequent architectural decisions
+
+### Slicing Discussion (if user chooses [S])
+
+If user selects "discuss slicing":
+
+1. Present proposed slice boundaries:
+   ```
+   Proposed Slices:
+     Slice 1: Waves 1-3 (tasks: 1a-2b) — Foundation
+       Gate 1: After wave 3 — "Review baseline metrics"
+     Slice 2: Waves 4-6 (tasks: 3a-4b) — Core features
+       Gate 2: After wave 6 — "Validate core functionality"
+     Slice 3: Waves 7-8 (tasks: 5a-5c) — Integration
+   ```
+
+2. Allow user to adjust:
+   - Move gate boundaries
+   - Add/remove gates
+   - Name gates for clarity
+
+3. Capture final slicing decision in PRD metadata
+
+### Data Captured
+
+- `complexity_assessment.total_tasks`
+- `complexity_assessment.total_points`
+- `complexity_assessment.sonnet_count`
+- `complexity_assessment.opus_count`
+- `complexity_assessment.high_risk_count`
+- `complexity_assessment.slicing_recommended`
+- `complexity_assessment.slices[]` (if configured)
+
+### Round Completion
+
+After Round 2.5:
+- Confirm slicing decision (or "no slicing")
+- Transition to Round 3 (Dependencies)
 
 ---
 
@@ -310,11 +400,41 @@ Results populate `tasks[].files_affected` and `tasks[].agent_context`.
 - `tasks[].depends_on`
 - `tasks[].files_affected`
 
+### Model Override (Optional)
+
+After dependencies are captured, offer model override:
+
+```
+╭──────────────────────────────────────────────────────────────╮
+│  Model Override (Optional)                                   │
+╰──────────────────────────────────────────────────────────────╯
+
+Current assignments (from complexity):
+  Sonnet: [1a], [1b], [1c]
+  Opus: [2a], [3a]
+
+Override any? [Y/n]
+```
+
+If user accepts override:
+1. Present each task with current model
+2. Allow forcing Opus for Sonnet tasks
+3. Allow forcing Sonnet for Opus tasks (cost savings)
+4. Capture overrides in task metadata
+
+**Override Capture Format:**
+```yaml
+model_override:
+  force_opus: ["1a", "1c"]  # Override Sonnet → Opus
+  force_sonnet: ["3a"]       # Override Opus → Sonnet
+```
+
 ### Round Completion
 
 After Round 3:
 - Present the dependency graph in text form
 - Flag file overlaps
+- Note any model overrides
 - Confirm: "Does this ordering make sense?"
 
 ### Save and Commit
