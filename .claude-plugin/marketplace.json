@@ -7,14 +7,14 @@
   },
   "metadata": {
     "description": "Autonomous development methodology: PRD interviews → agent execution → automated review",
-    "version": "8.2.1"
+    "version": "9.8.0"
   },
   "plugins": [
     {
       "name": "karimo",
       "source": "./.claude/plugins/karimo",
       "description": "Autonomous development methodology for Claude Code",
-      "version": "8.2.1",
+      "version": "9.8.0",
       "category": "development-workflows",
       "author": {
         "name": "Open Session",

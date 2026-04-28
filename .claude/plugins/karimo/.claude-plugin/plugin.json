@@ -1,6 +1,6 @@
 {
   "name": "karimo",
-  "version": "8.2.1",
+  "version": "9.8.0",
   "description": "Autonomous development methodology: PRD interviews → agent execution → automated review",
   "author": {
     "name": "Open Session",
