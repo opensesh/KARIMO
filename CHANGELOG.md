@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [9.9.0] - 2026-04-28
+
+### Fixed
+
+- **`update.sh` silent exit on equal versions** — Added `|| true` to `semver_compare` call to prevent `set -e` from treating the return code (1 = equal) as a failure. Users now see "You're on the latest version!" instead of the script exiting silently with code 1.
+
+- **Stale version in plugin metadata** — Synced `plugin.json` and `marketplace.json` from 8.2.1 to 9.8.0 (now 9.9.0). These files were causing Claude to report the wrong version after updates.
+
+- **Hardcoded version in pm-finalizer metrics** — Changed `metrics.json` version field from hardcoded "7.19" to dynamically read from `.karimo/VERSION`.
+
+### Changed
+
+- **`release.sh` now updates all version files** — The release script now atomically updates:
+  - `.karimo/VERSION`
+  - `.karimo/MANIFEST.json`
+  - `.claude/plugins/karimo/.claude-plugin/plugin.json`
+  - `.claude-plugin/marketplace.json`
+
+  This prevents version drift between files.
+
+---
+
 ## [9.8.0] - 2026-04-26
 
 ### Added
