@@ -193,6 +193,8 @@ echo -e "${BLUE}Updating version files...${NC}"
 if [ "$DRY_RUN" = true ]; then
     echo -e "${DIM}  Would update .karimo/VERSION to $VERSION${NC}"
     echo -e "${DIM}  Would update .karimo/MANIFEST.json version to $VERSION${NC}"
+    echo -e "${DIM}  Would update plugin.json version to $VERSION${NC}"
+    echo -e "${DIM}  Would update marketplace.json version to $VERSION${NC}"
 else
     # Update VERSION file
     echo "$VERSION" > "$PROJECT_ROOT/.karimo/VERSION"
@@ -201,6 +203,16 @@ else
     # Update MANIFEST.json
     sed -i '' "s/\"version\": \"[^\"]*\"/\"version\": \"$VERSION\"/" "$PROJECT_ROOT/.karimo/MANIFEST.json"
     echo -e "${GREEN}✓${NC} Updated .karimo/MANIFEST.json"
+
+    # Update plugin.json
+    sed -i '' "s/\"version\": \"[^\"]*\"/\"version\": \"$VERSION\"/" \
+        "$PROJECT_ROOT/.claude/plugins/karimo/.claude-plugin/plugin.json"
+    echo -e "${GREEN}✓${NC} Updated plugin.json"
+
+    # Update marketplace.json (both occurrences)
+    sed -i '' "s/\"version\": \"[^\"]*\"/\"version\": \"$VERSION\"/g" \
+        "$PROJECT_ROOT/.claude-plugin/marketplace.json"
+    echo -e "${GREEN}✓${NC} Updated marketplace.json"
 fi
 
 # ==============================================================================
@@ -213,7 +225,9 @@ echo -e "${BLUE}Committing version changes...${NC}"
 if [ "$DRY_RUN" = true ]; then
     echo -e "${DIM}  Would commit: chore(release): bump version to $VERSION${NC}"
 else
-    git add "$PROJECT_ROOT/.karimo/VERSION" "$PROJECT_ROOT/.karimo/MANIFEST.json"
+    git add "$PROJECT_ROOT/.karimo/VERSION" "$PROJECT_ROOT/.karimo/MANIFEST.json" \
+        "$PROJECT_ROOT/.claude/plugins/karimo/.claude-plugin/plugin.json" \
+        "$PROJECT_ROOT/.claude-plugin/marketplace.json"
 
     # Check if changelog was modified
     if git diff --cached --name-only | grep -q "CHANGELOG.md"; then
