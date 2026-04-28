@@ -232,7 +232,7 @@ successful_tasks=$((total_tasks - failed_tasks))
 cat > "${prd_path}/metrics.json" << EOF
 {
   "prd_slug": "${prd_slug}",
-  "version": "7.19",
+  "version": "$(cat .karimo/VERSION | tr -d '[:space:]')",
   "execution_mode": "${execution_mode}",
   "generated_at": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
   "duration": {
