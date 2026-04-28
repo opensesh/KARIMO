@@ -376,7 +376,9 @@ echo
 # VERSION COMPARISON
 # ==============================================================================
 
-semver_compare "$LATEST_VERSION" "$CURRENT_VERSION"
+# Note: || true prevents set -e from treating non-zero returns as failures
+# semver_compare returns: 0 = first > second, 1 = equal, 2 = first < second
+semver_compare "$LATEST_VERSION" "$CURRENT_VERSION" || true
 COMPARE_RESULT=$?
 
 if [ $COMPARE_RESULT -eq 1 ]; then
