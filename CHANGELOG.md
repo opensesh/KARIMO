@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [9.9.1] - 2026-04-28
+
+### Fixed
+
+- **`update.sh` semver_compare regression** — The v9.9.0 fix using `|| true` was incorrect (resets `$?` to 0, causing "Update available" to always display). Now uses `set +e` / `set -e` to properly capture the return code.
+
+---
+
 ## [9.9.0] - 2026-04-28
 
 ### Fixed
