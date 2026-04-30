@@ -36,7 +36,7 @@ Want to see exactly how KARIMO works? Check out the [interactive demo](https://k
       │            │           │              │                 │              │
       └────────────┘           └──────────────┘                 └──────────────┘
           Loop 1                    Loop 2                           Loop 3
-          Human                     Claude                        Configurable
+        Foundation               Decomposition                    Orchestration
 ```
 
 | Step | What Happens |
