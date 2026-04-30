@@ -11,7 +11,7 @@
 [![Version](https://img.shields.io/badge/version-v9.9.1-blue)]()
 [![Claude Code](https://img.shields.io/badge/Claude%20Code-Plugin-blueviolet.svg)]()
 
-**PRD-driven autonomous development for Claude Code.**
+**PRD-driven autonomous agent orchestration harness plug-in for Claude Code.**
 
 > You are the architect, agents are the builders.
 
