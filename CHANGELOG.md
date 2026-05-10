@@ -7,6 +7,60 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [9.10.1] - 2026-05-09
+
+### Fixed
+
+- **Wave-cadence worktree cleanup** — Worktrees now cleaned up after wave PR merges (was deferred to pm-finalizer):
+  - `wave` cadence now calls `cleanup_wave_tasks()` after `wait_for_pr_merge()`
+  - `worktree` cadence now calls `cleanup_wave_tasks()` in `merge_wave_to_feature()`
+  - Previously, only `feature` cadence had cleanup callsites
+
+- **Eventual-consistency reaper** — Added `cleanup_orphaned_worktrees()` that runs on PM startup:
+  - Catches worktrees missed due to crashes or interruptions
+  - Checks each worktree's PR status and cleans merged ones
+  - Called during state reconciliation after `reconcile_active_worktrees()`
+
+- **False hook documentation** — Removed claims about native Claude Code hooks handling cleanup:
+  - `WorktreeRemove`, `SubagentStop`, `SessionEnd` hooks were never configured
+  - These may not be valid Claude Code hook types
+  - Documentation now reflects actual three-tier cleanup architecture
+
+### Added
+
+- **`/karimo:doctor --fix`** — New flag to clean orphaned worktrees:
+  - Sources cleanup library from `.karimo/scripts/lib/cleanup.sh`
+  - Runs `cleanup_all_prd_orphans()` to clean merged task worktrees across all PRDs
+  - Runs `cleanup_stale_branches()` to clean ghost branches
+  - Reports all cleanup actions to stdout
+
+- **Cleanup library** — Extracted cleanup functions into `.karimo/scripts/lib/cleanup.sh`:
+  - `cleanup_task_worktree()` — Clean single task worktree and branches
+  - `cleanup_wave_tasks()` — Clean all task worktrees for a wave
+  - `cleanup_orphaned_worktrees()` — Clean orphans for a single PRD
+  - `cleanup_all_prd_orphans()` — Clean orphans across all PRDs
+  - `cleanup_stale_branches()` — Clean ghost branches without worktrees
+
+- **Bats test suite** — Added `.karimo/tests/cleanup.bats` with 20 tests for cleanup functions
+
+### Changed
+
+- **PM Agent cleanup behavior:**
+  - `merge_wave_to_feature()` now actually cleans up task worktrees (was NO-OP)
+  - State reconciliation now runs `cleanup_orphaned_worktrees()` after reconciliation
+  - Wave Cleanup section in pm.md now documents per-cadence behavior
+
+- **Documentation updates:**
+  - `ARCHITECTURE.md` — Added Cleanup Architecture section, marked Hooks feature as deprecated
+  - `SAFEGUARDS.md` — Replaced hook claims with three-tier cleanup system documentation
+  - `pm-finalizer.md` — Updated Step 2 to remove hook claims, now "Final Cleanup Verification"
+
+### For users on 9.10.x or earlier
+
+Run `/karimo:doctor --fix` after upgrading to reclaim leaked worktrees from prior runs.
+
+---
+
 ## [9.10.0] - 2026-05-09
 
 ### Added
