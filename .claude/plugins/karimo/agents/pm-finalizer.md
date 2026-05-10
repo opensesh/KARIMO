@@ -93,17 +93,19 @@ echo "✓ All task PRs merged"
 
 ---
 
-### Step 2: Discovery-Based Cleanup (Simplified)
+### Step 2: Final Cleanup Verification (v9.10.1)
 
-Verify cleanup status and catch any resources missed by native hooks or kill signals. **Primary cleanup is handled by Claude Code native hooks** configured in `.claude/settings.json`:
+Verify cleanup is complete and catch any resources missed during wave completion.
 
-- `WorktreeRemove` hook deletes local + remote branches when worktrees are removed
-- `SubagentStop` hook prunes stale worktree references when workers finish
-- `SessionEnd` hook cleans orphaned branches on session termination
+**Cleanup is handled by:**
 
-**Kill-Hook Cleanup:** If PM is terminated via SIGTERM (Ctrl+C, process kill), the finalizer may not run. Native hooks still fire, but worktree directories may remain. The PM startup validation catches this on next run.
+1. **Wave-level cleanup** — PM Agent's `cleanup_wave_tasks()` runs after each wave completes
+2. **Startup reaper** — PM Agent's `cleanup_orphaned_worktrees()` runs on resume to catch interrupted sessions
+3. **Finalizer verification** — This step catches any edge cases missed by the above
 
-This step runs as a **belt-and-suspenders verification**:
+**Kill Recovery:** If PM is terminated (Ctrl+C, crash), worktrees may remain. The PM startup validation catches this on next run via `cleanup_orphaned_worktrees()`.
+
+This step runs as a **final verification**:
 
 ```bash
 echo "Verifying cleanup for ${prd_slug}..."
@@ -116,30 +118,30 @@ stale_branches_found=0
 git worktree prune
 echo "  Pruned stale worktree references"
 
-# Verify task branches were cleaned by native hooks (catch any missed)
+# Verify task branches were cleaned by wave completion (catch any missed)
 for task_id in ${TASKS_COMPLETED}; do
   branch="worktree/${prd_slug}-${task_id}"
   worktree_path=".karimo/.worktrees/${prd_slug}/${task_id}"
 
-  # Check if native hooks missed the remote branch
+  # Check for stale remote branch
   if git ls-remote --heads origin "$branch" 2>/dev/null | grep -q "$branch"; then
-    echo "  Note: Native hook missed remote $branch, cleaning now"
+    echo "  Note: Stale remote branch $branch, cleaning now"
     if git push origin --delete "$branch" 2>/dev/null; then
       branches_deleted=$((branches_deleted + 1))
     fi
   fi
 
-  # Check if native hooks missed the local branch
+  # Check for stale local branch
   if git show-ref --verify --quiet "refs/heads/$branch" 2>/dev/null; then
-    echo "  Note: Native hook missed local $branch, cleaning now"
+    echo "  Note: Stale local branch $branch, cleaning now"
     if git branch -D "$branch" 2>/dev/null; then
       branches_deleted=$((branches_deleted + 1))
     fi
   fi
 
-  # Check if worktree still exists at standard KARIMO path
+  # Check if worktree still exists
   if [ -d "$worktree_path" ]; then
-    echo "  Note: Worktree still exists: $worktree_path, cleaning now"
+    echo "  Note: Stale worktree $worktree_path, cleaning now"
     if git worktree remove "$worktree_path" --force 2>/dev/null; then
       worktrees_removed=$((worktrees_removed + 1))
     else
