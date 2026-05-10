@@ -1,6 +1,6 @@
 # KARIMO Architecture
 
-**Version:** 9.9.1
+**Version:** 9.10.1
 **Status:** Active
 
 ---
@@ -32,7 +32,7 @@ These features use Claude Code's built-in capabilities with no custom logic:
 | **1** | Worktree Isolation | `isolation: worktree` in agent frontmatter | Each task gets isolated git worktree, preventing file conflicts |
 | **2** | Sub-Agents | Task tool spawning | PM Agent spawns worker agents (implementer, tester, documenter) |
 | **3** | Skills | `skills:` in agent frontmatter | Agents inherit code/testing/doc standards automatically |
-| **4** | Hooks | Native hook events in `.claude/settings.json` | `WorktreeRemove`, `SubagentStop`, `SessionEnd` trigger cleanup scripts |
+| **4** | ~~Hooks~~ | ~~Native hook events~~ | **Deprecated in v9.10.1** — Cleanup now handled by PM Agent (see Cleanup Architecture below) |
 | **5** | Commands | `.claude/commands/*.md` files | All `/karimo:*` commands are standard Claude Code command files |
 
 These work without KARIMO — we simply configure them correctly.
@@ -235,6 +235,51 @@ orchestration:
 **Without this:** All PRDs would use the same hardcoded worktree flow, regardless of size or review needs.
 
 **Full documentation:** [ORCHESTRATION.md](ORCHESTRATION.md)
+
+---
+
+### Cleanup Architecture (v9.10.1)
+
+**Location:** `pm.md`, `pm-finalizer.md`, `.karimo/scripts/lib/cleanup.sh`
+
+KARIMO uses a three-tier cleanup system to ensure worktrees and branches are removed after PRs merge:
+
+| Tier | Component | When | What It Cleans |
+|------|-----------|------|----------------|
+| **1** | Wave Completion | After each wave | `cleanup_wave_tasks()` removes merged task worktrees |
+| **2** | Startup Reaper | PM Agent resume | `cleanup_orphaned_worktrees()` catches interrupted sessions |
+| **3** | Finalizer | PRD completion | Final verification and edge case handling |
+
+**Cleanup functions:**
+
+```bash
+# Clean single task worktree and branches
+cleanup_task_worktree "$prd_slug" "$task_id"
+
+# Clean all merged task worktrees for a wave
+cleanup_wave_tasks "$wave_number"
+
+# Clean orphans from prior runs (startup reaper)
+cleanup_orphaned_worktrees "$prd_slug"
+```
+
+**Per-cadence behavior:**
+
+| Cadence | Cleanup Callsite |
+|---------|------------------|
+| `worktree` | `merge_wave_to_feature()` → `cleanup_wave_tasks()` |
+| `wave` | After `wait_for_pr_merge()` → `cleanup_wave_tasks()` |
+| `feature` | `verify_wave_prs_merged()` → `cleanup_task_worktree()` per task |
+
+**Manual cleanup:** Run `/karimo:doctor --fix` to clean orphaned worktrees from interrupted sessions or pre-9.10.1 upgrades.
+
+**Why custom:** Claude Code provides `isolation: worktree` but doesn't:
+- Remove worktrees after PR merge
+- Clean up remote branches
+- Track which worktrees are active
+- Recover from interrupted cleanup
+
+**Without this:** Worktrees would accumulate indefinitely, consuming disk space and creating git conflicts.
 
 ---
 
