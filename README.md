@@ -232,4 +232,4 @@ See [CONTRIBUTING.md](CONTRIBUTING.md)
 
 ---
 
-*Built with Claude Code by [Open Session](https://opensession.co)*
+*Built with Claude Code by [open session](https://opensession.co)*
